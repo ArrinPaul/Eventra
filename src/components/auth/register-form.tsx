@@ -54,7 +54,7 @@ const organizerSchema = baseSchema.extend({
   role: z.literal('organizer'),
   company: z.string().min(2, { message: 'Organization Name is required.' }),
   designation: z.string().min(2, { message: 'Position is required.' }),
-  verificationCode: z.string().refine(val => val === "IPX2024", { message: "Invalid verification code." }),
+  verificationCode: z.string().min(1, { message: "Verification code is required." }),
   interests: z.string().optional(),
   college: z.string().optional(),
   degree: z.string().optional(),
