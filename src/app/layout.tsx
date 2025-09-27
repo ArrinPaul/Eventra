@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { Providers } from '@/components/providers';
 import { Toaster } from '@/components/ui/toaster';
+import FloatingAiChat from '@/components/chat/floating-ai-chat';
 
 export const metadata: Metadata = {
   title: 'IPX Hub',
@@ -24,6 +25,7 @@ export default function RootLayout({
         <Providers>
           {children}
           <Toaster />
+          <FloatingAiChat />
         </Providers>
       </body>
     </html>
