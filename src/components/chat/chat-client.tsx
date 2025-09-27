@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Send, Smile, Bot, Sparkles, Loader2, BrainCircuit } from 'lucide-react';
+import { Send, Smile, Bot, Sparkles, Loader2, BrainCircuit, MessageSquare } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -162,6 +162,7 @@ export default function ChatClient() {
               const isPrivate = !!msg.to;
               const isQuery = !!msg.isQuery;
               const isAssistant = msg.user.id === 'bot-2';
+              const isOrganizer = msg.user.role === 'organizer';
 
               return (
                 <div key={msg.id} className={cn('flex items-start gap-3', isMe ? 'justify-end' : 'justify-start')}>
@@ -171,14 +172,21 @@ export default function ChatClient() {
                     </Avatar>
                   )}
                   <div className={cn(
-                    'max-w-xs md:max-w-md p-3 rounded-lg', 
+                    'max-w-xs md:max-w-md p-3 rounded-lg flex flex-col', 
                     isMe ? 'bg-primary text-primary-foreground' : 'bg-muted',
                     isPrivate ? 'border-l-4 border-accent' : '',
                     isQuery ? 'bg-blue-50 dark:bg-blue-900/20 italic' : '',
                     isAssistant ? 'bg-green-100 dark:bg-green-900/30 border-l-4 border-green-500' : 
                     isBot ? 'bg-blue-100 dark:bg-blue-900/30 border-l-4 border-primary' : ''
                   )}>
-                    {!isMe && <p className="font-bold text-sm mb-1">{msg.user.name}</p>}
+                    <div className="flex items-center justify-between gap-4">
+                        {!isMe && <p className="font-bold text-sm mb-1">{msg.user.name}</p>}
+                        {!isMe && isOrganizer && !isBot && (
+                            <Button variant="ghost" size="sm" className="h-auto px-1 py-0" onClick={() => setPrivateTo(msg.user.id)}>
+                                <MessageSquare className="h-4 w-4 text-muted-foreground"/>
+                            </Button>
+                        )}
+                    </div>
                     <p className="text-sm">{msg.content}</p>
                     {isPrivate && (
                         <p className="text-xs mt-2 opacity-70 italic">
@@ -204,7 +212,7 @@ export default function ChatClient() {
           </div>
         </ScrollArea>
         <div className="p-4 border-t bg-background flex items-center gap-2">
-            <Select onValueChange={setPrivateTo} defaultValue="all" disabled={isLoading}>
+            <Select onValueChange={setPrivateTo} value={privateTo} disabled={isLoading}>
                 <SelectTrigger className="w-[180px]">
                     <SelectValue placeholder="Send to: Everyone" />
                 </SelectTrigger>
@@ -238,7 +246,7 @@ export default function ChatClient() {
                     </PopoverContent>
                 </Popover>
             </div>
-            <Button onClick={handleSendMessage} disabled={isLoading || privateTo !== 'all'}><Send className="h-4 w-4" /></Button>
+            <Button onClick={handleSendMessage} disabled={isLoading}><Send className="h-4 w-4" /></Button>
             <Button onClick={handleAiAssistant} disabled={isLoading} variant="outline" className="interactive-element">
                 {aiAssistantLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <BrainCircuit className="h-4 w-4" />}
                 <span className="hidden sm:inline ml-2">Ask AI</span>
