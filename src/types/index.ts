@@ -70,4 +70,5 @@ export interface ChatMessage {
   to?: string; // Organizer ID for private messages
   content: string;
   timestamp: number;
+  isQuery?: boolean; // True if the message is a query to the AI assistant
 }
