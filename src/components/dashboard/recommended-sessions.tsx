@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Loader2, Sparkles, Plus, Minus, Calendar } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import type { Session } from '@/types';
 
 type Recommendation = {
     id: string;
@@ -16,7 +17,7 @@ type Recommendation = {
 export default function RecommendedSessions() {
     const { user, addEventToUser, removeEventFromUser } = useAuth();
     const { toast } = useToast();
-    const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
+    const [recommendations, setRecommendations] = useState<Session[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -30,8 +31,13 @@ export default function RecommendedSessions() {
                     agenda: AGENDA_STRING,
                     myEvents: user.myEvents,
                 });
-                // Get top 3 recommendations
-                setRecommendations(result.recommendations.slice(0,3));
+                // Get top 3 recommendations and ensure they exist in SESSIONS
+                const validRecommendations = result.recommendations
+                    .map(rec => SESSIONS.find(s => s.id === rec.id))
+                    .filter((session): session is Session => !!session)
+                    .slice(0,3);
+
+                setRecommendations(validRecommendations);
             } catch (error) {
                 console.error("Failed to fetch recommendations:", error);
                 toast({
@@ -77,10 +83,8 @@ export default function RecommendedSessions() {
         }
     };
     
-    const getGoogleCalendarUrl = (session: {id: string, title: string}) => {
-        const sessionDetails = SESSIONS.find(s => s.id === session.id);
-        if (!sessionDetails) return '#';
-        const { title, description, time } = sessionDetails;
+    const getGoogleCalendarUrl = (session: Session) => {
+        const { title, description, time } = session;
         const startTime = time.split(' - ')[0].replace(':', '');
         const endTime = time.split(' - ')[1].replace(':', '').split(' ')[0];
         const date = `20241026T${startTime.padStart(4, '0')}00`;
@@ -101,18 +105,18 @@ export default function RecommendedSessions() {
                 <div className="space-y-3">
                     {recommendations.map(rec => {
                         const isAdded = user?.myEvents.includes(rec.id);
-                        const sessionDetails = SESSIONS.find(s => s.id === rec.id);
                         return (
                             <div key={rec.id} className="flex items-center justify-between p-4 bg-background rounded-lg shadow-sm">
                                 <div>
                                     <p className="font-medium text-sm">{rec.title}</p>
-                                    <p className="text-xs text-muted-foreground">{sessionDetails?.speaker} &middot; {sessionDetails?.track}</p>
+                                    <p className="text-xs text-muted-foreground">{rec.speaker} &middot; {rec.track}</p>
                                 </div>
                                 <div className='flex items-center gap-2'>
                                     <Button size="icon" variant="ghost" asChild className="h-8 w-8">
                                         <a href={getGoogleCalendarUrl(rec)} target="_blank" rel="noopener noreferrer">
                                             <Calendar className="h-4 w-4 text-muted-foreground" />
                                         </a>
+
                                     </Button>
                                     <Button size="icon" variant={isAdded ? 'secondary' : 'default'} className="h-8 w-8" onClick={() => handleToggleEvent(rec.id, rec.title, !!isAdded)}>
                                         {isAdded ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
