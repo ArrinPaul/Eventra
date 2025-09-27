@@ -147,10 +147,12 @@ export default function ChatClient() {
             <h1 className="text-4xl font-bold font-headline">Group Chat</h1>
             <p className="text-muted-foreground">Connect with attendees and organizers, or ask our AI for help.</p>
         </div>
-        <Button onClick={handleBotMessage} disabled={isLoading} variant="outline" className="interactive-element">
-            {botLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4 text-primary" />}
-            Get Session Alert
-        </Button>
+        {user.role === 'organizer' && (
+          <Button onClick={handleBotMessage} disabled={isLoading} variant="outline" className="interactive-element">
+              {botLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4 text-primary" />}
+              Send Session Alert
+          </Button>
+        )}
       </div>
       
       <div className="flex-1 flex flex-col border rounded-lg overflow-hidden">
@@ -158,7 +160,7 @@ export default function ChatClient() {
           <div className="space-y-4">
             {visibleMessages.map(msg => {
               const isMe = msg.user.id === user.id;
-              const isBot = msg.user.isBot;
+              const isBot = !!msg.user.isBot;
               const isPrivate = !!msg.to;
               const isQuery = !!msg.isQuery;
               const isAssistant = msg.user.id === 'bot-2';
@@ -174,16 +176,16 @@ export default function ChatClient() {
                   <div className={cn(
                     'max-w-xs md:max-w-md p-3 rounded-lg flex flex-col', 
                     isMe ? 'bg-primary text-primary-foreground' : 'bg-muted',
-                    isPrivate ? 'border-l-4 border-accent' : '',
+                    isPrivate ? 'border-l-4 border-blue-500' : '',
                     isQuery ? 'bg-blue-50 dark:bg-blue-900/20 italic' : '',
                     isAssistant ? 'bg-green-100 dark:bg-green-900/30 border-l-4 border-green-500' : 
-                    isBot ? 'bg-blue-100 dark:bg-blue-900/30 border-l-4 border-primary' : ''
+                    isBot ? 'bg-purple-100 dark:bg-purple-900/30 border-l-4 border-purple-500' : ''
                   )}>
-                    <div className="flex items-center justify-between gap-4">
-                        {!isMe && <p className="font-bold text-sm mb-1">{msg.user.name}</p>}
+                    <div className="flex items-center justify-between gap-4 mb-1">
+                        {!isMe && <p className="font-bold text-sm">{msg.user.name}</p>}
                         {!isMe && isOrganizer && !isBot && (
                             <Button variant="ghost" size="sm" className="h-auto px-1 py-0" onClick={() => setPrivateTo(msg.user.id)}>
-                                <MessageSquare className="h-4 w-4 text-muted-foreground"/>
+                                <MessageSquare className="h-4 w-4 text-muted-foreground hover:text-primary"/>
                             </Button>
                         )}
                     </div>
@@ -213,8 +215,8 @@ export default function ChatClient() {
         </ScrollArea>
         <div className="p-4 border-t bg-background flex items-center gap-2">
             <Select onValueChange={setPrivateTo} value={privateTo} disabled={isLoading}>
-                <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Send to: Everyone" />
+                <SelectTrigger className="w-full md:w-[180px]">
+                    <SelectValue placeholder="Send to..." />
                 </SelectTrigger>
                 <SelectContent>
                     <SelectItem value="all">Everyone</SelectItem>

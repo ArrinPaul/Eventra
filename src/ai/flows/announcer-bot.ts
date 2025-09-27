@@ -27,10 +27,8 @@ const prompt = ai.definePrompt({
   
   Pick one of the following sessions and create a message about it. Make it sound like a fun fact or a can't-miss opportunity. Use emojis!
 
-  Here are the available sessions:
-  {{#each sessions}}
-  - {{{this.title}}} by {{{this.speaker}}}: {{{this.description}}}
-  {{/each}}
+  Here is the session to announce:
+  - {{{title}}} by {{{speaker}}}: {{{description}}}
   `,
 });
 
@@ -40,11 +38,11 @@ const announcerBotFlow = ai.defineFlow(
     outputSchema: GenerateAnnouncementOutputSchema,
   },
   async () => {
-    // Pick a random session to announce
-    const randomSession = SESSIONS[Math.floor(Math.random() * SESSIONS.length)];
+    // Announce the first session for deterministic behavior in this example
+    const sessionToAnnounce = SESSIONS[0];
     
     const {output} = await prompt({
-        sessions: [randomSession] // Pass only the selected session to the prompt
+        ...sessionToAnnounce
     });
 
     return output || { announcement: "Don't forget to check out all the amazing sessions!" };

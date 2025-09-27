@@ -22,7 +22,7 @@ const RecommendSessionsInputSchema = z.object({
   interests: z
     .string()
     .describe('A comma-separated list of the user\'s interests.'),
-  agenda: z.string().describe('The full agenda of the event, including titles, speakers, tracks, and times.'),
+  agenda: z.string().describe('The full agenda of the event, including session IDs, titles, speakers, tracks, and times.'),
   myEvents: z.array(z.string()).describe('A list of session IDs the user has already added to their schedule.')
 });
 export type RecommendSessionsInput = z.infer<typeof RecommendSessionsInputSchema>;
@@ -40,7 +40,7 @@ const prompt = ai.definePrompt({
   name: 'recommendSessionsPrompt',
   input: {schema: RecommendSessionsInputSchema},
   output: {schema: RecommendSessionsOutputSchema},
-  prompt: `You are an AI assistant that recommends sessions from an event agenda based on the user's profile and schedule.
+  prompt: `You are an AI assistant that recommends sessions from an event agenda based on the user's profile and existing schedule.
 
   The user's role is: {{{role}}}
   The user's interests are: {{{interests}}}
@@ -48,14 +48,15 @@ const prompt = ai.definePrompt({
   The full event agenda is: 
   {{{agenda}}}
 
-  The user is already registered for sessions with these IDs: {{#each myEvents}}{{{this}}}{{#unless @last}}, {{/unless}}{{/each}}.
+  The user is already registered for sessions with these IDs: {{#if myEvents}}{{#each myEvents}}{{{this}}}{{#unless @last}}, {{/unless}}{{/each}}{{else}}None{{/if}}.
   
   Your task is to:
   1. Analyze the user's role and interests.
-  2. Review the full agenda.
+  2. Review the full agenda, which includes session times.
   3. Identify which sessions the user has already added to their schedule from the provided IDs.
-  4. Recommend a ranked list of 3-5 sessions that are most relevant to the user and DO NOT have a time conflict with sessions they've already added.
+  4. Recommend a ranked list of 3 sessions that are most relevant to the user and DO NOT have a time conflict with sessions they've already added.
   5. Return the recommendations as a structured list of session objects, with the most relevant session first. Do not include sessions the user has already added.
+  6. If no sessions can be recommended, return an empty list.
   `,
 });
 
