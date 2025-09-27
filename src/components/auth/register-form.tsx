@@ -28,6 +28,12 @@ const studentSchema = baseSchema.extend({
   college: z.string().min(3),
   degree: z.enum(['ug', 'pg']),
   year: z.coerce.number().min(1).max(5),
+  company: z.string().optional(),
+  designation: z.string().optional(),
+  country: z.string().optional(),
+  gender: z.string().optional(),
+  bloodGroup: z.string().optional(),
+  verificationCode: z.string().optional(),
 });
 
 const professionalSchema = baseSchema.extend({
@@ -37,11 +43,23 @@ const professionalSchema = baseSchema.extend({
   country: z.string().min(2),
   gender: z.enum(['male', 'female', 'other', 'prefer-not-to-say']),
   bloodGroup: z.string().min(2),
+  college: z.string().optional(),
+  degree: z.string().optional(),
+  year: z.coerce.number().optional(),
+  verificationCode: z.string().optional(),
 });
 
 const organizerSchema = baseSchema.extend({
   role: z.literal('organizer'),
   verificationCode: z.string().refine(val => val === "IPX2024", { message: "Invalid verification code." }),
+  college: z.string().optional(),
+  degree: z.string().optional(),
+  year: z.coerce.number().optional(),
+  company: z.string().optional(),
+  designation: z.string().optional(),
+  country: z.string().optional(),
+  gender: z.string().optional(),
+  bloodGroup: z.string().optional(),
 });
 
 const formSchema = z.discriminatedUnion('role', [studentSchema, professionalSchema, organizerSchema]);
@@ -64,17 +82,14 @@ export function RegisterForm() {
       emergencyContactName: '',
       emergencyContactNumber: '',
       interests: '',
-      // Student fields
       college: '',
       degree: 'ug',
       year: 1,
-      // Professional fields
       company: '',
       designation: '',
       country: '',
       gender: 'prefer-not-to-say',
       bloodGroup: '',
-      // Organizer fields
       verificationCode: '',
     },
   });

@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 export default function Hero() {
   return (
     <div className="relative isolate overflow-hidden h-[calc(100vh-4rem)]">
-      <div className="absolute inset-0 -z-10 bg-gradient-to-r from-[#1F3A93] to-[#B48EAD] dark:from-[#5A67F2] dark:via-[#D6A6F1] dark:to-[#8B5CF6] opacity-20">
+      <div className="absolute inset-0 -z-10 bg-gradient-to-r from-primary to-secondary opacity-20">
         <svg
           className="absolute inset-0 h-full w-full stroke-background/10 [mask-image:radial-gradient(100%_100%_at_top_right,white,transparent)]"
           aria-hidden="true"
@@ -35,12 +35,12 @@ export default function Hero() {
             Your Intelligent Event Companion
           </p>
           <div className="mt-10 flex items-center justify-center gap-x-6">
-            <Button asChild size="lg" className="interactive-element bg-gradient-to-r from-primary to-accent text-primary-foreground shadow-lg">
+            <Button asChild size="lg" className="interactive-element">
               <Link href="/register">
                 Register Now
               </Link>
             </Button>
-            <Button asChild size="lg" variant="outline" className="interactive-element shadow-lg">
+            <Button asChild size="lg" variant="outline" className="interactive-element">
               <Link href="/agenda">
                 View Agenda <span aria-hidden="true">→</span>
               </Link>

@@ -38,13 +38,20 @@ export default function Header() {
     { href: '/check-in', label: 'Check-in' },
     { href: '/my-events', label: 'My Events' },
     { href: '/admin', label: 'Dashboard', roles: ['organizer'] },
-  ].filter(link => !link.roles || (user && link.roles.includes(user.role)));
+  ].filter(link => {
+      if (!user) {
+        // Show only Home, Agenda, Events for logged-out users
+        return ['/', '/agenda', '/events'].includes(link.href);
+      }
+      // For logged-in users, filter based on roles
+      return !link.roles || link.roles.includes(user.role);
+  });
 
   const renderNavLinks = (isMobile = false) => (
     <nav className={cn(
       isMobile ? 'flex flex-col space-y-2' : 'hidden md:flex items-center space-x-6 text-sm font-medium'
     )}>
-      {user && navLinks.map(link => (
+      {navLinks.map(link => (
         <Link
           key={link.href}
           href={link.href}
@@ -80,7 +87,7 @@ export default function Header() {
                   <Button asChild variant="ghost" className="interactive-element">
                     <Link href="/login">Login</Link>
                   </Button>
-                  <Button asChild className="interactive-element bg-gradient-to-r from-primary to-accent text-primary-foreground">
+                  <Button asChild className="interactive-element">
                     <Link href="/register">Register</Link>
                   </Button>
                 </div>
@@ -95,24 +102,24 @@ export default function Header() {
                 <SheetContent side="right">
                   <div className="flex flex-col space-y-6 pt-10">
                     <Logo />
+                    {renderNavLinks(true)}
+                    <div className="pt-6">
                     {user ? (
-                        <>
-                            {renderNavLinks(true)}
-                            <Button variant="outline" onClick={logout} className="w-full">
-                                <LogOut className="mr-2 h-4 w-4" />
-                                Logout
-                            </Button>
-                        </>
+                        <Button variant="outline" onClick={logout} className="w-full">
+                            <LogOut className="mr-2 h-4 w-4" />
+                            Logout
+                        </Button>
                     ) : (
                         <div className="flex flex-col space-y-2">
                             <Button asChild variant="outline" className="w-full">
                                 <Link href="/login">Login</Link>
                             </Button>
-                            <Button asChild className="w-full bg-gradient-to-r from-primary to-accent text-primary-foreground">
+                            <Button asChild className="w-full">
                                 <Link href="/register">Register</Link>
                             </Button>
                         </div>
                     )}
+                    </div>
                   </div>
                 </SheetContent>
               </Sheet>
