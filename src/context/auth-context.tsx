@@ -84,7 +84,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   
   const awardPoints = (points: number, message?: string, targetUser? : User) => {
     const userToAward = targetUser || user;
-    if (userToAward) {
+    if (userToAward && userToAward.role !== 'organizer') {
       const updatedUser = { ...userToAward, points: (userToAward.points || 0) + points };
       updateUser(updatedUser);
       if (message && (!targetUser || (user && user.id === targetUser.id))) {
