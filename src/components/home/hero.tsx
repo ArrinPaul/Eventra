@@ -5,36 +5,22 @@ import { Button } from '@/components/ui/button';
 export default function Hero() {
   return (
     <div className="relative isolate overflow-hidden h-[calc(100vh-4rem)]">
-      <div className="absolute inset-0 -z-10 bg-gradient-to-r from-primary to-secondary opacity-20">
-        <svg
-          className="absolute inset-0 h-full w-full stroke-background/10 [mask-image:radial-gradient(100%_100%_at_top_right,white,transparent)]"
-          aria-hidden="true"
-        >
-          <defs>
-            <pattern
-              id="983e3e4c-de6d-4c3f-8d64-b9761d1534cc"
-              width={200}
-              height={200}
-              x="50%"
-              y={-1}
-              patternUnits="userSpaceOnUse"
-            >
-              <path d="M.5 200V.5H200" fill="none" />
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" strokeWidth={0} fill="url(#983e3e4c-de6d-4c3f-8d64-b9761d1534cc)" />
-        </svg>
+      <div className="absolute inset-0 -z-10 bg-gradient-to-br from-primary/10 via-transparent to-secondary/10 dark:from-primary/10 dark:via-transparent dark:to-secondary/10">
+        <div
+          className="absolute inset-0 h-full w-full bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] [mask-image:radial-gradient(ellipse_50%_50%_at_50%_50%,#000_70%,transparent_100%)]
+           dark:bg-[radial-gradient(rgba(255,255,255,0.1)_1px,transparent_1px)]"
+        ></div>
       </div>
 
       <div className="mx-auto max-w-7xl px-6 lg:px-8 flex items-center h-full">
-        <div className="mx-auto max-w-2xl text-center">
-          <h1 className="font-headline text-4xl font-bold tracking-tight text-foreground sm:text-6xl">
+        <div className="mx-auto max-w-3xl text-center">
+          <h1 className="font-headline text-4xl font-bold tracking-tight text-foreground sm:text-7xl">
             IPX Hub
           </h1>
           <p className="mt-6 text-lg leading-8 text-muted-foreground">
-            Your Intelligent Event Companion
+            Your Intelligent Event Companion.
           </p>
-          <div className="mt-10 flex items-center justify-center gap-x-6">
+          <div className="mt-10 flex items-center justify-center gap-x-4">
             <Button asChild size="lg" className="interactive-element">
               <Link href="/register">
                 Register Now
@@ -42,7 +28,7 @@ export default function Hero() {
             </Button>
             <Button asChild size="lg" variant="outline" className="interactive-element">
               <Link href="/agenda">
-                View Agenda <span aria-hidden="true">→</span>
+                View Agenda
               </Link>
             </Button>
           </div>

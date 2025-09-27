@@ -30,7 +30,8 @@ export default function RecommendedSessions() {
                     agenda: AGENDA_STRING,
                     myEvents: user.myEvents,
                 });
-                setRecommendations(result.recommendations);
+                // Get top 3 recommendations
+                setRecommendations(result.recommendations.slice(0,3));
             } catch (error) {
                 console.error("Failed to fetch recommendations:", error);
                 toast({
@@ -50,12 +51,12 @@ export default function RecommendedSessions() {
         return (
             <Card>
                 <CardHeader>
-                    <CardTitle className="font-headline flex items-center gap-2">
-                        <Sparkles /> AI Recommendations
+                    <CardTitle className="flex items-center gap-3">
+                        <Sparkles className="w-5 h-5 text-primary" /> AI Recommendations
                     </CardTitle>
                     <CardDescription>Our AI is crafting a personalized agenda just for you...</CardDescription>
                 </CardHeader>
-                <CardContent className="flex items-center justify-center h-24">
+                <CardContent className="flex items-center justify-center h-40">
                     <Loader2 className="h-8 w-8 animate-spin text-primary" />
                 </CardContent>
             </Card>
@@ -89,10 +90,10 @@ export default function RecommendedSessions() {
     }
 
     return (
-        <Card className="bg-card/50 border-primary/20 border-2">
+        <Card className="bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20 border-border">
             <CardHeader>
-                <CardTitle className="font-headline flex items-center gap-2">
-                    <Sparkles className="text-primary" /> Recommended For You
+                <CardTitle className="flex items-center gap-3">
+                    <Sparkles className="text-primary w-5 h-5" /> Recommended For You
                 </CardTitle>
                 <CardDescription>Based on your profile, we think you'll like these sessions.</CardDescription>
             </CardHeader>
@@ -100,17 +101,20 @@ export default function RecommendedSessions() {
                 <div className="space-y-3">
                     {recommendations.map(rec => {
                         const isAdded = user?.myEvents.includes(rec.id);
+                        const sessionDetails = SESSIONS.find(s => s.id === rec.id);
                         return (
-                            <div key={rec.id} className="flex items-center justify-between p-3 bg-background rounded-lg">
-                                <p className="font-medium text-sm">{rec.title}</p>
+                            <div key={rec.id} className="flex items-center justify-between p-4 bg-background rounded-lg shadow-sm">
+                                <div>
+                                    <p className="font-medium text-sm">{rec.title}</p>
+                                    <p className="text-xs text-muted-foreground">{sessionDetails?.speaker} &middot; {sessionDetails?.track}</p>
+                                </div>
                                 <div className='flex items-center gap-2'>
-                                    <Button size="sm" variant="outline" asChild>
+                                    <Button size="icon" variant="ghost" asChild className="h-8 w-8">
                                         <a href={getGoogleCalendarUrl(rec)} target="_blank" rel="noopener noreferrer">
-                                            <Calendar className="mr-2 h-4 w-4" />
-                                            Calendar
+                                            <Calendar className="h-4 w-4 text-muted-foreground" />
                                         </a>
                                     </Button>
-                                    <Button size="sm" onClick={() => handleToggleEvent(rec.id, rec.title, !!isAdded)}>
+                                    <Button size="icon" variant={isAdded ? 'secondary' : 'default'} className="h-8 w-8" onClick={() => handleToggleEvent(rec.id, rec.title, !!isAdded)}>
                                         {isAdded ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
                                     </Button>
                                 </div>

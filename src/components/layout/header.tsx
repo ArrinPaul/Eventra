@@ -57,7 +57,7 @@ export default function Header() {
           href={link.href}
           className={cn(
             'transition-colors hover:text-primary',
-            pathname === link.href ? 'text-primary' : 'text-muted-foreground'
+            pathname === link.href ? 'text-primary font-semibold' : 'text-muted-foreground'
           )}
         >
           {link.label}
@@ -67,7 +67,7 @@ export default function Header() {
   );
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between">
         <Logo />
         {renderNavLinks()}
