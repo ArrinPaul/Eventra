@@ -20,11 +20,11 @@ const baseSchema = z.object({
   foodChoice: z.enum(['veg', 'non-veg', 'vegan']),
   emergencyContactName: z.string().min(2),
   emergencyContactNumber: z.string().min(10),
-  interests: z.string().min(3, { message: 'Please list at least one interest.' }),
 });
 
 const studentSchema = baseSchema.extend({
   role: z.literal('student'),
+  interests: z.string().min(3, { message: 'Please list at least one interest.' }),
   college: z.string().min(3),
   degree: z.enum(['ug', 'pg']),
   year: z.coerce.number().min(1).max(5),
@@ -38,6 +38,7 @@ const studentSchema = baseSchema.extend({
 
 const professionalSchema = baseSchema.extend({
   role: z.literal('professional'),
+  interests: z.string().min(3, { message: 'Please list at least one interest.' }),
   company: z.string().min(2),
   designation: z.string().min(2),
   country: z.string().min(2),
@@ -52,6 +53,7 @@ const professionalSchema = baseSchema.extend({
 const organizerSchema = baseSchema.extend({
   role: z.literal('organizer'),
   verificationCode: z.string().refine(val => val === "IPX2024", { message: "Invalid verification code." }),
+  interests: z.string().optional(),
   college: z.string().optional(),
   degree: z.string().optional(),
   year: z.coerce.number().optional(),
@@ -110,6 +112,7 @@ export function RegisterForm() {
 
     const newUser = register({
       ...rest,
+      interests: values.interests || '', // Ensure interests is a string
       emergencyContact: {
         name: emergencyContactName,
         number: emergencyContactNumber,
@@ -163,9 +166,12 @@ export function RegisterForm() {
                 <FormItem><FormLabel>Food Choice</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl><SelectContent><SelectItem value="veg">Vegetarian</SelectItem><SelectItem value="non-veg">Non-Vegetarian</SelectItem><SelectItem value="vegan">Vegan</SelectItem></SelectContent></Select><FormMessage /></FormItem>
             )}/>
         </div>
-        <FormField control={form.control} name="interests" render={({ field }) => (
-            <FormItem><FormLabel>Interests</FormLabel><FormControl><Input placeholder="e.g., AI, Web Development, UI/UX" {...field} /></FormControl><FormDescription>Comma-separated list of your interests.</FormDescription><FormMessage /></FormItem>
-        )}/>
+        
+        {role !== 'organizer' && (
+          <FormField control={form.control} name="interests" render={({ field }) => (
+              <FormItem><FormLabel>Interests</FormLabel><FormControl><Input placeholder="e.g., AI, Web Development, UI/UX" {...field} /></FormControl><FormDescription>Comma-separated list of your interests.</FormDescription><FormMessage /></FormItem>
+          )}/>
+        )}
 
         {role === 'student' && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
