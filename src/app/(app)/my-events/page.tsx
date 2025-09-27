@@ -6,7 +6,7 @@ import { SESSIONS as initialSessions } from '@/lib/data';
 import type { Session } from '@/types';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Calendar, Clock, Edit, Minus, Ticket, User, Plus, MapPin, Trash2 } from 'lucide-react';
+import { Calendar, Clock, Edit, Minus, Ticket, User, Plus, MapPin, Trash2, AlertTriangle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -36,7 +36,11 @@ export default function MyEventsPage() {
       // Editing existing session
       const updatedSessions = sessions.map(s => s.id === sessionData.id ? sessionData : s);
       setSessions(updatedSessions);
-      toast({ title: 'Session Updated', description: `"${sessionData.title}" has been updated.` });
+      toast({ 
+          title: 'Session Updated', 
+          description: `"${sessionData.title}" has been updated for all users.`,
+          variant: 'destructive'
+      });
     } else {
       // Creating new session
       const newSession = { ...sessionData, id: `s-${Date.now()}` };
@@ -64,7 +68,11 @@ export default function MyEventsPage() {
     if (user?.myEvents.includes(sessionId)) {
         removeEventFromUser(sessionId);
     }
-    toast({ title: 'Session Deleted', variant: 'destructive' });
+    toast({ 
+        title: 'Session Deleted',
+        description: 'This session has been removed for all users.',
+        variant: 'destructive' 
+    });
   };
 
   return (
@@ -126,7 +134,7 @@ export default function MyEventsPage() {
                             </AlertDialogTrigger>
                             <AlertDialogContent>
                                 <AlertDialogHeader>
-                                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                    <AlertDialogTitle className="font-headline flex items-center gap-2"><AlertTriangle className="text-amber-500" />Are you sure?</AlertDialogTitle>
                                     <AlertDialogDescription>This action cannot be undone. This will permanently delete the session from the agenda for all users.</AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>

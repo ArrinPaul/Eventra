@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Check, Download, Search, X } from 'lucide-react';
 import type { User, UserRole } from '@/types';
 import { Badge } from '@/components/ui/badge';
+import AnalyticsCharts from './analytics-charts';
 
 function downloadCSV(data: User[], filename: string) {
     const csvRows = [];
@@ -37,7 +38,9 @@ export default function AdminDashboardClient() {
     const [filterRole, setFilterRole] = useState<UserRole | 'all'>('all');
     const [searchTerm, setSearchTerm] = useState('');
 
-    const filteredUsers = users.filter(user => user.role !== 'organizer')
+    const attendeeUsers = users.filter(user => user.role !== 'organizer');
+    
+    const filteredUsers = attendeeUsers
         .filter(user => filterRole === 'all' || user.role === filterRole)
         .filter(user => user.name.toLowerCase().includes(searchTerm.toLowerCase()) || user.email.toLowerCase().includes(searchTerm.toLowerCase()));
 
@@ -46,71 +49,78 @@ export default function AdminDashboardClient() {
     };
 
     return (
-        <div className="container py-8">
-            <h1 className="text-4xl font-bold font-headline mb-4">Organizer Dashboard</h1>
-            <p className="text-muted-foreground mb-8">Manage and view event participants.</p>
-
-            <div className="flex flex-col md:flex-row gap-4 mb-6">
-                <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input 
-                        placeholder="Search by name or email..." 
-                        className="pl-10"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                </div>
-                <Select onValueChange={(value) => setFilterRole(value as UserRole | 'all')} defaultValue="all">
-                    <SelectTrigger className="w-full md:w-[180px]">
-                        <SelectValue placeholder="Filter by role" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="all">All Roles</SelectItem>
-                        <SelectItem value="student">Student</SelectItem>
-                        <SelectItem value="professional">Professional</SelectItem>
-                    </SelectContent>
-                </Select>
-                <Button onClick={handleExport}>
-                    <Download className="mr-2 h-4 w-4" /> Export CSV
-                </Button>
+        <div className="container py-8 space-y-8">
+            <div>
+                <h1 className="text-4xl font-bold font-headline mb-4">Organizer Dashboard</h1>
+                <p className="text-muted-foreground">Manage participants and view event analytics.</p>
             </div>
-            
-            <div className="border rounded-lg">
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Name</TableHead>
-                            <TableHead>Email</TableHead>
-                            <TableHead>Role</TableHead>
-                            <TableHead>Organization/College</TableHead>
-                            <TableHead className="text-center">Checked In</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {filteredUsers.length > 0 ? filteredUsers.map(user => (
-                            <TableRow key={user.id}>
-                                <TableCell className="font-medium">{user.name}</TableCell>
-                                <TableCell>{user.email}</TableCell>
-                                <TableCell>
-                                    <Badge variant={user.role === 'student' ? 'default' : 'secondary'} className="capitalize">{user.role}</Badge>
-                                </TableCell>
-                                <TableCell>
-                                    {user.role === 'student' ? user.college : (user.role === 'professional' ? user.company : 'N/A')}
-                                </TableCell>
-                                <TableCell className="text-center">
-                                    {user.checkedIn ? 
-                                        <Check className="h-5 w-5 text-green-500 mx-auto" /> : 
-                                        <X className="h-5 w-5 text-red-500 mx-auto" />
-                                    }
-                                </TableCell>
-                            </TableRow>
-                        )) : (
+
+            <AnalyticsCharts allUsers={users} />
+
+            <div>
+                <h2 className="text-2xl font-bold font-headline mb-4">Participants</h2>
+                <div className="flex flex-col md:flex-row gap-4 mb-6">
+                    <div className="relative flex-1">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input 
+                            placeholder="Search by name or email..." 
+                            className="pl-10"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                    </div>
+                    <Select onValueChange={(value) => setFilterRole(value as UserRole | 'all')} defaultValue="all">
+                        <SelectTrigger className="w-full md:w-[180px]">
+                            <SelectValue placeholder="Filter by role" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">All Roles</SelectItem>
+                            <SelectItem value="student">Student</SelectItem>
+                            <SelectItem value="professional">Professional</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <Button onClick={handleExport}>
+                        <Download className="mr-2 h-4 w-4" /> Export CSV
+                    </Button>
+                </div>
+                
+                <div className="border rounded-lg">
+                    <Table>
+                        <TableHeader>
                             <TableRow>
-                                <TableCell colSpan={5} className="text-center h-24">No participants found.</TableCell>
+                                <TableHead>Name</TableHead>
+                                <TableHead>Email</TableHead>
+                                <TableHead>Role</TableHead>
+                                <TableHead>Organization/College</TableHead>
+                                <TableHead className="text-center">Checked In</TableHead>
                             </TableRow>
-                        )}
-                    </TableBody>
-                </Table>
+                        </TableHeader>
+                        <TableBody>
+                            {filteredUsers.length > 0 ? filteredUsers.map(user => (
+                                <TableRow key={user.id}>
+                                    <TableCell className="font-medium">{user.name}</TableCell>
+                                    <TableCell>{user.email}</TableCell>
+                                    <TableCell>
+                                        <Badge variant={user.role === 'student' ? 'default' : 'secondary'} className="capitalize">{user.role}</Badge>
+                                    </TableCell>
+                                    <TableCell>
+                                        {user.role === 'student' ? user.college : (user.role === 'professional' ? user.company : 'N/A')}
+                                    </TableCell>
+                                    <TableCell className="text-center">
+                                        {user.checkedIn ? 
+                                            <Check className="h-5 w-5 text-green-500 mx-auto" /> : 
+                                            <X className="h-5 w-5 text-red-500 mx-auto" />
+                                        }
+                                    </TableCell>
+                                </TableRow>
+                            )) : (
+                                <TableRow>
+                                    <TableCell colSpan={5} className="text-center h-24">No participants found.</TableCell>
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
+                </div>
             </div>
         </div>
     );

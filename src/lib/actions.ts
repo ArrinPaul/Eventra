@@ -3,6 +3,7 @@
 import { recommendSessions, RecommendSessionsInput, RecommendSessionsOutput } from '@/ai/flows/ai-powered-agenda-recommendations';
 import { generateAnnouncement, GenerateAnnouncementOutput } from '@/ai/flows/announcer-bot';
 import { answerQuestion, AnswerQuestionInput, AnswerQuestionOutput } from '@/ai/flows/event-knowledge-bot';
+import { generateAnalyticsInsights, GenerateAnalyticsInsightsInput, GenerateAnalyticsInsightsOutput } from '@/ai/flows/analytics-insights';
 
 
 export async function getRecommendedSessions(input: RecommendSessionsInput): Promise<RecommendSessionsOutput> {
@@ -32,5 +33,15 @@ export async function getKnowledgeBotAnswer(input: AnswerQuestionInput): Promise
     } catch(error) {
         console.error("Error getting knowledge bot answer:", error);
         throw new Error("Failed to get answer from AI assistant.");
+    }
+}
+
+export async function getAnalyticsInsights(input: GenerateAnalyticsInsightsInput): Promise<GenerateAnalyticsInsightsOutput> {
+    try {
+        const result = await generateAnalyticsInsights(input);
+        return result;
+    } catch (error) {
+        console.error("Error getting analytics insights:", error);
+        throw new Error("Failed to get insights from AI assistant.");
     }
 }
