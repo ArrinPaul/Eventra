@@ -1,11 +1,18 @@
 'use client';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
-import DashboardClient from '@/components/dashboard/dashboard-client';
-import Hero from '@/components/home/hero';
 import Header from '@/components/layout/header';
 
-export default function Home() {
+export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push('/login');
+    }
+  }, [user, loading, router]);
 
   if (loading) {
     return (
@@ -15,12 +22,14 @@ export default function Home() {
     );
   }
 
+  if (!user) {
+    return null; // or another loading state, will be redirected
+  }
+
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <Header />
-      <main className="flex-1">
-        {user ? <DashboardClient /> : <Hero />}
-      </main>
+      <main className="flex-1">{children}</main>
     </div>
   );
 }
