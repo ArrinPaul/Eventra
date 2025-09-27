@@ -10,12 +10,12 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
-export const GenerateAnalyticsInsightsInputSchema = z.object({
+const GenerateAnalyticsInsightsInputSchema = z.object({
   sessionPopularity: z.string().describe('A comma-separated list of sessions and the number of attendees who have added them. Example: "Session Title 1: 50 attendees, Session Title 2: 35 attendees"'),
 });
 export type GenerateAnalyticsInsightsInput = z.infer<typeof GenerateAnalyticsInsightsInputSchema>;
 
-export const GenerateAnalyticsInsightsOutputSchema = z.object({
+const GenerateAnalyticsInsightsOutputSchema = z.object({
   insights: z.string().describe('A brief, two-sentence summary of attendee engagement and session preferences based on the data. Highlight the most popular session or track.'),
 });
 export type GenerateAnalyticsInsightsOutput = z.infer<typeof GenerateAnalyticsInsightsOutputSchema>;
