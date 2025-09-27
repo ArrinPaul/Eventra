@@ -16,6 +16,7 @@ interface AuthContextType {
   addEventToUser: (sessionId: string, force?: boolean) => void;
   removeEventFromUser: (sessionId: string) => void;
   awardPoints: (points: number, message?: string) => void;
+  checkInUser: (registrationId: string) => void;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -75,15 +76,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const updateUser = (updatedUser: User) => {
-    setUser(updatedUser);
+    if (user && user.id === updatedUser.id) {
+      setUser(updatedUser);
+    }
     setUsers(prevUsers => prevUsers.map(u => u.id === updatedUser.id ? updatedUser : u));
   };
   
-  const awardPoints = (points: number, message?: string) => {
-    if (user) {
-      const updatedUser = { ...user, points: (user.points || 0) + points };
+  const awardPoints = (points: number, message?: string, targetUser? : User) => {
+    const userToAward = targetUser || user;
+    if (userToAward) {
+      const updatedUser = { ...userToAward, points: (userToAward.points || 0) + points };
       updateUser(updatedUser);
-      if (message) {
+      if (message && (!targetUser || (user && user.id === targetUser.id))) {
         toast({
           title: 'Points Awarded!',
           description: `You earned ${points} points ${message}.`,
@@ -91,6 +95,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     }
   };
+
+  const checkInUser = (registrationId: string) => {
+    const userToCheckIn = users.find(u => u.registrationId === registrationId);
+    if (userToCheckIn) {
+      if (!userToCheckIn.checkedIn) {
+        const updatedUser = { ...userToCheckIn, checkedIn: true };
+        updateUser(updatedUser);
+        awardPoints(25, 'for checking in', updatedUser);
+      }
+    } else {
+      toast({
+        variant: 'destructive',
+        title: 'Check-in Failed',
+        description: 'No user found with that registration ID.',
+      });
+    }
+  }
 
   const addEventToUser = (sessionId: string, force = false) => {
     if (user && !user.myEvents.includes(sessionId)) {
@@ -110,7 +131,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
 
-  const value = { user, users, loading, login, logout, register, updateUser, addEventToUser, removeEventFromUser, awardPoints };
+  const value = { user, users, loading, login, logout, register, updateUser, addEventToUser, removeEventFromUser, awardPoints, checkInUser };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
