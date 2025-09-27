@@ -56,7 +56,7 @@ export default function Header() {
       if (isAuthPage) return false;
       if (!user) {
         // Show only Home, Agenda, Events for logged-out users on non-auth pages
-        return ['/', '/agenda', '/events'].includes(link.href);
+        return ['/', '/agenda'].includes(link.href);
       }
       // For logged-in users, filter based on roles
       if (user && link.href === '/events') {
@@ -120,10 +120,9 @@ export default function Header() {
             </SheetContent>
           </Sheet>
         </div>
-        <div className="flex flex-1 items-center justify-center md:justify-start">
+        
+        <div className="flex flex-1 items-center justify-end gap-6">
             {renderNavLinks()}
-        </div>
-        <div className="flex flex-1 items-center justify-end gap-2">
             <ThemeToggle />
             <div className="flex items-center gap-4">
               {user ? (
