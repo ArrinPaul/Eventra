@@ -19,7 +19,7 @@ export default function ChatClient() {
   const { user, users } = useAuth();
   const [messages, setMessages] = useLocalStorage<ChatMessage[]>('ipx-chat', []);
   const [newMessage, setNewMessage] = useState('');
-  const [privateTo, setPrivateTo] = useState<string>('');
+  const [privateTo, setPrivateTo] = useState<string>('all');
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   const organizers = users.filter(u => u.role === 'organizer');
@@ -56,7 +56,7 @@ export default function ChatClient() {
       user: { id: user.id, name: user.name, role: user.role as UserRole },
       content: newMessage,
       timestamp: Date.now(),
-      ...(privateTo && { to: privateTo }),
+      ...(privateTo !== 'all' && { to: privateTo }),
     };
     setMessages([...messages, message]);
     setNewMessage('');
@@ -111,12 +111,12 @@ export default function ChatClient() {
           </div>
         </ScrollArea>
         <div className="p-4 border-t bg-background flex items-center gap-2">
-            <Select onValueChange={setPrivateTo}>
+            <Select onValueChange={setPrivateTo} defaultValue="all">
                 <SelectTrigger className="w-[180px]">
                     <SelectValue placeholder="Send to: Everyone" />
                 </SelectTrigger>
                 <SelectContent>
-                    <SelectItem value="">Everyone</SelectItem>
+                    <SelectItem value="all">Everyone</SelectItem>
                     {organizers.map(org => <SelectItem key={org.id} value={org.id}>{org.name}</SelectItem>)}
                 </SelectContent>
             </Select>
