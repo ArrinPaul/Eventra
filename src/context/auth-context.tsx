@@ -96,7 +96,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (user && !user.myEvents.includes(sessionId)) {
       const updatedUser = { ...user, myEvents: [...user.myEvents, sessionId] };
       updateUser(updatedUser);
-      awardPoints(10, 'for adding a session');
+      if (!force) {
+        awardPoints(10, 'for adding a session');
+      }
     }
   };
 
