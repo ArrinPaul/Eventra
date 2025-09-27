@@ -52,13 +52,13 @@ const professionalSchema = baseSchema.extend({
 
 const organizerSchema = baseSchema.extend({
   role: z.literal('organizer'),
+  company: z.string().min(2, { message: 'Organization Name is required.' }),
+  designation: z.string().min(2, { message: 'Position is required.' }),
   verificationCode: z.string().refine(val => val === "IPX2024", { message: "Invalid verification code." }),
   interests: z.string().optional(),
   college: z.string().optional(),
   degree: z.string().optional(),
   year: z.coerce.number().optional(),
-  company: z.string().optional(),
-  designation: z.string().optional(),
   country: z.string().optional(),
   gender: z.string().optional(),
   bloodGroup: z.string().optional(),
@@ -198,9 +198,15 @@ export function RegisterForm() {
         )}
 
         {role === 'organizer' && (
-             <FormField control={form.control} name="verificationCode" render={({ field }) => (
-                <FormItem><FormLabel>Organizer Verification Code</FormLabel><FormControl><Input type="password" {...field} /></FormControl><FormMessage /></FormItem>
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField control={form.control} name="company" render={({ field }) => (<FormItem><FormLabel>Organization Name</FormLabel><FormControl><Input placeholder="e.g. Acme Corp" {...field} /></FormControl><FormMessage /></FormItem>)}/>
+              <FormField control={form.control} name="designation" render={({ field }) => (<FormItem><FormLabel>Position</FormLabel><FormControl><Input placeholder="e.g. Event Coordinator" {...field} /></FormControl><FormMessage /></FormItem>)}/>
+            </div>
+            <FormField control={form.control} name="verificationCode" render={({ field }) => (
+              <FormItem><FormLabel>Organizer Verification Code</FormLabel><FormControl><Input type="password" {...field} /></FormControl><FormMessage /></FormItem>
             )}/>
+          </div>
         )}
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

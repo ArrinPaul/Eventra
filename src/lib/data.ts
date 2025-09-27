@@ -49,6 +49,8 @@ export const ORGANIZERS: User[] = [
     name: 'Admin Organizer',
     email: 'organizer@ipxhub.com',
     role: 'organizer',
+    company: 'IPX Hub',
+    designation: 'Lead Organizer',
     mobile: '1234567890',
     foodChoice: 'veg',
     emergencyContact: { name: 'Admin', number: '0987654321' },

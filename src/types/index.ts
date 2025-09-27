@@ -36,6 +36,8 @@ export interface Professional extends BaseUser {
 
 export interface Organizer extends BaseUser {
   role: 'organizer';
+  company: string;
+  designation: string;
 }
 
 export type User = Student | Professional | Organizer;
