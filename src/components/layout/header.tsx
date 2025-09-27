@@ -47,7 +47,6 @@ export default function Header() {
   const navLinks = [
     { href: '/', label: 'Home' },
     { href: '/agenda', label: 'Agenda' },
-    { href: '/events', label: 'Events' },
     { href: '/leaderboard', label: 'Leaderboard' },
     { href: '/chat', label: 'Chat' },
     { href: '/check-in', label: 'Check-in' },
@@ -87,10 +86,12 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center justify-between">
-        <Logo />
-        {renderNavLinks()}
-        <div className="flex items-center gap-2">
+      <div className="container flex h-16 items-center">
+        <div className="flex items-center gap-6">
+            <Logo />
+            {renderNavLinks()}
+        </div>
+        <div className="flex flex-1 items-center justify-end gap-2">
             <ThemeToggle />
             <div className="flex items-center gap-4">
               {user ? (
