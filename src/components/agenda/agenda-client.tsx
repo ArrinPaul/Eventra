@@ -6,7 +6,7 @@ import { SESSIONS, AGENDA_STRING } from '@/lib/data';
 import type { Session } from '@/types';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
-import { Calendar, Clock, Plus, Minus, Sparkles, Loader2, User, Tag } from 'lucide-react';
+import { Calendar, Clock, Plus, Minus, Sparkles, Loader2, User, Tag, AlertTriangle } from 'lucide-react';
 import { getRecommendedSessions } from '@/lib/actions';
 import {
   AlertDialog,
@@ -28,24 +28,71 @@ function getGoogleCalendarUrl(session: Session) {
     return `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(session.title)}&details=${encodeURIComponent(session.description)}&location=IPX%20Hub&dates=${date}/${endDate}`;
 }
 
+const parseTime = (timeStr: string) => {
+    const [time, period] = timeStr.split(' ');
+    let [hours, minutes] = time.split(':').map(Number);
+    if (period === 'PM' && hours !== 12) {
+        hours += 12;
+    }
+    if (period === 'AM' && hours === 12) {
+        hours = 0;
+    }
+    return hours * 60 + minutes;
+};
+
+const hasTimeConflict = (newSession: Session, mySessionIds: string[]): Session | null => {
+    const mySessions = SESSIONS.filter(s => mySessionIds.includes(s.id));
+    if (mySessions.length === 0) return null;
+
+    const newSessionStart = parseTime(newSession.time.split(' - ')[0]);
+    const newSessionEnd = parseTime(newSession.time.split(' - ')[1]);
+
+    for (const mySession of mySessions) {
+        const mySessionStart = parseTime(mySession.time.split(' - ')[0]);
+        const mySessionEnd = parseTime(mySession.time.split(' - ')[1]);
+
+        if (newSessionStart < mySessionEnd && newSessionEnd > mySessionStart) {
+            return mySession;
+        }
+    }
+    return null;
+};
+
+
 function SessionCard({ session }: { session: Session }) {
   const { user, addEventToUser, removeEventFromUser } = useAuth();
   const { toast } = useToast();
-  const isAdded = user?.myEvents.includes(session.id);
+  const [conflict, setConflict] = useState<Session | null>(null);
 
-  const handleToggleEvent = () => {
-    if (isAdded) {
-      removeEventFromUser(session.id);
-      toast({ title: 'Removed from your events', description: session.title });
+  if (!user) return null;
+
+  const isAdded = user.myEvents.includes(session.id);
+
+  const handleAddEvent = () => {
+    const conflictingSession = hasTimeConflict(session, user.myEvents);
+    if (conflictingSession) {
+      setConflict(conflictingSession);
     } else {
       addEventToUser(session.id);
       toast({ title: 'Added to your events!', description: session.title });
     }
   };
   
+  const handleRemoveEvent = () => {
+    removeEventFromUser(session.id);
+    toast({ title: 'Removed from your events', description: session.title });
+  }
+
+  const handleConfirmAdd = () => {
+    addEventToUser(session.id, true);
+    toast({ title: 'Added to your events!', description: session.title });
+    setConflict(null);
+  };
+  
   const googleCalendarUrl = getGoogleCalendarUrl(session);
 
   return (
+    <>
     <Card className="interactive-element flex flex-col glass-effect">
       <CardHeader>
         <CardTitle className="font-headline">{session.title}</CardTitle>
@@ -72,12 +119,29 @@ function SessionCard({ session }: { session: Session }) {
             Add to Calendar
           </a>
         </Button>
-        <Button size="sm" onClick={handleToggleEvent}>
+        <Button size="sm" onClick={isAdded ? handleRemoveEvent : handleAddEvent}>
           {isAdded ? <Minus className="mr-2 h-4 w-4" /> : <Plus className="mr-2 h-4 w-4" />}
           {isAdded ? 'Remove' : 'Add to My Events'}
         </Button>
       </CardFooter>
     </Card>
+     <AlertDialog open={!!conflict} onOpenChange={() => setConflict(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="font-headline flex items-center gap-2">
+              <AlertTriangle className="text-amber-500"/> Time Conflict Detected
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              This session conflicts with <span className="font-bold">"{conflict?.title}"</span> which is already in your schedule. Are you sure you want to add it?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmAdd}>Add Anyway</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
 

@@ -13,7 +13,7 @@ interface AuthContextType {
   logout: () => void;
   register: (userData: Omit<User, 'id' | 'registrationId' | 'checkedIn' | 'myEvents' | 'points'>) => User;
   updateUser: (updatedUser: User) => void;
-  addEventToUser: (sessionId: string) => void;
+  addEventToUser: (sessionId: string, force?: boolean) => void;
   removeEventFromUser: (sessionId: string) => void;
   awardPoints: (points: number, message?: string) => void;
 }
@@ -92,7 +92,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const addEventToUser = (sessionId: string) => {
+  const addEventToUser = (sessionId: string, force = false) => {
     if (user && !user.myEvents.includes(sessionId)) {
       const updatedUser = { ...user, myEvents: [...user.myEvents, sessionId] };
       updateUser(updatedUser);
