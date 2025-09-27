@@ -65,6 +65,7 @@ export interface ChatMessage {
     id: string;
     name: string;
     role: UserRole;
+    isBot?: boolean;
   };
   to?: string; // Organizer ID for private messages
   content: string;
