@@ -30,6 +30,8 @@ export default function Header() {
   const { user, logout } = useAuth();
   const pathname = usePathname();
 
+  const isAuthPage = pathname === '/login' || pathname === '/register';
+
   const navLinks = [
     { href: '/', label: 'Home' },
     { href: '/agenda', label: 'Agenda' },
@@ -39,8 +41,9 @@ export default function Header() {
     { href: '/my-events', label: 'My Events' },
     { href: '/admin', label: 'Dashboard', roles: ['organizer'] },
   ].filter(link => {
+      if (isAuthPage) return false;
       if (!user) {
-        // Show only Home, Agenda, Events for logged-out users
+        // Show only Home, Agenda, Events for logged-out users on non-auth pages
         return ['/', '/agenda', '/events'].includes(link.href);
       }
       // For logged-in users, filter based on roles
