@@ -87,8 +87,40 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center">
-        <div className="flex items-center gap-6">
-            <Logo />
+        <div className="mr-4 hidden md:flex">
+          <Logo />
+        </div>
+        <div className="flex items-center md:hidden">
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="md:hidden">
+                <Menu className="h-6 w-6" />
+                <span className="sr-only">Toggle navigation</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left">
+              <div className="flex flex-col space-y-6 pt-10">
+                <Logo />
+                {renderNavLinks(true)}
+                <div className="pt-6">
+                {user ? (
+                   null
+                ) : (
+                    <div className="flex flex-col space-y-2">
+                        <Button asChild variant="outline" className="w-full">
+                            <Link href="/login">Login</Link>
+                        </Button>
+                        <Button asChild className="w-full">
+                            <Link href="/register">Register</Link>
+                        </Button>
+                    </div>
+                )}
+                </div>
+              </div>
+            </SheetContent>
+          </Sheet>
+        </div>
+        <div className="flex flex-1 items-center justify-center md:justify-start">
             {renderNavLinks()}
         </div>
         <div className="flex flex-1 items-center justify-end gap-2">
@@ -97,10 +129,6 @@ export default function Header() {
               {user ? (
                 <>
                   <span className="hidden sm:inline text-sm text-muted-foreground">Welcome, {user.name.split(' ')[0]}</span>
-                  <Button variant="ghost" size="icon" onClick={logout} className="interactive-element">
-                    <LogOut className="h-5 w-5" />
-                    <span className="sr-only">Logout</span>
-                  </Button>
                 </>
               ) : (
                 <div className="hidden md:flex items-center gap-2">
@@ -112,37 +140,6 @@ export default function Header() {
                   </Button>
                 </div>
               )}
-              <Sheet>
-                <SheetTrigger asChild>
-                  <Button variant="ghost" size="icon" className="md:hidden">
-                    <Menu className="h-6 w-6" />
-                    <span className="sr-only">Toggle navigation</span>
-                  </Button>
-                </SheetTrigger>
-                <SheetContent side="right">
-                  <div className="flex flex-col space-y-6 pt-10">
-                    <Logo />
-                    {renderNavLinks(true)}
-                    <div className="pt-6">
-                    {user ? (
-                        <Button variant="outline" onClick={logout} className="w-full">
-                            <LogOut className="mr-2 h-4 w-4" />
-                            Logout
-                        </Button>
-                    ) : (
-                        <div className="flex flex-col space-y-2">
-                            <Button asChild variant="outline" className="w-full">
-                                <Link href="/login">Login</Link>
-                            </Button>
-                            <Button asChild className="w-full">
-                                <Link href="/register">Register</Link>
-                            </Button>
-                        </div>
-                    )}
-                    </div>
-                  </div>
-                </SheetContent>
-              </Sheet>
             </div>
         </div>
       </div>
