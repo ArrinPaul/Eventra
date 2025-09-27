@@ -3,11 +3,25 @@ import './globals.css';
 import { Providers } from '@/components/providers';
 import { Toaster } from '@/components/ui/toaster';
 import FloatingAiChat from '@/components/chat/floating-ai-chat';
+import { Playfair_Display, PT_Sans } from 'next/font/google';
 
 export const metadata: Metadata = {
   title: 'IPX Hub',
   description: 'Your Intelligent Event Companion',
 };
+
+const playfair = Playfair_Display({
+  subsets: ['latin'],
+  variable: '--font-playfair',
+  display: 'swap',
+});
+
+const ptSans = PT_Sans({
+  subsets: ['latin'],
+  weight: ['400', '700'],
+  variable: '--font-pt-sans',
+  display: 'swap',
+});
 
 export default function RootLayout({
   children,
@@ -15,12 +29,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-      </head>
+    <html lang="en" suppressHydrationWarning className={`${playfair.variable} ${ptSans.variable}`}>
       <body className="font-body antialiased">
         <Providers>
           {children}

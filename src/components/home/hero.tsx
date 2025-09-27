@@ -5,14 +5,14 @@ import { Button } from '@/components/ui/button';
 export default function Hero() {
   return (
     <div className="relative isolate overflow-hidden h-[calc(100vh-4rem)]">
-       <div className="absolute inset-0 -z-10 h-full w-full bg-background bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] dark:bg-[radial-gradient(rgba(255,255,255,0.1)_1px,transparent_1px)]"></div>
+       <div className="absolute inset-0 -z-10 h-full w-full bg-background bg-[radial-gradient(theme(colors.primary/0.1)_1px,transparent_1px)] [background-size:16px_16px]"></div>
        <div
-          className="absolute inset-x-0 top-0 -z-10 h-[40rem] bg-gradient-to-b from-primary/10 to-transparent opacity-40"
+          className="absolute inset-x-0 top-0 -z-10 h-full bg-gradient-to-b from-primary/10 to-transparent"
         ></div>
 
       <div className="mx-auto max-w-7xl px-6 lg:px-8 flex items-center h-full">
         <div className="mx-auto max-w-3xl text-center">
-          <h1 className="font-headline text-4xl font-bold tracking-tight text-foreground sm:text-7xl">
+          <h1 className="font-headline text-5xl font-bold tracking-tight text-foreground sm:text-7xl">
             IPX Hub
           </h1>
           <p className="mt-6 text-lg leading-8 text-muted-foreground">
