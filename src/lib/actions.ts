@@ -4,6 +4,7 @@ import { recommendSessions, RecommendSessionsInput, RecommendSessionsOutput } fr
 import { generateAnnouncement, GenerateAnnouncementOutput } from '@/ai/flows/announcer-bot';
 import { answerQuestion, AnswerQuestionInput, AnswerQuestionOutput } from '@/ai/flows/event-knowledge-bot';
 import { generateAnalyticsInsights, GenerateAnalyticsInsightsInput, GenerateAnalyticsInsightsOutput } from '@/ai/flows/analytics-insights';
+import { broadcastEmail, BroadcastEmailInput, BroadcastEmailOutput } from '@/ai/flows/broadcast-email';
 
 
 export async function getRecommendedSessions(input: RecommendSessionsInput): Promise<RecommendSessionsOutput> {
@@ -43,5 +44,15 @@ export async function getAnalyticsInsights(input: GenerateAnalyticsInsightsInput
     } catch (error) {
         console.error("Error getting analytics insights:", error);
         throw new Error("Failed to get insights from AI assistant.");
+    }
+}
+
+export async function sendBroadcastEmail(input: BroadcastEmailInput): Promise<BroadcastEmailOutput> {
+    try {
+        const result = await broadcastEmail(input);
+        return result;
+    } catch (error) {
+        console.error("Error sending broadcast email:", error);
+        throw new Error("Failed to send broadcast from AI assistant.");
     }
 }
