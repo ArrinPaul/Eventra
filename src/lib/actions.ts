@@ -1,13 +1,13 @@
 'use server';
 
-import { recommendSessions, RecommendSessionsInput } from '@/ai/flows/ai-powered-agenda-recommendations';
+import { recommendSessions, RecommendSessionsInput, RecommendSessionsOutput } from '@/ai/flows/ai-powered-agenda-recommendations';
 
-export async function getRecommendedSessions(input: RecommendSessionsInput) {
+export async function getRecommendedSessions(input: RecommendSessionsInput): Promise<RecommendSessionsOutput> {
     try {
         const recommendations = await recommendSessions(input);
         return recommendations;
     } catch(error) {
         console.error("Error getting recommendations:", error);
-        return { recommendedSessions: "Could not retrieve recommendations at this time." };
+        return { recommendations: [] };
     }
 }

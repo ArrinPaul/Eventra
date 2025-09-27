@@ -2,11 +2,12 @@
 
 import { useAuth } from "@/hooks/use-auth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import Link from "next/link";
 import { QrCode, Calendar, MessageSquare, Ticket, User } from "lucide-react";
-import { Student, Professional } from "@/types";
+import type { Student, Professional } from "@/types";
+import RecommendedSessions from "@/components/dashboard/recommended-sessions";
+
 
 function ProfileSummary() {
     const { user } = useAuth();
@@ -103,6 +104,8 @@ export default function DashboardClient() {
     if (!user) {
         return <div>Loading...</div>;
     }
+    
+    const showRecs = user.role === 'student' || user.role === 'professional';
 
     return (
         <div className="container py-8">
@@ -115,6 +118,7 @@ export default function DashboardClient() {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2 space-y-8">
+                    {showRecs && <RecommendedSessions />}
                     <QuickActions />
                 </div>
                 <div className="space-y-8">

@@ -1,6 +1,6 @@
 'use server';
 /**
- * @fileOverview AI-powered agenda recommendations based on user role and interests.
+ * @fileOverview AI-powered agenda recommendations based on user role, interests, and existing schedule.
  *
  * - recommendSessions - A function that recommends sessions.
  * - RecommendSessionsInput - The input type for the recommendSessions function.
@@ -10,6 +10,11 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
+const SessionSchema = z.object({
+    id: z.string().describe('The unique ID of the session.'),
+    title: z.string().describe('The title of the session.'),
+});
+
 const RecommendSessionsInputSchema = z.object({
   role: z
     .enum(['student', 'professional', 'organizer'])
@@ -17,14 +22,13 @@ const RecommendSessionsInputSchema = z.object({
   interests: z
     .string()
     .describe('A comma-separated list of the user\'s interests.'),
-  agenda: z.string().describe('The agenda of the event.'),
+  agenda: z.string().describe('The full agenda of the event, including titles, speakers, tracks, and times.'),
+  myEvents: z.array(z.string()).describe('A list of session IDs the user has already added to their schedule.')
 });
 export type RecommendSessionsInput = z.infer<typeof RecommendSessionsInputSchema>;
 
 const RecommendSessionsOutputSchema = z.object({
-  recommendedSessions: z
-    .string()
-    .describe('A list of recommended sessions based on the user\'s role and interests.'),
+  recommendations: z.array(SessionSchema).describe('A ranked list of recommended session objects, ordered by relevance.'),
 });
 export type RecommendSessionsOutput = z.infer<typeof RecommendSessionsOutputSchema>;
 
@@ -36,13 +40,22 @@ const prompt = ai.definePrompt({
   name: 'recommendSessionsPrompt',
   input: {schema: RecommendSessionsInputSchema},
   output: {schema: RecommendSessionsOutputSchema},
-  prompt: `You are an AI assistant that recommends sessions from an event agenda based on the user's role and interests.
+  prompt: `You are an AI assistant that recommends sessions from an event agenda based on the user's profile and schedule.
 
   The user's role is: {{{role}}}
   The user's interests are: {{{interests}}}
-  The event agenda is: {{{agenda}}}
+  
+  The full event agenda is: 
+  {{{agenda}}}
 
-  Recommend sessions that are most relevant to the user's role and interests. Provide a list of session titles, each separated by a comma.
+  The user is already registered for sessions with these IDs: {{#each myEvents}}{{{this}}}{{#unless @last}}, {{/unless}}{{/each}}.
+  
+  Your task is to:
+  1. Analyze the user's role and interests.
+  2. Review the full agenda.
+  3. Identify which sessions the user has already added to their schedule from the provided IDs.
+  4. Recommend a ranked list of 3-5 sessions that are most relevant to the user and DO NOT have a time conflict with sessions they've already added.
+  5. Return the recommendations as a structured list of session objects, with the most relevant session first. Do not include sessions the user has already added.
   `,
 });
 
@@ -54,6 +67,6 @@ const recommendSessionsFlow = ai.defineFlow(
   },
   async input => {
     const {output} = await prompt(input);
-    return output!;
+    return output || { recommendations: [] };
   }
 );

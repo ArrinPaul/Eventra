@@ -19,6 +19,15 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 
+function getGoogleCalendarUrl(session: Session) {
+    const startTime = session.time.split(' - ')[0].replace(':', '');
+    const endTime = session.time.split(' - ')[1].replace(':', '').split(' ')[0];
+    const date = `20241026T${startTime.padStart(4, '0')}00`;
+    const endDate = `20241026T${endTime.padStart(4, '0')}00`;
+
+    return `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(session.title)}&details=${encodeURIComponent(session.description)}&location=IPX%20Hub&dates=${date}/${endDate}`;
+}
+
 function SessionCard({ session }: { session: Session }) {
   const { user, addEventToUser, removeEventFromUser } = useAuth();
   const { toast } = useToast();
@@ -34,7 +43,7 @@ function SessionCard({ session }: { session: Session }) {
     }
   };
   
-  const googleCalendarUrl = `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(session.title)}&details=${encodeURIComponent(session.description)}&location=IPX%20Hub&dates=20241026T${session.time.split(' ')[0].replace(':', '')}00/20241026T${session.time.split(' ')[2].replace(':', '')}00`
+  const googleCalendarUrl = getGoogleCalendarUrl(session);
 
   return (
     <Card className="interactive-element flex flex-col">
@@ -86,8 +95,9 @@ export default function AgendaClient() {
         role: user.role,
         interests: user.interests,
         agenda: AGENDA_STRING,
+        myEvents: user.myEvents,
       });
-      const recommendedTitles = result.recommendedSessions.split(',').map(s => s.trim());
+      const recommendedTitles = result.recommendations.map(s => s.title);
       setRecommendations(recommendedTitles);
       setIsAlertOpen(true);
     } catch (error) {
@@ -104,10 +114,12 @@ export default function AgendaClient() {
           <h1 className="text-4xl font-bold font-headline">Agenda</h1>
           <p className="text-muted-foreground mt-2">Explore the sessions and plan your event.</p>
         </div>
-        <Button onClick={handleGetRecommendations} disabled={loadingRecommendations}>
-          {loadingRecommendations ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
-          Get AI Recommendations
-        </Button>
+        {user && (user.role === 'student' || user.role === 'professional') && (
+          <Button onClick={handleGetRecommendations} disabled={loadingRecommendations}>
+            {loadingRecommendations ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+            Get AI Recommendations
+          </Button>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -123,7 +135,7 @@ export default function AgendaClient() {
               <Sparkles className="text-primary"/> AI Recommended Sessions
             </AlertDialogTitle>
             <AlertDialogDescription>
-              Based on your profile as a {user?.role} with interests in {user?.interests}, we think you'll enjoy these sessions:
+              Based on your profile and schedule, we think you'll enjoy these sessions:
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="py-4 space-y-2">
