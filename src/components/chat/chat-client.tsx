@@ -1,15 +1,15 @@
 'use client';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import useLocalStorage from '@/hooks/use-local-storage';
 import { useAuth } from '@/hooks/use-auth';
-import type { ChatMessage, UserRole } from '@/types';
+import type { ChatMessage, UserRole, User as UserType } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Send, Smile, Bot, Sparkles, Loader2, MessageSquare } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { getBotAnnouncement } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
@@ -26,7 +26,13 @@ export default function ChatClient() {
   const [botLoading, setBotLoading] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
-  const organizers = users.filter(u => u.role === 'organizer');
+  const { organizers, attendees } = useMemo(() => {
+    const organizers = users.filter(u => u.role === 'organizer' && u.id !== user?.id);
+    const attendees = users.filter(u => u.role !== 'organizer' && u.id !== user?.id);
+    return { organizers, attendees };
+  }, [users, user]);
+  
+  const allUsersMap = useMemo(() => new Map(users.map(u => [u.id, u.name])), [users]);
 
   useEffect(() => {
     // Scroll to bottom on new message
@@ -129,7 +135,7 @@ export default function ChatClient() {
               const isBot = !!msg.user.isBot;
               const isPrivate = !!msg.to;
               const isAssistant = msg.user.id === 'bot-2';
-              const isOrganizer = msg.user.role === 'organizer';
+              const isOrganizerMessage = msg.user.role === 'organizer';
 
               return (
                 <div key={msg.id} className={cn('flex items-start gap-3', isMe ? 'justify-end' : 'justify-start')}>
@@ -141,13 +147,13 @@ export default function ChatClient() {
                   <div className={cn(
                     'max-w-xs md:max-w-md p-3 rounded-lg flex flex-col', 
                     isMe ? 'bg-primary text-primary-foreground' : 'bg-muted',
-                    isPrivate ? 'border-l-4 border-blue-500' : '',
+                    isPrivate ? 'border-l-4 border-fuchsia-500' : '',
                     isAssistant ? 'bg-green-100 dark:bg-green-900/30 border-l-4 border-green-500' : 
                     isBot ? 'bg-purple-100 dark:bg-purple-900/30 border-l-4 border-purple-500' : ''
                   )}>
                     <div className="flex items-center justify-between gap-4 mb-1">
                         {!isMe && <p className="font-bold text-sm">{msg.user.name}</p>}
-                        {!isMe && isOrganizer && !isBot && (
+                        {!isMe && !isBot && (
                             <Button variant="ghost" size="sm" className="h-auto px-1 py-0" onClick={() => setPrivateTo(msg.user.id)}>
                                 <MessageSquare className="h-4 w-4 text-muted-foreground hover:text-primary"/>
                             </Button>
@@ -156,7 +162,7 @@ export default function ChatClient() {
                     <p className="text-sm">{msg.content}</p>
                     {isPrivate && (
                         <p className="text-xs mt-2 opacity-70 italic">
-                            {isMe ? `Private to ${organizers.find(o => o.id === msg.to)?.name || 'Organizer'}` : 'Private message'}
+                            {isMe ? `Private to ${allUsersMap.get(msg.to!) || 'a user'}` : 'Private message'}
                         </p>
                     )}
                   </div>
@@ -167,12 +173,23 @@ export default function ChatClient() {
         </ScrollArea>
         <div className="p-4 border-t bg-background flex items-center gap-2">
             <Select onValueChange={setPrivateTo} value={privateTo} disabled={isLoading}>
-                <SelectTrigger className="w-full md:w-[180px]">
+                <SelectTrigger className="w-full md:w-[220px]">
                     <SelectValue placeholder="Send to..." />
                 </SelectTrigger>
                 <SelectContent>
                     <SelectItem value="all">Everyone</SelectItem>
-                    {organizers.map(org => <SelectItem key={org.id} value={org.id}>{org.name}</SelectItem>)}
+                    {organizers.length > 0 && (
+                        <SelectGroup>
+                            <SelectLabel>Organizers</SelectLabel>
+                            {organizers.map(org => <SelectItem key={org.id} value={org.id}>{org.name}</SelectItem>)}
+                        </SelectGroup>
+                    )}
+                    {attendees.length > 0 && (
+                         <SelectGroup>
+                            <SelectLabel>Attendees</SelectLabel>
+                            {attendees.map(attendee => <SelectItem key={attendee.id} value={attendee.id}>{attendee.name}</SelectItem>)}
+                        </SelectGroup>
+                    )}
                 </SelectContent>
             </Select>
             <div className="relative flex-1">
