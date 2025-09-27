@@ -7,13 +7,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Send, Smile, Bot, Sparkles, Loader2, BrainCircuit, MessageSquare } from 'lucide-react';
+import { Send, Smile, Bot, Sparkles, Loader2, MessageSquare } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { getBotAnnouncement, getKnowledgeBotAnswer } from '@/lib/actions';
+import { getBotAnnouncement } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
-import { AGENDA_STRING } from '@/lib/data';
 
 
 const EMOJIS = ['😀', '😂', '😍', '🤔', '👍', '🎉', '🚀', '💻'];
@@ -25,7 +24,6 @@ export default function ChatClient() {
   const [newMessage, setNewMessage] = useState('');
   const [privateTo, setPrivateTo] = useState<string>('all');
   const [botLoading, setBotLoading] = useState(false);
-  const [aiAssistantLoading, setAiAssistantLoading] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   const organizers = users.filter(u => u.role === 'organizer');
@@ -93,41 +91,6 @@ export default function ChatClient() {
     }
   }
 
-  const handleAiAssistant = async () => {
-    if (!newMessage.trim() || !user) return;
-    const question = newMessage;
-    setNewMessage('');
-    setAiAssistantLoading(true);
-
-    const userMessage: ChatMessage = {
-      id: `msg-${Date.now()}`,
-      user: { id: user.id, name: user.name, role: user.role as UserRole },
-      content: question,
-      timestamp: Date.now(),
-      isQuery: true, // Mark as a query to the assistant
-    };
-    setMessages(prev => [...prev, userMessage]);
-    
-    try {
-        const result = await getKnowledgeBotAnswer({ question, agenda: AGENDA_STRING });
-        const botMessage: ChatMessage = {
-            id: `msg-${Date.now() + 1}`,
-            user: { id: 'bot-2', name: 'AI Assistant', role: 'organizer', isBot: true },
-            content: result.answer,
-            timestamp: Date.now(),
-        };
-        setMessages(prev => [...prev, botMessage]);
-    } catch (error) {
-        toast({
-            variant: 'destructive',
-            title: 'AI Assistant Error',
-            description: 'The AI assistant is currently unavailable. Please try again later.',
-        });
-    } finally {
-        setAiAssistantLoading(false);
-    }
-  };
-
 
   if (!user) return null;
 
@@ -141,14 +104,14 @@ export default function ChatClient() {
     return false;
   });
 
-  const isLoading = botLoading || aiAssistantLoading;
+  const isLoading = botLoading;
 
   return (
     <div className="container py-8 h-[calc(100vh-4rem)] flex flex-col">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <div>
             <h1 className="text-4xl font-bold font-headline">Group Chat</h1>
-            <p className="text-muted-foreground">Connect with attendees and organizers, or ask our AI for help.</p>
+            <p className="text-muted-foreground">Connect with attendees and organizers.</p>
         </div>
         {user.role === 'organizer' && (
           <Button onClick={handleBotMessage} disabled={isLoading} variant="outline" className="interactive-element">
@@ -165,7 +128,6 @@ export default function ChatClient() {
               const isMe = msg.user.id === user.id;
               const isBot = !!msg.user.isBot;
               const isPrivate = !!msg.to;
-              const isQuery = !!msg.isQuery;
               const isAssistant = msg.user.id === 'bot-2';
               const isOrganizer = msg.user.role === 'organizer';
 
@@ -180,7 +142,6 @@ export default function ChatClient() {
                     'max-w-xs md:max-w-md p-3 rounded-lg flex flex-col', 
                     isMe ? 'bg-primary text-primary-foreground' : 'bg-muted',
                     isPrivate ? 'border-l-4 border-blue-500' : '',
-                    isQuery ? 'bg-blue-50 dark:bg-blue-900/20 italic' : '',
                     isAssistant ? 'bg-green-100 dark:bg-green-900/30 border-l-4 border-green-500' : 
                     isBot ? 'bg-purple-100 dark:bg-purple-900/30 border-l-4 border-purple-500' : ''
                   )}>
@@ -202,18 +163,6 @@ export default function ChatClient() {
                 </div>
               );
             })}
-             {(aiAssistantLoading) && (
-              <div className="flex items-start gap-3 justify-start">
-                  <Avatar className="h-8 w-8"><Bot /></Avatar>
-                  <div className="max-w-xs md:max-w-md p-3 rounded-lg bg-green-100 dark:bg-green-900/30 border-l-4 border-green-500">
-                      <p className="font-bold text-sm mb-1">AI Assistant</p>
-                      <div className="flex items-center gap-2">
-                        <Loader2 className="h-4 w-4 animate-spin"/>
-                        <p className="text-sm italic">Thinking...</p>
-                      </div>
-                  </div>
-              </div>
-            )}
           </div>
         </ScrollArea>
         <div className="p-4 border-t bg-background flex items-center gap-2">
@@ -230,7 +179,7 @@ export default function ChatClient() {
                 <Input 
                     value={newMessage} 
                     onChange={(e) => setNewMessage(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && !isLoading && (privateTo === 'all' ? handleSendMessage() : handleSendMessage())}
+                    onKeyPress={(e) => e.key === 'Enter' && !isLoading && handleSendMessage()}
                     placeholder="Type a message..."
                     disabled={isLoading}
                 />
@@ -252,10 +201,6 @@ export default function ChatClient() {
                 </Popover>
             </div>
             <Button onClick={handleSendMessage} disabled={isLoading}><Send className="h-4 w-4" /></Button>
-            <Button onClick={handleAiAssistant} disabled={isLoading} variant="outline" className="interactive-element">
-                {aiAssistantLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <BrainCircuit className="h-4 w-4" />}
-                <span className="hidden sm:inline ml-2">Ask AI</span>
-            </Button>
         </div>
       </div>
     </div>
