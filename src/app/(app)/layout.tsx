@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
 import Header from '@/components/layout/header';
+import FloatingAiChat from '@/components/chat/floating-ai-chat';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -30,6 +31,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     <div className="flex flex-col min-h-screen bg-background">
       <Header />
       <main className="flex-1">{children}</main>
+      <FloatingAiChat />
     </div>
   );
 }
