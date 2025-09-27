@@ -60,7 +60,7 @@ export default function Header() {
         return ['/', '/agenda', '/events'].includes(link.href);
       }
       // For logged-in users, filter based on roles
-      if (user.role === 'student' && link.href === '/events') {
+      if (user && link.href === '/events') {
         return false;
       }
       return !link.roles || link.roles.includes(user.role);
