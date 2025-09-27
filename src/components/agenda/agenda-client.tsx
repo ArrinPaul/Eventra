@@ -2,11 +2,12 @@
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { SESSIONS, AGENDA_STRING } from '@/lib/data';
+import useLocalStorage from '@/hooks/use-local-storage';
+import { SESSIONS as initialSessions, AGENDA_STRING } from '@/lib/data';
 import type { Session } from '@/types';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
-import { Calendar, Clock, Plus, Minus, Sparkles, Loader2, User, Tag, AlertTriangle } from 'lucide-react';
+import { Calendar, Clock, Plus, Minus, Sparkles, Loader2, User, Tag, AlertTriangle, MapPin } from 'lucide-react';
 import { getRecommendedSessions } from '@/lib/actions';
 import {
   AlertDialog,
@@ -25,7 +26,7 @@ function getGoogleCalendarUrl(session: Session) {
     const date = `20241026T${startTime.padStart(4, '0')}00`;
     const endDate = `20241026T${endTime.padStart(4, '0')}00`;
 
-    return `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(session.title)}&details=${encodeURIComponent(session.description)}&location=IPX%20Hub&dates=${date}/${endDate}`;
+    return `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(session.title)}&details=${encodeURIComponent(session.description)}&location=${encodeURIComponent(session.location)}&dates=${date}/${endDate}`;
 }
 
 const parseTime = (timeStr: string) => {
@@ -40,8 +41,8 @@ const parseTime = (timeStr: string) => {
     return hours * 60 + minutes;
 };
 
-const hasTimeConflict = (newSession: Session, mySessionIds: string[]): Session | null => {
-    const mySessions = SESSIONS.filter(s => mySessionIds.includes(s.id));
+const hasTimeConflict = (newSession: Session, mySessionIds: string[], allSessions: Session[]): Session | null => {
+    const mySessions = allSessions.filter(s => mySessionIds.includes(s.id));
     if (mySessions.length === 0) return null;
 
     const newSessionStart = parseTime(newSession.time.split(' - ')[0]);
@@ -59,7 +60,7 @@ const hasTimeConflict = (newSession: Session, mySessionIds: string[]): Session |
 };
 
 
-function SessionCard({ session }: { session: Session }) {
+function SessionCard({ session, allSessions }: { session: Session, allSessions: Session[] }) {
   const { user, addEventToUser, removeEventFromUser } = useAuth();
   const { toast } = useToast();
   const [conflict, setConflict] = useState<Session | null>(null);
@@ -69,7 +70,7 @@ function SessionCard({ session }: { session: Session }) {
   const isAdded = user.myEvents.includes(session.id);
 
   const handleAddEvent = () => {
-    const conflictingSession = hasTimeConflict(session, user.myEvents);
+    const conflictingSession = hasTimeConflict(session, user.myEvents, allSessions);
     if (conflictingSession) {
       setConflict(conflictingSession);
     } else {
@@ -106,6 +107,10 @@ function SessionCard({ session }: { session: Session }) {
         <div className="flex items-center text-muted-foreground">
           <Clock className="mr-2 h-4 w-4" />
           <span>{session.time}</span>
+        </div>
+        <div className="flex items-center text-muted-foreground">
+          <MapPin className="mr-2 h-4 w-4" />
+          <span>{session.location}</span>
         </div>
         <div className="flex items-center text-muted-foreground">
             <Tag className="mr-2 h-4 w-4" />
@@ -147,6 +152,7 @@ function SessionCard({ session }: { session: Session }) {
 
 export default function AgendaClient() {
   const { user } = useAuth();
+  const [sessions, setSessions] = useLocalStorage<Session[]>('ipx-sessions', initialSessions);
   const [loadingRecommendations, setLoadingRecommendations] = useState(false);
   const [recommendations, setRecommendations] = useState<string[]>([]);
   const [isAlertOpen, setIsAlertOpen] = useState(false);
@@ -187,8 +193,8 @@ export default function AgendaClient() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {SESSIONS.map((session) => (
-          <SessionCard key={session.id} session={session} />
+        {sessions.map((session) => (
+          <SessionCard key={session.id} session={session} allSessions={sessions} />
         ))}
       </div>
       

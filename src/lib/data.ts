@@ -1,13 +1,13 @@
 import type { Session, Event, User } from '@/types';
 
 export const SESSIONS: Session[] = [
-  { id: 's1', title: 'Opening Keynote', speaker: 'Jane Doe', time: '09:00 AM - 10:00 AM', track: 'General', description: 'Join us for the opening keynote to kick off IPX Hub!'},
-  { id: 's2', title: 'Modern Web Development with Next.js', speaker: 'John Smith', time: '10:30 AM - 11:30 AM', track: 'Tech', description: 'A deep dive into the latest features of Next.js.' },
-  { id: 's3', title: 'UI/UX Design Principles', speaker: 'Emily White', time: '10:30 AM - 11:30 AM', track: 'Design', description: 'Learn the fundamentals of creating beautiful and intuitive user interfaces.' },
-  { id: 's4', title: 'Building a Startup', speaker: 'Michael Brown', time: '01:00 PM - 02:00 PM', track: 'Business', description: 'From idea to MVP: a guide to launching your own tech startup.' },
-  { id: 's5', title: 'AI in Practice', speaker: 'Dr. Alan Grant', time: '02:30 PM - 03:30 PM', track: 'Tech', description: 'Exploring real-world applications of artificial intelligence.' },
-  { id: 's6', title: 'The Art of Pitching', speaker: 'Sarah Green', time: '02:30 PM - 03:30 PM', track: 'Business', description: 'Master the art of presenting your ideas to investors and stakeholders.'},
-  { id: 's7', title: 'Advanced CSS Animations', speaker: 'Chris Lee', time: '04:00 PM - 05:00 PM', track: 'Design', description: 'Take your web animations to the next level with advanced CSS techniques.' },
+  { id: 's1', title: 'Opening Keynote', speaker: 'Jane Doe', time: '09:00 AM - 10:00 AM', track: 'General', description: 'Join us for the opening keynote to kick off IPX Hub!', location: 'Main Hall' },
+  { id: 's2', title: 'Modern Web Development with Next.js', speaker: 'John Smith', time: '10:30 AM - 11:30 AM', track: 'Tech', description: 'A deep dive into the latest features of Next.js.', location: 'Room A' },
+  { id: 's3', title: 'UI/UX Design Principles', speaker: 'Emily White', time: '10:30 AM - 11:30 AM', track: 'Design', description: 'Learn the fundamentals of creating beautiful and intuitive user interfaces.', location: 'Room B' },
+  { id: 's4', title: 'Building a Startup', speaker: 'Michael Brown', time: '01:00 PM - 02:00 PM', track: 'Business', description: 'From idea to MVP: a guide to launching your own tech startup.', location: 'Room A' },
+  { id: 's5', title: 'AI in Practice', speaker: 'Dr. Alan Grant', time: '02:30 PM - 03:30 PM', track: 'Tech', description: 'Exploring real-world applications of artificial intelligence.', location: 'Main Hall' },
+  { id: 's6', title: 'The Art of Pitching', speaker: 'Sarah Green', time: '02:30 PM - 03:30 PM', track: 'Business', description: 'Master the art of presenting your ideas to investors and stakeholders.', location: 'Room B' },
+  { id: 's7', title: 'Advanced CSS Animations', speaker: 'Chris Lee', time: '04:00 PM - 05:00 PM', track: 'Design', description: 'Take your web animations to the next level with advanced CSS techniques.', location: 'Room C' },
 ];
 
 export const EVENTS: Event[] = [

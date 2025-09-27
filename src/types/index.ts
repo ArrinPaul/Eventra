@@ -49,6 +49,7 @@ export interface Session {
   time: string;
   track: 'Tech' | 'Design' | 'Business' | 'General';
   description: string;
+  location: string;
 }
 
 export interface Event {
