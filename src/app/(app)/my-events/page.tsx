@@ -31,9 +31,11 @@ export default function MyEventsPage() {
 
   const handleSaveSession = (sessionData: Omit<Session, 'id'>) => {
     const newSession = { ...sessionData, id: `s-${Date.now()}` };
-    setSessions([...sessions, newSession]);
-    addEventToUser(newSession.id);
-    toast({ title: 'Session Created', description: `"${sessionData.title}" has been added.` });
+    // Add to the main sessions list
+    setSessions(prevSessions => [...prevSessions, newSession]);
+    // Add to the organizer's personal schedule
+    addEventToUser(newSession.id); 
+    toast({ title: 'Session Created', description: `"${newSession.title}" has been created and added to your schedule.` });
     setIsDialogOpen(false);
   };
 
