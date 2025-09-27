@@ -114,7 +114,7 @@ export function RegisterForm() {
         name: emergencyContactName,
         number: emergencyContactNumber,
       },
-    } as Omit<User, 'id' | 'registrationId' | 'checkedIn' | 'myEvents'>);
+    } as Omit<User, 'id' | 'registrationId' | 'checkedIn' | 'myEvents' | 'points'>);
 
     if (newUser) {
       toast({

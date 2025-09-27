@@ -6,7 +6,7 @@ import Image from "next/image";
 import { Check, X, QrCode } from "lucide-react";
 
 export default function CheckInPage() {
-    const { user, updateUser } = useAuth();
+    const { user, updateUser, awardPoints } = useAuth();
     
     if (!user) return null;
 
@@ -14,7 +14,10 @@ export default function CheckInPage() {
     const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(qrData)}`;
     
     const handleManualCheckIn = () => {
-        updateUser({ ...user, checkedIn: true });
+        if (!user.checkedIn) {
+            updateUser({ ...user, checkedIn: true });
+            awardPoints(25, 'for checking in');
+        }
     };
 
     return (

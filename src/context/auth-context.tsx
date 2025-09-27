@@ -3,6 +3,7 @@ import { createContext, ReactNode, useState, useEffect } from 'react';
 import useLocalStorage from '@/hooks/use-local-storage';
 import { User } from '@/types';
 import { ORGANIZERS } from '@/lib/data';
+import { useToast } from '@/hooks/use-toast';
 
 interface AuthContextType {
   user: User | null;
@@ -10,10 +11,11 @@ interface AuthContextType {
   loading: boolean;
   login: (email: string) => User | null;
   logout: () => void;
-  register: (userData: Omit<User, 'id' | 'registrationId' | 'checkedIn' | 'myEvents'>) => User;
+  register: (userData: Omit<User, 'id' | 'registrationId' | 'checkedIn' | 'myEvents' | 'points'>) => User;
   updateUser: (updatedUser: User) => void;
   addEventToUser: (sessionId: string) => void;
   removeEventFromUser: (sessionId: string) => void;
+  awardPoints: (points: number, message?: string) => void;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -22,6 +24,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser, userLoaded] = useLocalStorage<User | null>('ipx-user', null);
   const [users, setUsers, usersLoaded] = useLocalStorage<User[]>('ipx-users', ORGANIZERS);
   const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
   useEffect(() => {
     if (userLoaded && usersLoaded) {
@@ -42,19 +45,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   };
 
-  const register = (userData: Omit<User, 'id' | 'registrationId' | 'checkedIn' | 'myEvents'>): User => {
+  const register = (userData: Omit<User, 'id' | 'registrationId' | 'checkedIn' | 'myEvents' | 'points'>): User => {
     const newUser: User = {
       ...userData,
       id: `user-${Date.now()}`,
       registrationId: `${userData.role.slice(0, 3).toUpperCase()}-${Math.random().toString(36).substr(2, 5).toUpperCase()}`,
       checkedIn: false,
       myEvents: [],
+      points: 0,
     };
     
     setUsers((prevUsers) => [...prevUsers, newUser]);
     setUser(newUser);
     
-    // Mock email confirmation
     console.log(`
       --- Mock Email Sent ---
       To: ${newUser.email}
@@ -75,11 +78,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(updatedUser);
     setUsers(prevUsers => prevUsers.map(u => u.id === updatedUser.id ? updatedUser : u));
   };
+  
+  const awardPoints = (points: number, message?: string) => {
+    if (user) {
+      const updatedUser = { ...user, points: (user.points || 0) + points };
+      updateUser(updatedUser);
+      if (message) {
+        toast({
+          title: 'Points Awarded!',
+          description: `You earned ${points} points ${message}.`,
+        });
+      }
+    }
+  };
 
   const addEventToUser = (sessionId: string) => {
     if (user && !user.myEvents.includes(sessionId)) {
       const updatedUser = { ...user, myEvents: [...user.myEvents, sessionId] };
       updateUser(updatedUser);
+      awardPoints(10, 'for adding a session');
     }
   };
 
@@ -91,7 +108,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
 
-  const value = { user, users, loading, login, logout, register, updateUser, addEventToUser, removeEventFromUser };
+  const value = { user, users, loading, login, logout, register, updateUser, addEventToUser, removeEventFromUser, awardPoints };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

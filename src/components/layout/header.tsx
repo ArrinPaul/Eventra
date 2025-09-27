@@ -36,6 +36,7 @@ export default function Header() {
     { href: '/', label: 'Home' },
     { href: '/agenda', label: 'Agenda' },
     { href: '/events', label: 'Events' },
+    { href: '/leaderboard', label: 'Leaderboard' },
     { href: '/chat', label: 'Chat' },
     { href: '/check-in', label: 'Check-in' },
     { href: '/my-events', label: 'My Events' },

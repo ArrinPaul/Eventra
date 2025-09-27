@@ -55,7 +55,8 @@ export const ORGANIZERS: User[] = [
     registrationId: 'ORG-001',
     checkedIn: true,
     myEvents: [],
-    interests: 'Event Management, Technology'
+    interests: 'Event Management, Technology',
+    points: 0
   }
 ];
 

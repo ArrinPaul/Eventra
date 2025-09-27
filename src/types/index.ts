@@ -15,6 +15,7 @@ export interface BaseUser {
   checkedIn: boolean;
   myEvents: string[]; // array of session IDs
   interests: string;
+  points: number;
 }
 
 export interface Student extends BaseUser {

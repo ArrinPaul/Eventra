@@ -19,7 +19,7 @@ import { AGENDA_STRING } from '@/lib/data';
 const EMOJIS = ['😀', '😂', '😍', '🤔', '👍', '🎉', '🚀', '💻'];
 
 export default function ChatClient() {
-  const { user, users } = useAuth();
+  const { user, users, awardPoints } = useAuth();
   const { toast } = useToast();
   const [messages, setMessages] = useLocalStorage<ChatMessage[]>('ipx-chat', []);
   const [newMessage, setNewMessage] = useState('');
@@ -66,6 +66,9 @@ export default function ChatClient() {
     };
     setMessages([...messages, message]);
     setNewMessage('');
+    if (privateTo === 'all') {
+        awardPoints(5, 'for sending a message');
+    }
   };
 
   const handleBotMessage = async () => {
