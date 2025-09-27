@@ -17,13 +17,28 @@ type Message = {
     text: string;
 };
 
+const initialBotMessage: Message = {
+    sender: 'bot',
+    text: "Hello! I'm here to help with questions about the IPX Hub event agenda. What can I assist you with today?",
+};
+
+
 export default function FloatingAiChat() {
     const { user } = useAuth();
     const [isOpen, setIsOpen] = useState(false);
-    const [messages, setMessages] = useState<Message[]>([]);
+    const [messages, setMessages] = useState<Message[]>([initialBotMessage]);
     const [input, setInput] = useState('');
     const [loading, setLoading] = useState(false);
     const scrollAreaRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (isOpen) {
+          // Reset to initial state when opening
+          setMessages([initialBotMessage]);
+          setInput('');
+          setLoading(false);
+        }
+    }, [isOpen]);
 
     useEffect(() => {
         if (scrollAreaRef.current) {
