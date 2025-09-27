@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import type { Session } from '@/types';
+import { useEffect } from 'react';
 
 const timeSlots = [
   '09:00 AM - 10:00 AM',
@@ -26,14 +27,16 @@ const formSchema = z.object({
   description: z.string().min(10, "Description must be at least 10 characters."),
 });
 
+type SessionFormValues = z.infer<typeof formSchema>;
+
 type SessionFormProps = {
-  onSave: (session: Omit<Session, 'id'>) => void;
-  session?: Omit<Session, 'id'> | null;
+  onSave: (session: Omit<Session, 'id'> | Session) => void;
+  session: Session | null;
   onClose: () => void;
 };
 
 export function SessionForm({ onSave, session, onClose }: SessionFormProps) {
-  const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm<SessionFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: session || {
       title: '',
@@ -45,8 +48,23 @@ export function SessionForm({ onSave, session, onClose }: SessionFormProps) {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    onSave(values);
+  useEffect(() => {
+    form.reset(session || {
+      title: '',
+      speaker: '',
+      time: '',
+      location: '',
+      track: 'General',
+      description: '',
+    });
+  }, [session, form]);
+
+  function onSubmit(values: SessionFormValues) {
+    if (session) {
+      onSave({ ...session, ...values });
+    } else {
+      onSave(values);
+    }
   }
 
   return (

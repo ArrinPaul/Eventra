@@ -6,16 +6,18 @@ import { SESSIONS as initialSessions } from '@/lib/data';
 import type { Session } from '@/types';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Calendar, Clock, Minus, Ticket, User, Plus, MapPin } from 'lucide-react';
+import { Calendar, Clock, Edit, Minus, Ticket, User, Plus, MapPin, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { SessionForm } from '@/components/agenda/session-form';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 export default function MyEventsPage() {
   const { user, removeEventFromUser, addEventToUser } = useAuth();
   const [sessions, setSessions] = useLocalStorage<Session[]>('ipx-sessions', initialSessions);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingSession, setEditingSession] = useState<Session | null>(null);
   const { toast } = useToast();
   
   const mySessions = user ? sessions.filter(session => user.myEvents.includes(session.id)) : [];
@@ -29,14 +31,40 @@ export default function MyEventsPage() {
     });
   };
 
-  const handleSaveSession = (sessionData: Omit<Session, 'id'>) => {
-    const newSession = { ...sessionData, id: `s-${Date.now()}` };
-    // Add to the main sessions list
-    setSessions(prevSessions => [...prevSessions, newSession]);
-    // Add to the organizer's personal schedule
-    addEventToUser(newSession.id); 
-    toast({ title: 'Session Created', description: `"${newSession.title}" has been created and added to your schedule.` });
+  const handleSaveSession = (sessionData: Omit<Session, 'id'> | Session) => {
+    if ('id' in sessionData) {
+      // Editing existing session
+      const updatedSessions = sessions.map(s => s.id === sessionData.id ? sessionData : s);
+      setSessions(updatedSessions);
+      toast({ title: 'Session Updated', description: `"${sessionData.title}" has been updated.` });
+    } else {
+      // Creating new session
+      const newSession = { ...sessionData, id: `s-${Date.now()}` };
+      setSessions(prevSessions => [...prevSessions, newSession]);
+      addEventToUser(newSession.id);
+      toast({ title: 'Session Created', description: `"${newSession.title}" has been created and added to your schedule.` });
+    }
     setIsDialogOpen(false);
+    setEditingSession(null);
+  };
+  
+  const handleCreate = () => {
+    setEditingSession(null);
+    setIsDialogOpen(true);
+  };
+  
+  const handleEdit = (session: Session) => {
+    setEditingSession(session);
+    setIsDialogOpen(true);
+  };
+  
+  const handleDelete = (sessionId: string) => {
+    setSessions(sessions.filter(s => s.id !== sessionId));
+    // Also remove from user's personal schedule if they had it
+    if (user?.myEvents.includes(sessionId)) {
+        removeEventFromUser(sessionId);
+    }
+    toast({ title: 'Session Deleted', variant: 'destructive' });
   };
 
   return (
@@ -49,15 +77,22 @@ export default function MyEventsPage() {
         {isOrganizer && (
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>
-                <Button>
+                <Button onClick={handleCreate}>
                   <Plus className="mr-2 h-4 w-4" /> Create Session
                 </Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-[625px]">
                 <DialogHeader>
-                  <DialogTitle className="font-headline">Create a New Session</DialogTitle>
+                  <DialogTitle className="font-headline">{editingSession ? 'Edit Session' : 'Create a New Session'}</DialogTitle>
                 </DialogHeader>
-                <SessionForm onSave={handleSaveSession} onClose={() => setIsDialogOpen(false)} />
+                <SessionForm 
+                    onSave={handleSaveSession} 
+                    session={editingSession}
+                    onClose={() => {
+                        setIsDialogOpen(false);
+                        setEditingSession(null);
+                    }} 
+                />
               </DialogContent>
             </Dialog>
         )}
@@ -77,11 +112,31 @@ export default function MyEventsPage() {
                 <div className="flex items-center text-muted-foreground"><MapPin className="mr-2 h-4 w-4"/><span>{session.location}</span></div>
                 <div className="flex items-center text-muted-foreground"><Ticket className="mr-2 h-4 w-4"/><span>{session.track}</span></div>
               </CardContent>
-              <CardFooter>
+              <CardFooter className="flex justify-between">
                 <Button size="sm" variant="destructive" onClick={() => handleRemove(session.id, session.title)}>
                   <Minus className="mr-2 h-4 w-4" />
                   Remove
                 </Button>
+                {isOrganizer && (
+                    <div className="flex gap-2">
+                        <Button variant="outline" size="icon" onClick={() => handleEdit(session)}><Edit className="h-4 w-4" /></Button>
+                        <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                                <Button variant="destructive" size="icon"><Trash2 className="h-4 w-4" /></Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                                <AlertDialogHeader>
+                                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                    <AlertDialogDescription>This action cannot be undone. This will permanently delete the session from the agenda for all users.</AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction onClick={() => handleDelete(session.id)}>Delete</AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
+                    </div>
+                )}
               </CardFooter>
             </Card>
           ))}
