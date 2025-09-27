@@ -64,6 +64,18 @@ export function RegisterForm() {
       emergencyContactName: '',
       emergencyContactNumber: '',
       interests: '',
+      // Student fields
+      college: '',
+      degree: 'ug',
+      year: 1,
+      // Professional fields
+      company: '',
+      designation: '',
+      country: '',
+      gender: 'prefer-not-to-say',
+      bloodGroup: '',
+      // Organizer fields
+      verificationCode: '',
     },
   });
 
