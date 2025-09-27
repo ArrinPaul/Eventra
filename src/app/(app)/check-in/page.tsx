@@ -23,7 +23,7 @@ export default function CheckInPage() {
             <p className="text-muted-foreground mb-8">Present your QR code or registration ID at the check-in desk.</p>
             
             <div className="flex justify-center">
-                <Card className="w-full max-w-md text-center interactive-element">
+                <Card className="w-full max-w-md text-center glass-effect">
                     <CardHeader>
                         <CardTitle className="font-headline flex items-center justify-center gap-2">
                             <QrCode /> Your Check-in Code

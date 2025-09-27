@@ -46,7 +46,7 @@ function SessionCard({ session }: { session: Session }) {
   const googleCalendarUrl = getGoogleCalendarUrl(session);
 
   return (
-    <Card className="interactive-element flex flex-col">
+    <Card className="interactive-element flex flex-col glass-effect">
       <CardHeader>
         <CardTitle className="font-headline">{session.title}</CardTitle>
         <CardDescription>{session.description}</CardDescription>

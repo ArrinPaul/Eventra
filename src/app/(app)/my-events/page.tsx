@@ -28,7 +28,7 @@ export default function MyEventsPage() {
       {mySessions.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {mySessions.map(session => (
-            <Card key={session.id} className="interactive-element flex flex-col">
+            <Card key={session.id} className="interactive-element flex flex-col glass-effect">
               <CardHeader>
                 <CardTitle className="font-headline">{session.title}</CardTitle>
                 <CardDescription>{session.description}</CardDescription>

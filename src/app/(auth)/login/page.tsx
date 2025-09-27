@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 export default function LoginPage() {
   return (
     <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center p-4">
-      <Card className="w-full max-w-md mx-auto shadow-xl">
+      <Card className="w-full max-w-md mx-auto shadow-xl glass-effect">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-headline">Welcome Back</CardTitle>
           <CardDescription>Sign in to access your IPX Hub dashboard.</CardDescription>

@@ -5,12 +5,10 @@ import { Button } from '@/components/ui/button';
 export default function Hero() {
   return (
     <div className="relative isolate overflow-hidden h-[calc(100vh-4rem)]">
-      <div className="absolute inset-0 -z-10 bg-gradient-to-br from-primary/10 via-transparent to-secondary/10 dark:from-primary/10 dark:via-transparent dark:to-secondary/10">
-        <div
-          className="absolute inset-0 h-full w-full bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] [mask-image:radial-gradient(ellipse_50%_50%_at_50%_50%,#000_70%,transparent_100%)]
-           dark:bg-[radial-gradient(rgba(255,255,255,0.1)_1px,transparent_1px)]"
+       <div className="absolute inset-0 -z-10 h-full w-full bg-background bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] dark:bg-[radial-gradient(rgba(255,255,255,0.1)_1px,transparent_1px)]"></div>
+       <div
+          className="absolute inset-x-0 top-0 -z-10 h-[40rem] bg-gradient-to-b from-primary/10 to-transparent opacity-40"
         ></div>
-      </div>
 
       <div className="mx-auto max-w-7xl px-6 lg:px-8 flex items-center h-full">
         <div className="mx-auto max-w-3xl text-center">

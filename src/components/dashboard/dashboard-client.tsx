@@ -14,7 +14,7 @@ function ProfileSummary() {
     if (!user) return null;
 
     return (
-        <Card className="interactive-element">
+        <Card className="interactive-element glass-effect">
             <CardHeader>
                 <CardTitle className="flex items-center gap-3">
                     <User className="w-5 h-5 text-muted-foreground" /> 
@@ -67,10 +67,10 @@ function QRCodeCard() {
     const { user } = useAuth();
     if (!user) return null;
     const qrData = JSON.stringify({ registrationId: user.registrationId, name: user.name });
-    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrData)}&qzone=1&bgcolor=F7F7F7`;
+    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrData)}&qzone=1&bgcolor=FFFFFF`;
 
     return (
-        <Card className="interactive-element">
+        <Card className="interactive-element glass-effect">
             <CardHeader>
                 <CardTitle className="flex items-center gap-3">
                     <QrCode className="w-5 h-5 text-muted-foreground" />
@@ -78,7 +78,7 @@ function QRCodeCard() {
                 </CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col items-center gap-4">
-                <div className="p-2 bg-stone-100 rounded-lg">
+                <div className="p-2 bg-white rounded-lg">
                     <Image
                         src={qrUrl}
                         alt="Registration QR Code"
@@ -104,7 +104,7 @@ function QuickActions() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {quickActions.map(action => (
                 <Link href={action.href} key={action.href}>
-                    <Card className="h-full interactive-element hover:bg-accent/50">
+                    <Card className="h-full interactive-element glass-effect hover:bg-accent/50">
                         <CardHeader>
                             <CardTitle className="flex items-center gap-3">
                                 <action.icon className="h-5 w-5 text-muted-foreground" />

@@ -14,7 +14,7 @@ import { EVENTS as initialEvents } from '@/lib/data';
 
 function EventCard({ event, isOrganizer, onEdit, onDelete }: { event: Event; isOrganizer: boolean; onEdit: (event: Event) => void; onDelete: (eventId: string) => void; }) {
   return (
-    <Card className="interactive-element flex flex-col">
+    <Card className="interactive-element flex flex-col glass-effect">
       <CardHeader>
         <CardTitle className="font-headline">{event.title}</CardTitle>
         <CardDescription>{event.description}</CardDescription>
