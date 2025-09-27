@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 export default function Hero() {
   return (
     <div className="relative isolate overflow-hidden h-[calc(100vh-4rem)]">
-      <div className="absolute inset-0 -z-10 bg-gradient-to-r from-[#2563EB] to-[#7C3AED] dark:from-[#3B82F6] dark:via-[#C084FC] dark:to-[#6366F1] opacity-20">
+      <div className="absolute inset-0 -z-10 bg-gradient-to-r from-[#1F3A93] to-[#B48EAD] dark:from-[#5A67F2] dark:via-[#D6A6F1] dark:to-[#8B5CF6] opacity-20">
         <svg
           className="absolute inset-0 h-full w-full stroke-background/10 [mask-image:radial-gradient(100%_100%_at_top_right,white,transparent)]"
           aria-hidden="true"

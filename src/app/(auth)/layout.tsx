@@ -7,7 +7,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       <Header />
       <main className="flex-1">
         <div className="relative isolate overflow-hidden">
-            <div className="absolute inset-0 -z-10 bg-gradient-to-r from-[#2563EB] to-[#7C3AED] dark:from-[#3B82F6] dark:via-[#C084FC] dark:to-[#6366F1] opacity-10"></div>
+            <div className="absolute inset-0 -z-10 bg-gradient-to-r from-[#1F3A93] to-[#B48EAD] dark:from-[#5A67F2] dark:via-[#D6A6F1] dark:to-[#8B5CF6] opacity-10"></div>
             {children}
         </div>
       </main>
