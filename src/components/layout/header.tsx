@@ -104,7 +104,10 @@ export default function Header() {
                 {renderNavLinks(true)}
                 <div className="pt-6">
                 {user ? (
-                   null
+                   <Button variant="outline" onClick={logout} className="w-full">
+                     <LogOut className="mr-2 h-4 w-4" />
+                     Log Out
+                   </Button>
                 ) : (
                     <div className="flex flex-col space-y-2">
                         <Button asChild variant="outline" className="w-full">
@@ -128,6 +131,10 @@ export default function Header() {
               {user ? (
                 <>
                   <span className="hidden sm:inline text-sm text-muted-foreground">Welcome, {user.name.split(' ')[0]}</span>
+                   <Button variant="ghost" size="icon" onClick={logout} className="hidden md:inline-flex interactive-element">
+                        <LogOut className="h-5 w-5"/>
+                        <span className="sr-only">Log Out</span>
+                    </Button>
                 </>
               ) : (
                 <div className="hidden md:flex items-center gap-2">
