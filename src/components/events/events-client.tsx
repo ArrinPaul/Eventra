@@ -11,27 +11,30 @@ import { useToast } from '@/hooks/use-toast';
 import { EventForm } from './event-form';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { EVENTS as initialEvents } from '@/lib/data';
+import Link from 'next/link';
 
 function EventCard({ event, isOrganizer, onEdit, onDelete }: { event: Event; isOrganizer: boolean; onEdit: (event: Event) => void; onDelete: (eventId: string) => void; }) {
   return (
-    <Card className="interactive-element flex flex-col glass-effect">
-      <CardHeader>
-        <CardTitle className="font-headline">{event.title}</CardTitle>
-        <CardDescription>{event.description}</CardDescription>
-      </CardHeader>
-      <CardContent className="flex-grow space-y-2 text-sm">
-        <div className="flex items-center text-muted-foreground"><Calendar className="mr-2 h-4 w-4"/><span>{event.date}</span></div>
-        <div className="flex items-center text-muted-foreground"><Clock className="mr-2 h-4 w-4"/><span>{event.time}</span></div>
-        <div className="flex items-center text-muted-foreground"><MapPin className="mr-2 h-4 w-4"/><span>{event.location}</span></div>
-        <div className="flex items-center text-muted-foreground"><Tag className="mr-2 h-4 w-4"/><span>{event.category}</span></div>
-        <div className="flex items-center text-muted-foreground"><Users className="mr-2 h-4 w-4"/><span>For: {event.targetAudience}</span></div>
-      </CardContent>
+    <Card className="flex flex-col glass-effect">
+      <Link href={`/events/${event.id}`} className="flex flex-col flex-grow interactive-element">
+        <CardHeader>
+          <CardTitle className="font-headline">{event.title}</CardTitle>
+          <CardDescription>{event.description}</CardDescription>
+        </CardHeader>
+        <CardContent className="flex-grow space-y-2 text-sm">
+          <div className="flex items-center text-muted-foreground"><Calendar className="mr-2 h-4 w-4"/><span>{new Date(event.date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span></div>
+          <div className="flex items-center text-muted-foreground"><Clock className="mr-2 h-4 w-4"/><span>{event.time}</span></div>
+          <div className="flex items-center text-muted-foreground"><MapPin className="mr-2 h-4 w-4"/><span>{event.location}</span></div>
+          <div className="flex items-center text-muted-foreground"><Tag className="mr-2 h-4 w-4"/><span>{event.category}</span></div>
+          <div className="flex items-center text-muted-foreground"><Users className="mr-2 h-4 w-4"/><span>For: {event.targetAudience}</span></div>
+        </CardContent>
+      </Link>
       {isOrganizer && (
         <CardFooter className="flex justify-end gap-2">
-            <Button variant="outline" size="icon" onClick={() => onEdit(event)}><Edit className="h-4 w-4" /></Button>
+            <Button variant="outline" size="icon" onClick={(e) => { e.stopPropagation(); onEdit(event); }}><Edit className="h-4 w-4" /></Button>
             <AlertDialog>
                 <AlertDialogTrigger asChild>
-                    <Button variant="destructive" size="icon"><Trash2 className="h-4 w-4" /></Button>
+                    <Button variant="destructive" size="icon" onClick={(e) => e.stopPropagation()}><Trash2 className="h-4 w-4" /></Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                     <AlertDialogHeader>
@@ -98,7 +101,12 @@ export default function EventsClient() {
           <p className="text-muted-foreground mt-2">Special workshops, talks, and networking opportunities.</p>
         </div>
         {isOrganizer && (
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <Dialog open={isDialogOpen} onOpenChange={(isOpen) => {
+            setIsDialogOpen(isOpen);
+            if (!isOpen) {
+              setEditingEvent(null);
+            }
+          }}>
             <DialogTrigger asChild>
               <Button onClick={() => setEditingEvent(null)}>
                 <Plus className="mr-2 h-4 w-4" /> Create Event
