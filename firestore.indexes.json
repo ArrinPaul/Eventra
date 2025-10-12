@@ -1,0 +1,262 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "discussions",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "communityId", "order": "ASCENDING"},
+        {"fieldPath": "createdAt", "order": "DESCENDING"}
+      ]
+    },
+    {
+      "collectionGroup": "discussionComments",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "discussionId", "order": "ASCENDING"},
+        {"fieldPath": "createdAt", "order": "ASCENDING"}
+      ]
+    },
+    {
+      "collectionGroup": "userTitles",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "userId", "order": "ASCENDING"},
+        {"fieldPath": "earnedAt", "order": "DESCENDING"}
+      ]
+    },
+    {
+      "collectionGroup": "notifications",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "userId", "order": "ASCENDING"},
+        {"fieldPath": "createdAt", "order": "DESCENDING"}
+      ]
+    },
+    {
+      "collectionGroup": "notifications",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "userId", "order": "ASCENDING"},
+        {"fieldPath": "read", "order": "ASCENDING"},
+        {"fieldPath": "createdAt", "order": "DESCENDING"}
+      ]
+    },
+    {
+      "collectionGroup": "swipeActions",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "userId", "order": "ASCENDING"},
+        {"fieldPath": "createdAt", "order": "DESCENDING"}
+      ]
+    },
+    {
+      "collectionGroup": "swipeActions",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "targetUserId", "order": "ASCENDING"},
+        {"fieldPath": "userId", "order": "ASCENDING"},
+        {"fieldPath": "action", "order": "ASCENDING"}
+      ]
+    },
+    {
+      "collectionGroup": "matches",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "user1Id", "order": "ASCENDING"},
+        {"fieldPath": "createdAt", "order": "DESCENDING"}
+      ]
+    },
+    {
+      "collectionGroup": "matches",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "user2Id", "order": "ASCENDING"},
+        {"fieldPath": "createdAt", "order": "DESCENDING"}
+      ]
+    },
+    {
+      "collectionGroup": "analytics",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "userId", "order": "ASCENDING"},
+        {"fieldPath": "timestamp", "order": "DESCENDING"}
+      ]
+    },
+    {
+      "collectionGroup": "analytics",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "eventType", "order": "ASCENDING"},
+        {"fieldPath": "timestamp", "order": "DESCENDING"}
+      ]
+    },
+    {
+      "collectionGroup": "scheduledNotifications",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "status", "order": "ASCENDING"},
+        {"fieldPath": "scheduledFor", "order": "ASCENDING"}
+      ]
+    },
+    {
+      "collectionGroup": "connections",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "fromUserId", "order": "ASCENDING"},
+        {"fieldPath": "status", "order": "ASCENDING"}
+      ]
+    },
+    {
+      "collectionGroup": "connections",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "toUserId", "order": "ASCENDING"},
+        {"fieldPath": "status", "order": "ASCENDING"}
+      ]
+    },
+    {
+      "collectionGroup": "users",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "isLookingForMentor", "order": "ASCENDING"},
+        {"fieldPath": "role", "order": "ASCENDING"}
+      ]
+    },
+    {
+      "collectionGroup": "users",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "isLookingForCofounder", "order": "ASCENDING"},
+        {"fieldPath": "role", "order": "ASCENDING"}
+      ]
+    },
+    {
+      "collectionGroup": "events",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "organizerId", "order": "ASCENDING"},
+        {"fieldPath": "startTime", "order": "ASCENDING"}
+      ]
+    },
+    {
+      "collectionGroup": "events",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "isPublic", "order": "ASCENDING"},
+        {"fieldPath": "startTime", "order": "ASCENDING"}
+      ]
+    },
+    {
+      "collectionGroup": "eventAttendance",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "eventId", "order": "ASCENDING"},
+        {"fieldPath": "userId", "order": "ASCENDING"}
+      ]
+    },
+    {
+      "collectionGroup": "notationDocuments",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "ownerId", "order": "ASCENDING"},
+        {"fieldPath": "createdAt", "order": "DESCENDING"}
+      ]
+    },
+    {
+      "collectionGroup": "notationDocuments",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "visibility", "order": "ASCENDING"},
+        {"fieldPath": "createdAt", "order": "DESCENDING"}
+      ]
+    },
+    {
+      "collectionGroup": "aiChatSessions",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "userId", "order": "ASCENDING"},
+        {"fieldPath": "startTime", "order": "DESCENDING"}
+      ]
+    },
+    {
+      "collectionGroup": "aiChatMessages",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "sessionId", "order": "ASCENDING"},
+        {"fieldPath": "timestamp", "order": "ASCENDING"}
+      ]
+    },
+    {
+      "collectionGroup": "userCertificates",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "userId", "order": "ASCENDING"},
+        {"fieldPath": "issuedAt", "order": "DESCENDING"}
+      ]
+    },
+    {
+      "collectionGroup": "digitalBusinessCards",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "ownerId", "order": "ASCENDING"},
+        {"fieldPath": "createdAt", "order": "DESCENDING"}
+      ]
+    },
+    {
+      "collectionGroup": "networkingConnections",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "requesterId", "order": "ASCENDING"},
+        {"fieldPath": "status", "order": "ASCENDING"}
+      ]
+    },
+    {
+      "collectionGroup": "networkingConnections",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "recipientId", "order": "ASCENDING"},
+        {"fieldPath": "status", "order": "ASCENDING"}
+      ]
+    },
+    {
+      "collectionGroup": "mentoringRelationships",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "mentorId", "order": "ASCENDING"},
+        {"fieldPath": "status", "order": "ASCENDING"}
+      ]
+    },
+    {
+      "collectionGroup": "mentoringRelationships",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "menteeId", "order": "ASCENDING"},
+        {"fieldPath": "status", "order": "ASCENDING"}
+      ]
+    }
+  ],
+  "fieldOverrides": [
+    {
+      "collectionGroup": "discussions",
+      "fieldPath": "tags",
+      "indexes": [
+        {"order": "ASCENDING", "queryScope": "COLLECTION"},
+        {"arrayConfig": "CONTAINS", "queryScope": "COLLECTION"}
+      ]
+    },
+    {
+      "collectionGroup": "users",
+      "fieldPath": "skills",
+      "indexes": [
+        {"arrayConfig": "CONTAINS", "queryScope": "COLLECTION"}
+      ]
+    },
+    {
+      "collectionGroup": "userProfiles",
+      "fieldPath": "interests",
+      "indexes": [
+        {"arrayConfig": "CONTAINS", "queryScope": "COLLECTION"}
+      ]
+    }
+  ]
+}

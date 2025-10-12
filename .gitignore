@@ -2,6 +2,7 @@
 
 # dependencies
 /node_modules
+functions/node_modules
 /.pnp
 .pnp.*
 .yarn/*
@@ -43,3 +44,20 @@ next-env.d.ts
 # firebase
 firebase-debug.log
 firestore-debug.log
+
+# package locks that are auto-generated
+functions/package-lock.json
+package-lock.json
+
+# IDE files
+.vscode/
+.idea/
+
+# OS files
+Thumbs.db
+
+# Firebase emulator
+.firebase/
+firebase-debug.log*
+ui-debug.log
+functions/lib/
