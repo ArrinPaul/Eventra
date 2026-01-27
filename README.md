@@ -1,7 +1,7 @@
-# CIS-SAP
+# EventOS
 
 **Project Summary:**  
-CIS-SAP is a web-based solution (see: https://cis-sap.vercel.app) that streamlines key processes and workflow automation for its intended use case (update with your specific domain, e.g., school administration, HR, etc.). Built with a focus on speed, reliability, and ease of use.
+EventOS is a comprehensive, commercial-grade SaaS event management ecosystem with enterprise-level capabilities.
 
 **Tech Stack:**  
 - **Frontend:** TypeScript, React 18, Next.js 15
