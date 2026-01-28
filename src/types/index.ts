@@ -472,26 +472,34 @@ export interface Event {
   registrationLimit?: number;
   registrationDeadline?: Date;
   waitlistEnabled: boolean;
+  registeredCount?: number; // Count of registered attendees
   
   // Pricing
   pricing: EventPricing;
   
   // Status & Visibility
   status: 'draft' | 'published' | 'live' | 'ended' | 'cancelled';
-  visibility: 'public' | 'private' | 'organization';
+  visibility: 'public' | 'private' | 'organization' | 'unlisted';
   
   // Content
   image?: string;
+  imageUrl?: string; // Alias for image
   gallery?: string[];
-  agenda: Session[];
-  speakers: string[]; // User IDs
+  agenda: AgendaItem[];
+  speakers: Speaker[] | string[]; // User IDs or Speaker objects
   
   // Organization
   organizers: string[]; // User IDs
+  organizerId?: string; // Primary organizer
+  organizer?: { // Organizer details
+    name: string;
+    photoUrl?: string;
+  };
   moderators: string[]; // User IDs
   
   // Registration
   registeredUsers: string[];
+  attendees?: string[]; // Alias for registeredUsers
   waitlistedUsers: string[];
   attendedUsers: string[];
   
@@ -517,7 +525,7 @@ export interface Event {
   // Legacy fields
   date?: string;
   time?: string;
-  targetAudience?: 'Student' | 'Professional' | 'Both';
+  targetAudience?: 'Student' | 'Professional' | 'Both' | string;
   
   // Additional fields found in usage
   currentAttendees?: number;
@@ -526,15 +534,43 @@ export interface Event {
   currency?: string;
 }
 
+// Agenda Item type for event schedules
+export interface AgendaItem {
+  id: string;
+  title: string;
+  description?: string;
+  startTime: string; // "09:00" format
+  endTime?: string;
+  speaker?: string;
+  room?: string;
+  type?: 'talk' | 'workshop' | 'break' | 'networking' | 'keynote' | 'panel';
+}
+
+// Speaker type for event speakers
+export interface SpeakerInfo {
+  id?: string;
+  name: string;
+  title?: string;
+  company?: string;
+  bio?: string;
+  photoUrl?: string;
+  socialLinks?: {
+    linkedin?: string;
+    twitter?: string;
+    website?: string;
+  };
+}
+
 export interface EventLocation {
   type: 'physical' | 'virtual' | 'hybrid';
+  isVirtual?: boolean; // Convenience flag
   venue?: {
     name: string;
     address: string;
-    city: string;
-    state: string;
-    country: string;
-    zipCode: string;
+    city?: string;
+    state?: string;
+    country?: string;
+    zipCode?: string;
     coordinates?: {
       lat: number;
       lng: number;
@@ -546,10 +582,13 @@ export interface EventLocation {
     accessCode?: string;
     instructions?: string;
   };
+  virtualLink?: string; // Direct virtual meeting link
 }
 
 export interface EventPricing {
   type: 'free' | 'paid' | 'tiered';
+  isFree?: boolean; // Convenience flag
+  basePrice?: number; // Base ticket price
   currency?: string;
   tiers?: PricingTier[];
 }

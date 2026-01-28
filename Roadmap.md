@@ -167,12 +167,14 @@
 
 ## 3. Implementation Phases (Step-by-Step)
 
-### Phase 1: Foundation (Weeks 1-2)
-- [ ] **Setup:** Next.js 15, Firebase Config, Shadcn UI installation.
-- [ ] **Auth:** Complete Google Sign-in and Role-based Route Protection (`middleware.ts`).
-- [ ] **DB:** Initialize Firestore collections (`users`, `events`, `tickets`).
+### Phase 1: Foundation (Weeks 1-2) ✅ COMPLETE
+- [x] **Setup:** Next.js 15, Firebase Config, Shadcn UI installation.
+- [x] **Auth:** Complete Google Sign-in and Role-based Route Protection (`middleware.ts`).
+- [x] **DB:** Initialize Firestore collections (`users`, `events`, `tickets`).
+- [x] **TanStack Query:** Installed and configured for data fetching.
+- [x] **Onboarding Wizard:** Multi-step wizard for new users (Profile, Student/Organizer specifics).
 
-### Phase 2: Core Event Mechanics (Weeks 3-4)
+### Phase 2: Core Event Mechanics (Weeks 3-4) 🔄 IN PROGRESS
 - [ ] **Create Event Form:** Basic fields + Image Upload.
 - [ ] **Feed:** Infinite scroll of events.
 - [ ] **Registration:** Transactional write to DB (decrement capacity, create ticket).

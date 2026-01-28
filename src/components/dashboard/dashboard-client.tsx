@@ -7,6 +7,7 @@ import Link from "next/link";
 import { QrCode, Calendar, MessageSquare, Ticket, User } from "lucide-react";
 import type { Student, Professional } from "@/types";
 import RecommendedSessions from "@/components/dashboard/recommended-sessions";
+import OrganizerDashboard from "@/components/dashboard/organizer-dashboard";
 
 
 function ProfileSummary() {
@@ -125,8 +126,13 @@ export default function DashboardClient() {
     if (!user) {
         return <div>Loading...</div>;
     }
+
+    // Show organizer dashboard for organizers and admins
+    if (user.role === 'organizer' || user.role === 'admin') {
+        return <OrganizerDashboard />;
+    }
     
-    const showRecs = user.role === 'student' || user.role === 'professional';
+    const showRecs = user.role === 'student' || user.role === 'professional' || user.role === 'attendee';
 
     return (
         <div className="container py-12">

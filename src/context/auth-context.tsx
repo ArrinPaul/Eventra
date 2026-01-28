@@ -62,13 +62,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     console.log(`
       --- Mock Email Sent ---
       To: ${newUser.email}
-      Subject: Thank you for registering - IPX Hub
+      Subject: Thank you for registering - EventOS
       
       Welcome, ${newUser.name}!
       
       Your Registration ID: ${newUser.registrationId}
       
-      We're excited to have you at IPX Hub.
+      We're excited to have you at EventOS.
       ---
     `);
 

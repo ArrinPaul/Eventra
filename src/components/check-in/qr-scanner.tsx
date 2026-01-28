@@ -39,7 +39,7 @@ export default function QrScanner({ onSuccess }: QrScannerProps) {
           toast({
             variant: 'destructive',
             title: 'Invalid QR Code',
-            description: 'This does not seem to be a valid IPX Hub registration code.',
+            description: 'This does not seem to be a valid EventOS registration code.',
           });
         }
       } catch (e) {

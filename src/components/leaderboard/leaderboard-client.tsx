@@ -30,7 +30,7 @@ export default function LeaderboardClient() {
     return (
         <div className="container py-8">
             <h1 className="text-4xl font-bold font-headline mb-4">Leaderboard</h1>
-            <p className="text-muted-foreground mb-8">See who's making the biggest impact at IPX Hub!</p>
+            <p className="text-muted-foreground mb-8">See who's making the biggest impact at EventOS!</p>
             
             <Card className="glass-effect">
                 <CardContent className="p-0">

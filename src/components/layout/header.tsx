@@ -46,22 +46,24 @@ export default function Header() {
 
   const navLinks = [
     { href: '/', label: 'Home' },
-    { href: '/agenda', label: 'Agenda' },
-    { href: '/leaderboard', label: 'Leaderboard' },
-    { href: '/chat', label: 'Chat' },
-    { href: '/check-in', label: 'Check-in' },
-    { href: '/my-events', label: 'My Events' },
-    { href: '/admin', label: 'Dashboard', roles: ['organizer'] },
+    { href: '/explore', label: 'Explore' },
+    { href: '/agenda', label: 'Agenda', requireAuth: true },
+    { href: '/leaderboard', label: 'Leaderboard', requireAuth: true },
+    { href: '/chat', label: 'Chat', requireAuth: true },
+    { href: '/check-in', label: 'Check-in', requireAuth: true },
+    { href: '/my-events', label: 'My Events', requireAuth: true },
+    { href: '/events/create', label: 'Create Event', roles: ['organizer', 'admin'] },
+    { href: '/admin', label: 'Dashboard', roles: ['organizer', 'admin'] },
   ].filter(link => {
       if (isAuthPage) return false;
+      // Show Home and Explore for all users
+      if (link.href === '/' || link.href === '/explore') return true;
       if (!user) {
-        // Show only Home, Agenda, Events for logged-out users on non-auth pages
-        return ['/', '/agenda'].includes(link.href);
-      }
-      // For logged-in users, filter based on roles
-      if (user && link.href === '/events') {
         return false;
       }
+      // Filter out auth-required pages for non-logged-in users
+      if (link.requireAuth && !user) return false;
+      // For logged-in users, filter based on roles
       return !link.roles || link.roles.includes(user.role);
   });
 

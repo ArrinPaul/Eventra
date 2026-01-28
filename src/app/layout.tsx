@@ -6,8 +6,8 @@ import FloatingAiChat from '@/components/chat/floating-ai-chat';
 import { Playfair_Display, PT_Sans } from 'next/font/google';
 
 export const metadata: Metadata = {
-  title: 'IPX Hub',
-  description: 'Your Intelligent Event Companion',
+  title: 'EventOS',
+  description: 'Intelligent Event Management Platform',
 };
 
 const playfair = Playfair_Display({

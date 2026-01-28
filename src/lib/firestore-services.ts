@@ -319,6 +319,19 @@ export const eventService = {
     }
   },
 
+  async getEventById(eventId: string): Promise<Event | null> {
+    try {
+      const eventDoc = await getDoc(doc(db, 'events', eventId));
+      if (eventDoc.exists()) {
+        return { id: eventDoc.id, ...eventDoc.data() } as Event;
+      }
+      return null;
+    } catch (error) {
+      console.error('Error fetching event:', error);
+      return null;
+    }
+  },
+
   async createEvent(event: Omit<Event, 'id'>): Promise<string> {
     try {
       const docRef = await addDoc(collection(db, 'events'), event);
@@ -358,7 +371,8 @@ export const eventService = {
         
         if (!currentAttendees.includes(userId)) {
           const updates: any = {
-            attendees: [...currentAttendees, userId]
+            attendees: [...currentAttendees, userId],
+            registeredCount: (event.registeredCount || 0) + 1
           };
           
           if (event.pricing) {

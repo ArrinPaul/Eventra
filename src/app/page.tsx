@@ -1,7 +1,7 @@
 'use client';
 import { useAuth } from '@/hooks/use-auth';
 import DashboardClient from '@/components/dashboard/dashboard-client';
-import Hero from '@/components/home/hero';
+import LandingPage from '@/components/home/landing-page';
 import Header from '@/components/layout/header';
 
 export default function Home() {
@@ -15,11 +15,16 @@ export default function Home() {
     );
   }
 
+  // Show landing page for guests, dashboard for logged-in users
+  if (!user) {
+    return <LandingPage />;
+  }
+
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <Header />
       <main className="flex-1">
-        {user ? <DashboardClient /> : <Hero />}
+        <DashboardClient />
       </main>
     </div>
   );

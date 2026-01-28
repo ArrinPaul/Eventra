@@ -293,7 +293,7 @@ export default function GoogleCalendarIntegration() {
         <div>
           <h2 className="text-2xl font-bold">Google Calendar Integration</h2>
           <p className="text-muted-foreground">
-            Sync your IPX Hub events with Google Calendar for reminders and better organization
+            Sync your EventOS events with Google Calendar for reminders and better organization
           </p>
         </div>
         <Badge variant={isConnected ? "default" : "secondary"} className="ml-4">

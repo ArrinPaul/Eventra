@@ -19,7 +19,7 @@ type Message = {
 
 const initialBotMessage: Message = {
     sender: 'bot',
-    text: "Hello! I'm here to help with questions about the IPX Hub event agenda. What can I assist you with today?",
+    text: "Hello! I'm here to help with questions about EventOS events and features. What can I assist you with today?",
 };
 
 

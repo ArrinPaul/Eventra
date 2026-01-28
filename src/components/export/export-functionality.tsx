@@ -288,7 +288,7 @@ export default function ExportFunctionality() {
     // This is a simplified PDF generation example
     // In a real implementation, you would use a library like jsPDF or Puppeteer
     const content = `
-      IPX Hub Data Export
+      EventOS Data Export
       Generated: ${new Date().toLocaleString()}
       User: ${user?.email}
       
@@ -348,19 +348,19 @@ export default function ExportFunctionality() {
 
       switch (exportOptions.format) {
         case 'csv':
-          filename = `ipx-hub-data-${timestamp}.csv`;
+          filename = `eventos-data-${timestamp}.csv`;
           content = convertToCSV(data);
           mimeType = 'text/csv';
           break;
         
         case 'json':
-          filename = `ipx-hub-data-${timestamp}.json`;
+          filename = `eventos-data-${timestamp}.json`;
           content = convertToJSON(data);
           mimeType = 'application/json';
           break;
         
         case 'pdf':
-          filename = `ipx-hub-data-${timestamp}.pdf`;
+          filename = `eventos-data-${timestamp}.pdf`;
           content = await generatePDF(data);
           mimeType = 'application/pdf';
           break;
@@ -431,7 +431,7 @@ export default function ExportFunctionality() {
       <div>
         <h2 className="text-2xl font-bold">Export Your Data</h2>
         <p className="text-muted-foreground">
-          Download your IPX Hub data in various formats for backup or analysis
+          Download your EventOS data in various formats for backup or analysis
         </p>
       </div>
 
