@@ -10,6 +10,13 @@ export const mockFirebaseConfig = {
   appId: "1:123456789:web:abcdef",
 };
 
+// Mock Firebase app
+export const mockApp = {
+  name: 'ipx-hub',
+  options: mockFirebaseConfig,
+  automaticDataCollectionEnabled: false,
+};
+
 // Mock Firebase v9 modular SDK functions
 export const mockAuth = {
   currentUser: null,
@@ -159,13 +166,6 @@ export const mockFunctions = {
   app: mockApp,
   region: 'us-central1',
   customDomain: null,
-};
-
-// Mock Firebase app
-export const mockApp = {
-  name: 'ipx-hub',
-  options: mockFirebaseConfig,
-  automaticDataCollectionEnabled: false,
 };
 
 // Export services (will be replaced with real Firebase in production)

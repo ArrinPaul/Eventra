@@ -29,7 +29,7 @@ import {
   Eye,
   Share2
 } from 'lucide-react';
-import { useAuth } from '../../context/auth-context';
+import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '../../hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import {

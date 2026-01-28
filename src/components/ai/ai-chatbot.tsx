@@ -28,7 +28,7 @@ import {
   Image,
   Paperclip
 } from 'lucide-react';
-import { useAuth } from '../../context/auth-context';
+import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '../../hooks/use-toast';
 import { Input } from '../ui/input';
 import { Textarea } from '../ui/textarea';
@@ -71,7 +71,7 @@ interface ChatSession {
 interface AIChatbotProps {
   eventId?: string;
   eventTitle?: string;
-  userRole: 'student' | 'professional' | 'organizer';
+  userRole?: 'student' | 'professional' | 'organizer';
   isFloating?: boolean;
   onClose?: () => void;
 }
@@ -79,7 +79,7 @@ interface AIChatbotProps {
 export default function AIChatbot({ 
   eventId, 
   eventTitle, 
-  userRole, 
+  userRole = 'student', 
   isFloating = false, 
   onClose 
 }: AIChatbotProps) {

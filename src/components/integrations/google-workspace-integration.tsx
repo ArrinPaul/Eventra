@@ -17,7 +17,7 @@ import {
   Users,
   BarChart3
 } from 'lucide-react';
-import { useAuth } from '../../context/auth-context';
+import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '../../hooks/use-toast';
 import { permissionsService } from '../../lib/permissions-service';
 import { integrationService } from '../../lib/integration-service';

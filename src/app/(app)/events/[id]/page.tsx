@@ -27,7 +27,7 @@ export default function EventDetailPage({ params }: { params: { id: string } }) 
             </CardHeader>
             <CardContent className="space-y-6 text-base">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
-                    <div className="flex items-center text-foreground"><Calendar className="mr-3 h-5 w-5 text-primary"/><div><p className="font-semibold">Date</p><p>{new Date(event.date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p></div></div>
+                    <div className="flex items-center text-foreground"><Calendar className="mr-3 h-5 w-5 text-primary"/><div><p className="font-semibold">Date</p><p>{new Date(event.date || '').toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p></div></div>
                     <div className="flex items-center text-foreground"><Clock className="mr-3 h-5 w-5 text-primary"/><div><p className="font-semibold">Time</p><p>{event.time}</p></div></div>
                     <div className="flex items-center text-foreground"><MapPin className="mr-3 h-5 w-5 text-primary"/><div><p className="font-semibold">Location</p><p>{event.location}</p></div></div>
                     <div className="flex items-center text-foreground"><Tag className="mr-3 h-5 w-5 text-primary"/><div><p className="font-semibold">Category</p><p>{event.category}</p></div></div>

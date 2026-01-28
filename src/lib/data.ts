@@ -1,4 +1,4 @@
-import type { Session, Event, User } from '@/types';
+import type { LegacySession as Session, LegacyEvent as Event, User } from '@/types';
 
 export const SESSIONS: Session[] = [
   { id: 's1', title: 'Opening Keynote', speaker: 'Jane Doe', time: '09:00 AM - 10:00 AM', track: 'General', description: 'Join us for the opening keynote to kick off IPX Hub!', location: 'Main Hall' },

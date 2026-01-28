@@ -19,7 +19,7 @@ import {
   Eye,
   Edit3
 } from 'lucide-react';
-import { useAuth } from '../../context/auth-context';
+import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '../../hooks/use-toast';
 import { 
   Dialog,

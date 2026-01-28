@@ -247,7 +247,7 @@ export const EVENTOS_CONFIG = {
 };
 
 // Type definitions for better TypeScript support
-export type EventOSRole = keyof typeof EVENTOS_CONFIG.roles;
+export type EventOSRole = typeof EVENTOS_CONFIG.roles[keyof typeof EVENTOS_CONFIG.roles];
 export type SubscriptionPlan = keyof typeof EVENTOS_CONFIG.plans;
 export type AIProvider = keyof typeof EVENTOS_CONFIG.ai.providers;
 
