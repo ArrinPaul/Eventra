@@ -14,127 +14,19 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { 
   Users, MessageSquare, Star, Settings, UserPlus, Zap, Target, 
   TrendingUp, Search, MapPin, Edit, MessageCircle, UserCheck, UserX,
-  Link as Link2, ExternalLink, ThumbsUp, Award
+  Link as Link2, ExternalLink, ThumbsUp, Award, Loader2
 } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
-
-// Types
-interface UserProfile {
-  id: string;
-  name: string;
-  email: string;
-  bio?: string;
-  company?: string;
-  jobTitle?: string;
-  location?: string;
-  skills: string[];
-  interests: string[];
-  avatar?: string;
-  isOnline: boolean;
-  connections: string[];
-  isLookingForMentor: boolean;
-  isLookingForCofounder: boolean;
-  isLookingForTeammate: boolean;
-  mentorshipAreas?: string[];
-  achievements: string[];
-  socialLinks?: {
-    linkedin?: string;
-    github?: string;
-    twitter?: string;
-  };
-}
-
-interface ConnectionRequest {
-  id: string;
-  fromUserId: string;
-  toUserId: string;
-  message: string;
-  status: 'pending' | 'accepted' | 'rejected';
-  createdAt: Date;
-}
-
-interface MatchProfile {
-  id: string;
-  userId: string;
-  careerGoals: string[];
-  interests: string[];
-  skills: string[];
-  lookingFor: string[];
-  availability: string;
-  preferredMeetingTypes: string[];
-  matchScore: number;
-}
-
-// Mock Data
-const mockUserProfiles: UserProfile[] = [
-  {
-    id: '1',
-    name: 'Sarah Johnson',
-    email: 'sarah@example.com',
-    bio: 'AI/ML Engineer passionate about ethical AI and scalable systems.',
-    company: 'TechCorp',
-    jobTitle: 'Senior AI Engineer',
-    location: 'San Francisco, CA',
-    skills: ['Machine Learning', 'Python', 'TensorFlow', 'AWS'],
-    interests: ['AI Ethics', 'Startups', 'Mentoring'],
-    isOnline: true,
-    connections: ['2', '3'],
-    isLookingForMentor: true,
-    isLookingForCofounder: false,
-    isLookingForTeammate: true,
-    achievements: ['Hackathon Winner 2023', 'Speaker at AI Summit'],
-    socialLinks: { linkedin: 'linkedin.com/in/sarah', github: 'github.com/sarah' }
-  },
-  {
-    id: '2',
-    name: 'Mike Chen',
-    email: 'mike@example.com',
-    bio: 'Product Manager with 8 years experience in fintech and SaaS.',
-    company: 'FinInnovate',
-    jobTitle: 'Lead PM',
-    location: 'New York, NY',
-    skills: ['Product Strategy', 'Agile', 'Data Analysis'],
-    interests: ['Fintech', 'Product Design', 'Leadership'],
-    isOnline: false,
-    connections: ['1'],
-    isLookingForMentor: false,
-    isLookingForCofounder: true,
-    isLookingForTeammate: true,
-    achievements: ['Launched 3 Successful Products'],
-    socialLinks: { linkedin: 'linkedin.com/in/mike' }
-  }
-];
-
-const mockMatchProfiles: MatchProfile[] = [
-  {
-    id: 'm1',
-    userId: '2',
-    careerGoals: ['Launch a startup', 'Build a great team'],
-    interests: ['Fintech', 'Leadership'],
-    skills: ['Product Strategy', 'Agile'],
-    lookingFor: ['Technical Co-founder'],
-    availability: 'Flexible',
-    preferredMeetingTypes: ['Coffee', 'Virtual'],
-    matchScore: 95
-  }
-];
-
-const mockRequests: ConnectionRequest[] = [
-  {
-    id: 'req1',
-    fromUserId: '2',
-    toUserId: '1',
-    message: 'Hi Sarah, I saw your profile and we have similar interests in AI startups.',
-    status: 'pending',
-    createdAt: new Date()
-  }
-];
+import { userProfileService, matchingService } from '@/lib/firestore-services';
+import { UserProfile, ConnectionRequest, MatchProfile } from '@/types';
+import { useToast } from '@/hooks/use-toast';
 
 export default function NetworkingClient() {
   const { user } = useAuth();
-  const [profiles, setProfiles] = useState<UserProfile[]>(mockUserProfiles);
-  const [connectionRequests, setConnectionRequests] = useState<ConnectionRequest[]>(mockRequests);
-  const [matches, setMatches] = useState<MatchProfile[]>(mockMatchProfiles);
+  const { toast } = useToast();
+  const [profiles, setProfiles] = useState<UserProfile[]>([]);
+  const [connectionRequests, setConnectionRequests] = useState<ConnectionRequest[]>([]);
+  const [matches, setMatches] = useState<MatchProfile[]>([]); // Note: logic might need adaptation for Match vs MatchProfile
   const [activeTab, setActiveTab] = useState('discover');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedProfile, setSelectedProfile] = useState<UserProfile | null>(null);
@@ -142,36 +34,89 @@ export default function NetworkingClient() {
   const [isConnectDialogOpen, setIsConnectDialogOpen] = useState(false);
   const [connectionMessage, setConnectionMessage] = useState('');
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
 
-  const getInitials = (name: string) => name.split(' ').map(n => n[0]).join('').toUpperCase();
+  const getInitials = (name: string) => name ? name.split(' ').map(n => n[0]).join('').toUpperCase() : '?';
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setInitialLoading(true);
+      try {
+        // Fetch all profiles for discovery (in real app, this should be paginated or search-based)
+        const allProfiles = await userProfileService.getAllUserProfiles();
+        setProfiles(allProfiles);
+
+        if (user) {
+           // Fetch incoming requests
+           const requests = await userProfileService.getConnectionRequests(user.uid);
+           setConnectionRequests(requests);
+
+           // Fetch matches
+           // Note: matchingService.getUserMatches returns Match[], we might need to map to MatchProfile
+           // For now, assuming Match contains MatchProfile data or we use it as is if types overlap sufficiently
+           const userMatches = await matchingService.getUserMatches(user.uid);
+           // Adapter: convert Match[] to MatchProfile[] if necessary, or cast if they are compatible
+           // The previous mock used MatchProfile. Let's assume the service returns compatible objects or empty for now.
+           // In a real implementation, we'd process 'userMatches' to create 'MatchProfile' view models.
+           setMatches(userMatches as any[] as MatchProfile[]);
+        }
+      } catch (error) {
+        console.error('Error loading networking data:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to load networking data.',
+          variant: 'destructive'
+        });
+      } finally {
+        setInitialLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [user, toast]);
 
   const handleSendConnectionRequest = async (toUserId: string) => {
     if (!user || !connectionMessage.trim()) return;
     setLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-        const newRequest: ConnectionRequest = {
-            id: Date.now().toString(),
-            fromUserId: user.uid,
-            toUserId,
-            message: connectionMessage,
-            status: 'pending',
-            createdAt: new Date()
-        };
-        setConnectionRequests([...connectionRequests, newRequest]);
-        setIsConnectDialogOpen(false);
-        setConnectionMessage('');
-        setLoading(false);
-    }, 500);
+    
+    try {
+      await userProfileService.sendConnectionRequest(user.uid, toUserId, connectionMessage);
+      
+      toast({
+        title: 'Request Sent',
+        description: 'Connection request sent successfully!',
+      });
+      setIsConnectDialogOpen(false);
+      setConnectionMessage('');
+    } catch (error) {
+      console.error('Error sending request:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to send connection request.',
+        variant: 'destructive'
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  const handleAcceptRequest = async (requestId: string) => {
+      try {
+          await userProfileService.respondToConnectionRequest(requestId, 'accepted');
+          setConnectionRequests(prev => prev.filter(req => req.id !== requestId));
+          toast({ title: 'Connected', description: 'Request accepted.' });
+      } catch (error) {
+          toast({ title: 'Error', description: 'Failed to accept request.', variant: 'destructive' });
+      }
   };
 
   const filteredProfiles = profiles.filter(profile => {
     if (searchQuery) {
         const query = searchQuery.toLowerCase();
         return (
-            profile.name.toLowerCase().includes(query) ||
-            profile.skills.some(s => s.toLowerCase().includes(query)) ||
-            profile.company?.toLowerCase().includes(query)
+            (profile.name?.toLowerCase() || '').includes(query) ||
+            (profile.skills || []).some(s => s.toLowerCase().includes(query)) ||
+            (profile.company?.toLowerCase() || '').includes(query)
         );
     }
     return true;
@@ -186,26 +131,26 @@ export default function NetworkingClient() {
                 </Avatar>
                 <div className="flex-1">
                     <h3 className="font-semibold text-lg">{profile.name}</h3>
-                    <p className="text-sm text-gray-600 mb-1">{profile.jobTitle}</p>
-                    <p className="text-sm text-gray-500">{profile.company}</p>
+                    <p className="text-sm text-gray-600 mb-1">{profile.jobTitle || 'Member'}</p>
+                    <p className="text-sm text-gray-500">{profile.company || ''}</p>
                     <div className="flex items-center gap-1 text-xs text-gray-500 mt-1">
                         <MapPin className="w-3 h-3" />
-                        <span>{profile.location}</span>
+                        <span>{profile.location || 'Remote'}</span>
                     </div>
                 </div>
             </div>
         </CardHeader>
         <CardContent className="pt-0">
-            <p className="text-sm text-gray-700 mb-4 line-clamp-2">{profile.bio}</p>
+            <p className="text-sm text-gray-700 mb-4 line-clamp-2">{profile.bio || 'No bio available'}</p>
             <div className="mb-4">
                 <div className="flex flex-wrap gap-1">
-                    {profile.skills.slice(0, 3).map(skill => (
+                    {(profile.skills || []).slice(0, 3).map(skill => (
                         <Badge key={skill} variant="secondary" className="text-xs">{skill}</Badge>
                     ))}
                 </div>
             </div>
             <div className="flex gap-2">
-                {!isConnection && (
+                {!isConnection && user?.uid !== profile.id && (
                     <Button 
                         className="flex-1" 
                         size="sm"

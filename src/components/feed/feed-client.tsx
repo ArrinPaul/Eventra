@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -14,35 +14,22 @@ import {
   Users, MessageCircle, TrendingUp, Plus, Heart, Share2, 
   Bookmark, Image as ImageIcon, Video, Link, MapPin, 
   Calendar, MoreHorizontal, Send, Globe, UserPlus, 
-  TrendingUp as Trending, Lock, Share, Hash, Repeat2
+  TrendingUp as Trending, Lock, Share, Hash, Repeat2,
+  Search, Loader2, Trash2
 } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { cn } from '@/lib/utils';
+import { feedService } from '@/lib/firestore-services';
+import { FeedPost } from '@/types';
+import { useToast } from '@/hooks/use-toast';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 // Types
-interface FeedPost {
-  id: string;
-  authorId: string;
-  content: string;
-  type: 'text' | 'image' | 'video' | 'poll' | 'announcement';
-  mediaUrls: string[];
-  likes: number;
-  comments: number;
-  shares: number;
-  createdAt: Date;
-  updatedAt: Date;
-  likedBy: string[];
-  tags: string[];
-  visibility: 'public' | 'private';
-  eventId?: string;
-  pollId?: string;
-  location?: string;
-  mentions: string[];
-  reposts: number;
-  repostedBy: string[];
-  replies: number;
-}
-
 interface Comment {
   id: string;
   postId: string;
@@ -63,7 +50,7 @@ interface User {
   lastSeen?: Date;
 }
 
-// Mock Data
+// Mock Data (Keep for user profiles and comments for now, or fetch them too later)
 const mockUsers: Record<string, User> = {
   '1': { id: '1', name: 'Sarah Johnson', email: 'sarah@example.com', avatar: '', isOnline: true, lastSeen: new Date() },
   '2': { id: '2', name: 'Mike Chen', email: 'mike@example.com', avatar: '', isOnline: false, lastSeen: new Date(Date.now() - 1000 * 60 * 30) },
@@ -73,69 +60,6 @@ const mockUsers: Record<string, User> = {
   'organizer-1': { id: 'organizer-1', name: 'Event Organizer', email: 'organizer@eventos.com', isOnline: true },
   'sarah_chen': { id: 'sarah_chen', name: 'Dr. Sarah Chen', email: 'sarah@example.com', isOnline: true },
 };
-
-const mockPosts: FeedPost[] = [
-  {
-    id: '1',
-    authorId: '1',
-    content: 'Excited to announce that our AI startup just raised Series A! 🚀 The journey from idea to funding has been incredible. Can\'t wait to share what we\'ve been building with the world soon. Special thanks to all the mentors and advisors who believed in our vision from day one.',
-    type: 'text',
-    mediaUrls: [],
-    likes: 47,
-    comments: 12,
-    shares: 8,
-    createdAt: new Date('2024-10-09T14:30:00'),
-    updatedAt: new Date('2024-10-09T14:30:00'),
-    likedBy: ['2', '3', '4'],
-    tags: ['startup', 'ai', 'funding'],
-    visibility: 'public',
-    location: 'San Francisco, CA',
-    mentions: [],
-    reposts: 5,
-    repostedBy: [],
-    replies: 2
-  },
-  {
-    id: '2',
-    authorId: '2',
-    content: 'Just wrapped up an amazing workshop on machine learning fundamentals. The engagement from attendees was incredible! Here are some key takeaways and resources for anyone interested in getting started with ML.',
-    type: 'text',
-    mediaUrls: ['https://images.unsplash.com/photo-1555949963-aa79dcee981c?w=500'],
-    likes: 23,
-    comments: 6,
-    shares: 15,
-    createdAt: new Date('2024-10-09T12:15:00'),
-    updatedAt: new Date('2024-10-09T12:15:00'),
-    likedBy: ['1', '4'],
-    tags: ['ml', 'workshop', 'education'],
-    visibility: 'public',
-    eventId: 'event1',
-    mentions: [],
-    reposts: 3,
-    repostedBy: [],
-    replies: 1
-  },
-  {
-    id: '3',
-    authorId: '3',
-    content: 'Poll: What\'s your biggest challenge in networking at tech events?',
-    type: 'poll',
-    mediaUrls: [],
-    likes: 18,
-    comments: 9,
-    shares: 3,
-    createdAt: new Date('2024-10-09T10:45:00'),
-    updatedAt: new Date('2024-10-09T10:45:00'),
-    likedBy: ['1', '2'],
-    tags: ['networking', 'events'],
-    visibility: 'public',
-    pollId: 'poll1',
-    mentions: [],
-    reposts: 1,
-    repostedBy: [],
-    replies: 4
-  }
-];
 
 const mockComments: { [postId: string]: Comment[] } = {
   '1': [
@@ -161,7 +85,8 @@ const trendingTopics = [
 
 export default function FeedClient() {
   const { user } = useAuth();
-  const [posts, setPosts] = useState<FeedPost[]>(mockPosts);
+  const { toast } = useToast();
+  const [posts, setPosts] = useState<FeedPost[]>([]);
   const [comments, setComments] = useState<{ [postId: string]: Comment[] }>(mockComments);
   const [selectedFilter, setSelectedFilter] = useState<'all' | 'following' | 'trending'>('all');
   const [searchTerm, setSearchTerm] = useState('');
@@ -169,6 +94,7 @@ export default function FeedClient() {
   const [showComments, setShowComments] = useState<string | null>(null);
   const [newComment, setNewComment] = useState('');
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('all');
 
   // Create post form
@@ -181,31 +107,112 @@ export default function FeedClient() {
     mediaUrls: [] as string[]
   });
 
-  const getUser = (userId: string) => mockUsers[userId];
-  const getInitials = (name: string) => name.split(' ').map(n => n[0]).join('').toUpperCase();
+  const getUser = (userId: string) => {
+    // In a real app, we would fetch user profile from Firestore or a users cache
+    // For now, fallback to current user if it matches, or mockUsers
+    if (user && userId === user.uid) {
+      return { 
+        id: user.uid, 
+        name: user.displayName || 'Me', 
+        email: user.email || '', 
+        avatar: user.avatar || '', 
+        isOnline: true 
+      };
+    }
+    return mockUsers[userId] || { id: userId, name: 'Unknown User', email: '', isOnline: false };
+  };
+  
+  const getInitials = (name: string) => name ? name.split(' ').map(n => n[0]).join('').toUpperCase() : '?';
+
+  // Fetch posts on mount
+  useEffect(() => {
+    const fetchPosts = async () => {
+      setInitialLoading(true);
+      try {
+        const fetchedPosts = await feedService.getFeedPosts();
+        setPosts(fetchedPosts);
+      } catch (error) {
+        console.error('Error fetching posts:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to load feed posts. Please try again.',
+          variant: 'destructive',
+        });
+      } finally {
+        setInitialLoading(false);
+      }
+    };
+
+    fetchPosts();
+  }, [toast]);
 
   const handleLikePost = async (postId: string) => {
-    if (!user) return;
+    if (!user) {
+      toast({
+         title: 'Sign in required',
+         description: 'Please sign in to like posts.',
+         variant: 'default',
+      });
+      return;
+    }
 
-    setPosts(prev => prev.map(post => {
-      if (post.id !== postId) return post;
-      
-      const hasLiked = post.likedBy.includes(user.uid);
-      return {
-        ...post,
-        likes: hasLiked ? post.likes - 1 : post.likes + 1,
-        likedBy: hasLiked 
-          ? post.likedBy.filter(id => id !== user.uid)
-          : [...post.likedBy, user.uid]
-      };
-    }));
+    try {
+      // Optimistic update
+      setPosts(prev => prev.map(post => {
+        if (post.id !== postId) return post;
+        
+        const hasLiked = post.likedBy?.includes(user.uid);
+        const newLikes = hasLiked ? Math.max(0, post.likes - 1) : post.likes + 1;
+        const newLikedBy = hasLiked 
+          ? (post.likedBy || []).filter(id => id !== user.uid)
+          : [...(post.likedBy || []), user.uid];
+
+        return {
+          ...post,
+          likes: newLikes,
+          likedBy: newLikedBy
+        };
+      }));
+
+      await feedService.likePost(postId, user.uid);
+    } catch (error) {
+      console.error('Error liking post:', error);
+      // Revert on error (could implement more robust rollback)
+      toast({
+        title: 'Error',
+        description: 'Failed to update like.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleDeletePost = async (postId: string) => {
+    if (!confirm('Are you sure you want to delete this post?')) return;
+    
+    try {
+      await feedService.deleteFeedPost(postId);
+      setPosts(prev => prev.filter(p => p.id !== postId));
+      toast({
+        title: 'Success',
+        description: 'Post deleted successfully.',
+      });
+    } catch (error) {
+      console.error('Error deleting post:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to delete post.',
+        variant: 'destructive',
+      });
+    }
   };
 
   const handleSharePost = async (postId: string) => {
     if (!user) return;
-    setPosts(prev => prev.map(post => 
-      post.id === postId ? { ...post, shares: post.shares + 1 } : post
-    ));
+    // Implement share logic later
+    toast({
+        title: 'Coming Soon',
+        description: 'Sharing functionality is under development.',
+    });
   };
 
   const handleCreatePost = async () => {
@@ -213,11 +220,10 @@ export default function FeedClient() {
 
     setLoading(true);
     try {
-      const post: FeedPost = {
-        id: Date.now().toString(),
+      const postData: Omit<FeedPost, 'id'> = {
         authorId: user.uid,
         content: newPost.content,
-        type: newPost.type,
+        type: newPost.type as any, // Cast to any if strict string types mismatch with input
         mediaUrls: newPost.mediaUrls,
         likes: 0,
         comments: 0,
@@ -229,12 +235,19 @@ export default function FeedClient() {
         likedBy: [],
         repostedBy: [],
         tags: newPost.tags.split(',').map(tag => tag.trim()).filter(Boolean),
-        visibility: newPost.visibility,
+        visibility: newPost.visibility as any,
         location: newPost.location || undefined,
         mentions: []
       };
 
-      setPosts(prev => [post, ...prev]);
+      const newPostId = await feedService.createFeedPost(postData);
+      
+      const createdPost: FeedPost = {
+        id: newPostId,
+        ...postData
+      };
+
+      setPosts(prev => [createdPost, ...prev]);
       setShowCreatePost(false);
       setNewPost({
         content: '',
@@ -244,8 +257,18 @@ export default function FeedClient() {
         visibility: 'public',
         mediaUrls: []
       });
+      
+      toast({
+        title: 'Success',
+        description: 'Post created successfully!',
+      });
     } catch (error) {
       console.error('Error creating post:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to create post.',
+        variant: 'destructive',
+      });
     } finally {
       setLoading(false);
     }
@@ -382,6 +405,27 @@ export default function FeedClient() {
                           <span className="text-muted-foreground text-sm">
                             {formatTime(post.createdAt)}
                           </span>
+                          
+                          {user && user.uid === post.authorId && (
+                            <div className="ml-auto">
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                    <MoreHorizontal className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem 
+                                    className="text-red-600 cursor-pointer"
+                                    onClick={() => handleDeletePost(post.id)}
+                                  >
+                                    <Trash2 className="mr-2 h-4 w-4" />
+                                    Delete
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </div>
+                          )}
                         </div>
                         
                         <div 

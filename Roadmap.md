@@ -1,75 +1,204 @@
-# EventOS Project Roadmap
+# EventOS Master Technical Roadmap & Specification
 
-## Project Overview
-**EventOS** (formerly Eventra/CIS-SAP) is an intelligent, multi-tenant SaaS event management platform. Built with **Next.js 15**, **Firebase**, and **Genkit AI**, it aims to provide a comprehensive solution for managing events, from ticketing and agendas to networking and AI-driven insights.
+## 1. Project Vision & Core Architecture
+**EventOS** is an intelligent, multi-tenant SaaS event management platform designed for campus ecosystems. It bridges the gap between event organizers and participants using AI-driven automation, real-time engagement tools, and deep campus infrastructure integration.
 
-## Current Status
-The project is in an **Advanced Prototype / Alpha** stage. Core architectural components (Auth, Firebase setup, Routing) are in place, and many UI shells exist. However, several key interactive features rely on mock data or are marked as "Coming Soon".
-
-### ✅ Implemented Features
-*   **Authentication & User Management**
-    *   Multi-role support (Student, Professional, Organizer, etc.)
-    *   Login and Registration flows (including enhanced registration with profile details)
-    *   User Dashboards (Student, Professional, Admin)
-*   **Event Management**
-    *   Event Creation & Editing (`enhanced-event-management.tsx`)
-    *   Agenda & Session Management
-    *   Ticketing UI
-*   **Core Functionality**
-    *   QR Code Scanning for Check-in
-    *   Basic Search Interface
-    *   Admin Dashboard UI
-*   **AI Foundation**
-    *   AI Chatbot UI (Consolidated)
-    *   Genkit configuration (`src/ai/genkit.ts`)
-    *   Recommendation Engine UI
-
-### 🚧 In Progress / Partial Implementation
-*   **Social & Community**
-    *   **Feed:** `feed-client.tsx` exists but contains significant placeholder content and "Coming Soon" badges.
-    *   **Networking:** UI exists but relies on mock data matching.
-    *   **Groups:** UI structure is present.
-*   **Integrations**
-    *   **Google Workspace:** `google-workspace-integration.tsx` is present but marked as "Coming Soon" in the UI.
-    *   **Automation (n8n):** Component exists (`n8n-automation.tsx`) but needs backend verification.
-    *   **Payments:** Stripe/Razorpay are configured in `eventos-config.ts` but full payment flow integration needs verification.
-
-### ❌ Known Issues & Technical Debt
-1.  **Missing Dependencies:** `node_modules` are not installed. `npm install` is required.
-2.  **Placeholder Content:** Significant portions of the "Feed", "Networking", and "Integrations" pages use static placeholder text/images.
-3.  **Mock vs. Real Data:** While the Firebase configuration has been standardized, many components still rely on local state or mock data arrays instead of fetching from Firestore.
-4.  **Linting & Type Safety:** The codebase has not been verified with `npm run lint` due to missing dependencies.
-5.  **Legacy Branding:** Deep-level integration documentation or variable names may still reference "CIS-SAP".
+**Tech Stack:**
+- **Frontend:** Next.js 15 (App Router), Tailwind CSS, Shadcn UI, Framer Motion.
+- **Backend:** Firebase (Firestore, Auth, Functions, Storage).
+- **AI Engine:** Google Genkit + Gemini 1.5 Pro (Serverless AI).
+- **State Management:** React Context + SWR/TanStack Query.
 
 ---
 
-## Roadmap
+## 2. Detailed Feature Specifications
 
-### Phase 1: Stabilization & Setup (Immediate)
-- [ ] **Dependency Installation:** Run `npm install` to ensure the environment is ready.
-- [ ] **Linting & Code Quality:** Run `npm run lint` and fix high-priority type errors and unused imports.
-- [ ] **Firebase Verification:** Connect the application to a live Firebase project and verify that `src/lib/firebase.ts` correctly initializes services.
-- [ ] **Environment Configuration:** Ensure all `.env` variables (Firebase keys, Genkit keys) are documented and set up.
+### 2.1. Landing & Marketing Module (`/`)
+**Goal:** Convert visitors into Users (Participants) or Organizers.
 
-### Phase 2: Core Feature Completion (Short Term)
-- [ ] **Data Layer Connection:** Refactor `Feed`, `Events`, and `Agenda` components to fetch real data from Firestore instead of using hardcoded mocks.
-- [ ] **Feed Implementation:** Replace "Coming Soon" placeholders in the Feed with actual CRUD operations for posts (Create, Read, Update, Delete).
-- [ ] **Networking Logic:** Implement the actual matching logic on the backend (or via Firebase Functions) to populate the Networking UI with real user matches.
+*   **UI Components:**
+    *   `HeroSection`: Large typography "Connecting People Through...", dynamic subtext, two primary CTA buttons ("Create Event" - variant: default, "Explore Events" - variant: outline).
+    *   `StatsTicker`: An animated counter component showing:
+        *   `events_created`: Integer (e.g., 500+)
+        *   `success_rate`: Percentage (e.g., 98%)
+        *   `active_users`: Integer (e.g., 12k+)
+    *   `FeatureCarousel`: Auto-scrolling cards highlighting "AI Analytics", "QR Ticketing", "Certificates".
+    *   `LivePreview`: A mock "phone" frame or "dashboard" tilt-view showing a screenshot of the app in action.
+    *   `TestimonialGrid`: Masonry layout of user reviews.
+*   **Data Requirements:**
+    *   `cms_content` (Firestore): Collection to store editable landing page text/stats so a redeploy isn't needed for copy changes.
 
-### Phase 3: Advanced Integrations (Medium Term)
-- [ ] **Google Workspace:** Finalize the OAuth flow and API connections for Google Docs/Sheets integration.
-- [ ] **Payment Gateway:** Implement the actual Stripe/Razorpay checkout flows for ticketing.
-- [ ] **AI Connection:** Ensure the AI Chatbot and Recommendation components are actually calling the Genkit endpoints (`src/ai/flows`) and not just simulating responses.
+### 2.2. Authentication & Onboarding (`/auth`)
+**Goal:** Secure, role-based entry.
 
-### Phase 4: Polish & Scale (Long Term)
-- [ ] **Performance Optimization:** Analyze bundle size and optimize images/assets.
-- [ ] **Testing:** Implement Unit Tests (Jest) and End-to-End Tests (Playwright/Cypress) for critical flows like Registration and Ticketing.
-- [ ] **Multi-tenancy Verification:** rigorous testing of organization data isolation.
+*   **User Flow:**
+    1.  User clicks "Login" or "Get Started".
+    2.  Selects Role: "Student/Participant" or "Organizer/Admin".
+    3.  Method: Google OAuth (preferred) or Email/Password.
+    4.  **Onboarding Wizard (Post-Signup):**
+        *   *Step 1:* Profile Photo upload.
+        *   *Step 2 (Student):* Select Campus Department, Year of Study, Interests (Tags).
+        *   *Step 3 (Organizer):* Organization Name, Verification Document Upload.
+*   **Database Schema (`users` collection):**
+    ```typescript
+    interface UserProfile {
+      uid: string;
+      email: string;
+      role: 'participant' | 'organizer' | 'admin';
+      displayName: string;
+      photoURL: string;
+      onboardingCompleted: boolean;
+      // Participant Specific
+      department?: string;
+      year?: string;
+      interests?: string[]; // e.g., ['Coding', 'Music', 'Debate']
+      wishlist?: string[]; // Array of Event IDs
+      attending?: string[]; // Array of Event IDs
+      // Organizer Specific
+      organizationName?: string;
+      isVerified?: boolean;
+    }
+    ```
+
+### 2.3. Discovery & Explore Engine (`/explore`)
+**Goal:** Personalized event finding.
+
+*   **UI Layout:**
+    *   **Sidebar/TopBar:** Filters.
+        *   `DateRangePicker`: "Today", "This Week", "Weekend", Custom.
+        *   `CategorySelect`: Multi-select (Workshop, Seminar, Cultural, Sports).
+        *   `LocationDropdown`: Campus specific (Main Audi, Lab Block, Online).
+    *   **Main Grid:** Infinite scroll of `EventCard` components.
+    *   `EventCard` Details:
+        *   Thumbnail Image (Aspect Ratio 16:9).
+        *   Title (Truncated 2 lines).
+        *   Date & Time (Formatted: "Fri, Oct 24 • 10:00 AM").
+        *   Location Icon + Text.
+        *   **Action Bar:**
+            *   `HeartButton`: Toggles "Interested" (Add to Wishlist).
+            *   `TicketButton`: Direct "Register" modal trigger.
+            *   `AttendeesPreview`: "Avatar stack" of 3 friends attending + "+12 others".
+*   **Search Algorithm:**
+    *   **Keyword Search:** Fuse.js or Algolia (client-side if small dataset, server-side if large). matches Title, Description, Organizer.
+    *   **Recommendation Logic:**
+        *   IF `user.interests` overlaps `event.tags` -> Boost Score.
+        *   IF `event.location` == `user.department` -> Boost Score.
+
+### 2.4. Event Tracking & Wishlist (`/track`)
+**Goal:** Retention and day-of-event utility.
+
+*   **UI Tabs:**
+    1.  **"Going" (Registered):**
+        *   Shows confirmed tickets.
+        *   **Live Status Indicator:** "Starts in 2h", "Live Now" (Blinking Red Dot), "Ended".
+        *   **Quick Actions:** "View Ticket" (QR), "Map".
+    2.  **"Wishlist" (Interested):**
+        *   List of saved events.
+        *   CTA: "Register Now" (Conversion driver).
+    3.  **"Past Events":**
+        *   History.
+        *   Action: "Download Certificate", "Rate Event".
+
+### 2.5. Organizer Command Center (`/dashboard`)
+**Goal:** Manage the entire event lifecycle.
+
+#### A. Create Event Wizard (`/dashboard/create`)
+*   **Step 1: The Basics**
+    *   Title, Description (Rich Text Editor).
+    *   Banner Image (Drag & Drop with Crop).
+*   **Step 2: Logistics**
+    *   Date/Time (Start & End).
+    *   Location (Google Maps Integration or Campus Presets).
+    *   Capacity Limit.
+*   **Step 3: AI Planner (The "Magic" Button)**
+    *   **Input:** "Tech hackathon for 100 students."
+    *   **Genkit Output:** Auto-fills Description, suggests "Agenda" items (Opening Ceremony, Hacking, Lunch, Demos), generates "Checklist" (Wifi, Power strips, Pizza).
+*   **Step 4: Ticketing**
+    *   Toggle: Free vs Paid.
+    *   Custom Fields: "T-Shirt Size", "Dietary Restrictions".
+
+#### B. Analytics Dashboard (`/dashboard/analytics`)
+*   **Visualizations (Recharts/Chart.js):**
+    *   `RegistrationTrend`: Line chart showing signups over time.
+    *   `DepartmentPieChart`: Breakdown of attendees by department.
+    *   `CheckInRealTime`: Gauge chart showing % of registered users currently checked in.
+*   **AI Insights:**
+    *   Text block: "Your event popularity is trending 20% higher than last month. Consider opening 50 more seats."
+
+#### C. Stakeholder View**
+*   **Description:** A read-only link generated for sponsors.
+*   **Data:** Shows Impressions, Click-throughs, and Demographics (anonymized) but hides sensitive PII (Personally Identifiable Information).
+
+### 2.6. Ticketing & Check-in System
+**Goal:** Secure and fast entry.
+
+*   **Ticket Generation:**
+    *   On registration success -> Generate unique UUID.
+    *   Create QR Code (using `qrcode.react`).
+    *   Store in `tickets` collection: `{ eventId, userId, status: 'valid', scannedAt: null }`.
+*   **Scanner App (Mobile View):**
+    *   Uses device camera (`html5-qrcode` or similar).
+    *   **Flow:** Scan -> API Check -> Beep Success/Fail -> Update UI ("Verified" Green Screen).
+    *   **Offline Mode:** Cache ticket list locally if network is spotty, sync when back online.
+
+### 2.7. Automated Certification
+**Goal:** Reward participation.
+
+*   **Trigger:** Event ends AND User `status == 'checked-in'`.
+*   **Process:**
+    1.  Organizer clicks "Release Certificates".
+    2.  Cloud Function triggers.
+    3.  Fetches HTML Template.
+    4.  Injects User Name, Date, Event Title.
+    5.  Generates PDF (using `puppeteer` or `pdf-lib`).
+    6.  Stores in Storage bucket.
+    7.  Updates User Profile with Download Link.
+
+### 2.8. Campus Map & Infrastructure
+**Goal:** Physical navigation.
+
+*   **Component:** `InteractiveMap` (Leaflet or SVG based).
+*   **Features:**
+    *   Clickable Zones: "Library", "Cafeteria".
+    *   Overlays: "Current Events" pin drops on the map.
+    *   Pathfinding: "Draw path from Entrance A to Auditorium."
 
 ---
 
-## Technical Stack
-*   **Frontend:** Next.js 15 (App Router), Tailwind CSS, Lucide React, Radix UI
-*   **Backend:** Firebase (Auth, Firestore, Functions, Storage)
-*   **AI:** Google Genkit
-*   **Language:** TypeScript
+## 3. Implementation Phases (Step-by-Step)
+
+### Phase 1: Foundation (Weeks 1-2)
+- [ ] **Setup:** Next.js 15, Firebase Config, Shadcn UI installation.
+- [ ] **Auth:** Complete Google Sign-in and Role-based Route Protection (`middleware.ts`).
+- [ ] **DB:** Initialize Firestore collections (`users`, `events`, `tickets`).
+
+### Phase 2: Core Event Mechanics (Weeks 3-4)
+- [ ] **Create Event Form:** Basic fields + Image Upload.
+- [ ] **Feed:** Infinite scroll of events.
+- [ ] **Registration:** Transactional write to DB (decrement capacity, create ticket).
+- [ ] **QR:** Display QR for user, Basic Scanner for admin.
+
+### Phase 3: AI & Advanced Features (Weeks 5-6)
+- [ ] **Genkit Integration:** "Generate Description" and "Plan Schedule" features.
+- [ ] **Analytics:** Aggregation functions (count triggers).
+- [ ] **Certificate Engine:** PDF generation pipeline.
+
+### Phase 4: Polish & Growth (Weeks 7-8)
+- [ ] **Wishlist/Track:** State persistence.
+- [ ] **Notifications:** Email (Resend/SendGrid) on registration.
+- [ ] **Map:** SVG Map integration.
+- [ ] **Feedback Loop:** Post-event survey form + AI Sentiment Analysis.
+
+---
+
+## 4. API Routes & Server Actions Strategy
+
+*   **`GET /api/events`**: Returns paginated events. Query params: `category`, `date`.
+*   **`POST /api/events/register`**: Atomic transaction. Checks capacity -> Creates Ticket -> Updates User.
+*   **`POST /api/ai/generate-plan`**: Protected. Calls Genkit flow.
+*   **`POST /api/tickets/scan`**: Admin only. Validates and burns the QR token.
+
+## 5. Security Rules (Firestore)
+*   **Events:** Public Read. Create/Update: Organizer Only.
+*   **Tickets:** Read: Owner or Organizer. Write: Server Only (via Actions).
+*   **Users:** Read Profile: Public (limited fields). Write: Owner Only.
