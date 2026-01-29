@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { Event } from '@/types';
 import { eventService } from '@/lib/firestore-services';
@@ -26,6 +26,8 @@ import {
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { format, isPast, isFuture, isToday } from 'date-fns';
+import { db, FIRESTORE_COLLECTIONS } from '@/lib/firebase';
+import { doc, getDoc, updateDoc, arrayUnion, arrayRemove, setDoc, Timestamp } from 'firebase/firestore';
 
 // Helper function to safely parse event date
 const getEventDate = (event: Event): Date => {
@@ -48,9 +50,28 @@ export default function MyEventsClient() {
   const { toast } = useToast();
   const [events, setEvents] = useState<Event[]>([]);
   const [wishlisted, setWishlisted] = useState<string[]>([]);
+  const [ratings, setRatings] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('registered');
+
+  // Load user's wishlist and ratings from Firestore
+  const loadUserPreferences = useCallback(async () => {
+    if (!user?.uid) return;
+    
+    try {
+      const userPrefsRef = doc(db, FIRESTORE_COLLECTIONS.USERS, user.uid);
+      const userPrefsDoc = await getDoc(userPrefsRef);
+      
+      if (userPrefsDoc.exists()) {
+        const data = userPrefsDoc.data();
+        setWishlisted(data.wishlist || []);
+        setRatings(data.eventRatings || {});
+      }
+    } catch (error) {
+      console.error('Error loading user preferences:', error);
+    }
+  }, [user?.uid]);
 
   useEffect(() => {
     const fetchEvents = async () => {
@@ -70,11 +91,8 @@ export default function MyEventsClient() {
         
         setEvents(userEvents);
         
-        // Load wishlist from localStorage
-        const storedWishlist = localStorage.getItem(`wishlist-${user.uid}`);
-        if (storedWishlist) {
-          setWishlisted(JSON.parse(storedWishlist));
-        }
+        // Load wishlist and ratings from Firestore
+        await loadUserPreferences();
       } catch (error) {
         console.error('Error fetching events:', error);
       } finally {
@@ -83,7 +101,7 @@ export default function MyEventsClient() {
     };
 
     fetchEvents();
-  }, [user]);
+  }, [user, loadUserPreferences]);
 
   // Filter events based on search and tab
   const filterEvents = (events: Event[], tab: string) => {
@@ -121,25 +139,69 @@ export default function MyEventsClient() {
   const pastEvents = filterEvents(events, 'past');
   const wishlistedEvents = filterEvents(events, 'wishlist');
 
-  // Handle removing from wishlist
-  const handleRemoveWishlist = (eventId: string) => {
+  // Handle removing from wishlist - save to Firestore
+  const handleRemoveWishlist = async (eventId: string) => {
     const updatedWishlist = wishlisted.filter(id => id !== eventId);
     setWishlisted(updatedWishlist);
+    
     if (user?.uid) {
-      localStorage.setItem(`wishlist-${user.uid}`, JSON.stringify(updatedWishlist));
+      try {
+        const userRef = doc(db, FIRESTORE_COLLECTIONS.USERS, user.uid);
+        await updateDoc(userRef, {
+          wishlist: arrayRemove(eventId)
+        });
+      } catch (error) {
+        console.error('Error removing from wishlist:', error);
+        // Revert on error
+        setWishlisted(wishlisted);
+      }
     }
+    
     toast({
       title: 'Removed from wishlist',
       description: 'Event removed from your saved events.',
     });
   };
 
-  // Handle rating event
-  const handleRateEvent = (eventId: string, rating: number) => {
-    // Store rating in localStorage (in real app, would save to Firestore)
-    const ratings = JSON.parse(localStorage.getItem(`event-ratings-${user?.uid}`) || '{}');
-    ratings[eventId] = rating;
-    localStorage.setItem(`event-ratings-${user?.uid}`, JSON.stringify(ratings));
+  // Handle adding to wishlist - save to Firestore
+  const handleAddWishlist = async (eventId: string) => {
+    const updatedWishlist = [...wishlisted, eventId];
+    setWishlisted(updatedWishlist);
+    
+    if (user?.uid) {
+      try {
+        const userRef = doc(db, FIRESTORE_COLLECTIONS.USERS, user.uid);
+        await updateDoc(userRef, {
+          wishlist: arrayUnion(eventId)
+        });
+      } catch (error) {
+        console.error('Error adding to wishlist:', error);
+        // Revert on error
+        setWishlisted(wishlisted);
+      }
+    }
+    
+    toast({
+      title: 'Added to wishlist',
+      description: 'Event saved to your wishlist.',
+    });
+  };
+
+  // Handle rating event - save to Firestore
+  const handleRateEvent = async (eventId: string, rating: number) => {
+    // Optimistic update
+    setRatings(prev => ({ ...prev, [eventId]: rating }));
+    
+    if (user?.uid) {
+      try {
+        const userRef = doc(db, FIRESTORE_COLLECTIONS.USERS, user.uid);
+        await updateDoc(userRef, {
+          [`eventRatings.${eventId}`]: rating
+        });
+      } catch (error) {
+        console.error('Error saving rating:', error);
+      }
+    }
     
     toast({
       title: 'Rating submitted',

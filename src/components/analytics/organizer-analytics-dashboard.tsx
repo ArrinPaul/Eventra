@@ -110,7 +110,7 @@ export default function OrganizerAnalyticsDashboard({ organizerId }: OrganizerAn
   const [shareEventId, setShareEventId] = useState<string>('');
   const [shareEventName, setShareEventName] = useState<string>('');
 
-  // Mock data - In production, fetch from Firestore
+  // Data from Firestore
   const [events, setEvents] = useState<EventPerformance[]>([]);
   const [funnelData, setFunnelData] = useState<FunnelStage[]>([]);
   const [demographics, setDemographics] = useState<DemographicData | null>(null);
@@ -118,168 +118,52 @@ export default function OrganizerAnalyticsDashboard({ organizerId }: OrganizerAn
 
   useEffect(() => {
     loadAnalyticsData();
-  }, [timeRange, selectedEvent]);
+  }, [timeRange, selectedEvent, organizerId]);
 
   const loadAnalyticsData = async () => {
     setLoading(true);
     
-    // Simulated data load - replace with actual Firestore queries
-    await new Promise(resolve => setTimeout(resolve, 800));
-
-    // Event Performance Data
-    const mockEvents: EventPerformance[] = [
-      {
-        eventId: '1',
-        eventName: 'Tech Summit 2026',
-        date: new Date('2026-02-15'),
-        category: 'Technology',
-        status: 'completed',
-        capacity: 500,
-        registrations: 485,
-        checkIns: 412,
-        revenue: 24250,
-        viewCount: 3420,
-        conversionRate: 14.2,
-        satisfactionScore: 4.7
-      },
-      {
-        eventId: '2',
-        eventName: 'Startup Pitch Night',
-        date: new Date('2026-01-28'),
-        category: 'Business',
-        status: 'live',
-        capacity: 200,
-        registrations: 187,
-        checkIns: 156,
-        revenue: 0,
-        viewCount: 1850,
-        conversionRate: 10.1,
-        satisfactionScore: 4.5
-      },
-      {
-        eventId: '3',
-        eventName: 'Design Workshop',
-        date: new Date('2026-02-05'),
-        category: 'Design',
-        status: 'published',
-        capacity: 50,
-        registrations: 42,
-        checkIns: 0,
-        revenue: 2100,
-        viewCount: 890,
-        conversionRate: 4.7,
-        satisfactionScore: 0
-      },
-      {
-        eventId: '4',
-        eventName: 'AI/ML Bootcamp',
-        date: new Date('2026-03-10'),
-        category: 'Technology',
-        status: 'published',
-        capacity: 100,
-        registrations: 78,
-        checkIns: 0,
-        revenue: 7800,
-        viewCount: 2100,
-        conversionRate: 3.7,
-        satisfactionScore: 0
-      },
-      {
-        eventId: '5',
-        eventName: 'Networking Mixer',
-        date: new Date('2026-01-15'),
-        category: 'Networking',
-        status: 'completed',
-        capacity: 150,
-        registrations: 132,
-        checkIns: 118,
-        revenue: 0,
-        viewCount: 1200,
-        conversionRate: 11.0,
-        satisfactionScore: 4.3
-      }
-    ];
-    setEvents(mockEvents);
-
-    // Registration Funnel Data
-    const mockFunnel: FunnelStage[] = [
-      { stage: 'Page Views', count: 9460, percentage: 100, dropoffRate: 0, color: '#8B5CF6' },
-      { stage: 'Event Details Viewed', count: 6250, percentage: 66.1, dropoffRate: 33.9, color: '#A78BFA' },
-      { stage: 'Registration Started', count: 1850, percentage: 19.6, dropoffRate: 70.4, color: '#C4B5FD' },
-      { stage: 'Registration Completed', count: 924, percentage: 9.8, dropoffRate: 50.1, color: '#DDD6FE' },
-      { stage: 'Checked In', count: 686, percentage: 7.3, dropoffRate: 25.8, color: '#EDE9FE' }
-    ];
-    setFunnelData(mockFunnel);
-
-    // Demographics Data
-    const mockDemographics: DemographicData = {
-      ageGroups: [
-        { range: '18-24', count: 412, percentage: 44.6 },
-        { range: '25-34', count: 298, percentage: 32.3 },
-        { range: '35-44', count: 142, percentage: 15.4 },
-        { range: '45+', count: 72, percentage: 7.8 }
-      ],
-      departments: [
-        { name: 'Computer Science', count: 285, percentage: 30.8 },
-        { name: 'Business Admin', count: 198, percentage: 21.4 },
-        { name: 'Engineering', count: 156, percentage: 16.9 },
-        { name: 'Design', count: 124, percentage: 13.4 },
-        { name: 'Marketing', count: 98, percentage: 10.6 },
-        { name: 'Others', count: 63, percentage: 6.8 }
-      ],
-      years: [
-        { year: 'Freshman', count: 142, percentage: 15.4 },
-        { year: 'Sophomore', count: 198, percentage: 21.4 },
-        { year: 'Junior', count: 256, percentage: 27.7 },
-        { year: 'Senior', count: 212, percentage: 22.9 },
-        { year: 'Graduate', count: 116, percentage: 12.6 }
-      ],
-      locations: [
-        { city: 'Main Campus', count: 524, percentage: 56.7 },
-        { city: 'Downtown', count: 198, percentage: 21.4 },
-        { city: 'East Campus', count: 124, percentage: 13.4 },
-        { city: 'Remote', count: 78, percentage: 8.4 }
-      ],
-      devices: [
-        { type: 'Mobile', count: 486, percentage: 52.6 },
-        { type: 'Desktop', count: 356, percentage: 38.5 },
-        { type: 'Tablet', count: 82, percentage: 8.9 }
-      ],
-      sources: [
-        { source: 'Direct', count: 312, percentage: 33.8 },
-        { source: 'Email', count: 256, percentage: 27.7 },
-        { source: 'Social Media', count: 198, percentage: 21.4 },
-        { source: 'Referral', count: 98, percentage: 10.6 },
-        { source: 'Search', count: 60, percentage: 6.5 }
-      ]
-    };
-    setDemographics(mockDemographics);
-
-    // Revenue Data
-    const mockRevenue: RevenueData = {
-      totalRevenue: 34150,
-      thisMonth: 12450,
-      lastMonth: 9800,
-      growth: 27.0,
-      byTicketType: [
-        { type: 'VIP', revenue: 15000, sold: 50 },
-        { type: 'Early Bird', revenue: 8400, sold: 120 },
-        { type: 'Regular', revenue: 7500, sold: 150 },
-        { type: 'Student', revenue: 3250, sold: 130 }
-      ],
-      byEvent: [
-        { eventName: 'Tech Summit 2026', revenue: 24250, date: '2026-02-15' },
-        { eventName: 'AI/ML Bootcamp', revenue: 7800, date: '2026-03-10' },
-        { eventName: 'Design Workshop', revenue: 2100, date: '2026-02-05' }
-      ],
-      projectedRevenue: 45000,
-      averageTicketPrice: 75.89,
-      refunds: 450,
-      netRevenue: 33700
-    };
-    setRevenue(mockRevenue);
-
-    setLoading(false);
+    try {
+      // Import analytics service
+      const { analyticsService } = await import('@/lib/analytics-service');
+      
+      // Fetch real data from Firestore
+      const [eventsData, funnelDataResult, demographicsData, revenueData] = await Promise.all([
+        analyticsService.getOrganizerEvents(organizerId),
+        analyticsService.getOrganizerFunnelData(organizerId),
+        analyticsService.getOrganizerDemographics(organizerId),
+        analyticsService.getOrganizerRevenue(organizerId)
+      ]);
+      
+      // Map to component's expected format
+      setEvents(eventsData.map(e => ({
+        eventId: e.eventId,
+        eventName: e.eventName,
+        date: e.date,
+        category: e.category,
+        status: e.status,
+        capacity: e.capacity,
+        registrations: e.registrations,
+        checkIns: e.checkIns,
+        revenue: e.revenue,
+        viewCount: e.viewCount,
+        conversionRate: e.conversionRate,
+        satisfactionScore: e.satisfactionScore
+      })));
+      
+      setFunnelData(funnelDataResult);
+      setDemographics(demographicsData);
+      setRevenue(revenueData);
+    } catch (error) {
+      console.error('Error loading analytics data:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load analytics data. Please try again.',
+        variant: 'destructive'
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Calculate summary metrics

@@ -36,56 +36,21 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { format, subDays, startOfWeek, eachDayOfInterval, formatDistanceToNow } from 'date-fns';
-
-// Types
-interface PlatformStats {
-  totalUsers: number;
-  activeUsers: number;
-  newUsersToday: number;
-  newUsersThisWeek: number;
-  totalEvents: number;
-  activeEvents: number;
-  eventsThisMonth: number;
-  totalRegistrations: number;
-  averageAttendance: number;
-  totalRevenue: number;
-  revenueThisMonth: number;
-}
-
-interface EngagementMetrics {
-  dailyActiveUsers: number[];
-  weeklyActiveUsers: number[];
-  monthlyActiveUsers: number[];
-  averageSessionDuration: number;
-  pageViews: number;
-  bounceRate: number;
-  retentionRate: number;
-}
-
-interface EventMetrics {
-  eventsByCategory: { category: string; count: number; percentage: number }[];
-  eventsByStatus: { status: string; count: number }[];
-  topEvents: { id: string; title: string; registrations: number; attendance: number }[];
-  popularLocations: { location: string; eventCount: number }[];
-}
-
-interface UserGrowthData {
-  date: string;
-  users: number;
-  growth: number;
-}
-
-interface RealtimeMetrics {
-  activeNow: number;
-  recentSignups: { id: string; name: string; time: Date }[];
-  recentRegistrations: { eventTitle: string; userName: string; time: Date }[];
-  systemHealth: { service: string; status: 'healthy' | 'degraded' | 'down' }[];
-}
+import { 
+  analyticsService, 
+  type PlatformStats, 
+  type EventMetrics, 
+  type UserGrowthData, 
+  type RealtimeMetrics, 
+  type EngagementMetrics 
+} from '@/lib/analytics-service';
+import { useToast } from '@/hooks/use-toast';
 
 export default function AdminAnalyticsOverview() {
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState('7d');
   const [activeTab, setActiveTab] = useState('overview');
+  const { toast } = useToast();
 
   // Stats state
   const [platformStats, setPlatformStats] = useState<PlatformStats | null>(null);
@@ -97,120 +62,49 @@ export default function AdminAnalyticsOverview() {
   useEffect(() => {
     loadAnalytics();
     
-    // Simulate realtime updates
+    // Update realtime metrics every 30 seconds
     const interval = setInterval(() => {
       updateRealtimeMetrics();
-    }, 10000);
+    }, 30000);
 
     return () => clearInterval(interval);
   }, [timeRange]);
 
   const loadAnalytics = async () => {
     setLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 800));
+    try {
+      // Fetch real data from Firestore via analytics service
+      const [stats, events, growth, realtime, engagement] = await Promise.all([
+        analyticsService.getPlatformStats(),
+        analyticsService.getEventMetrics(),
+        analyticsService.getUserGrowthData(timeRange === '7d' ? 7 : timeRange === '30d' ? 30 : 90),
+        analyticsService.getRealtimeMetrics(),
+        analyticsService.getEngagementMetrics(),
+      ]);
 
-    // Mock platform stats
-    setPlatformStats({
-      totalUsers: 12847,
-      activeUsers: 8432,
-      newUsersToday: 127,
-      newUsersThisWeek: 892,
-      totalEvents: 1284,
-      activeEvents: 156,
-      eventsThisMonth: 89,
-      totalRegistrations: 45892,
-      averageAttendance: 78.5,
-      totalRevenue: 125780,
-      revenueThisMonth: 18450
-    });
-
-    // Mock engagement metrics
-    setEngagementMetrics({
-      dailyActiveUsers: [4532, 4821, 5012, 4892, 5234, 5421, 5189],
-      weeklyActiveUsers: [7823, 8012, 8234, 8432],
-      monthlyActiveUsers: [10234, 10892, 11234, 12847],
-      averageSessionDuration: 12.5,
-      pageViews: 892456,
-      bounceRate: 32.4,
-      retentionRate: 68.7
-    });
-
-    // Mock event metrics
-    setEventMetrics({
-      eventsByCategory: [
-        { category: 'Technology', count: 345, percentage: 26.9 },
-        { category: 'Networking', count: 278, percentage: 21.6 },
-        { category: 'Academic', count: 234, percentage: 18.2 },
-        { category: 'Social', count: 189, percentage: 14.7 },
-        { category: 'Career', count: 156, percentage: 12.1 },
-        { category: 'Sports', count: 82, percentage: 6.5 }
-      ],
-      eventsByStatus: [
-        { status: 'Upcoming', count: 156 },
-        { status: 'Ongoing', count: 23 },
-        { status: 'Completed', count: 1089 },
-        { status: 'Cancelled', count: 16 }
-      ],
-      topEvents: [
-        { id: '1', title: 'Tech Innovation Summit 2026', registrations: 892, attendance: 756 },
-        { id: '2', title: 'Career Fair Spring', registrations: 678, attendance: 612 },
-        { id: '3', title: 'AI Workshop Series', registrations: 456, attendance: 423 },
-        { id: '4', title: 'Networking Night', registrations: 345, attendance: 298 },
-        { id: '5', title: 'Startup Pitch Competition', registrations: 234, attendance: 201 }
-      ],
-      popularLocations: [
-        { location: 'Student Center', eventCount: 234 },
-        { location: 'Engineering Building', eventCount: 189 },
-        { location: 'Library Auditorium', eventCount: 156 },
-        { location: 'Sports Complex', eventCount: 89 },
-        { location: 'Online/Virtual', eventCount: 278 }
-      ]
-    });
-
-    // Mock user growth data
-    const growthData: UserGrowthData[] = [];
-    const days = timeRange === '7d' ? 7 : timeRange === '30d' ? 30 : 90;
-    for (let i = days - 1; i >= 0; i--) {
-      const date = subDays(new Date(), i);
-      growthData.push({
-        date: format(date, 'MMM dd'),
-        users: Math.floor(Math.random() * 200) + 50,
-        growth: Math.random() * 10 - 2
+      setPlatformStats(stats);
+      setEventMetrics(events);
+      setUserGrowth(growth);
+      setRealtimeMetrics(realtime);
+      setEngagementMetrics(engagement);
+    } catch (error) {
+      console.error('Error loading analytics:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to load analytics data. Please try again.',
       });
+    } finally {
+      setLoading(false);
     }
-    setUserGrowth(growthData);
-
-    // Mock realtime metrics
-    setRealtimeMetrics({
-      activeNow: 487,
-      recentSignups: [
-        { id: '1', name: 'Alice Johnson', time: new Date(Date.now() - 120000) },
-        { id: '2', name: 'Bob Smith', time: new Date(Date.now() - 300000) },
-        { id: '3', name: 'Carol Williams', time: new Date(Date.now() - 540000) }
-      ],
-      recentRegistrations: [
-        { eventTitle: 'AI Workshop', userName: 'David Lee', time: new Date(Date.now() - 60000) },
-        { eventTitle: 'Career Fair', userName: 'Emma Brown', time: new Date(Date.now() - 180000) },
-        { eventTitle: 'Tech Summit', userName: 'Frank Davis', time: new Date(Date.now() - 420000) }
-      ],
-      systemHealth: [
-        { service: 'API Server', status: 'healthy' },
-        { service: 'Database', status: 'healthy' },
-        { service: 'File Storage', status: 'healthy' },
-        { service: 'Email Service', status: 'healthy' },
-        { service: 'Push Notifications', status: 'healthy' }
-      ]
-    });
-
-    setLoading(false);
   };
 
-  const updateRealtimeMetrics = () => {
-    if (realtimeMetrics) {
-      setRealtimeMetrics(prev => ({
-        ...prev!,
-        activeNow: prev!.activeNow + Math.floor(Math.random() * 20) - 10
-      }));
+  const updateRealtimeMetrics = async () => {
+    try {
+      const realtime = await analyticsService.getRealtimeMetrics();
+      setRealtimeMetrics(realtime);
+    } catch (error) {
+      console.error('Error updating realtime metrics:', error);
     }
   };
 

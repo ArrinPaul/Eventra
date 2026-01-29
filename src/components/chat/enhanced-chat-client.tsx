@@ -29,104 +29,9 @@ import {
   Loader2
 } from 'lucide-react';
 import { ChatRoom, ChatMessage, User } from '@/types';
-import { chatService } from '@/lib/firestore-services';
+import { chatService, userService } from '@/lib/firestore-services';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
-
-// Mock data
-const mockChatRooms: ChatRoom[] = [
-  {
-    id: 'general',
-    name: 'General Discussion',
-    description: 'General chat for all event participants',
-    type: 'group',
-    participants: ['user-1', 'user-2', 'user-3', 'admin-1'],
-    createdBy: 'admin-1',
-    createdAt: new Date('2024-10-01'),
-    lastActivity: new Date('2024-10-10'),
-    isArchived: false,
-    avatar: '💬',
-    settings: {
-      allowFiles: true,
-      allowVideoCalls: true,
-      isPrivate: false
-    }
-  },
-  {
-    id: 'ai-enthusiasts',
-    name: 'AI Enthusiasts',
-    description: 'Chat about AI and machine learning',
-    type: 'community',
-    participants: ['user-1', 'user-2', 'user-4', 'user-5'],
-    createdBy: 'user-2',
-    createdAt: new Date('2024-10-03'),
-    lastActivity: new Date('2024-10-10'),
-    isArchived: false,
-    avatar: '🤖',
-    settings: {
-      allowFiles: true,
-      allowVideoCalls: true,
-      isPrivate: false
-    }
-  },
-  {
-    id: 'startup-founders',
-    name: 'Startup Founders',
-    description: 'Private group for startup founders',
-    type: 'group',
-    participants: ['user-2', 'user-3', 'user-6'],
-    createdBy: 'user-2',
-    createdAt: new Date('2024-10-05'),
-    lastActivity: new Date('2024-10-09'),
-    isArchived: false,
-    avatar: '🚀',
-    settings: {
-      allowFiles: true,
-      allowVideoCalls: true,
-      isPrivate: true
-    }
-  }
-];
-
-const mockMessages: ChatMessage[] = [
-  {
-    id: 'msg-1',
-    chatRoomId: 'general',
-    senderId: 'user-2',
-    content: 'Hey everyone! Excited for today\'s AI workshop. Anyone else attending?',
-    type: 'text',
-    createdAt: new Date('2024-10-10T09:00:00'),
-    isDeleted: false,
-    reactions: { '👍': ['user-1', 'user-3'], '🔥': ['user-1'] }
-  },
-  {
-    id: 'msg-2',
-    chatRoomId: 'general',
-    senderId: 'user-1',
-    content: 'Absolutely! Looking forward to the hands-on session.',
-    type: 'text',
-    createdAt: new Date('2024-10-10T09:05:00'),
-    isDeleted: false,
-    reactions: {}
-  },
-  {
-    id: 'msg-3',
-    chatRoomId: 'general',
-    senderId: 'ai-assistant',
-    content: 'Hello! I\'m your AI event assistant. Feel free to ask me any questions about today\'s schedule, speakers, or venue information! 🤖',
-    type: 'ai_response',
-    createdAt: new Date('2024-10-10T09:10:00'),
-    isDeleted: false,
-    reactions: { '🤖': ['user-1', 'user-2'] }
-  }
-];
-
-const mockUsers: { [key: string]: User } = {
-  'user-1': { id: 'user-1', name: 'Alice Johnson', email: 'alice@example.com' } as User,
-  'user-2': { id: 'user-2', name: 'Bob Smith', email: 'bob@example.com' } as User,
-  'user-3': { id: 'user-3', name: 'Carol Davis', email: 'carol@example.com' } as User,
-  'ai-assistant': { id: 'ai-assistant', name: 'AI Assistant', email: 'ai@ipxhub.com' } as User,
-};
 
 interface EnhancedChatClientProps {
   initialRoomId?: string;
@@ -135,17 +40,17 @@ interface EnhancedChatClientProps {
 export default function EnhancedChatClient({ initialRoomId }: EnhancedChatClientProps) {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [chatRooms, setChatRooms] = useState<ChatRoom[]>(mockChatRooms);
-  const [selectedRoom, setSelectedRoom] = useState<ChatRoom | null>(
-    initialRoomId ? mockChatRooms.find(room => room.id === initialRoomId) || null : null
-  );
-  const [messages, setMessages] = useState<ChatMessage[]>(mockMessages);
+  const [chatRooms, setChatRooms] = useState<ChatRoom[]>([]);
+  const [selectedRoom, setSelectedRoom] = useState<ChatRoom | null>(null);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [participantUsers, setParticipantUsers] = useState<Record<string, User>>({});
   const [newMessage, setNewMessage] = useState('');
   const [isCreatingRoom, setIsCreatingRoom] = useState(false);
   const [isCallActive, setIsCallActive] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [isVideoOff, setIsVideoOff] = useState(false);
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
+  const [isLoadingRooms, setIsLoadingRooms] = useState(true);
   const [isSending, setIsSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -156,25 +61,55 @@ export default function EnhancedChatClient({ initialRoomId }: EnhancedChatClient
     isPrivate: false
   });
 
+  // Load participant users for display
+  const loadParticipantUsers = useCallback(async (participantIds: string[]) => {
+    try {
+      const users: Record<string, User> = {};
+      for (const id of participantIds) {
+        const userData = await userService.getUser(id);
+        if (userData) {
+          users[id] = userData;
+        }
+      }
+      setParticipantUsers(prev => ({ ...prev, ...users }));
+    } catch (error) {
+      console.error('Error loading participant users:', error);
+    }
+  }, []);
+
   // Real-time subscription to chat rooms
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      setIsLoadingRooms(false);
+      return;
+    }
 
+    setIsLoadingRooms(true);
     const unsubscribe = chatService.subscribeToChatRooms(
       user.id,
       (rooms) => {
-        if (rooms.length > 0) {
-          setChatRooms(rooms);
+        setChatRooms(rooms);
+        setIsLoadingRooms(false);
+        
+        // If there's an initial room ID, select it
+        if (initialRoomId && !selectedRoom) {
+          const room = rooms.find(r => r.id === initialRoomId);
+          if (room) setSelectedRoom(room);
         }
+        
+        // Load participant data
+        const allParticipants = rooms.flatMap(r => r.participants || []);
+        const uniqueParticipants = [...new Set(allParticipants)];
+        loadParticipantUsers(uniqueParticipants);
       },
       (error) => {
         console.error('Chat rooms subscription error:', error);
-        // Fall back to mock data on error
+        setIsLoadingRooms(false);
       }
     );
 
     return () => unsubscribe();
-  }, [user]);
+  }, [user, initialRoomId, selectedRoom, loadParticipantUsers]);
 
   // Real-time subscription to messages when a room is selected
   useEffect(() => {
@@ -185,23 +120,24 @@ export default function EnhancedChatClient({ initialRoomId }: EnhancedChatClient
     const unsubscribe = chatService.subscribeToMessages(
       selectedRoom.id,
       (roomMessages) => {
-        if (roomMessages.length > 0) {
-          setMessages(roomMessages);
-        } else {
-          // Fall back to mock messages for selected room
-          setMessages(mockMessages.filter(msg => msg.chatRoomId === selectedRoom.id));
-        }
+        setMessages(roomMessages);
         setIsLoadingMessages(false);
+        
+        // Load any new participant users from messages
+        const senderIds = roomMessages.map(m => m.senderId).filter(id => !participantUsers[id]);
+        if (senderIds.length > 0) {
+          loadParticipantUsers([...new Set(senderIds)]);
+        }
       },
       (error) => {
         console.error('Messages subscription error:', error);
-        setMessages(mockMessages.filter(msg => msg.chatRoomId === selectedRoom.id));
+        setMessages([]);
         setIsLoadingMessages(false);
       }
     );
 
     return () => unsubscribe();
-  }, [selectedRoom]);
+  }, [selectedRoom, loadParticipantUsers, participantUsers]);
 
   useEffect(() => {
     scrollToBottom();
@@ -474,9 +410,9 @@ export default function EnhancedChatClient({ initialRoomId }: EnhancedChatClient
             <ScrollArea className="flex-1 p-4">
               <div className="space-y-4">
                 {messages.map((message) => {
-                  const sender = mockUsers[message.senderId];
+                  const sender = participantUsers[message.senderId];
                   const isOwn = message.senderId === user?.id;
-                  const isAI = message.senderId === 'ai-assistant';
+                  const isAI = message.senderId === 'ai-assistant' || message.type === 'ai_response';
 
                   return (
                     <div
@@ -489,7 +425,7 @@ export default function EnhancedChatClient({ initialRoomId }: EnhancedChatClient
                       {!isOwn && (
                         <Avatar className="h-8 w-8">
                           <AvatarFallback className={isAI ? "bg-primary text-primary-foreground" : ""}>
-                            {isAI ? "AI" : getInitials(sender?.name || "U")}
+                            {isAI ? "AI" : getInitials(sender?.name || sender?.displayName || "U")}
                           </AvatarFallback>
                         </Avatar>
                       )}
@@ -501,7 +437,7 @@ export default function EnhancedChatClient({ initialRoomId }: EnhancedChatClient
                         {!isOwn && (
                           <div className="flex items-center gap-2">
                             <span className="text-sm font-medium">
-                              {sender?.name || "Unknown User"}
+                              {sender?.name || sender?.displayName || "Unknown User"}
                             </span>
                             {isAI && (
                               <Badge variant="secondary" className="text-xs">AI Assistant</Badge>
@@ -510,7 +446,7 @@ export default function EnhancedChatClient({ initialRoomId }: EnhancedChatClient
                               {formatTime(message.createdAt)}
                             </span>
                           </div>
-                        )}
+                        )}}
                         
                         <Card className={cn(
                           "p-3",

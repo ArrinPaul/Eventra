@@ -186,7 +186,7 @@ interface TicketSelection {
 
 export function TicketingClient() {
   const { user } = useAuth();
-  const [events, setEvents] = useState<EventTicketing[]>(mockEvents);
+  const [events, setEvents] = useState<EventTicketing[]>([]);
   const [selectedEvent, setSelectedEvent] = useState<EventTicketing | null>(null);
   const [selectedTickets, setSelectedTickets] = useState<TicketSelection[]>([]);
   const [discountCode, setDiscountCode] = useState('');
@@ -196,34 +196,37 @@ export function TicketingClient() {
   const [bookingSuccess, setBookingSuccess] = useState(false);
   const [myTickets, setMyTickets] = useState<EventTicket[]>([]);
   const [activeTab, setActiveTab] = useState('explore');
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    loadMyTickets();
+    loadEvents();
+  }, []);
+
+  useEffect(() => {
+    if (user) {
+      loadMyTickets();
+    }
   }, [user]);
+
+  const loadEvents = async () => {
+    setIsLoading(true);
+    try {
+      const { ticketingServiceReal } = await import('@/lib/ticketing-service');
+      const ticketableEvents = await ticketingServiceReal.getTicketableEvents();
+      setEvents(ticketableEvents);
+    } catch (error) {
+      console.error('Error loading events:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const loadMyTickets = async () => {
     if (!user) return;
     try {
-      // const tickets = await ticketingService.getUserTickets(user.id);
-      // Mock tickets for now
-      const mockTickets: EventTicket[] = [
-        {
-          id: 'ticket-1',
-          eventId: 'event-1',
-          userId: user.id,
-          ticketType: mockEvents[0].ticketTypes[0],
-          price: 1750,
-          ticketStatus: 'confirmed',
-          qrCode: 'QR123456789',
-          purchaseDate: new Date('2024-10-05'),
-          discount: {
-            code: 'EARLY20',
-            amount: 350,
-            type: 'fixed'
-          }
-        }
-      ];
-      setMyTickets(mockTickets);
+      const { ticketingServiceReal } = await import('@/lib/ticketing-service');
+      const tickets = await ticketingServiceReal.getUserTickets(user.id);
+      setMyTickets(tickets as any);
     } catch (error) {
       console.error('Error loading tickets:', error);
     }

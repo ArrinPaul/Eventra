@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -75,37 +75,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { formatDistanceToNow } from 'date-fns';
-
-// Types
-interface UserData {
-  id: string;
-  name: string;
-  email: string;
-  photoURL?: string;
-  role: 'admin' | 'organizer' | 'attendee';
-  status: 'active' | 'suspended' | 'pending' | 'banned';
-  department?: string;
-  year?: string;
-  createdAt: Date;
-  lastActive: Date;
-  eventsAttended: number;
-  eventsOrganized: number;
-  points: number;
-  badges: number;
-  connections: number;
-  isVerified: boolean;
-  isBanned: boolean;
-  banReason?: string;
-  notes?: string;
-}
-
-interface UserFilters {
-  search: string;
-  role: string;
-  status: string;
-  sortBy: string;
-  sortOrder: 'asc' | 'desc';
-}
+import { userManagementService, type UserData, type UserFilters } from '@/lib/user-management-service';
 
 export default function UserManagement() {
   const { toast } = useToast();
@@ -124,132 +94,40 @@ export default function UserManagement() {
   const [showUserDialog, setShowUserDialog] = useState(false);
   const [showBanDialog, setShowBanDialog] = useState(false);
   const [banReason, setBanReason] = useState('');
+  const [hasMore, setHasMore] = useState(false);
   const itemsPerPage = 10;
 
   useEffect(() => {
     loadUsers();
-  }, []);
+  }, [filters.role, filters.status, filters.sortBy, filters.sortOrder]);
 
-  const loadUsers = async () => {
+  const loadUsers = useCallback(async () => {
     setLoading(true);
-    // Simulate API call - replace with Firestore query
-    await new Promise(resolve => setTimeout(resolve, 800));
-
-    const mockUsers: UserData[] = [
-      {
-        id: '1',
-        name: 'John Doe',
-        email: 'john.doe@university.edu',
-        photoURL: '',
-        role: 'attendee',
-        status: 'active',
-        department: 'Computer Science',
-        year: '3rd Year',
-        createdAt: new Date('2024-09-15'),
-        lastActive: new Date('2026-01-28'),
-        eventsAttended: 15,
-        eventsOrganized: 0,
-        points: 2450,
-        badges: 8,
-        connections: 45,
-        isVerified: true,
-        isBanned: false
-      },
-      {
-        id: '2',
-        name: 'Jane Smith',
-        email: 'jane.smith@university.edu',
-        role: 'organizer',
-        status: 'active',
-        department: 'Business Administration',
-        createdAt: new Date('2024-08-20'),
-        lastActive: new Date('2026-01-29'),
-        eventsAttended: 8,
-        eventsOrganized: 12,
-        points: 5200,
-        badges: 15,
-        connections: 120,
-        isVerified: true,
-        isBanned: false
-      },
-      {
-        id: '3',
-        name: 'Mike Johnson',
-        email: 'mike.j@university.edu',
-        role: 'attendee',
-        status: 'suspended',
-        department: 'Engineering',
-        year: '2nd Year',
-        createdAt: new Date('2025-01-10'),
-        lastActive: new Date('2026-01-15'),
-        eventsAttended: 3,
-        eventsOrganized: 0,
-        points: 450,
-        badges: 2,
-        connections: 12,
-        isVerified: false,
-        isBanned: false,
-        notes: 'Suspended for spam complaints'
-      },
-      {
-        id: '4',
-        name: 'Sarah Williams',
-        email: 'sarah.w@university.edu',
-        role: 'admin',
-        status: 'active',
-        department: 'Administration',
-        createdAt: new Date('2024-01-01'),
-        lastActive: new Date('2026-01-29'),
-        eventsAttended: 25,
-        eventsOrganized: 30,
-        points: 12500,
-        badges: 25,
-        connections: 200,
-        isVerified: true,
-        isBanned: false
-      },
-      {
-        id: '5',
-        name: 'Alex Brown',
-        email: 'alex.b@university.edu',
-        role: 'attendee',
-        status: 'pending',
-        department: 'Arts',
-        year: '1st Year',
-        createdAt: new Date('2026-01-25'),
-        lastActive: new Date('2026-01-25'),
-        eventsAttended: 0,
-        eventsOrganized: 0,
-        points: 0,
-        badges: 0,
-        connections: 0,
-        isVerified: false,
-        isBanned: false
-      },
-      {
-        id: '6',
-        name: 'Emily Davis',
-        email: 'emily.d@university.edu',
-        role: 'attendee',
-        status: 'banned',
-        department: 'Medicine',
-        year: '4th Year',
-        createdAt: new Date('2024-06-15'),
-        lastActive: new Date('2025-12-01'),
-        eventsAttended: 7,
-        eventsOrganized: 0,
-        points: 890,
-        badges: 4,
-        connections: 23,
-        isVerified: true,
-        isBanned: true,
-        banReason: 'Violation of community guidelines - harassment'
-      }
-    ];
-
-    setUsers(mockUsers);
-    setLoading(false);
-  };
+    try {
+      const result = await userManagementService.getUsers(
+        {
+          role: filters.role,
+          status: filters.status,
+          sortBy: filters.sortBy,
+          sortOrder: filters.sortOrder,
+          search: filters.search,
+        },
+        50 // Get more for client-side filtering
+      );
+      
+      setUsers(result.data);
+      setHasMore(result.hasMore);
+    } catch (error) {
+      console.error('Error loading users:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to load users. Please try again.',
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, [filters, toast]);
 
   // Filtered and sorted users
   const filteredUsers = useMemo(() => {

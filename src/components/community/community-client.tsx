@@ -8,105 +8,23 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowUp, ArrowDown, MessageCircle, Plus, Search, Users, TrendingUp } from 'lucide-react';
+import { ArrowUp, ArrowDown, MessageCircle, Plus, Search, Users, TrendingUp, Loader2 } from 'lucide-react';
 import { Community, Post, Comment } from '@/types';
 import { communityService } from '@/lib/firestore-services';
 import { cn } from '@/lib/utils';
-
-// Mock data for development
-const mockCommunities: Community[] = [
-  {
-    id: 'ai-hub',
-    name: 'AI & Machine Learning',
-    description: 'Discuss the latest in AI, ML, and emerging technologies',
-    category: 'AI',
-    icon: '🤖',
-    coverImage: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=800',
-    memberCount: 1245,
-    postCount: 89,
-    createdAt: new Date('2024-01-15'),
-    createdBy: 'admin-1',
-    moderators: ['admin-1', 'user-2'],
-    rules: ['Be respectful', 'No spam', 'Stay on topic'],
-    isPrivate: false
-  },
-  {
-    id: 'startup-corner',
-    name: 'Startup Corner',
-    description: 'Connect with fellow entrepreneurs and share startup insights',
-    category: 'Startups',
-    icon: '🚀',
-    coverImage: 'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=800',
-    memberCount: 892,
-    postCount: 156,
-    createdAt: new Date('2024-01-10'),
-    createdBy: 'admin-2',
-    moderators: ['admin-2'],
-    rules: ['No promotional posts without value', 'Share experiences not just success'],
-    isPrivate: false
-  },
-  {
-    id: 'tech-trends',
-    name: 'Tech Trends',
-    description: 'Latest technology trends and industry news',
-    category: 'Tech',
-    icon: '💻',
-    coverImage: 'https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=800',
-    memberCount: 2100,
-    postCount: 234,
-    createdAt: new Date('2024-01-05'),
-    createdBy: 'admin-3',
-    moderators: ['admin-3', 'user-5'],
-    rules: ['Fact-check before posting', 'Include sources when possible'],
-    isPrivate: false
-  }
-];
-
-const mockPosts: Post[] = [
-  {
-    id: 'post-1',
-    communityId: 'ai-hub',
-    authorId: 'user-1',
-    title: 'The Future of Generative AI in 2025',
-    content: 'What are your predictions for generative AI developments this year? I think we\'ll see major breakthroughs in multimodal models and more efficient training methods.',
-    type: 'text',
-    upvotes: 45,
-    downvotes: 2,
-    votedBy: {},
-    commentCount: 12,
-    createdAt: new Date('2024-10-08'),
-    updatedAt: new Date('2024-10-08'),
-    tags: ['ai', 'generative-ai', '2025'],
-    isPinned: false,
-    isLocked: false
-  },
-  {
-    id: 'post-2',
-    communityId: 'startup-corner',
-    title: 'My Journey from Idea to Funding',
-    authorId: 'user-2',
-    content: 'Just closed our seed round! Happy to share some lessons learned from the past 18 months of building our startup. AMA!',
-    type: 'text',
-    upvotes: 89,
-    downvotes: 1,
-    votedBy: {},
-    commentCount: 34,
-    createdAt: new Date('2024-10-07'),
-    updatedAt: new Date('2024-10-07'),
-    tags: ['funding', 'startup-journey', 'ama'],
-    isPinned: true,
-    isLocked: false
-  }
-];
+import { useToast } from '@/hooks/use-toast';
 
 export default function CommunityClient() {
   const { user } = useAuth();
-  const [communities, setCommunities] = useState<Community[]>(mockCommunities);
+  const { toast } = useToast();
+  const [communities, setCommunities] = useState<Community[]>([]);
   const [selectedCommunity, setSelectedCommunity] = useState<Community | null>(null);
-  const [posts, setPosts] = useState<Post[]>(mockPosts);
+  const [posts, setPosts] = useState<Post[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [isCreatePostOpen, setIsCreatePostOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('hot');
+  const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingPosts, setIsLoadingPosts] = useState(false);
 
   const [newPost, setNewPost] = useState({
     title: '',
@@ -120,27 +38,36 @@ export default function CommunityClient() {
   }, []);
 
   const loadCommunities = async () => {
+    setIsLoading(true);
     try {
       const fetchedCommunities = await communityService.getCommunities();
-      if (fetchedCommunities.length > 0) {
-        setCommunities(fetchedCommunities);
-      }
+      setCommunities(fetchedCommunities);
     } catch (error) {
       console.error('Error loading communities:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load communities. Please try again.',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const loadPosts = async (communityId: string) => {
+    setIsLoadingPosts(true);
     try {
       const fetchedPosts = await communityService.getPosts(communityId);
-      if (fetchedPosts.length > 0) {
-        setPosts(fetchedPosts);
-      } else {
-        // Filter mock posts for the selected community
-        setPosts(mockPosts.filter(post => post.communityId === communityId));
-      }
+      setPosts(fetchedPosts);
     } catch (error) {
       console.error('Error loading posts:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load posts. Please try again.',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsLoadingPosts(false);
     }
   };
 

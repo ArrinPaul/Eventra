@@ -155,146 +155,31 @@ export default function EventModeration() {
 
   const loadModerationData = async () => {
     setLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 800));
-
-    // Mock reported events
-    const mockReports: ReportedEvent[] = [
-      {
-        id: '1',
-        eventId: 'evt1',
-        eventTitle: 'Suspicious Tech Conference',
-        eventDate: new Date('2026-02-15'),
-        organizerId: 'org1',
-        organizerName: 'Unknown Org',
-        reportedBy: 'user1',
-        reporterName: 'John Doe',
-        reportType: 'misleading',
-        description: 'Event details seem fake. The venue address does not exist and contact information is invalid.',
-        status: 'pending',
-        priority: 'high',
-        createdAt: new Date('2026-01-28')
-      },
-      {
-        id: '2',
-        eventId: 'evt2',
-        eventTitle: 'Free iPhone Giveaway Event',
-        eventDate: new Date('2026-02-01'),
-        organizerId: 'org2',
-        organizerName: 'Deals Inc',
-        reportedBy: 'user2',
-        reporterName: 'Jane Smith',
-        reportType: 'spam',
-        description: 'This appears to be a scam event with unrealistic promises.',
-        status: 'under_review',
-        priority: 'critical',
-        createdAt: new Date('2026-01-27'),
-        moderatorNotes: 'Investigating organizer history'
-      },
-      {
-        id: '3',
-        eventId: 'evt3',
-        eventTitle: 'Music Festival 2026',
-        eventDate: new Date('2026-03-20'),
-        organizerId: 'org3',
-        organizerName: 'Event Masters',
-        reportedBy: 'user3',
-        reporterName: 'Mike Johnson',
-        reportType: 'copyright',
-        description: 'Using copyrighted images without permission',
-        status: 'resolved',
-        priority: 'medium',
-        createdAt: new Date('2026-01-20'),
-        resolvedAt: new Date('2026-01-25'),
-        resolution: 'Organizer removed copyrighted images'
-      }
-    ];
-
-    // Mock pending events
-    const mockPendingEvents: PendingEvent[] = [
-      {
-        id: 'pend1',
-        title: 'AI Workshop Series',
-        description: 'Learn about AI and machine learning fundamentals in this hands-on workshop series.',
-        category: 'Technology',
-        date: new Date('2026-02-10'),
-        location: 'Tech Hub, Building A',
-        organizerId: 'org4',
-        organizerName: 'Tech Club',
-        organizerEmail: 'techclub@university.edu',
-        capacity: 50,
-        isPaid: false,
-        submittedAt: new Date('2026-01-28'),
-        status: 'pending'
-      },
-      {
-        id: 'pend2',
-        title: 'Networking Night',
-        description: 'Connect with industry professionals and fellow students.',
-        category: 'Networking',
-        date: new Date('2026-02-05'),
-        location: 'Student Center',
-        organizerId: 'org5',
-        organizerName: 'Career Services',
-        organizerEmail: 'careers@university.edu',
-        capacity: 100,
-        isPaid: true,
-        price: 10,
-        submittedAt: new Date('2026-01-27'),
-        status: 'pending'
-      },
-      {
-        id: 'pend3',
-        title: 'Study Group Session',
-        description: 'Collaborative study session for midterms',
-        category: 'Academic',
-        date: new Date('2026-02-03'),
-        location: 'Library Room 201',
-        organizerId: 'org6',
-        organizerName: 'Study Buddies',
-        organizerEmail: 'studybuddies@university.edu',
-        capacity: 20,
-        isPaid: false,
-        submittedAt: new Date('2026-01-29'),
-        status: 'needs_changes',
-        reviewNotes: 'Please add more details about what subjects will be covered',
-        flaggedContent: ['Vague description']
-      }
-    ];
-
-    // Mock content reports
-    const mockContentReports: ContentReport[] = [
-      {
-        id: 'cr1',
-        contentType: 'post',
-        contentId: 'post1',
-        contentPreview: 'This post contains inappropriate language...',
-        authorId: 'user5',
-        authorName: 'Problem User',
-        reportedBy: 'user6',
-        reporterName: 'Concerned Student',
-        reason: 'Hate speech',
-        status: 'pending',
-        createdAt: new Date('2026-01-28')
-      },
-      {
-        id: 'cr2',
-        contentType: 'comment',
-        contentId: 'comment1',
-        contentPreview: 'Spam link to external site...',
-        authorId: 'user7',
-        authorName: 'Spammer',
-        reportedBy: 'user8',
-        reporterName: 'Alert User',
-        reason: 'Spam',
-        status: 'pending',
-        createdAt: new Date('2026-01-27')
-      }
-    ];
-
-    setReports(mockReports);
-    setPendingEvents(mockPendingEvents);
-    setContentReports(mockContentReports);
-    setLoading(false);
+    
+    try {
+      // Import moderation service
+      const { moderationService } = await import('@/lib/moderation-service');
+      
+      // Fetch real data from Firestore
+      const [reportedEventsData, pendingEventsData, contentReportsData] = await Promise.all([
+        moderationService.getReportedEvents(),
+        moderationService.getPendingEvents(),
+        moderationService.getContentReports()
+      ]);
+      
+      setReports(reportedEventsData);
+      setPendingEvents(pendingEventsData);
+      setContentReports(contentReportsData);
+    } catch (error) {
+      console.error('Error loading moderation data:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load moderation data. Please try again.',
+        variant: 'destructive'
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Stats

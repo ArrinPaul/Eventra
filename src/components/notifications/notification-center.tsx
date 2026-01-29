@@ -165,103 +165,19 @@ export function NotificationBell() {
         }));
       }, (error) => {
         console.error('Error subscribing to notifications:', error);
-        // Fall back to empty state on error
-        loadFallbackNotifications();
+        // Keep empty state on error - don't use mock data
+        setState(prev => ({
+          ...prev,
+          notifications: [],
+          unreadCount: 0
+        }));
       });
 
       return () => unsubscribe();
     }
   }, [user]);
 
-  // Fallback notifications for demo/development
-  const loadFallbackNotifications = () => {
-    // Mock notifications - in production, fetch from Firestore
-    const mockNotifications: Notification[] = [
-      {
-        id: '1',
-        type: 'event_starting',
-        title: 'Event Starting Soon',
-        message: 'Tech Summit 2026 starts in 1 hour',
-        timestamp: new Date(Date.now() - 30 * 60 * 1000),
-        read: false,
-        actionUrl: '/events/tech-summit-2026',
-        actionLabel: 'View Event',
-        metadata: { eventId: '1', eventName: 'Tech Summit 2026' }
-      },
-      {
-        id: '2',
-        type: 'connection_request',
-        title: 'New Connection Request',
-        message: 'Sarah Chen wants to connect with you',
-        timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
-        read: false,
-        actionUrl: '/networking',
-        actionLabel: 'View Request',
-        metadata: { userId: 'sarah123', userName: 'Sarah Chen' }
-      },
-      {
-        id: '3',
-        type: 'badge_earned',
-        title: 'Badge Earned! 🏆',
-        message: 'You earned the "Networking Pro" badge',
-        timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000),
-        read: false,
-        actionUrl: '/gamification',
-        actionLabel: 'View Badge',
-        metadata: { badgeId: 'networking-pro', badgeName: 'Networking Pro' }
-      },
-      {
-        id: '4',
-        type: 'certificate_ready',
-        title: 'Certificate Ready',
-        message: 'Your certificate for Design Workshop is ready',
-        timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000),
-        read: true,
-        actionUrl: '/certificates',
-        actionLabel: 'Download',
-        metadata: { eventId: '2', eventName: 'Design Workshop', certificateId: 'cert-123' }
-      },
-      {
-        id: '5',
-        type: 'event_reminder',
-        title: 'Event Reminder',
-        message: 'AI/ML Bootcamp is tomorrow at 9:00 AM',
-        timestamp: new Date(Date.now() - 48 * 60 * 60 * 1000),
-        read: true,
-        actionUrl: '/events/ai-ml-bootcamp',
-        actionLabel: 'View Details',
-        metadata: { eventId: '3', eventName: 'AI/ML Bootcamp' }
-      },
-      {
-        id: '6',
-        type: 'message_received',
-        title: 'New Message',
-        message: 'Alex Kim sent you a message',
-        timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000),
-        read: false,
-        actionUrl: '/networking?tab=messages',
-        actionLabel: 'Reply',
-        metadata: { userId: 'alex456', userName: 'Alex Kim' }
-      },
-      {
-        id: '7',
-        type: 'meeting_scheduled',
-        title: 'Meeting Scheduled',
-        message: 'Coffee chat with Jordan Lee on Friday',
-        timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000),
-        read: true,
-        actionUrl: '/networking?tab=meetings',
-        actionLabel: 'View Meeting',
-        metadata: { userId: 'jordan789', userName: 'Jordan Lee' }
-      }
-    ];
-
-    setState(prev => ({
-      ...prev,
-      notifications: mockNotifications,
-      unreadCount: mockNotifications.filter(n => !n.read).length
-    }));
-  };
+  // Note: No mock/fallback data - notifications come from Firestore only
 
   const markAsRead = async (notificationId: string) => {
     try {
@@ -543,129 +459,44 @@ export function NotificationCenter() {
 
   useEffect(() => {
     if (user) {
-      loadAllNotifications();
+      // Subscribe to real-time notifications from Firestore
+      const notificationsRef = collection(db, FIRESTORE_COLLECTIONS.NOTIFICATIONS);
+      const q = query(
+        notificationsRef,
+        where('userId', '==', user.id),
+        orderBy('timestamp', 'desc'),
+        limit(100)
+      );
+
+      const unsubscribe = onSnapshot(q, (snapshot) => {
+        const notificationsList: Notification[] = snapshot.docs.map(doc => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            type: data.type,
+            title: data.title,
+            message: data.message,
+            timestamp: data.timestamp?.toDate?.() || new Date(data.timestamp),
+            read: data.read || false,
+            actionUrl: data.actionUrl,
+            actionLabel: data.actionLabel,
+            metadata: data.metadata,
+          };
+        });
+        
+        setNotifications(notificationsList);
+        setLoading(false);
+      }, (error) => {
+        console.error('Error loading notifications:', error);
+        setNotifications([]);
+        setLoading(false);
+      });
+
+      return () => unsubscribe();
+    } else {
+      setLoading(false);
     }
   }, [user]);
-
-  const loadAllNotifications = async () => {
-    setLoading(true);
-    
-    // Mock data - in production, fetch from Firestore with pagination
-    const mockNotifications: Notification[] = [
-      {
-        id: '1',
-        type: 'event_starting',
-        title: 'Event Starting Soon',
-        message: 'Tech Summit 2026 starts in 1 hour. Don\'t forget to check in!',
-        timestamp: new Date(Date.now() - 30 * 60 * 1000),
-        read: false,
-        actionUrl: '/events/tech-summit-2026',
-        actionLabel: 'View Event',
-        metadata: { eventId: '1', eventName: 'Tech Summit 2026' }
-      },
-      {
-        id: '2',
-        type: 'connection_request',
-        title: 'New Connection Request',
-        message: 'Sarah Chen wants to connect with you. You have 3 mutual connections.',
-        timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
-        read: false,
-        actionUrl: '/networking',
-        actionLabel: 'View Request',
-        metadata: { userId: 'sarah123', userName: 'Sarah Chen' }
-      },
-      {
-        id: '3',
-        type: 'badge_earned',
-        title: 'Badge Earned! 🏆',
-        message: 'Congratulations! You earned the "Networking Pro" badge for making 10 connections.',
-        timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000),
-        read: false,
-        actionUrl: '/gamification',
-        actionLabel: 'View Badge',
-        metadata: { badgeId: 'networking-pro', badgeName: 'Networking Pro' }
-      },
-      {
-        id: '4',
-        type: 'certificate_ready',
-        title: 'Certificate Ready',
-        message: 'Your certificate for Design Workshop is ready to download.',
-        timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000),
-        read: true,
-        actionUrl: '/certificates',
-        actionLabel: 'Download',
-        metadata: { eventId: '2', eventName: 'Design Workshop', certificateId: 'cert-123' }
-      },
-      {
-        id: '5',
-        type: 'event_reminder',
-        title: 'Event Reminder',
-        message: 'AI/ML Bootcamp is tomorrow at 9:00 AM in Engineering Hall Room 101.',
-        timestamp: new Date(Date.now() - 48 * 60 * 60 * 1000),
-        read: true,
-        actionUrl: '/events/ai-ml-bootcamp',
-        actionLabel: 'View Details',
-        metadata: { eventId: '3', eventName: 'AI/ML Bootcamp' }
-      },
-      {
-        id: '6',
-        type: 'message_received',
-        title: 'New Message',
-        message: 'Alex Kim sent you a message: "Hey! Looking forward to meeting at the event..."',
-        timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000),
-        read: false,
-        actionUrl: '/networking?tab=messages',
-        actionLabel: 'Reply',
-        metadata: { userId: 'alex456', userName: 'Alex Kim' }
-      },
-      {
-        id: '7',
-        type: 'meeting_scheduled',
-        title: 'Meeting Scheduled',
-        message: 'Coffee chat with Jordan Lee scheduled for Friday at 2:00 PM at Campus Cafe.',
-        timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000),
-        read: true,
-        actionUrl: '/networking?tab=meetings',
-        actionLabel: 'View Meeting',
-        metadata: { userId: 'jordan789', userName: 'Jordan Lee' }
-      },
-      {
-        id: '8',
-        type: 'registration_confirmed',
-        title: 'Registration Confirmed',
-        message: 'You\'re registered for Startup Pitch Night. Your ticket has been sent to your email.',
-        timestamp: new Date(Date.now() - 72 * 60 * 60 * 1000),
-        read: true,
-        actionUrl: '/tickets',
-        actionLabel: 'View Ticket',
-        metadata: { eventId: '4', eventName: 'Startup Pitch Night' }
-      },
-      {
-        id: '9',
-        type: 'challenge_completed',
-        title: 'Challenge Completed! 🎯',
-        message: 'You completed the "Social Butterfly" challenge and earned 500 XP!',
-        timestamp: new Date(Date.now() - 96 * 60 * 60 * 1000),
-        read: true,
-        actionUrl: '/gamification',
-        actionLabel: 'View Rewards'
-      },
-      {
-        id: '10',
-        type: 'connection_accepted',
-        title: 'Connection Accepted',
-        message: 'Maria Rodriguez accepted your connection request.',
-        timestamp: new Date(Date.now() - 120 * 60 * 60 * 1000),
-        read: true,
-        actionUrl: '/networking',
-        actionLabel: 'View Profile',
-        metadata: { userId: 'maria101', userName: 'Maria Rodriguez' }
-      }
-    ];
-
-    setNotifications(mockNotifications);
-    setLoading(false);
-  };
 
   const filteredNotifications = notifications.filter(n => {
     if (filter === 'unread' && n.read) return false;
@@ -673,19 +504,51 @@ export function NotificationCenter() {
     return true;
   });
 
-  const markAsRead = (id: string) => {
-    setNotifications(prev => prev.map(n => 
-      n.id === id ? { ...n, read: true } : n
-    ));
+  const markAsRead = async (id: string) => {
+    try {
+      await updateDoc(doc(db, FIRESTORE_COLLECTIONS.NOTIFICATIONS, id), {
+        read: true,
+        readAt: serverTimestamp()
+      });
+      // State will be updated via real-time subscription
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+    }
   };
 
-  const markAllAsRead = () => {
-    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
-    toast({ title: 'All notifications marked as read' });
+  const markAllAsRead = async () => {
+    try {
+      const unreadNotifications = notifications.filter(n => !n.read);
+      
+      if (unreadNotifications.length > 0) {
+        const batch = writeBatch(db);
+        unreadNotifications.forEach(n => {
+          batch.update(doc(db, FIRESTORE_COLLECTIONS.NOTIFICATIONS, n.id), {
+            read: true,
+            readAt: serverTimestamp()
+          });
+        });
+        await batch.commit();
+      }
+      
+      toast({ title: 'All notifications marked as read' });
+    } catch (error) {
+      console.error('Error marking all as read:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to mark notifications as read'
+      });
+    }
   };
 
-  const deleteNotification = (id: string) => {
-    setNotifications(prev => prev.filter(n => n.id !== id));
+  const deleteNotification = async (id: string) => {
+    try {
+      await deleteDoc(doc(db, FIRESTORE_COLLECTIONS.NOTIFICATIONS, id));
+      // State will be updated via real-time subscription
+    } catch (error) {
+      console.error('Error deleting notification:', error);
+    }
   };
 
   const getNotificationIcon = (type: NotificationType) => {
