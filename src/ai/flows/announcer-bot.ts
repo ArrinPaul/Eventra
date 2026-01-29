@@ -22,7 +22,7 @@ export async function generateAnnouncement(): Promise<GenerateAnnouncementOutput
 const prompt = ai.definePrompt({
   name: 'announcerBotPrompt',
   output: {schema: GenerateAnnouncementOutputSchema},
-  prompt: `You are an energetic and fun announcer bot for the IPX Hub event. 
+  prompt: `You are an energetic and fun announcer bot for the EventOS platform. 
   Your job is to generate an exciting, single-sentence announcement about an upcoming session to keep attendees engaged in the chat.
   
   Pick one of the following sessions and create a message about it. Make it sound like a fun fact or a can't-miss opportunity. Use emojis!

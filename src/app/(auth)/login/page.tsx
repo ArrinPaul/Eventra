@@ -17,7 +17,7 @@ export default function LoginPage() {
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
             <div className="absolute bottom-8 left-8 text-white">
-              <h2 className="text-4xl font-bold font-headline">Welcome to IPX Hub</h2>
+              <h2 className="text-4xl font-bold font-headline">Welcome to EventOS</h2>
               <p className="text-lg mt-2 max-w-md">Your intelligent companion for a seamless event experience.</p>
             </div>
         </div>
@@ -25,7 +25,7 @@ export default function LoginPage() {
           <Card className="w-full max-w-md mx-auto shadow-xl glass-effect">
             <CardHeader className="text-center">
               <CardTitle className="text-3xl">Welcome Back</CardTitle>
-              <CardDescription>Sign in to access your IPX Hub dashboard.</CardDescription>
+              <CardDescription>Sign in to access your EventOS dashboard.</CardDescription>
             </CardHeader>
             <CardContent>
               <LoginForm />

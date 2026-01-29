@@ -4,11 +4,12 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { Event } from '@/types';
 import { eventService } from '@/lib/firestore-services';
-import { EventCard } from '@/components/events/event-card';
+import { MyEventCard } from '@/components/events/my-event-card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { useToast } from '@/hooks/use-toast';
 import { 
   Calendar, 
   Search, 
@@ -44,6 +45,7 @@ const getEventDate = (event: Event): Date => {
 
 export default function MyEventsClient() {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [events, setEvents] = useState<Event[]>([]);
   const [wishlisted, setWishlisted] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -118,6 +120,32 @@ export default function MyEventsClient() {
   const registeredEvents = filterEvents(events, 'registered');
   const pastEvents = filterEvents(events, 'past');
   const wishlistedEvents = filterEvents(events, 'wishlist');
+
+  // Handle removing from wishlist
+  const handleRemoveWishlist = (eventId: string) => {
+    const updatedWishlist = wishlisted.filter(id => id !== eventId);
+    setWishlisted(updatedWishlist);
+    if (user?.uid) {
+      localStorage.setItem(`wishlist-${user.uid}`, JSON.stringify(updatedWishlist));
+    }
+    toast({
+      title: 'Removed from wishlist',
+      description: 'Event removed from your saved events.',
+    });
+  };
+
+  // Handle rating event
+  const handleRateEvent = (eventId: string, rating: number) => {
+    // Store rating in localStorage (in real app, would save to Firestore)
+    const ratings = JSON.parse(localStorage.getItem(`event-ratings-${user?.uid}`) || '{}');
+    ratings[eventId] = rating;
+    localStorage.setItem(`event-ratings-${user?.uid}`, JSON.stringify(ratings));
+    
+    toast({
+      title: 'Rating submitted',
+      description: `You rated this event ${rating} star${rating > 1 ? 's' : ''}.`,
+    });
+  };
 
   // Get next upcoming event
   const nextEvent = registeredEvents
@@ -278,7 +306,11 @@ export default function MyEventsClient() {
               {registeredEvents.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {registeredEvents.map(event => (
-                    <EventCard key={event.id} event={event} />
+                    <MyEventCard 
+                      key={event.id} 
+                      event={event} 
+                      variant="upcoming"
+                    />
                   ))}
                 </div>
               ) : (
@@ -299,7 +331,12 @@ export default function MyEventsClient() {
               {pastEvents.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {pastEvents.map(event => (
-                    <EventCard key={event.id} event={event} variant="compact" />
+                    <MyEventCard 
+                      key={event.id} 
+                      event={event} 
+                      variant="past"
+                      onRate={handleRateEvent}
+                    />
                   ))}
                 </div>
               ) : (
@@ -315,7 +352,12 @@ export default function MyEventsClient() {
               {wishlistedEvents.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {wishlistedEvents.map(event => (
-                    <EventCard key={event.id} event={event} />
+                    <MyEventCard 
+                      key={event.id} 
+                      event={event} 
+                      variant="wishlist"
+                      onRemoveWishlist={handleRemoveWishlist}
+                    />
                   ))}
                 </div>
               ) : (

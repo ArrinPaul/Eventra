@@ -40,6 +40,8 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { gamificationService } from '@/lib/firestore-services';
+import { BadgeShowcase } from './badge-showcase';
+import { ChallengesHub } from './challenges-hub';
 import { 
   UserXP, 
   Achievement, 
@@ -261,10 +263,11 @@ export function GamificationClient() {
       )}
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="achievements">Achievements</TabsTrigger>
           <TabsTrigger value="challenges">Challenges</TabsTrigger>
+          <TabsTrigger value="history">Points History</TabsTrigger>
           <TabsTrigger value="leaderboard">Leaderboard</TabsTrigger>
           <TabsTrigger value="feedback">Feedback Wall</TabsTrigger>
           <TabsTrigger value="titles">Titles & Badges</TabsTrigger>
@@ -309,7 +312,7 @@ export function GamificationClient() {
               <CardContent>
                 {userXP && (
                   <div className="space-y-3">
-                    {userXP.xpHistory.slice(0, 5).map((transaction) => (
+                    {userXP.xpHistory.slice(0, 5).map((transaction: { id: string; reason: string; amount: number; createdAt: Date }) => (
                       <div key={transaction.id} className="flex items-center justify-between p-2 border rounded">
                         <div>
                           <p className="font-medium">{transaction.reason}</p>
@@ -448,73 +451,183 @@ export function GamificationClient() {
         </TabsContent>
 
         <TabsContent value="challenges" className="space-y-6">
-          {challenges.map((challenge) => (
-            <Card key={challenge.id}>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle>{challenge.name}</CardTitle>
-                    <CardDescription>{challenge.description}</CardDescription>
+          {/* Enhanced Challenges Hub */}
+          <ChallengesHub />
+        </TabsContent>
+
+        <TabsContent value="history" className="space-y-6">
+          <div className="grid gap-6 md:grid-cols-3">
+            {/* Points Summary Cards */}
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-green-100 rounded-full">
+                    <TrendingUp className="h-6 w-6 text-green-600" />
                   </div>
-                  <div className="text-right">
-                    <Badge variant="outline" className="capitalize mb-2">
-                      {challenge.type}
-                    </Badge>
-                    <p className="text-sm text-gray-600">
-                      {challenge.participants.length} / {challenge.maxParticipants || '∞'} participants
+                  <div>
+                    <p className="text-sm text-muted-foreground">Total Earned</p>
+                    <p className="text-2xl font-bold text-green-600">+{userXP?.totalXP || 0} XP</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-blue-100 rounded-full">
+                    <Calendar className="h-6 w-6 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">This Month</p>
+                    <p className="text-2xl font-bold text-blue-600">
+                      +{userXP?.xpHistory?.filter((t: any) => {
+                        const date = t.createdAt instanceof Date ? t.createdAt : new Date(t.createdAt);
+                        const now = new Date();
+                        return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
+                      }).reduce((sum: number, t: any) => sum + (t.amount || 0), 0) || 0} XP
                     </p>
                   </div>
                 </div>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="flex items-center justify-between text-sm">
-                  <span>Duration: {challenge.startDate.toLocaleDateString()} - {challenge.endDate.toLocaleDateString()}</span>
-                  <span className="text-green-600 font-medium">
-                    {Math.max(0, Math.ceil((challenge.endDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)))} days left
-                  </span>
-                </div>
-
-                <div>
-                  <h4 className="font-medium mb-3">Tasks</h4>
-                  <div className="grid gap-3 md:grid-cols-2">
-                    {challenge.tasks.map((task) => (
-                      <div key={task.id} className={`p-3 border rounded-lg ${task.isCompleted ? 'bg-green-50 border-green-200' : ''}`}>
-                        <div className="flex items-center justify-between mb-2">
-                          <h5 className="font-medium">{task.name}</h5>
-                          {task.isCompleted ? (
-                            <Badge variant="default" className="bg-green-500">Complete</Badge>
-                          ) : (
-                            <Badge variant="outline">In Progress</Badge>
-                          )}
-                        </div>
-                        <p className="text-sm text-gray-600 mb-2">{task.description}</p>
-                        <div className="flex items-center justify-between text-sm">
-                          <span>Target: {task.target}</span>
-                          <span className="text-green-600 font-medium">+{task.xpReward} XP</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <h4 className="font-medium mb-3">Rewards</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {challenge.rewards.map((reward) => (
-                      <Badge key={reward.id} variant="outline" className="flex items-center gap-1">
-                        <Gift className="w-3 h-3" />
-                        {reward.name}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-
-                <Button className="w-full" variant={challenge.participants.includes(user?.id || '') ? 'outline' : 'default'}>
-                  {challenge.participants.includes(user?.id || '') ? 'Participating' : 'Join Challenge'}
-                </Button>
               </CardContent>
             </Card>
-          ))}
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-purple-100 rounded-full">
+                    <Sparkles className="h-6 w-6 text-purple-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Transactions</p>
+                    <p className="text-2xl font-bold text-purple-600">{userXP?.xpHistory?.length || 0}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Points Transaction History */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Clock className="h-5 w-5 text-primary" />
+                Transaction History
+              </CardTitle>
+              <CardDescription>
+                All your point earning activities
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {userXP?.xpHistory && userXP.xpHistory.length > 0 ? (
+                <div className="space-y-3">
+                  {userXP.xpHistory.map((transaction: any, index: number) => {
+                    const date = transaction.createdAt instanceof Date 
+                      ? transaction.createdAt 
+                      : new Date(transaction.createdAt);
+                    
+                    // Determine icon and color based on reason/type
+                    const getActivityStyle = (reason: string) => {
+                      const lowerReason = reason?.toLowerCase() || '';
+                      if (lowerReason.includes('event') || lowerReason.includes('attend')) {
+                        return { icon: <Calendar className="h-4 w-4" />, color: 'bg-blue-100 text-blue-600' };
+                      }
+                      if (lowerReason.includes('achievement') || lowerReason.includes('badge')) {
+                        return { icon: <Trophy className="h-4 w-4" />, color: 'bg-yellow-100 text-yellow-600' };
+                      }
+                      if (lowerReason.includes('streak') || lowerReason.includes('daily')) {
+                        return { icon: <Flame className="h-4 w-4" />, color: 'bg-orange-100 text-orange-600' };
+                      }
+                      if (lowerReason.includes('connect') || lowerReason.includes('network')) {
+                        return { icon: <Users className="h-4 w-4" />, color: 'bg-purple-100 text-purple-600' };
+                      }
+                      if (lowerReason.includes('challenge') || lowerReason.includes('task')) {
+                        return { icon: <Target className="h-4 w-4" />, color: 'bg-green-100 text-green-600' };
+                      }
+                      return { icon: <Zap className="h-4 w-4" />, color: 'bg-gray-100 text-gray-600' };
+                    };
+
+                    const style = getActivityStyle(transaction.reason);
+
+                    return (
+                      <div 
+                        key={transaction.id || index} 
+                        className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors"
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className={`p-2 rounded-full ${style.color}`}>
+                            {style.icon}
+                          </div>
+                          <div>
+                            <p className="font-medium">{transaction.reason || 'Points Earned'}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {date.toLocaleDateString('en-US', { 
+                                weekday: 'short',
+                                month: 'short', 
+                                day: 'numeric',
+                                year: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}
+                            </p>
+                          </div>
+                        </div>
+                        <Badge 
+                          variant="outline" 
+                          className={transaction.amount > 0 ? 'text-green-600 border-green-200 bg-green-50' : 'text-red-600 border-red-200 bg-red-50'}
+                        >
+                          {transaction.amount > 0 ? '+' : ''}{transaction.amount} XP
+                        </Badge>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <Zap className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">No transactions yet</h3>
+                  <p className="text-muted-foreground">
+                    Start attending events and completing challenges to earn XP!
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* How to Earn Points */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Gift className="h-5 w-5 text-primary" />
+                How to Earn Points
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+                {[
+                  { action: 'Register for an event', points: '+10 XP', icon: <Calendar className="h-4 w-4" /> },
+                  { action: 'Attend an event', points: '+50 XP', icon: <Users className="h-4 w-4" /> },
+                  { action: 'Check-in at venue', points: '+25 XP', icon: <Target className="h-4 w-4" /> },
+                  { action: 'Complete daily streak', points: '+15 XP', icon: <Flame className="h-4 w-4" /> },
+                  { action: 'Earn an achievement', points: '+50-200 XP', icon: <Trophy className="h-4 w-4" /> },
+                  { action: 'Connect with someone', points: '+20 XP', icon: <Heart className="h-4 w-4" /> },
+                  { action: 'Complete a challenge', points: '+100 XP', icon: <Award className="h-4 w-4" /> },
+                  { action: 'Leave event feedback', points: '+10 XP', icon: <MessageSquare className="h-4 w-4" /> },
+                  { action: 'Refer a friend', points: '+30 XP', icon: <ThumbsUp className="h-4 w-4" /> },
+                ].map((item, i) => (
+                  <div key={i} className="flex items-center gap-3 p-3 border rounded-lg">
+                    <div className="p-2 bg-primary/10 rounded-full text-primary">
+                      {item.icon}
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">{item.action}</p>
+                    </div>
+                    <Badge variant="secondary" className="text-green-600">
+                      {item.points}
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="leaderboard" className="space-y-6">
@@ -651,8 +764,8 @@ export function GamificationClient() {
               <CardContent>
                 <div className="space-y-4">
                   {wall.feedbacks
-                    .sort((a, b) => b.likes - a.likes)
-                    .map((feedback) => (
+                    .sort((a: WallFeedback, b: WallFeedback) => b.likes - a.likes)
+                    .map((feedback: WallFeedback) => (
                     <div key={feedback.id} className="border rounded-lg p-4">
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex items-center gap-2">
@@ -752,29 +865,20 @@ export function GamificationClient() {
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Sparkles className="h-5 w-5 text-yellow-500" />
-                  Badge Collection
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-3 gap-3">
-                  {earnedAchievements
-                    .filter(a => a.reward.badge)
-                    .map((achievement) => (
-                    <div key={achievement.id} className="text-center p-3 border rounded-lg bg-gradient-to-b from-yellow-50 to-orange-50">
-                      <div className="text-2xl mb-2">{achievement.icon}</div>
-                      <div className="text-xs font-medium">{achievement.reward.badge}</div>
-                      <div className={`text-xs mt-1 px-2 py-1 rounded ${getRarityColor(achievement.rarity)}`}>
-                        {achievement.rarity}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+            {/* Badge Showcase - Enhanced Badge Collection */}
+            {user && (
+              <BadgeShowcase 
+                userId={user.uid || user.id} 
+                stats={{
+                  eventsAttended: userXP?.totalXP ? Math.floor(userXP.totalXP / 100) : 0,
+                  connections: 0,
+                  posts: 0,
+                  checkIns: streaks.find(s => s.type === 'checkin')?.currentStreak || 0,
+                  currentStreak: streaks.find(s => s.type === 'daily')?.currentStreak || 0,
+                  totalPoints: userXP?.totalXP || 0,
+                }}
+              />
+            )}
           </div>
         </TabsContent>
       </Tabs>

@@ -32,10 +32,14 @@ import {
   X,
   Loader2,
   SlidersHorizontal,
-  ChevronDown
+  ChevronDown,
+  Brain,
+  RefreshCw
 } from 'lucide-react';
 import { EventCard } from '@/components/events/event-card';
 import { eventService } from '@/lib/firestore-services';
+import { useAuth } from '@/hooks/use-auth';
+import { getAIRecommendations, AIRecommendation } from '@/app/actions/ai-recommendations';
 import { cn } from '@/lib/utils';
 import type { Event } from '@/types';
 
@@ -72,12 +76,19 @@ export default function ExploreClient() {
   const searchParams = useSearchParams();
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
+  const { user } = useAuth();
 
   // State
   const [events, setEvents] = useState<Event[]>([]);
   const [filteredEvents, setFilteredEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
+  
+  // AI Recommendations state
+  const [aiRecommendations, setAiRecommendations] = useState<AIRecommendation[]>([]);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiInsights, setAiInsights] = useState<{ weeklyPlan?: string; learningPath?: string[] } | null>(null);
+  const [aiError, setAiError] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(true);
   const [page, setPage] = useState(1);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -112,6 +123,55 @@ export default function ExploreClient() {
     };
     fetchEvents();
   }, []);
+
+  // Fetch AI Recommendations when events are loaded
+  const fetchAIRecommendations = useCallback(async () => {
+    if (events.length === 0) return;
+    
+    setAiLoading(true);
+    setAiError(null);
+    
+    try {
+      // Get user preferences from their profile or use defaults
+      // Handle different user types (Attendee has attendeeProfile, others may not)
+      const userData = user as any; // Cast to any to safely access optional nested properties
+      const userInterests = userData?.attendeeProfile?.interests 
+        || userData?.interests 
+        || ['Tech', 'Networking', 'Career'];
+      const userSkills = userData?.attendeeProfile?.lookingFor 
+        || userData?.skills 
+        || ['networking', 'learning'];
+      const pastEventTypes = userData?.attendedEvents?.slice(0, 5).map(() => 'Workshop') 
+        || userData?.myEvents?.slice(0, 5).map(() => 'Workshop') 
+        || [];
+      
+      const result = await getAIRecommendations(
+        user?.id || 'guest',
+        userInterests,
+        userSkills,
+        pastEventTypes,
+        events
+      );
+      
+      setAiRecommendations(result.recommendations);
+      setAiInsights(result.insights || null);
+      if (result.error) {
+        setAiError(result.error);
+      }
+    } catch (error) {
+      console.error('Failed to fetch AI recommendations:', error);
+      setAiError('Unable to load personalized recommendations');
+    } finally {
+      setAiLoading(false);
+    }
+  }, [events, user]);
+
+  // Trigger AI recommendations when events change
+  useEffect(() => {
+    if (events.length > 0 && aiRecommendations.length === 0) {
+      fetchAIRecommendations();
+    }
+  }, [events, fetchAIRecommendations, aiRecommendations.length]);
 
   // Apply filters
   useEffect(() => {
@@ -462,6 +522,112 @@ export default function ExploreClient() {
                   Featured Event
                 </h2>
                 <EventCard event={featuredEvent} variant="featured" />
+              </div>
+            )}
+
+            {/* AI Recommendations - For You Section */}
+            {!searchQuery && selectedCategory === 'All' && events.length > 4 && (
+              <div className="mb-8">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl font-semibold flex items-center gap-2">
+                    <Brain className="h-5 w-5 text-secondary" />
+                    Recommended For You
+                  </h2>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="secondary" className="text-xs flex items-center gap-1">
+                      <Sparkles className="h-3 w-3" />
+                      AI Powered
+                    </Badge>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={fetchAIRecommendations}
+                      disabled={aiLoading}
+                      className="h-7 px-2"
+                    >
+                      <RefreshCw className={cn("h-3.5 w-3.5", aiLoading && "animate-spin")} />
+                    </Button>
+                  </div>
+                </div>
+                
+                {/* AI Insights Banner */}
+                {aiInsights?.weeklyPlan && !aiError && (
+                  <div className="bg-gradient-to-r from-secondary/10 to-primary/10 rounded-lg p-3 mb-4 border border-secondary/20">
+                    <p className="text-sm text-muted-foreground flex items-start gap-2">
+                      <Sparkles className="h-4 w-4 mt-0.5 text-secondary flex-shrink-0" />
+                      <span><strong>AI Tip:</strong> {aiInsights.weeklyPlan}</span>
+                    </p>
+                  </div>
+                )}
+                
+                {aiError && (
+                  <p className="text-sm text-muted-foreground mb-4">
+                    {aiError}
+                  </p>
+                )}
+                
+                {aiLoading ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {[1, 2, 3, 4].map((i) => (
+                      <div key={i} className="h-[300px] rounded-lg bg-muted animate-pulse" />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {aiRecommendations.slice(0, 4).map((rec) => {
+                      const event = events.find(e => e.id === rec.eventId);
+                      if (!event) return null;
+                      
+                      return (
+                        <div key={event.id} className="relative group">
+                          {/* AI Match Badge */}
+                          <div className="absolute -top-2 -left-2 z-10">
+                            <Badge 
+                              className={cn(
+                                "text-white text-xs shadow-lg",
+                                rec.confidenceLevel === 'high' 
+                                  ? "bg-gradient-to-r from-green-500 to-emerald-500"
+                                  : rec.confidenceLevel === 'medium'
+                                    ? "bg-gradient-to-r from-secondary to-primary"
+                                    : "bg-gradient-to-r from-blue-500 to-indigo-500"
+                              )}
+                            >
+                              {rec.relevanceScore}% Match
+                            </Badge>
+                          </div>
+                          
+                          {/* AI Reason Tooltip on Hover */}
+                          <div className="absolute -top-12 left-0 right-0 z-20 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                            <div className="bg-popover text-popover-foreground text-xs p-2 rounded-lg shadow-lg border mx-2">
+                              <p className="font-medium">{rec.reason}</p>
+                            </div>
+                          </div>
+                          
+                          <EventCard event={event} variant="default" />
+                        </div>
+                      );
+                    })}
+                    
+                    {/* Fallback if no AI recommendations */}
+                    {aiRecommendations.length === 0 && events
+                      .filter(e => {
+                        const eventDate = e.startDate ? new Date(e.startDate) : new Date(e.date || '');
+                        return eventDate > new Date() && e.id !== featuredEvent?.id;
+                      })
+                      .slice(0, 4)
+                      .map((event) => (
+                        <div key={event.id} className="relative">
+                          <div className="absolute -top-2 -left-2 z-10">
+                            <Badge className="bg-gradient-to-r from-secondary to-primary text-white text-xs shadow-lg">
+                              Suggested
+                            </Badge>
+                          </div>
+                          <EventCard event={event} variant="default" />
+                        </div>
+                      ))
+                    }
+                  </div>
+                )}
               </div>
             )}
 

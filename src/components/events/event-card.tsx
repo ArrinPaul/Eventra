@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -15,9 +16,13 @@ import {
   Bookmark,
   Share2,
   Ticket,
-  ChevronRight
+  ChevronRight,
+  Zap
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/hooks/use-auth';
+import { useToast } from '@/hooks/use-toast';
+import { eventService } from '@/lib/firestore-services';
 import type { Event } from '@/types';
 
 interface EventCardProps {
@@ -28,6 +33,15 @@ interface EventCardProps {
   isWishlisted?: boolean;
 }
 
+// Mock attendee avatars for demo
+const mockAttendees = [
+  { id: '1', name: 'Alice Chen', photoUrl: 'https://i.pravatar.cc/150?img=1' },
+  { id: '2', name: 'Bob Smith', photoUrl: 'https://i.pravatar.cc/150?img=2' },
+  { id: '3', name: 'Carol Davis', photoUrl: 'https://i.pravatar.cc/150?img=3' },
+  { id: '4', name: 'David Lee', photoUrl: 'https://i.pravatar.cc/150?img=4' },
+  { id: '5', name: 'Eva Martinez', photoUrl: 'https://i.pravatar.cc/150?img=5' },
+];
+
 export function EventCard({ 
   event, 
   variant = 'default', 
@@ -35,8 +49,12 @@ export function EventCard({
   onWishlist,
   isWishlisted = false 
 }: EventCardProps) {
+  const router = useRouter();
+  const { user } = useAuth();
+  const { toast } = useToast();
   const [isLiked, setIsLiked] = useState(isWishlisted);
   const [likeCount, setLikeCount] = useState(event.registeredCount || event.registeredUsers?.length || 0);
+  const [isRegistering, setIsRegistering] = useState(false);
 
   const displayDate = event.startDate 
     ? new Date(event.startDate) 
@@ -106,6 +124,74 @@ export function EventCard({
       'Academic': 'bg-sky-500/10 text-sky-500',
     };
     return colors[category] || 'bg-primary/10 text-primary';
+  };
+
+  // Quick register handler
+  const handleQuickRegister = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!user?.uid) {
+      router.push('/auth/login');
+      return;
+    }
+
+    const registeredCount = event.registeredCount || event.registeredUsers?.length || 0;
+    if (event.capacity && registeredCount >= event.capacity) {
+      toast({
+        title: 'Event Full',
+        description: 'This event has reached its capacity.',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    setIsRegistering(true);
+    try {
+      await eventService.registerForEvent(event.id, user.uid);
+      toast({
+        title: 'Registered! 🎉',
+        description: `You're now registered for ${event.title}`,
+      });
+      setLikeCount(prev => prev + 1);
+    } catch (error) {
+      toast({
+        title: 'Registration Failed',
+        description: 'Could not register. Please try again.',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsRegistering(false);
+    }
+  };
+
+  // Attendee avatar stack component
+  const AttendeeAvatars = ({ count, max = 4 }: { count: number; max?: number }) => {
+    const displayAvatars = mockAttendees.slice(0, Math.min(count, max));
+    const remaining = count - max;
+    
+    return (
+      <div className="flex items-center">
+        <div className="flex -space-x-2">
+          {displayAvatars.map((attendee, index) => (
+            <Avatar key={attendee.id} className="h-6 w-6 border-2 border-background">
+              <AvatarImage src={attendee.photoUrl} alt={attendee.name} />
+              <AvatarFallback className="text-[10px]">
+                {attendee.name.split(' ').map(n => n[0]).join('')}
+              </AvatarFallback>
+            </Avatar>
+          ))}
+          {remaining > 0 && (
+            <div className="h-6 w-6 rounded-full bg-primary/10 border-2 border-background flex items-center justify-center">
+              <span className="text-[10px] font-medium text-primary">+{remaining}</span>
+            </div>
+          )}
+        </div>
+        {count > 0 && (
+          <span className="ml-2 text-xs text-muted-foreground">{count} going</span>
+        )}
+      </div>
+    );
   };
 
   // Featured variant (large horizontal card)
@@ -291,11 +377,11 @@ export function EventCard({
             {event.title}
           </h3>
           
-          <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
+          <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
             {event.description}
           </p>
 
-          <div className="space-y-2">
+          <div className="space-y-2 mb-3">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Clock className="w-4 h-4 text-primary/70" />
               <span>{formatTime(displayDate)}</span>
@@ -306,24 +392,55 @@ export function EventCard({
             </div>
           </div>
 
-          {/* Footer */}
-          <div className="flex items-center justify-between mt-4 pt-4 border-t">
+          {/* Attendee Avatar Stack */}
+          {likeCount > 0 && (
+            <div className="mb-3">
+              <AttendeeAvatars count={likeCount} max={4} />
+            </div>
+          )}
+
+          {/* Footer with Quick Register */}
+          <div className="flex items-center justify-between mt-3 pt-3 border-t">
             <div className="flex items-center gap-2">
-              <Users className="w-4 h-4 text-muted-foreground" />
-              <span className="text-sm text-muted-foreground">
-                {likeCount} interested
-              </span>
+              {(event.pricing?.isFree || event.pricing?.type === 'free') ? (
+                <Badge variant="secondary" className="bg-green-500/10 text-green-600">
+                  Free
+                </Badge>
+              ) : event.pricing?.basePrice ? (
+                <Badge variant="secondary">
+                  ${event.pricing.basePrice}
+                </Badge>
+              ) : (
+                <Badge variant="secondary" className="bg-green-500/10 text-green-600">
+                  Free
+                </Badge>
+              )}
+              {event.capacity && (
+                <span className="text-xs text-muted-foreground">
+                  {Math.max(0, event.capacity - likeCount)} spots left
+                </span>
+              )}
             </div>
             
-            {(event.pricing?.isFree || event.pricing?.type === 'free') ? (
-              <Badge variant="secondary" className="bg-green-500/10 text-green-600">
-                Free
-              </Badge>
-            ) : event.pricing?.basePrice ? (
-              <Badge variant="secondary">
-                ${event.pricing.basePrice}
-              </Badge>
-            ) : null}
+            {/* Quick Register Button */}
+            <Button 
+              size="sm" 
+              className="h-8 px-3"
+              onClick={handleQuickRegister}
+              disabled={isRegistering || (event.capacity ? likeCount >= event.capacity : false)}
+            >
+              {isRegistering ? (
+                <>
+                  <Zap className="w-3 h-3 mr-1 animate-pulse" />
+                  ...
+                </>
+              ) : (
+                <>
+                  <Zap className="w-3 h-3 mr-1" />
+                  Register
+                </>
+              )}
+            </Button>
           </div>
         </CardContent>
       </Card>

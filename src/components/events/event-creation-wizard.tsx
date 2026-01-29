@@ -45,7 +45,11 @@ import {
   DollarSign,
   Globe,
   Lock,
-  Eye
+  Eye,
+  ListChecks,
+  Plus,
+  Trash2,
+  GripVertical
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
@@ -102,6 +106,38 @@ interface EventFormData {
   targetAudience: string;
   imageUrl: string;
   requiresApproval: boolean;
+  // Multiple ticket tiers
+  ticketTiers: Array<{
+    id: string;
+    name: string;
+    price: number;
+    quantity: number;
+    description?: string;
+    benefits?: string[];
+  }>;
+  // Custom registration fields
+  customFields: Array<{
+    id: string;
+    label: string;
+    type: 'text' | 'email' | 'phone' | 'select' | 'checkbox';
+    required: boolean;
+    options?: string[]; // For select type
+  }>;
+  // Waitlist
+  enableWaitlist: boolean;
+  agenda?: Array<{
+    time: string;
+    title: string;
+    description: string;
+    duration: number;
+    speaker?: string;
+  }>;
+  checklist?: Array<{
+    task: string;
+    category: 'pre-event' | 'day-of' | 'post-event';
+    priority: 'high' | 'medium' | 'low';
+    completed: boolean;
+  }>;
 }
 
 const initialFormData: EventFormData = {
@@ -125,6 +161,9 @@ const initialFormData: EventFormData = {
   targetAudience: 'all',
   imageUrl: '',
   requiresApproval: false,
+  ticketTiers: [],
+  customFields: [],
+  enableWaitlist: false,
 };
 
 export default function EventCreationWizard() {
@@ -181,12 +220,63 @@ export default function EventCreationWizard() {
 
     setIsGenerating(true);
     try {
-      // Simulate AI generation (replace with actual AI call)
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
+      // Calculate duration from start and end dates
+      const duration = formData.startDate && formData.endDate
+        ? (new Date(formData.endDate).getTime() - new Date(formData.startDate).getTime()) / (1000 * 60 * 60)
+        : 3; // Default 3 hours
+
+      const input = {
+        eventType: formData.category || 'event',
+        title: formData.title,
+        description: formData.description,
+        duration: Math.max(1, Math.round(duration)),
+        attendeeCount: formData.capacity || 100,
+        goals: formData.tags || [],
+      };
+
       if (field === 'description') {
+        // Simple description generation (existing functionality)
         const generatedDescription = `Join us for ${formData.title}, an exciting ${formData.category || 'event'} that brings together passionate individuals to learn, connect, and grow. This event features interactive sessions, networking opportunities, and hands-on activities designed to inspire and educate attendees.\n\nWhether you're a beginner or an expert, you'll find valuable insights and make meaningful connections. Don't miss this opportunity to be part of something special!`;
         updateFormData({ description: generatedDescription });
+      } else if (field === 'agenda') {
+        // Call AI to generate agenda
+        const response = await fetch('/api/ai/generate-agenda', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(input),
+        });
+        
+        if (!response.ok) throw new Error('Failed to generate agenda');
+        
+        const data = await response.json();
+        updateFormData({ 
+          agenda: data.agenda.agenda.map((item: any) => ({
+            time: item.time,
+            title: item.title,
+            description: item.description,
+            speaker: item.speaker,
+            duration: item.duration,
+          }))
+        });
+      } else if (field === 'checklist') {
+        // Call AI to generate checklist
+        const response = await fetch('/api/ai/generate-checklist', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(input),
+        });
+        
+        if (!response.ok) throw new Error('Failed to generate checklist');
+        
+        const data = await response.json();
+        updateFormData({ 
+          checklist: data.checklist.checklist.map((item: any) => ({
+            task: item.task,
+            category: item.category,
+            priority: item.priority,
+            completed: false,
+          }))
+        });
       }
 
       toast({ 
@@ -194,6 +284,7 @@ export default function EventCreationWizard() {
         description: `AI has generated your ${field}.` 
       });
     } catch (error) {
+      console.error('AI generation error:', error);
       toast({ 
         title: 'Error', 
         description: 'Failed to generate content. Please try again.',
@@ -235,6 +326,37 @@ export default function EventCreationWizard() {
 
     setIsSaving(true);
     try {
+      // Transform agenda items to match Event's AgendaItem type
+      const transformedAgenda = formData.agenda?.map((item, index) => ({
+        id: `agenda-${index + 1}`,
+        title: item.title,
+        description: item.description,
+        startTime: item.time,
+        speaker: item.speaker,
+        room: undefined,
+        type: 'talk' as const,
+      }));
+
+      // Transform ticket tiers for storage
+      const transformedTiers = formData.ticketTiers.map(tier => ({
+        id: tier.id,
+        name: tier.name,
+        price: tier.price,
+        quantity: tier.quantity,
+        sold: 0,
+        description: tier.description || '',
+        benefits: tier.benefits || [],
+      }));
+
+      // Transform custom fields for storage
+      const transformedCustomFields = formData.customFields.map(field => ({
+        id: field.id,
+        label: field.label,
+        type: field.type,
+        required: field.required,
+        options: field.options || [],
+      }));
+
       const eventData: Partial<Event> = {
         title: formData.title,
         description: formData.description,
@@ -266,6 +388,20 @@ export default function EventCreationWizard() {
         organizerId: user?.uid,
         organizationId: user?.organizationId || 'default',
         registeredCount: 0,
+        // Registration settings
+        waitlistEnabled: formData.enableWaitlist,
+        requiresApproval: formData.requiresApproval,
+        // Ticket tiers (only if paid event with tiers)
+        ...(transformedTiers.length > 0 && { ticketTiers: transformedTiers }),
+        // Custom registration fields
+        ...(transformedCustomFields.length > 0 && { customRegistrationFields: transformedCustomFields }),
+        // Include AI-generated content if available
+        ...(transformedAgenda && transformedAgenda.length > 0 && { 
+          agenda: transformedAgenda 
+        }),
+        ...(formData.checklist && formData.checklist.length > 0 && { 
+          checklist: formData.checklist 
+        }),
       };
 
       await eventService.createEvent(eventData as any);
@@ -528,13 +664,15 @@ export default function EventCreationWizard() {
             </div>
             {isGenerating ? (
               <Loader2 className="h-5 w-5 animate-spin" />
+            ) : formData.description ? (
+              <CheckCircle className="h-5 w-5 text-green-500" />
             ) : (
               <ChevronRight className="h-5 w-5 text-muted-foreground" />
             )}
           </CardContent>
         </Card>
 
-        <Card className="cursor-pointer hover:border-primary transition-colors opacity-50">
+        <Card className="cursor-pointer hover:border-primary transition-colors" onClick={() => handleAIGenerate('agenda')}>
           <CardContent className="p-4 flex items-center gap-4">
             <div className="w-12 h-12 rounded-lg bg-purple-500/10 flex items-center justify-center">
               <Clock className="h-6 w-6 text-purple-500" />
@@ -543,11 +681,17 @@ export default function EventCreationWizard() {
               <h4 className="font-semibold">Generate Agenda</h4>
               <p className="text-sm text-muted-foreground">Create a detailed event schedule</p>
             </div>
-            <Badge variant="secondary">Coming Soon</Badge>
+            {isGenerating ? (
+              <Loader2 className="h-5 w-5 animate-spin" />
+            ) : formData.agenda && formData.agenda.length > 0 ? (
+              <CheckCircle className="h-5 w-5 text-green-500" />
+            ) : (
+              <ChevronRight className="h-5 w-5 text-muted-foreground" />
+            )}
           </CardContent>
         </Card>
 
-        <Card className="cursor-pointer hover:border-primary transition-colors opacity-50">
+        <Card className="cursor-pointer hover:border-primary transition-colors" onClick={() => handleAIGenerate('checklist')}>
           <CardContent className="p-4 flex items-center gap-4">
             <div className="w-12 h-12 rounded-lg bg-green-500/10 flex items-center justify-center">
               <CheckCircle className="h-6 w-6 text-green-500" />
@@ -556,16 +700,151 @@ export default function EventCreationWizard() {
               <h4 className="font-semibold">Generate Checklist</h4>
               <p className="text-sm text-muted-foreground">Get a pre-event planning checklist</p>
             </div>
-            <Badge variant="secondary">Coming Soon</Badge>
+            {isGenerating ? (
+              <Loader2 className="h-5 w-5 animate-spin" />
+            ) : formData.checklist && formData.checklist.length > 0 ? (
+              <CheckCircle className="h-5 w-5 text-green-500" />
+            ) : (
+              <ChevronRight className="h-5 w-5 text-muted-foreground" />
+            )}
           </CardContent>
         </Card>
       </div>
+
+      {/* Display Generated Agenda */}
+      {formData.agenda && formData.agenda.length > 0 && (
+        <Card className="mt-6">
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Clock className="h-5 w-5" />
+              Generated Agenda ({formData.agenda.length} items)
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 max-h-64 overflow-y-auto">
+            {formData.agenda.map((item, index) => (
+              <div key={index} className="border-l-4 border-purple-500 pl-4 py-2">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <p className="font-semibold">{item.title}</p>
+                    <p className="text-sm text-muted-foreground">{item.description}</p>
+                    {item.speaker && (
+                      <p className="text-xs text-muted-foreground mt-1">Speaker: {item.speaker}</p>
+                    )}
+                  </div>
+                  <Badge variant="outline" className="ml-2">
+                    {item.time}
+                  </Badge>
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Display Generated Checklist */}
+      {formData.checklist && formData.checklist.length > 0 && (
+        <Card className="mt-6">
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <CheckCircle className="h-5 w-5" />
+              Generated Checklist ({formData.checklist.length} tasks)
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2 max-h-64 overflow-y-auto">
+            {formData.checklist.map((item, index) => (
+              <div key={index} className="flex items-start gap-3 p-2 hover:bg-muted/50 rounded">
+                <input
+                  type="checkbox"
+                  checked={item.completed}
+                  onChange={(e) => {
+                    const updated = [...formData.checklist!];
+                    updated[index].completed = e.target.checked;
+                    updateFormData({ checklist: updated });
+                  }}
+                  className="mt-1"
+                />
+                <div className="flex-1">
+                  <p className={cn(
+                    "text-sm",
+                    item.completed && "line-through text-muted-foreground"
+                  )}>
+                    {item.task}
+                  </p>
+                  <div className="flex gap-2 mt-1">
+                    <Badge variant={
+                      item.priority === 'high' ? 'destructive' :
+                      item.priority === 'medium' ? 'default' : 'secondary'
+                    } className="text-xs">
+                      {item.priority}
+                    </Badge>
+                    <Badge variant="outline" className="text-xs">
+                      {item.category}
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
 
       <p className="text-center text-sm text-muted-foreground">
         You can skip this step and add these later.
       </p>
     </div>
   );
+
+  // Helper functions for ticket tiers and custom fields
+  const addTicketTier = () => {
+    const newTier = {
+      id: `tier-${Date.now()}`,
+      name: '',
+      price: 0,
+      quantity: 50,
+      description: '',
+      benefits: []
+    };
+    updateFormData({ ticketTiers: [...formData.ticketTiers, newTier] });
+  };
+
+  const updateTicketTier = (id: string, updates: Partial<typeof formData.ticketTiers[0]>) => {
+    updateFormData({
+      ticketTiers: formData.ticketTiers.map(tier =>
+        tier.id === id ? { ...tier, ...updates } : tier
+      )
+    });
+  };
+
+  const removeTicketTier = (id: string) => {
+    updateFormData({
+      ticketTiers: formData.ticketTiers.filter(tier => tier.id !== id)
+    });
+  };
+
+  const addCustomField = () => {
+    const newField = {
+      id: `field-${Date.now()}`,
+      label: '',
+      type: 'text' as const,
+      required: false,
+      options: []
+    };
+    updateFormData({ customFields: [...formData.customFields, newField] });
+  };
+
+  const updateCustomField = (id: string, updates: Partial<typeof formData.customFields[0]>) => {
+    updateFormData({
+      customFields: formData.customFields.map(field =>
+        field.id === id ? { ...field, ...updates } : field
+      )
+    });
+  };
+
+  const removeCustomField = (id: string) => {
+    updateFormData({
+      customFields: formData.customFields.filter(field => field.id !== id)
+    });
+  };
 
   // Step 4: Ticketing
   const renderTicketing = () => (
@@ -593,21 +872,197 @@ export default function EventCreationWizard() {
       </div>
 
       {!formData.isFree && (
-        <div className="space-y-2">
-          <Label>Ticket Price (USD)</Label>
-          <div className="relative">
-            <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="number"
-              min={0}
-              step={0.01}
-              className="pl-9"
-              value={formData.price}
-              onChange={(e) => updateFormData({ price: parseFloat(e.target.value) || 0 })}
-            />
+        <>
+          <div className="space-y-2">
+            <Label>Base Ticket Price (USD)</Label>
+            <div className="relative">
+              <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="number"
+                min={0}
+                step={0.01}
+                className="pl-9"
+                value={formData.price}
+                onChange={(e) => updateFormData({ price: parseFloat(e.target.value) || 0 })}
+              />
+            </div>
           </div>
-        </div>
+
+          {/* Multiple Ticket Tiers */}
+          <Card>
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-base">Ticket Tiers</CardTitle>
+                <Button variant="outline" size="sm" onClick={addTicketTier}>
+                  <Plus className="h-4 w-4 mr-1" />
+                  Add Tier
+                </Button>
+              </div>
+              <CardDescription>Create different ticket types with varying prices and benefits</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {formData.ticketTiers.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  No ticket tiers yet. Add tiers to offer different pricing options.
+                </p>
+              ) : (
+                formData.ticketTiers.map((tier, index) => (
+                  <div key={tier.id} className="p-4 border rounded-lg space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <GripVertical className="h-4 w-4 text-muted-foreground" />
+                        <Badge variant="outline">Tier {index + 1}</Badge>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeTicketTier(tier.id)}
+                      >
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <Label className="text-xs">Tier Name</Label>
+                        <Input
+                          placeholder="e.g., Early Bird, VIP"
+                          value={tier.name}
+                          onChange={(e) => updateTicketTier(tier.id, { name: e.target.value })}
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs">Price (USD)</Label>
+                        <Input
+                          type="number"
+                          min={0}
+                          step={0.01}
+                          value={tier.price}
+                          onChange={(e) => updateTicketTier(tier.id, { price: parseFloat(e.target.value) || 0 })}
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <Label className="text-xs">Quantity Available</Label>
+                        <Input
+                          type="number"
+                          min={1}
+                          value={tier.quantity}
+                          onChange={(e) => updateTicketTier(tier.id, { quantity: parseInt(e.target.value) || 0 })}
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs">Description</Label>
+                        <Input
+                          placeholder="What's included"
+                          value={tier.description || ''}
+                          onChange={(e) => updateTicketTier(tier.id, { description: e.target.value })}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </CardContent>
+          </Card>
+        </>
       )}
+
+      {/* Waitlist Option */}
+      <div className="flex items-center justify-between p-4 border rounded-lg">
+        <div>
+          <p className="font-medium">Enable Waitlist</p>
+          <p className="text-sm text-muted-foreground">Allow users to join waitlist when sold out</p>
+        </div>
+        <Switch
+          checked={formData.enableWaitlist}
+          onCheckedChange={(checked) => updateFormData({ enableWaitlist: checked })}
+        />
+      </div>
+
+      {/* Custom Registration Fields */}
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base">Custom Registration Fields</CardTitle>
+            <Button variant="outline" size="sm" onClick={addCustomField}>
+              <Plus className="h-4 w-4 mr-1" />
+              Add Field
+            </Button>
+          </div>
+          <CardDescription>Collect additional information from attendees</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {formData.customFields.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-4">
+              No custom fields. Add fields to collect extra info like dietary restrictions, T-shirt size, etc.
+            </p>
+          ) : (
+            formData.customFields.map((field) => (
+              <div key={field.id} className="p-4 border rounded-lg space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={field.required}
+                      onChange={(e) => updateCustomField(field.id, { required: e.target.checked })}
+                      className="rounded"
+                    />
+                    <span className="text-xs text-muted-foreground">Required</span>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => removeCustomField(field.id)}
+                  >
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                  </Button>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <Label className="text-xs">Field Label</Label>
+                    <Input
+                      placeholder="e.g., Dietary Restrictions"
+                      value={field.label}
+                      onChange={(e) => updateCustomField(field.id, { label: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">Field Type</Label>
+                    <Select
+                      value={field.type}
+                      onValueChange={(v) => updateCustomField(field.id, { type: v as any })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="text">Text</SelectItem>
+                        <SelectItem value="email">Email</SelectItem>
+                        <SelectItem value="phone">Phone</SelectItem>
+                        <SelectItem value="select">Dropdown</SelectItem>
+                        <SelectItem value="checkbox">Checkbox</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                {field.type === 'select' && (
+                  <div className="space-y-1">
+                    <Label className="text-xs">Options (comma separated)</Label>
+                    <Input
+                      placeholder="Option 1, Option 2, Option 3"
+                      value={field.options?.join(', ') || ''}
+                      onChange={(e) => updateCustomField(field.id, { 
+                        options: e.target.value.split(',').map(o => o.trim()).filter(Boolean)
+                      })}
+                    />
+                  </div>
+                )}
+              </div>
+            ))
+          )}
+        </CardContent>
+      </Card>
 
       <div className="space-y-2">
         <Label>Visibility</Label>
@@ -724,6 +1179,77 @@ export default function EventCreationWizard() {
           )}
         </CardContent>
       </Card>
+
+      {/* AI-Generated Content Preview */}
+      {(formData.agenda && formData.agenda.length > 0) && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-primary" />
+              Event Agenda
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {formData.agenda.map((item, index) => (
+                <div key={index} className="flex gap-3 pb-3 border-b last:border-0">
+                  <div className="flex-shrink-0 w-20 text-sm font-medium text-primary">
+                    {item.time}
+                    {item.duration && <span className="text-xs text-muted-foreground block">{item.duration}</span>}
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-medium">{item.title}</h4>
+                    {item.description && (
+                      <p className="text-sm text-muted-foreground mt-1">{item.description}</p>
+                    )}
+                    {item.speaker && (
+                      <p className="text-xs text-primary mt-1">Speaker: {item.speaker}</p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {(formData.checklist && formData.checklist.length > 0) && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <ListChecks className="h-5 w-5 text-primary" />
+              Planning Checklist
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {formData.checklist.map((item, index) => (
+                <div key={index} className="flex items-start gap-3 p-2 rounded-lg hover:bg-accent/50">
+                  <div className="flex-1">
+                    <p className="text-sm">{item.task}</p>
+                    <div className="flex gap-2 mt-1">
+                      <Badge 
+                        variant="outline" 
+                        className={cn(
+                          "text-xs",
+                          item.priority === 'high' && "border-red-500 text-red-600",
+                          item.priority === 'medium' && "border-yellow-500 text-yellow-600",
+                          item.priority === 'low' && "border-green-500 text-green-600"
+                        )}
+                      >
+                        {item.priority}
+                      </Badge>
+                      <Badge variant="secondary" className="text-xs capitalize">
+                        {item.category.replace('-', ' ')}
+                      </Badge>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <Card className="bg-primary/5 border-primary/20">
         <CardContent className="p-4">

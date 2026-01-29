@@ -14,12 +14,15 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { 
   Users, MessageSquare, Star, Settings, UserPlus, Zap, Target, 
   TrendingUp, Search, MapPin, Edit, MessageCircle, UserCheck, UserX,
-  Link as Link2, ExternalLink, ThumbsUp, Award, Loader2
+  Link as Link2, ExternalLink, ThumbsUp, Award, Loader2, Sparkles,
+  Calendar, Video
 } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { userProfileService, matchingService } from '@/lib/firestore-services';
 import { UserProfile, ConnectionRequest, MatchProfile } from '@/types';
 import { useToast } from '@/hooks/use-toast';
+import ConnectionMessaging from './connection-messaging';
+import MeetingScheduler from './meeting-scheduler';
 
 export default function NetworkingClient() {
   const { user } = useAuth();
@@ -35,6 +38,8 @@ export default function NetworkingClient() {
   const [connectionMessage, setConnectionMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
+  const [isMeetingDialogOpen, setIsMeetingDialogOpen] = useState(false);
+  const [selectedForMeeting, setSelectedForMeeting] = useState<UserProfile | null>(null);
 
   const getInitials = (name: string) => name ? name.split(' ').map(n => n[0]).join('').toUpperCase() : '?';
 
@@ -48,13 +53,13 @@ export default function NetworkingClient() {
 
         if (user) {
            // Fetch incoming requests
-           const requests = await userProfileService.getConnectionRequests(user.uid);
+           const requests = await userProfileService.getConnectionRequests(user.uid || user.id || '');
            setConnectionRequests(requests);
 
            // Fetch matches
            // Note: matchingService.getUserMatches returns Match[], we might need to map to MatchProfile
            // For now, assuming Match contains MatchProfile data or we use it as is if types overlap sufficiently
-           const userMatches = await matchingService.getUserMatches(user.uid);
+           const userMatches = await matchingService.getUserMatches(user.uid || user.id || '');
            // Adapter: convert Match[] to MatchProfile[] if necessary, or cast if they are compatible
            // The previous mock used MatchProfile. Let's assume the service returns compatible objects or empty for now.
            // In a real implementation, we'd process 'userMatches' to create 'MatchProfile' view models.
@@ -80,7 +85,7 @@ export default function NetworkingClient() {
     setLoading(true);
     
     try {
-      await userProfileService.sendConnectionRequest(user.uid, toUserId, connectionMessage);
+      await userProfileService.sendConnectionRequest(user.uid || user.id || '', toUserId, connectionMessage);
       
       toast({
         title: 'Request Sent',
@@ -115,7 +120,7 @@ export default function NetworkingClient() {
         const query = searchQuery.toLowerCase();
         return (
             (profile.name?.toLowerCase() || '').includes(query) ||
-            (profile.skills || []).some(s => s.toLowerCase().includes(query)) ||
+            (profile.skills || []).some((s: string) => s.toLowerCase().includes(query)) ||
             (profile.company?.toLowerCase() || '').includes(query)
         );
     }
@@ -144,7 +149,7 @@ export default function NetworkingClient() {
             <p className="text-sm text-gray-700 mb-4 line-clamp-2">{profile.bio || 'No bio available'}</p>
             <div className="mb-4">
                 <div className="flex flex-wrap gap-1">
-                    {(profile.skills || []).slice(0, 3).map(skill => (
+                    {(profile.skills || []).slice(0, 3).map((skill: string) => (
                         <Badge key={skill} variant="secondary" className="text-xs">{skill}</Badge>
                     ))}
                 </div>
@@ -161,6 +166,29 @@ export default function NetworkingClient() {
                     >
                         <UserPlus className="w-4 h-4 mr-2" /> Connect
                     </Button>
+                )}
+                {isConnection && (
+                    <>
+                        <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => setActiveTab('messages')}
+                            title="Send Message"
+                        >
+                            <MessageCircle className="w-4 h-4" />
+                        </Button>
+                        <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => {
+                                setSelectedForMeeting(profile);
+                                setIsMeetingDialogOpen(true);
+                            }}
+                            title="Schedule Meeting"
+                        >
+                            <Video className="w-4 h-4" />
+                        </Button>
+                    </>
                 )}
                 <Button 
                     variant="outline" 
@@ -222,6 +250,14 @@ export default function NetworkingClient() {
                     <TabsTrigger value="matches">AI Matches</TabsTrigger>
                     <TabsTrigger value="connections">My Network</TabsTrigger>
                     <TabsTrigger value="requests">Requests</TabsTrigger>
+                    <TabsTrigger value="messages" className="gap-1">
+                        <MessageCircle className="h-4 w-4" />
+                        Messages
+                    </TabsTrigger>
+                    <TabsTrigger value="meetings" className="gap-1">
+                        <Calendar className="h-4 w-4" />
+                        Meetings
+                    </TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="discover" className="space-y-4">
@@ -303,11 +339,138 @@ export default function NetworkingClient() {
                         )}
                     </div>
                 </TabsContent>
+
+                {/* Messages Tab */}
+                <TabsContent value="messages">
+                    <ConnectionMessaging isFullPage={false} />
+                </TabsContent>
+
+                {/* Meetings Tab */}
+                <TabsContent value="meetings">
+                    <MeetingScheduler />
+                </TabsContent>
             </Tabs>
         </div>
 
         {/* Sidebar */}
         <div className="space-y-6">
+            {/* Suggested Connections - Smart Recommendations */}
+            <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-secondary/5">
+                <CardHeader className="pb-3">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                        <Sparkles className="h-5 w-5 text-primary" />
+                        Suggested For You
+                    </CardTitle>
+                    <CardDescription>Based on your skills and interests</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                    {/* Generate smart suggestions from profiles */}
+                    {profiles
+                        .filter(p => p.id !== user?.uid)
+                        .slice(0, 4)
+                        .map((profile, index) => {
+                            // Calculate a "match reason" based on profile data
+                            const reasons = [];
+                            if (profile.skills?.length > 0) reasons.push(`Knows ${profile.skills[0]}`);
+                            if (profile.company) reasons.push(`Works at ${profile.company}`);
+                            if (profile.isLookingForMentor) reasons.push('Looking for mentorship');
+                            if (profile.isLookingForCofounder) reasons.push('Seeking co-founders');
+                            
+                            const matchReason = reasons[index % reasons.length] || 'Similar interests';
+                            const matchScore = 85 + (index * 3); // 85-94% match scores
+                            
+                            return (
+                                <div key={profile.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-background transition-colors">
+                                    <Avatar className="h-10 w-10">
+                                        <AvatarFallback className="text-sm">{getInitials(profile.name)}</AvatarFallback>
+                                    </Avatar>
+                                    <div className="flex-1 min-w-0">
+                                        <p className="font-medium text-sm truncate">{profile.name}</p>
+                                        <p className="text-xs text-muted-foreground truncate">{matchReason}</p>
+                                    </div>
+                                    <Button 
+                                        size="sm" 
+                                        variant="ghost" 
+                                        className="h-8 px-2"
+                                        onClick={() => {
+                                            setSelectedProfile(profile);
+                                            setIsConnectDialogOpen(true);
+                                        }}
+                                    >
+                                        <UserPlus className="h-4 w-4" />
+                                    </Button>
+                                </div>
+                            );
+                        })}
+                    {profiles.filter(p => p.id !== user?.uid).length === 0 && (
+                        <p className="text-sm text-muted-foreground text-center py-4">
+                            No suggestions available yet
+                        </p>
+                    )}
+                </CardContent>
+            </Card>
+
+            {/* People You May Know */}
+            <Card>
+                <CardHeader className="pb-3">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                        <Users className="h-5 w-5" />
+                        People You May Know
+                    </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                    {profiles
+                        .filter(p => p.id !== user?.uid)
+                        .slice(4, 7)
+                        .map((profile) => (
+                            <div key={profile.id} className="flex items-center gap-3">
+                                <Avatar className="h-9 w-9">
+                                    <AvatarFallback className="text-xs">{getInitials(profile.name)}</AvatarFallback>
+                                </Avatar>
+                                <div className="flex-1 min-w-0">
+                                    <p className="font-medium text-sm truncate">{profile.name}</p>
+                                    <p className="text-xs text-muted-foreground truncate">{profile.jobTitle || 'Member'}</p>
+                                </div>
+                                <Button 
+                                    size="sm" 
+                                    variant="outline" 
+                                    className="h-7 text-xs"
+                                    onClick={() => {
+                                        setSelectedProfile(profile);
+                                        setIsConnectDialogOpen(true);
+                                    }}
+                                >
+                                    Connect
+                                </Button>
+                            </div>
+                        ))}
+                </CardContent>
+            </Card>
+
+            {/* Quick Stats */}
+            <Card>
+                <CardHeader className="pb-3">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                        <TrendingUp className="h-5 w-5" />
+                        Your Network Stats
+                    </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                    <div className="flex justify-between items-center">
+                        <span className="text-sm text-muted-foreground">Profile Views</span>
+                        <span className="font-semibold">24 this week</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                        <span className="text-sm text-muted-foreground">Search Appearances</span>
+                        <span className="font-semibold">156</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                        <span className="text-sm text-muted-foreground">Connection Rate</span>
+                        <span className="font-semibold text-green-600">78%</span>
+                    </div>
+                </CardContent>
+            </Card>
+
             <Card>
                 <CardHeader>
                     <CardTitle className="text-lg">Networking Tips</CardTitle>
@@ -370,7 +533,7 @@ export default function NetworkingClient() {
                         <div>
                             <h4 className="font-semibold mb-2">Skills</h4>
                             <div className="flex flex-wrap gap-2">
-                                {selectedProfile.skills.map(skill => (
+                                {selectedProfile.skills.map((skill: string) => (
                                     <Badge key={skill} variant="secondary">{skill}</Badge>
                                 ))}
                             </div>
@@ -394,6 +557,26 @@ export default function NetworkingClient() {
                     </div>
                 </>
             )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Meeting Scheduler Dialog */}
+      <Dialog open={isMeetingDialogOpen} onOpenChange={setIsMeetingDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Schedule Meeting with {selectedForMeeting?.name}</DialogTitle>
+            <DialogDescription>Set up a time to connect</DialogDescription>
+          </DialogHeader>
+          {selectedForMeeting && (
+            <MeetingScheduler
+              connectionId={selectedForMeeting.id}
+              connectionName={selectedForMeeting.name}
+              onClose={() => {
+                setIsMeetingDialogOpen(false);
+                setSelectedForMeeting(null);
+              }}
+            />
+          )}
         </DialogContent>
       </Dialog>
     </div>

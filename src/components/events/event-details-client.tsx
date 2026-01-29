@@ -10,6 +10,12 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -40,13 +46,22 @@ import {
   Star,
   Loader2,
   Sparkles,
-  CalendarPlus
+  CalendarPlus,
+  HelpCircle,
+  ChevronDown,
+  Bot
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
-import { eventService } from '@/lib/firestore-services';
-import type { Event, AgendaItem, SpeakerInfo } from '@/types';
+import { eventService, ticketService, userProfileService } from '@/lib/firestore-services';
+import type { Event, AgendaItem, SpeakerInfo, UserProfile } from '@/types';
+
+// Import AI Chatbot
+import { EventChatbot } from '@/components/ai/event-chatbot';
+
+// Import user action processing for gamification
+import { processUserAction } from '@/app/actions/user-actions';
 
 interface EventDetailsClientProps {
   eventId: string;
@@ -64,6 +79,7 @@ export default function EventDetailsClient({ eventId }: EventDetailsClientProps)
   const [registering, setRegistering] = useState(false);
   const [showShareDialog, setShowShareDialog] = useState(false);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+  const [attendeeProfiles, setAttendeeProfiles] = useState<UserProfile[]>([]);
 
   useEffect(() => {
     const fetchEvent = async () => {
@@ -74,6 +90,15 @@ export default function EventDetailsClient({ eventId }: EventDetailsClientProps)
         // Check if user is registered
         if (user?.uid && fetchedEvent?.attendees?.includes(user.uid)) {
           setIsRegistered(true);
+        }
+        
+        // Fetch attendee profiles for social proof
+        if (fetchedEvent?.attendees && fetchedEvent.attendees.length > 0) {
+          const attendeeIds = fetchedEvent.attendees.slice(0, 10); // Fetch up to 10 for display
+          const profiles = await Promise.all(
+            attendeeIds.map(id => userProfileService.getUserProfile(id))
+          );
+          setAttendeeProfiles(profiles.filter((p): p is UserProfile => p !== null));
         }
       } catch (error) {
         console.error('Error fetching event:', error);
@@ -90,24 +115,64 @@ export default function EventDetailsClient({ eventId }: EventDetailsClientProps)
   }, [eventId, user, toast]);
 
   const handleRegister = async () => {
-    if (!user) {
+    if (!user?.uid) {
       setShowLoginPrompt(true);
       return;
     }
 
+    if (!event) return;
+
     setRegistering(true);
     try {
-      // Registration logic here
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulated
+      // Register using the ticket service
+      await ticketService.registerForEvent(
+        eventId,
+        user.uid,
+        { 
+          name: user.name || user.email || 'Guest',
+          email: user.email || ''
+        }
+      );
+      
       setIsRegistered(true);
+
+      // Process user action for gamification (badges, XP, challenges)
+      try {
+        const gamificationResult = await processUserAction(user.uid, 'event_registration', {
+          eventId: eventId,
+          eventCategory: event.category,
+        });
+        
+        // Show badge notifications if any were earned
+        if (gamificationResult.badgesEarned.length > 0) {
+          const badges = gamificationResult.badgesEarned;
+          toast({
+            title: `Badge Earned! ${badges[0].icon}`,
+            description: `You earned "${badges[0].name}" and +${gamificationResult.xpAwarded} XP!`,
+          });
+        }
+      } catch (gamificationError) {
+        console.error('Gamification processing error:', gamificationError);
+        // Don't fail registration if gamification fails
+      }
+      
       toast({ 
         title: 'Registered! 🎉', 
-        description: 'You have successfully registered for this event.' 
+        description: 'Check your tickets page to view your QR code.',
+        action: (
+          <Button 
+            size="sm" 
+            variant="outline"
+            onClick={() => router.push('/tickets')}
+          >
+            View Ticket
+          </Button>
+        ) as any
       });
-    } catch (error) {
+    } catch (error: any) {
       toast({ 
-        title: 'Error', 
-        description: 'Failed to register. Please try again.', 
+        title: 'Registration Failed', 
+        description: error.message || 'Please try again.', 
         variant: 'destructive' 
       });
     } finally {
@@ -329,6 +394,7 @@ export default function EventDetailsClient({ eventId }: EventDetailsClientProps)
                     <TabsTrigger value="agenda">Agenda</TabsTrigger>
                     <TabsTrigger value="speakers">Speakers</TabsTrigger>
                     <TabsTrigger value="location">Location</TabsTrigger>
+                    <TabsTrigger value="faq">FAQ</TabsTrigger>
                   </TabsList>
 
                   <TabsContent value="about" className="space-y-6">
@@ -447,11 +513,78 @@ export default function EventDetailsClient({ eventId }: EventDetailsClientProps)
                       )}
 
                       {!isVirtual && (
-                        <div className="h-64 rounded-lg bg-muted flex items-center justify-center">
-                          <p className="text-muted-foreground">Map coming soon</p>
+                        <div className="space-y-4">
+                          <div className="h-48 rounded-lg bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900 flex items-center justify-center relative overflow-hidden">
+                            {/* Mini Map Preview */}
+                            <svg viewBox="0 0 400 200" className="w-full h-full opacity-50">
+                              <rect width="400" height="200" fill="currentColor" className="text-slate-200 dark:text-slate-700" />
+                              <rect x="50" y="30" width="80" height="50" rx="4" fill="#f59e0b" opacity="0.6" />
+                              <rect x="160" y="50" width="100" height="60" rx="4" fill="#22c55e" opacity="0.6" />
+                              <rect x="290" y="40" width="70" height="45" rx="4" fill="#8b5cf6" opacity="0.6" />
+                              <rect x="80" y="120" width="90" height="50" rx="4" fill="#06b6d4" opacity="0.6" />
+                              <rect x="200" y="130" width="120" height="40" rx="4" fill="#ec4899" opacity="0.6" />
+                              {/* Animated pin */}
+                              <circle cx="210" cy="80" r="8" fill="#ef4444" className="animate-pulse" />
+                            </svg>
+                            <div className="absolute inset-0 flex items-center justify-center bg-background/60 backdrop-blur-sm">
+                              <Link href="/map">
+                                <Button size="lg" className="gap-2 shadow-lg">
+                                  <MapPin className="h-5 w-5" />
+                                  View on Campus Map
+                                </Button>
+                              </Link>
+                            </div>
+                          </div>
+                          <p className="text-sm text-muted-foreground text-center">
+                            Click to view the interactive campus map with directions
+                          </p>
                         </div>
                       )}
                     </div>
+                  </TabsContent>
+
+                  <TabsContent value="faq" className="space-y-4">
+                    <Accordion type="single" collapsible className="w-full">
+                      <AccordionItem value="registration">
+                        <AccordionTrigger>How do I register for this event?</AccordionTrigger>
+                        <AccordionContent>
+                          Click the "Register Now" button on this page. If the event is free, you'll be registered immediately. 
+                          For paid events, you'll be redirected to complete payment. You'll receive a confirmation email with 
+                          your ticket and QR code.
+                        </AccordionContent>
+                      </AccordionItem>
+                      <AccordionItem value="cancel">
+                        <AccordionTrigger>Can I cancel my registration?</AccordionTrigger>
+                        <AccordionContent>
+                          Yes, you can cancel your registration up to 24 hours before the event starts. 
+                          Go to "My Events" in your profile, find this event, and click "Cancel Registration". 
+                          Refunds for paid events are processed within 5-7 business days.
+                        </AccordionContent>
+                      </AccordionItem>
+                      <AccordionItem value="checkin">
+                        <AccordionTrigger>How do I check in at the event?</AccordionTrigger>
+                        <AccordionContent>
+                          When you arrive, show your QR code ticket (found in "My Tickets" or your confirmation email) 
+                          to the event staff. They'll scan it to confirm your registration. Make sure you have your 
+                          phone charged or bring a printed copy.
+                        </AccordionContent>
+                      </AccordionItem>
+                      <AccordionItem value="certificate">
+                        <AccordionTrigger>Will I receive a certificate?</AccordionTrigger>
+                        <AccordionContent>
+                          Yes! After the event ends and you've checked in, you'll be eligible to receive a certificate 
+                          of participation. You can download it from the "Past Events" section in "My Events".
+                        </AccordionContent>
+                      </AccordionItem>
+                      <AccordionItem value="contact">
+                        <AccordionTrigger>How can I contact the organizers?</AccordionTrigger>
+                        <AccordionContent>
+                          You can reach out to the event organizers through the chat feature on this page 
+                          (if enabled) or by emailing them directly. Their contact information may be available 
+                          in the event description.
+                        </AccordionContent>
+                      </AccordionItem>
+                    </Accordion>
                   </TabsContent>
                 </Tabs>
               </CardContent>
@@ -460,6 +593,79 @@ export default function EventDetailsClient({ eventId }: EventDetailsClientProps)
 
           {/* Sidebar */}
           <div className="space-y-6">
+            {/* Social Proof - Attendees Card */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Users className="h-5 w-5 text-primary" />
+                  Who's Attending
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {/* Attendee Avatars */}
+                <div className="flex -space-x-2 mb-3">
+                  {attendeeProfiles.length > 0 ? (
+                    <>
+                      {attendeeProfiles.slice(0, 6).map((profile, i) => (
+                        <Avatar key={profile.id} className="h-10 w-10 border-2 border-background">
+                          <AvatarImage src={profile.photoURL || profile.avatar} />
+                          <AvatarFallback>
+                            {(profile.displayName || profile.name || 'U')
+                              .split(' ')
+                              .map((n: string) => n[0])
+                              .join('')
+                              .toUpperCase()
+                              .slice(0, 2)}
+                          </AvatarFallback>
+                        </Avatar>
+                      ))}
+                      {(event.registeredCount || 0) > 6 && (
+                        <div className="h-10 w-10 rounded-full bg-primary/10 border-2 border-background flex items-center justify-center">
+                          <span className="text-xs font-medium text-primary">+{(event.registeredCount || 0) - 6}</span>
+                        </div>
+                      )}
+                    </>
+                  ) : (event.registeredCount || 0) > 0 ? (
+                    // Fallback: Show placeholder avatars when we have registrations but no profiles loaded
+                    <>
+                      {Array.from({ length: Math.min(6, event.registeredCount || 0) }).map((_, i) => (
+                        <Avatar key={i} className="h-10 w-10 border-2 border-background">
+                          <AvatarFallback className="bg-primary/10 text-primary">
+                            <Users className="h-4 w-4" />
+                          </AvatarFallback>
+                        </Avatar>
+                      ))}
+                      {(event.registeredCount || 0) > 6 && (
+                        <div className="h-10 w-10 rounded-full bg-primary/10 border-2 border-background flex items-center justify-center">
+                          <span className="text-xs font-medium text-primary">+{(event.registeredCount || 0) - 6}</span>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">Be the first to register!</p>
+                  )}
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  {event.registeredCount || 0} people are going
+                </p>
+
+                {/* Attendee Names (if we have profiles) */}
+                {attendeeProfiles.length > 0 && (
+                  <div className="mt-2">
+                    <p className="text-sm text-muted-foreground">
+                      Including{' '}
+                      <span className="font-medium text-foreground">
+                        {attendeeProfiles.slice(0, 2).map(p => p.displayName || p.name || 'Someone').join(', ')}
+                      </span>
+                      {attendeeProfiles.length > 2 && (
+                        <span> and {attendeeProfiles.length - 2} others</span>
+                      )}
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
             {/* Registration Card */}
             <Card className="sticky top-20">
               <CardContent className="p-6">
@@ -580,6 +786,34 @@ export default function EventDetailsClient({ eventId }: EventDetailsClientProps)
                 </CardContent>
               </Card>
             )}
+
+            {/* AI Event Assistant */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Bot className="h-5 w-5 text-primary" />
+                  Event Assistant
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <EventChatbot 
+                  event={{
+                    id: eventId,
+                    title: event.title,
+                    description: event.description || '',
+                    date: event.date,
+                    location: typeof event.location === 'string' ? event.location : event.location?.venue?.name || 'TBD',
+                    agenda: event.agenda?.map((item: any) => ({
+                      time: item.time || '',
+                      title: item.title || item.topic || '',
+                      description: item.description || '',
+                      speaker: item.speaker || ''
+                    })),
+                    speakers: event.speakers?.map((s: any) => s.name || s),
+                  }}
+                />
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>

@@ -473,6 +473,13 @@ export interface Event {
   registrationDeadline?: Date;
   waitlistEnabled: boolean;
   registeredCount?: number; // Count of registered attendees
+  requiresApproval?: boolean; // Manual approval for registrations
+  
+  // Ticket Tiers (for paid events)
+  ticketTiers?: TicketTier[];
+  
+  // Custom Registration Fields
+  customRegistrationFields?: CustomRegistrationField[];
   
   // Pricing
   pricing: EventPricing;
@@ -486,6 +493,7 @@ export interface Event {
   imageUrl?: string; // Alias for image
   gallery?: string[];
   agenda: AgendaItem[];
+  checklist?: ChecklistItem[]; // AI-generated event planning checklist
   speakers: Speaker[] | string[]; // User IDs or Speaker objects
   
   // Organization
@@ -544,6 +552,34 @@ export interface AgendaItem {
   speaker?: string;
   room?: string;
   type?: 'talk' | 'workshop' | 'break' | 'networking' | 'keynote' | 'panel';
+}
+
+// Checklist Item type for event planning
+export interface ChecklistItem {
+  task: string;
+  category: 'pre-event' | 'day-of' | 'post-event';
+  priority: 'high' | 'medium' | 'low';
+  completed?: boolean;
+}
+
+// Ticket Tier for multi-tier pricing
+export interface TicketTier {
+  id: string;
+  name: string;
+  price: number;
+  quantity: number;
+  sold?: number;
+  description?: string;
+  benefits?: string[];
+}
+
+// Custom Registration Field for event signup forms
+export interface CustomRegistrationField {
+  id: string;
+  label: string;
+  type: 'text' | 'email' | 'phone' | 'select' | 'checkbox';
+  required: boolean;
+  options?: string[]; // For select type
 }
 
 // Speaker type for event speakers
@@ -910,8 +946,47 @@ export interface Badge { id: string; [key: string]: any; }
 export interface UserXP { userId: string; xp: number; [key: string]: any; }
 export interface EventReplay { id: string; [key: string]: any; }
 export interface AnonymousFeedback { id: string; [key: string]: any; }
-export interface EventTicket { id: string; [key: string]: any; }
-export interface TicketType { id: string; price: number; benefits: string[]; [key: string]: any; }
+
+// Enhanced Ticket Types
+export interface EventTicket {
+  id: string;
+  eventId: string;
+  userId: string;
+  ticketTypeId?: string;
+  ticketNumber: string; // Unique ticket number for QR
+  status: 'confirmed' | 'pending' | 'cancelled' | 'checked-in' | 'refunded';
+  purchaseDate: Date;
+  checkInTime?: Date;
+  qrCode?: string; // Base64 QR code or URL
+  price: number;
+  currency: string;
+  attendeeName: string;
+  attendeeEmail: string;
+  customFields?: Record<string, any>; // T-shirt size, dietary, etc.
+  event?: {
+    title: string;
+    date: Date;
+    location: string;
+    image?: string;
+  };
+  [key: string]: any;
+}
+
+export interface TicketType {
+  id: string;
+  name: string;
+  description?: string;
+  price: number;
+  currency: string;
+  quantity: number;
+  sold: number;
+  benefits: string[];
+  salesStart?: Date;
+  salesEnd?: Date;
+  maxPerOrder?: number;
+  [key: string]: any;
+}
+
 export interface EventTicketing { soldTickets: number; availableTickets: number; ticketTypes: TicketType[]; analytics: any; [key: string]: any; }
 export interface WaitlistEntry { id: string; [key: string]: any; }
 export interface DiscountCode { code: string; isActive: boolean; [key: string]: any; }

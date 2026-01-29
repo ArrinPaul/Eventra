@@ -47,12 +47,12 @@ export default function Header() {
   const navLinks = [
     { href: '/', label: 'Home' },
     { href: '/explore', label: 'Explore' },
-    { href: '/agenda', label: 'Agenda', requireAuth: true },
+    { href: '/tickets', label: 'My Tickets', requireAuth: true },
+    { href: '/my-events', label: 'My Events', requireAuth: true },
     { href: '/leaderboard', label: 'Leaderboard', requireAuth: true },
     { href: '/chat', label: 'Chat', requireAuth: true },
-    { href: '/check-in', label: 'Check-in', requireAuth: true },
-    { href: '/my-events', label: 'My Events', requireAuth: true },
     { href: '/events/create', label: 'Create Event', roles: ['organizer', 'admin'] },
+    { href: '/check-in-scanner', label: 'Scanner', roles: ['organizer', 'admin'] },
     { href: '/admin', label: 'Dashboard', roles: ['organizer', 'admin'] },
   ].filter(link => {
       if (isAuthPage) return false;

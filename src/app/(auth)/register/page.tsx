@@ -18,7 +18,7 @@ export default function RegisterPage() {
     <div className="flex items-center justify-center p-4 py-12">
       <Card className="w-full max-w-2xl mx-auto shadow-2xl glass-effect">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-headline">Join IPX Hub</CardTitle>
+          <CardTitle className="text-2xl font-headline">Join EventOS</CardTitle>
           <CardDescription>Create an account to get started.</CardDescription>
         </CardHeader>
         <CardContent>

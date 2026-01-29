@@ -29,7 +29,7 @@ const prompt = ai.definePrompt({
   name: 'eventKnowledgeBotPrompt',
   input: {schema: AnswerQuestionInputSchema},
   output: {schema: AnswerQuestionOutputSchema},
-  prompt: `You are a friendly and helpful AI assistant for the IPX Hub event. Your job is to answer attendee questions clearly and concisely.
+  prompt: `You are a friendly and helpful AI assistant for the EventOS platform. Your job is to answer attendee questions clearly and concisely.
   
   Use ONLY the following event agenda as your source of truth. Do not make up information. If you don't know the answer based on the provided agenda, say so.
 

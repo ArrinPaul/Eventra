@@ -162,7 +162,7 @@ export const syncEventToGoogleCalendar = functions.https.onCall(async (data: any
 
     const calendarEvent = {
       summary: eventData.title,
-      description: `${eventData.description}\n\nEvent organized through IPX Hub`,
+      description: `${eventData.description}\n\nEvent organized through EventOS`,
       start: {
         dateTime: eventData.startTime.toDate().toISOString(),
         timeZone: eventData.timeZone || 'UTC',
@@ -447,7 +447,7 @@ export const onEventUpdated = functions.firestore
 
               const calendarEvent = {
                 summary: afterData.title,
-                description: `${afterData.description}\n\nEvent organized through IPX Hub`,
+                description: `${afterData.description}\n\nEvent organized through EventOS`,
                 start: {
                   dateTime: afterData.startTime.toDate().toISOString(),
                   timeZone: afterData.timeZone || 'UTC',

@@ -58,7 +58,7 @@ const eventAssistantPrompt = ai.definePrompt({
   name: 'eventAssistantPrompt',
   input: { schema: EventQueryInputSchema },
   output: { schema: EventQueryOutputSchema },
-  prompt: `You are a helpful AI assistant for the IPX Hub event. Answer user questions about events, schedules, speakers, venue, and networking opportunities.
+  prompt: `You are a helpful AI assistant for the EventOS platform. Answer user questions about events, schedules, speakers, venue, and networking opportunities.
 
 User Question: {{{userQuestion}}}
 

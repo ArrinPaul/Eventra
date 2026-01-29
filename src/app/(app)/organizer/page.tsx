@@ -19,15 +19,39 @@ import {
   MapPin,
   Video,
   Star,
+  Copy,
+  Trash2,
+  MoreHorizontal,
+  Award,
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
+
+// Certificate management
+import { CertificateManager } from '@/components/certificates/certificate-manager';
 
 interface Event {
   id: string;
@@ -73,7 +97,53 @@ export default function OrganizerPage() {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [deleteEventId, setDeleteEventId] = useState<string | null>(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const { toast } = useToast();
+
+  // Event action handlers
+  const handleDuplicateEvent = (event: Event) => {
+    const newEvent: Event = {
+      ...event,
+      id: `event_${Date.now()}`,
+      title: `${event.title} (Copy)`,
+      status: 'draft',
+      registrations: 0,
+    };
+    setEvents([...events, newEvent]);
+    toast({
+      title: 'Event Duplicated',
+      description: `"${event.title}" has been duplicated as a draft.`,
+    });
+  };
+
+  const handleDeleteEvent = (eventId: string) => {
+    setDeleteEventId(eventId);
+    setShowDeleteDialog(true);
+  };
+
+  const confirmDeleteEvent = () => {
+    if (deleteEventId) {
+      const eventToDelete = events.find(e => e.id === deleteEventId);
+      setEvents(events.filter(e => e.id !== deleteEventId));
+      toast({
+        title: 'Event Deleted',
+        description: `"${eventToDelete?.title}" has been permanently deleted.`,
+        variant: 'destructive',
+      });
+    }
+    setShowDeleteDialog(false);
+    setDeleteEventId(null);
+  };
+
+  const handleViewAnalytics = (eventId: string) => {
+    // Navigate to analytics page or show modal
+    toast({
+      title: 'Opening Analytics',
+      description: 'Redirecting to event analytics...',
+    });
+    // In a real app: router.push(`/organizer/events/${eventId}/analytics`)
+  };
 
   useEffect(() => {
     loadDashboardData();
@@ -300,14 +370,43 @@ export default function OrganizerPage() {
                   </div>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <Button variant="outline" size="sm">
-                    <Eye className="w-4 h-4 mr-1" />
-                    View
+                  <Button variant="outline" size="sm" asChild>
+                    <Link href={`/events/${event.id}`}>
+                      <Eye className="w-4 h-4 mr-1" />
+                      View
+                    </Link>
                   </Button>
-                  <Button variant="outline" size="sm">
-                    <Edit className="w-4 h-4 mr-1" />
-                    Edit
+                  <Button variant="outline" size="sm" asChild>
+                    <Link href={`/events/${event.id}/edit`}>
+                      <Edit className="w-4 h-4 mr-1" />
+                      Edit
+                    </Link>
                   </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="sm">
+                        <MoreHorizontal className="w-4 h-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => handleViewAnalytics(event.id)}>
+                        <BarChart3 className="w-4 h-4 mr-2" />
+                        View Analytics
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleDuplicateEvent(event)}>
+                        <Copy className="w-4 h-4 mr-2" />
+                        Duplicate Event
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem 
+                        onClick={() => handleDeleteEvent(event.id)}
+                        className="text-destructive focus:text-destructive"
+                      >
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Delete Event
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               </div>
             ))}
@@ -507,6 +606,86 @@ export default function OrganizerPage() {
     </div>
   );
 
+  // Certificates Tab - Issue certificates to attendees
+  const CertificatesTab = ({ events, users }: { events: Event[]; users: User[] }) => {
+    const [selectedEventId, setSelectedEventId] = useState<string>(events[0]?.id || '');
+    const selectedEvent = events.find(e => e.id === selectedEventId);
+    
+    // Map users to attendees format expected by CertificateManager
+    const attendees = users.map(u => ({
+      id: u.id,
+      name: u.name,
+      email: u.email,
+      checkedIn: u.checkedIn || false,
+    }));
+
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold">Certificate Management</h2>
+            <p className="text-muted-foreground">
+              Generate and issue certificates to event attendees
+            </p>
+          </div>
+        </div>
+
+        {/* Event Selector */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Select Event</CardTitle>
+            <CardDescription>
+              Choose an event to manage certificates for
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Select value={selectedEventId} onValueChange={setSelectedEventId}>
+              <SelectTrigger className="w-full md:w-[400px]">
+                <SelectValue placeholder="Select an event" />
+              </SelectTrigger>
+              <SelectContent>
+                {events.map(event => (
+                  <SelectItem key={event.id} value={event.id}>
+                    <div className="flex items-center gap-2">
+                      <span>{event.title}</span>
+                      <Badge variant="outline" className="ml-2">
+                        {event.registrations} registrations
+                      </Badge>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </CardContent>
+        </Card>
+
+        {/* Certificate Manager */}
+        {selectedEvent ? (
+          <CertificateManager
+            eventId={selectedEvent.id}
+            eventTitle={selectedEvent.title}
+            attendees={attendees}
+            onCertificatesGenerated={() => {
+              toast({
+                title: 'Success',
+                description: 'Certificates have been generated and queued for delivery.',
+              });
+            }}
+          />
+        ) : (
+          <Card>
+            <CardContent className="py-12 text-center">
+              <Award className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+              <p className="text-muted-foreground">
+                Select an event to manage certificates
+              </p>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    );
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -539,7 +718,7 @@ export default function OrganizerPage() {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="overview" className="flex items-center space-x-2">
             <TrendingUp className="w-4 h-4" />
             <span>Overview</span>
@@ -551,6 +730,10 @@ export default function OrganizerPage() {
           <TabsTrigger value="users" className="flex items-center space-x-2">
             <Users className="w-4 h-4" />
             <span>Users</span>
+          </TabsTrigger>
+          <TabsTrigger value="certificates" className="flex items-center space-x-2">
+            <Award className="w-4 h-4" />
+            <span>Certificates</span>
           </TabsTrigger>
           <TabsTrigger value="settings" className="flex items-center space-x-2">
             <Settings className="w-4 h-4" />
@@ -570,6 +753,10 @@ export default function OrganizerPage() {
           <UsersTab />
         </TabsContent>
 
+        <TabsContent value="certificates">
+          <CertificatesTab events={events} users={users} />
+        </TabsContent>
+
         <TabsContent value="settings">
           <div className="text-center py-12 text-gray-500">
             <Settings className="w-12 h-12 mx-auto mb-4 text-gray-300" />
@@ -577,6 +764,28 @@ export default function OrganizerPage() {
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Event</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this event? This action cannot be undone. 
+              All registrations and data associated with this event will be permanently removed.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmDeleteEvent}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete Event
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

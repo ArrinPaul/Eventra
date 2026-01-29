@@ -14,6 +14,7 @@ import {
   limit as firestoreLimit,
   setDoc
 } from 'firebase/firestore';
+import { emailService } from './email-service';
 import {
   Community,
   Post,
@@ -384,6 +385,234 @@ export const eventService = {
       }
     } catch (error) {
       console.error('Error registering for event:', error);
+      throw error;
+    }
+  }
+};
+
+// Ticket Service
+export const ticketService = {
+  // Generate a unique ticket number
+  generateTicketNumber(): string {
+    const timestamp = Date.now().toString(36).toUpperCase();
+    const random = Math.random().toString(36).substring(2, 8).toUpperCase();
+    return `EVT-${timestamp}-${random}`;
+  },
+
+  // Create a new ticket
+  async createTicket(ticketData: Omit<EventTicket, 'id'>): Promise<string> {
+    try {
+      const docRef = await addDoc(collection(db, 'tickets'), {
+        ...ticketData,
+        createdAt: new Date(),
+        status: ticketData.status || 'confirmed'
+      });
+      return docRef.id;
+    } catch (error) {
+      console.error('Error creating ticket:', error);
+      throw error;
+    }
+  },
+
+  // Get ticket by ID
+  async getTicketById(ticketId: string): Promise<EventTicket | null> {
+    try {
+      const ticketDoc = await getDoc(doc(db, 'tickets', ticketId));
+      if (ticketDoc.exists()) {
+        return { id: ticketDoc.id, ...ticketDoc.data() } as EventTicket;
+      }
+      return null;
+    } catch (error) {
+      console.error('Error fetching ticket:', error);
+      return null;
+    }
+  },
+
+  // Get ticket by ticket number (for QR scanning)
+  async getTicketByNumber(ticketNumber: string): Promise<EventTicket | null> {
+    try {
+      const q = query(
+        collection(db, 'tickets'),
+        where('ticketNumber', '==', ticketNumber)
+      );
+      const snapshot = await getDocs(q);
+      if (!snapshot.empty) {
+        const doc = snapshot.docs[0];
+        return { id: doc.id, ...doc.data() } as EventTicket;
+      }
+      return null;
+    } catch (error) {
+      console.error('Error fetching ticket by number:', error);
+      return null;
+    }
+  },
+
+  // Get all tickets for a user
+  async getUserTickets(userId: string): Promise<EventTicket[]> {
+    try {
+      const q = query(
+        collection(db, 'tickets'),
+        where('userId', '==', userId),
+        orderBy('purchaseDate', 'desc')
+      );
+      const snapshot = await getDocs(q);
+      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as EventTicket));
+    } catch (error) {
+      console.error('Error fetching user tickets:', error);
+      return [];
+    }
+  },
+
+  // Get all tickets for an event
+  async getEventTickets(eventId: string): Promise<EventTicket[]> {
+    try {
+      const q = query(
+        collection(db, 'tickets'),
+        where('eventId', '==', eventId),
+        orderBy('purchaseDate', 'desc')
+      );
+      const snapshot = await getDocs(q);
+      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as EventTicket));
+    } catch (error) {
+      console.error('Error fetching event tickets:', error);
+      return [];
+    }
+  },
+
+  // Check in a ticket
+  async checkInTicket(ticketId: string): Promise<boolean> {
+    try {
+      const ticketRef = doc(db, 'tickets', ticketId);
+      const ticketDoc = await getDoc(ticketRef);
+      
+      if (!ticketDoc.exists()) {
+        throw new Error('Ticket not found');
+      }
+
+      const ticket = ticketDoc.data() as EventTicket;
+      
+      if (ticket.status === 'checked-in') {
+        throw new Error('Ticket already checked in');
+      }
+
+      if (ticket.status === 'cancelled' || ticket.status === 'refunded') {
+        throw new Error('Ticket is not valid');
+      }
+
+      await updateDoc(ticketRef, {
+        status: 'checked-in',
+        checkInTime: new Date()
+      });
+
+      return true;
+    } catch (error) {
+      console.error('Error checking in ticket:', error);
+      throw error;
+    }
+  },
+
+  // Cancel a ticket
+  async cancelTicket(ticketId: string): Promise<void> {
+    try {
+      await updateDoc(doc(db, 'tickets', ticketId), {
+        status: 'cancelled',
+        cancelledAt: new Date()
+      });
+    } catch (error) {
+      console.error('Error cancelling ticket:', error);
+      throw error;
+    }
+  },
+
+  // Full registration flow
+  async registerForEvent(
+    eventId: string, 
+    userId: string, 
+    userDetails: { name: string; email: string },
+    ticketTypeId?: string,
+    customFields?: Record<string, any>
+  ): Promise<EventTicket> {
+    try {
+      // Get event details
+      const eventDoc = await getDoc(doc(db, 'events', eventId));
+      if (!eventDoc.exists()) {
+        throw new Error('Event not found');
+      }
+      
+      const event = eventDoc.data() as Event;
+      
+      // Check capacity
+      const currentCount = event.registeredCount || 0;
+      if (event.capacity && currentCount >= event.capacity) {
+        throw new Error('Event is at full capacity');
+      }
+
+      // Check if already registered
+      const existingTicketQuery = query(
+        collection(db, 'tickets'),
+        where('eventId', '==', eventId),
+        where('userId', '==', userId),
+        where('status', 'in', ['confirmed', 'pending'])
+      );
+      const existingTickets = await getDocs(existingTicketQuery);
+      if (!existingTickets.empty) {
+        throw new Error('Already registered for this event');
+      }
+
+      // Determine price
+      let price = 0;
+      let currency = 'USD';
+      if (event.pricing && event.pricing.type !== 'free' && !event.pricing.isFree) {
+        price = event.pricing.basePrice || 0;
+        // If there are ticket types, get the specific one
+        if (ticketTypeId && (event as any).ticketTypes) {
+          const ticketType = (event as any).ticketTypes.find((t: any) => t.id === ticketTypeId);
+          if (ticketType) {
+            price = ticketType.price || price;
+          }
+        }
+      }
+
+      // Generate ticket
+      const ticketNumber = this.generateTicketNumber();
+      const ticketData: Omit<EventTicket, 'id'> = {
+        eventId,
+        userId,
+        ticketTypeId,
+        ticketNumber,
+        status: 'confirmed',
+        purchaseDate: new Date(),
+        price,
+        currency,
+        attendeeName: userDetails.name,
+        attendeeEmail: userDetails.email,
+        customFields,
+        event: {
+          title: event.title,
+          date: event.startDate || new Date(),
+          location: typeof event.location === 'string' 
+            ? event.location 
+            : event.location?.venue?.name || 'TBD',
+          image: event.imageUrl || event.image
+        }
+      };
+
+      // Create ticket
+      const ticketId = await this.createTicket(ticketData);
+
+      // Update event registration count
+      await eventService.registerForEvent(eventId, userId);
+
+      const finalTicket = { id: ticketId, ...ticketData } as EventTicket;
+
+      // Send confirmation email (async, don't block on failure)
+      emailService.sendRegistrationConfirmation(finalTicket, event).catch(err => {
+        console.error('Failed to send confirmation email:', err);
+      });
+
+      return finalTicket;
+    } catch (error) {
+      console.error('Error in registration flow:', error);
       throw error;
     }
   }

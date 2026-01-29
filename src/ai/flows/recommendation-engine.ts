@@ -1,4 +1,3 @@
-'use server';
 /**
  * @fileOverview AI-powered recommendation engine for events, content, and connections
  */
