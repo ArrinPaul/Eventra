@@ -12,7 +12,13 @@ import {
   where, 
   orderBy, 
   limit as firestoreLimit,
-  setDoc
+  setDoc,
+  runTransaction,
+  increment,
+  serverTimestamp,
+  onSnapshot,
+  Unsubscribe,
+  Timestamp
 } from 'firebase/firestore';
 import { emailService } from './email-service';
 import {
@@ -183,6 +189,34 @@ export const chatService = {
     }
   },
 
+  // Real-time subscription for chat rooms
+  subscribeToChatRooms(
+    userId: string, 
+    callback: (rooms: ChatRoom[]) => void,
+    onError?: (error: Error) => void
+  ): Unsubscribe {
+    const q = query(
+      collection(db, 'chatRooms'),
+      where('participants', 'array-contains', userId),
+      orderBy('lastActivity', 'desc')
+    );
+    
+    return onSnapshot(
+      q,
+      (snapshot) => {
+        const rooms = snapshot.docs.map((doc) => ({ 
+          id: doc.id, 
+          ...doc.data() 
+        } as ChatRoom));
+        callback(rooms);
+      },
+      (error) => {
+        console.error('Error in chat rooms subscription:', error);
+        onError?.(error);
+      }
+    );
+  },
+
   async createChatRoom(chatRoom: Omit<ChatRoom, 'id'>): Promise<string> {
     try {
       const docRef = await addDoc(collection(db, 'chatRooms'), chatRoom);
@@ -209,21 +243,125 @@ export const chatService = {
     }
   },
 
+  // Real-time subscription for messages
+  subscribeToMessages(
+    chatRoomId: string,
+    callback: (messages: ChatMessage[]) => void,
+    onError?: (error: Error) => void,
+    messageLimit: number = 100
+  ): Unsubscribe {
+    const q = query(
+      collection(db, 'messages'),
+      where('chatRoomId', '==', chatRoomId),
+      orderBy('createdAt', 'asc'),
+      firestoreLimit(messageLimit)
+    );
+    
+    return onSnapshot(
+      q,
+      (snapshot) => {
+        const messages = snapshot.docs.map((doc) => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            ...data,
+            createdAt: data.createdAt instanceof Timestamp 
+              ? data.createdAt.toDate() 
+              : data.createdAt,
+          } as ChatMessage;
+        });
+        callback(messages);
+      },
+      (error) => {
+        console.error('Error in messages subscription:', error);
+        onError?.(error);
+      }
+    );
+  },
+
   async sendMessage(message: Omit<ChatMessage, 'id'>): Promise<string> {
     try {
-      const docRef = await addDoc(collection(db, 'messages'), message);
+      const docRef = await addDoc(collection(db, 'messages'), {
+        ...message,
+        createdAt: serverTimestamp(),
+      });
       
       // Update chat room's last message and activity
       if (message.chatRoomId) {
         await updateDoc(doc(db, 'chatRooms', message.chatRoomId), {
           lastMessage: message,
-          lastActivity: message.createdAt
+          lastActivity: serverTimestamp()
         });
       }
       
       return docRef.id;
     } catch (error) {
       console.error('Error sending message:', error);
+      throw error;
+    }
+  },
+
+  // Add reaction to message
+  async addReaction(messageId: string, userId: string, emoji: string): Promise<void> {
+    try {
+      const messageRef = doc(db, 'messages', messageId);
+      const messageDoc = await getDoc(messageRef);
+      
+      if (messageDoc.exists()) {
+        const data = messageDoc.data();
+        const reactions = data.reactions || {};
+        
+        if (!reactions[emoji]) {
+          reactions[emoji] = [];
+        }
+        
+        if (!reactions[emoji].includes(userId)) {
+          reactions[emoji].push(userId);
+        }
+        
+        await updateDoc(messageRef, { reactions });
+      }
+    } catch (error) {
+      console.error('Error adding reaction:', error);
+      throw error;
+    }
+  },
+
+  // Remove reaction from message
+  async removeReaction(messageId: string, userId: string, emoji: string): Promise<void> {
+    try {
+      const messageRef = doc(db, 'messages', messageId);
+      const messageDoc = await getDoc(messageRef);
+      
+      if (messageDoc.exists()) {
+        const data = messageDoc.data();
+        const reactions = data.reactions || {};
+        
+        if (reactions[emoji]) {
+          reactions[emoji] = reactions[emoji].filter((id: string) => id !== userId);
+          if (reactions[emoji].length === 0) {
+            delete reactions[emoji];
+          }
+        }
+        
+        await updateDoc(messageRef, { reactions });
+      }
+    } catch (error) {
+      console.error('Error removing reaction:', error);
+      throw error;
+    }
+  },
+
+  // Delete message (soft delete)
+  async deleteMessage(messageId: string): Promise<void> {
+    try {
+      await updateDoc(doc(db, 'messages', messageId), {
+        isDeleted: true,
+        content: '[Message deleted]',
+        deletedAt: serverTimestamp(),
+      });
+    } catch (error) {
+      console.error('Error deleting message:', error);
       throw error;
     }
   }
@@ -524,7 +662,7 @@ export const ticketService = {
     }
   },
 
-  // Full registration flow
+  // Full registration flow with transaction
   async registerForEvent(
     eventId: string, 
     userId: string, 
@@ -533,80 +671,104 @@ export const ticketService = {
     customFields?: Record<string, any>
   ): Promise<EventTicket> {
     try {
-      // Get event details
-      const eventDoc = await getDoc(doc(db, 'events', eventId));
-      if (!eventDoc.exists()) {
-        throw new Error('Event not found');
-      }
+      const eventRef = doc(db, 'events', eventId);
       
-      const event = eventDoc.data() as Event;
-      
-      // Check capacity
-      const currentCount = event.registeredCount || 0;
-      if (event.capacity && currentCount >= event.capacity) {
-        throw new Error('Event is at full capacity');
-      }
+      // Use a transaction to ensure atomic updates
+      const result = await runTransaction(db, async (transaction) => {
+        // Get event details within transaction
+        const eventDoc = await transaction.get(eventRef);
+        if (!eventDoc.exists()) {
+          throw new Error('Event not found');
+        }
+        
+        const event = eventDoc.data() as Event;
+        
+        // Check capacity
+        const currentCount = event.registeredCount || 0;
+        if (event.capacity && currentCount >= event.capacity) {
+          throw new Error('Event is at full capacity');
+        }
 
-      // Check if already registered
-      const existingTicketQuery = query(
-        collection(db, 'tickets'),
-        where('eventId', '==', eventId),
-        where('userId', '==', userId),
-        where('status', 'in', ['confirmed', 'pending'])
-      );
-      const existingTickets = await getDocs(existingTicketQuery);
-      if (!existingTickets.empty) {
-        throw new Error('Already registered for this event');
-      }
+        // Check if already registered (need to do this outside transaction for query)
+        const existingTicketQuery = query(
+          collection(db, 'tickets'),
+          where('eventId', '==', eventId),
+          where('userId', '==', userId),
+          where('status', 'in', ['confirmed', 'pending'])
+        );
+        const existingTickets = await getDocs(existingTicketQuery);
+        if (!existingTickets.empty) {
+          throw new Error('Already registered for this event');
+        }
 
-      // Determine price
-      let price = 0;
-      let currency = 'USD';
-      if (event.pricing && event.pricing.type !== 'free' && !event.pricing.isFree) {
-        price = event.pricing.basePrice || 0;
-        // If there are ticket types, get the specific one
-        if (ticketTypeId && (event as any).ticketTypes) {
-          const ticketType = (event as any).ticketTypes.find((t: any) => t.id === ticketTypeId);
-          if (ticketType) {
-            price = ticketType.price || price;
+        // Determine price
+        let price = 0;
+        let currency = 'USD';
+        if (event.pricing && event.pricing.type !== 'free' && !event.pricing.isFree) {
+          price = event.pricing.basePrice || 0;
+          if (ticketTypeId && (event as any).ticketTypes) {
+            const ticketType = (event as any).ticketTypes.find((t: any) => t.id === ticketTypeId);
+            if (ticketType) {
+              price = ticketType.price || price;
+            }
           }
         }
-      }
 
-      // Generate ticket
-      const ticketNumber = this.generateTicketNumber();
-      const ticketData: Omit<EventTicket, 'id'> = {
-        eventId,
-        userId,
-        ticketTypeId,
-        ticketNumber,
-        status: 'confirmed',
-        purchaseDate: new Date(),
-        price,
-        currency,
-        attendeeName: userDetails.name,
-        attendeeEmail: userDetails.email,
-        customFields,
-        event: {
-          title: event.title,
-          date: event.startDate || new Date(),
-          location: typeof event.location === 'string' 
-            ? event.location 
-            : event.location?.venue?.name || 'TBD',
-          image: event.imageUrl || event.image
-        }
-      };
+        // Generate ticket
+        const ticketNumber = this.generateTicketNumber();
+        const ticketRef = doc(collection(db, 'tickets'));
+        const ticketData: Omit<EventTicket, 'id'> = {
+          eventId,
+          userId,
+          ticketTypeId,
+          ticketNumber,
+          status: 'confirmed',
+          purchaseDate: new Date(),
+          price,
+          currency,
+          attendeeName: userDetails.name,
+          attendeeEmail: userDetails.email,
+          customFields,
+          event: {
+            title: event.title,
+            date: event.startDate || new Date(),
+            location: typeof event.location === 'string' 
+              ? event.location 
+              : event.location?.venue?.name || 'TBD',
+            image: event.imageUrl || event.image
+          }
+        };
 
-      // Create ticket
-      const ticketId = await this.createTicket(ticketData);
+        // Atomically create ticket and update counts
+        transaction.set(ticketRef, {
+          ...ticketData,
+          purchaseDate: serverTimestamp(),
+          createdAt: serverTimestamp()
+        });
+        
+        // Update event registration count
+        transaction.update(eventRef, {
+          registeredCount: increment(1),
+          updatedAt: serverTimestamp()
+        });
+        
+        // Add user to event attendees subcollection
+        const attendeeRef = doc(db, 'events', eventId, 'attendees', userId);
+        transaction.set(attendeeRef, {
+          userId,
+          name: userDetails.name,
+          email: userDetails.email,
+          registeredAt: serverTimestamp(),
+          ticketId: ticketRef.id
+        });
 
-      // Update event registration count
-      await eventService.registerForEvent(eventId, userId);
+        return { ticketId: ticketRef.id, ticketData, event };
+      });
 
-      const finalTicket = { id: ticketId, ...ticketData } as EventTicket;
+      const finalTicket = { id: result.ticketId, ...result.ticketData } as EventTicket;
 
       // Send confirmation email (async, don't block on failure)
-      emailService.sendRegistrationConfirmation(finalTicket, event).catch(err => {
+      emailService.sendRegistrationConfirmation(finalTicket, result.event).catch(err => {
         console.error('Failed to send confirmation email:', err);
       });
 

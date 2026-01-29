@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -25,11 +25,13 @@ import {
   Shield,
   Mic,
   MicOff,
-  VideoOff
+  VideoOff,
+  Loader2
 } from 'lucide-react';
 import { ChatRoom, ChatMessage, User } from '@/types';
 import { chatService } from '@/lib/firestore-services';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
 
 // Mock data
 const mockChatRooms: ChatRoom[] = [
@@ -132,6 +134,7 @@ interface EnhancedChatClientProps {
 
 export default function EnhancedChatClient({ initialRoomId }: EnhancedChatClientProps) {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [chatRooms, setChatRooms] = useState<ChatRoom[]>(mockChatRooms);
   const [selectedRoom, setSelectedRoom] = useState<ChatRoom | null>(
     initialRoomId ? mockChatRooms.find(room => room.id === initialRoomId) || null : null
@@ -142,6 +145,8 @@ export default function EnhancedChatClient({ initialRoomId }: EnhancedChatClient
   const [isCallActive, setIsCallActive] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [isVideoOff, setIsVideoOff] = useState(false);
+  const [isLoadingMessages, setIsLoadingMessages] = useState(false);
+  const [isSending, setIsSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const [newRoom, setNewRoom] = useState({
@@ -151,16 +156,51 @@ export default function EnhancedChatClient({ initialRoomId }: EnhancedChatClient
     isPrivate: false
   });
 
+  // Real-time subscription to chat rooms
   useEffect(() => {
-    if (user) {
-      loadChatRooms();
-    }
+    if (!user) return;
+
+    const unsubscribe = chatService.subscribeToChatRooms(
+      user.id,
+      (rooms) => {
+        if (rooms.length > 0) {
+          setChatRooms(rooms);
+        }
+      },
+      (error) => {
+        console.error('Chat rooms subscription error:', error);
+        // Fall back to mock data on error
+      }
+    );
+
+    return () => unsubscribe();
   }, [user]);
 
+  // Real-time subscription to messages when a room is selected
   useEffect(() => {
-    if (selectedRoom) {
-      loadMessages();
-    }
+    if (!selectedRoom) return;
+
+    setIsLoadingMessages(true);
+    
+    const unsubscribe = chatService.subscribeToMessages(
+      selectedRoom.id,
+      (roomMessages) => {
+        if (roomMessages.length > 0) {
+          setMessages(roomMessages);
+        } else {
+          // Fall back to mock messages for selected room
+          setMessages(mockMessages.filter(msg => msg.chatRoomId === selectedRoom.id));
+        }
+        setIsLoadingMessages(false);
+      },
+      (error) => {
+        console.error('Messages subscription error:', error);
+        setMessages(mockMessages.filter(msg => msg.chatRoomId === selectedRoom.id));
+        setIsLoadingMessages(false);
+      }
+    );
+
+    return () => unsubscribe();
   }, [selectedRoom]);
 
   useEffect(() => {
@@ -171,42 +211,17 @@ export default function EnhancedChatClient({ initialRoomId }: EnhancedChatClient
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const loadChatRooms = async () => {
-    if (!user) return;
-    
-    try {
-      const rooms = await chatService.getChatRooms(user.id);
-      if (rooms.length > 0) {
-        setChatRooms(rooms);
-      }
-    } catch (error) {
-      console.error('Error loading chat rooms:', error);
-    }
-  };
+  const handleSendMessage = useCallback(async () => {
+    if (!newMessage.trim() || !selectedRoom || !user || isSending) return;
 
-  const loadMessages = async () => {
-    if (!selectedRoom) return;
-
-    try {
-      const roomMessages = await chatService.getMessages(selectedRoom.id);
-      if (roomMessages.length > 0) {
-        setMessages(roomMessages);
-      } else {
-        // Filter mock messages for selected room
-        setMessages(mockMessages.filter(msg => msg.chatRoomId === selectedRoom.id));
-      }
-    } catch (error) {
-      console.error('Error loading messages:', error);
-    }
-  };
-
-  const handleSendMessage = async () => {
-    if (!newMessage.trim() || !selectedRoom || !user) return;
+    setIsSending(true);
+    const messageContent = newMessage.trim();
+    setNewMessage(''); // Clear immediately for better UX
 
     const messageData: Omit<ChatMessage, 'id'> = {
       chatRoomId: selectedRoom.id,
       senderId: user.id,
-      content: newMessage.trim(),
+      content: messageContent,
       type: 'text',
       createdAt: new Date(),
       isDeleted: false,
@@ -216,35 +231,37 @@ export default function EnhancedChatClient({ initialRoomId }: EnhancedChatClient
     try {
       await chatService.sendMessage(messageData);
       
-      // Add message to local state immediately for better UX
-      const tempMessage: ChatMessage = {
-        ...messageData,
-        id: `temp-${Date.now()}`
-      };
-      setMessages(prev => [...prev, tempMessage]);
-      setNewMessage('');
+      // With real-time subscription, the message will appear automatically
+      // No need to manually add to local state
 
       // Check if message mentions AI assistant
-      if (newMessage.toLowerCase().includes('@ai') || newMessage.toLowerCase().includes('ai assistant')) {
-        // Simulate AI response
-        setTimeout(() => {
-          const aiResponse: ChatMessage = {
-            id: `ai-${Date.now()}`,
+      if (messageContent.toLowerCase().includes('@ai') || messageContent.toLowerCase().includes('ai assistant')) {
+        // Add AI response
+        setTimeout(async () => {
+          const aiMessageData: Omit<ChatMessage, 'id'> = {
             chatRoomId: selectedRoom.id,
             senderId: 'ai-assistant',
-            content: generateAIResponse(newMessage),
+            content: generateAIResponse(messageContent),
             type: 'ai_response',
             createdAt: new Date(),
             isDeleted: false,
             reactions: {}
           };
-          setMessages(prev => [...prev, aiResponse]);
+          await chatService.sendMessage(aiMessageData);
         }, 1000);
       }
     } catch (error) {
       console.error('Error sending message:', error);
+      setNewMessage(messageContent); // Restore message on error
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to send message. Please try again.',
+      });
+    } finally {
+      setIsSending(false);
     }
-  };
+  }, [newMessage, selectedRoom, user, isSending, toast]);
 
   const generateAIResponse = (userMessage: string): string => {
     const responses = [

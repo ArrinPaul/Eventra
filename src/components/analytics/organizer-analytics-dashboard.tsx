@@ -12,6 +12,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
+import { StakeholderShareDialog } from '@/components/analytics/stakeholder-share-view';
 import { 
   BarChart3, 
   TrendingUp, 
@@ -105,6 +106,9 @@ export default function OrganizerAnalyticsDashboard({ organizerId }: OrganizerAn
   const [timeRange, setTimeRange] = useState('30');
   const [selectedEvent, setSelectedEvent] = useState<string>('all');
   const [activeTab, setActiveTab] = useState('performance');
+  const [showShareDialog, setShowShareDialog] = useState(false);
+  const [shareEventId, setShareEventId] = useState<string>('');
+  const [shareEventName, setShareEventName] = useState<string>('');
 
   // Mock data - In production, fetch from Firestore
   const [events, setEvents] = useState<EventPerformance[]>([]);
@@ -311,11 +315,27 @@ export default function OrganizerAnalyticsDashboard({ organizerId }: OrganizerAn
     // In production, generate and download CSV/PDF
   };
 
-  const handleShareReport = () => {
-    toast({
-      title: 'Share Link Generated',
-      description: 'A shareable link has been copied to your clipboard.'
-    });
+  const handleShareReport = (eventId?: string, eventName?: string) => {
+    // If sharing a specific event, use those details
+    if (eventId && eventName) {
+      setShareEventId(eventId);
+      setShareEventName(eventName);
+    } else if (selectedEvent !== 'all') {
+      // If a specific event is selected in the dropdown, use that
+      const event = events.find(e => e.eventId === selectedEvent);
+      if (event) {
+        setShareEventId(event.eventId);
+        setShareEventName(event.eventName);
+      } else {
+        setShareEventId('all');
+        setShareEventName('All Events Analytics');
+      }
+    } else {
+      // Default to all events
+      setShareEventId('all');
+      setShareEventName('All Events Analytics');
+    }
+    setShowShareDialog(true);
   };
 
   const getStatusColor = (status: string) => {
@@ -368,7 +388,7 @@ export default function OrganizerAnalyticsDashboard({ organizerId }: OrganizerAn
             <Download className="w-4 h-4 mr-2" />
             Export
           </Button>
-          <Button onClick={handleShareReport}>
+          <Button onClick={() => handleShareReport()}>
             <Share2 className="w-4 h-4 mr-2" />
             Share
           </Button>
@@ -870,6 +890,14 @@ export default function OrganizerAnalyticsDashboard({ organizerId }: OrganizerAn
           )}
         </TabsContent>
       </Tabs>
+
+      {/* Stakeholder Share Dialog */}
+      <StakeholderShareDialog
+        eventId={shareEventId}
+        eventName={shareEventName}
+        open={showShareDialog}
+        onOpenChange={setShowShareDialog}
+      />
     </div>
   );
 }

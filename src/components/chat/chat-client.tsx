@@ -1,6 +1,5 @@
 'use client';
-import { useState, useEffect, useRef, useMemo } from 'react';
-import useLocalStorage from '@/hooks/use-local-storage';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import type { ChatMessage, UserRole, User as UserType } from '@/types';
 import { Button } from '@/components/ui/button';
@@ -13,17 +12,32 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGr
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { getBotAnnouncement } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
+import { 
+  collection, 
+  query, 
+  orderBy, 
+  onSnapshot, 
+  addDoc, 
+  serverTimestamp, 
+  limit,
+  where,
+  or,
+  Timestamp
+} from 'firebase/firestore';
+import { db, FIRESTORE_COLLECTIONS } from '@/lib/firebase';
 
 
 const EMOJIS = ['😀', '😂', '😍', '🤔', '👍', '🎉', '🚀', '💻'];
+const CHAT_ROOM_ID = 'global-chat'; // Default global chat room
 
 export default function ChatClient() {
   const { user, users, awardPoints } = useAuth();
   const { toast } = useToast();
-  const [messages, setMessages] = useLocalStorage<ChatMessage[]>('ipx-chat', []);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [privateTo, setPrivateTo] = useState<string>('all');
   const [botLoading, setBotLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   const { organizers, attendees } = useMemo(() => {
@@ -33,6 +47,72 @@ export default function ChatClient() {
   }, [users, user]);
   
   const allUsersMap = useMemo(() => new Map(users.map(u => [u.id, u.name])), [users]);
+
+  // Real-time Firestore listener for messages
+  useEffect(() => {
+    if (!user) return;
+
+    setIsLoading(true);
+    const messagesRef = collection(db, FIRESTORE_COLLECTIONS.MESSAGES);
+    
+    // Query messages for global chat room
+    // Include public messages and private messages involving the current user
+    const q = query(
+      messagesRef,
+      where('chatRoomId', '==', CHAT_ROOM_ID),
+      orderBy('timestamp', 'asc'),
+      limit(100)
+    );
+
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        const newMessages: ChatMessage[] = [];
+        
+        snapshot.forEach((doc) => {
+          const data = doc.data();
+          // Filter private messages on client side for security
+          const isPublic = !data.to;
+          const isForMe = data.to === user.id;
+          const isFromMe = data.senderId === user.id;
+          
+          if (isPublic || isForMe || isFromMe) {
+            newMessages.push({
+              id: doc.id,
+              chatRoomId: data.chatRoomId,
+              senderId: data.senderId,
+              user: data.user || {
+                id: data.senderId,
+                name: data.senderName || 'Unknown',
+                role: data.senderRole || 'attendee',
+                isBot: data.isBot || false,
+              },
+              to: data.to,
+              content: data.content,
+              timestamp: data.timestamp instanceof Timestamp 
+                ? data.timestamp.toMillis() 
+                : data.timestamp,
+              createdAt: data.createdAt?.toDate?.() || new Date(),
+            });
+          }
+        });
+        
+        setMessages(newMessages);
+        setIsLoading(false);
+      },
+      (error) => {
+        console.error('Error listening to messages:', error);
+        setIsLoading(false);
+        toast({
+          variant: 'destructive',
+          title: 'Connection Error',
+          description: 'Failed to load messages. Please refresh the page.',
+        });
+      }
+    );
+
+    return () => unsubscribe();
+  }, [user, toast]);
 
   useEffect(() => {
     // Scroll to bottom on new message
@@ -44,73 +124,85 @@ export default function ChatClient() {
     }
   }, [messages]);
 
-  // Simulate real-time updates by re-reading from localStorage
-  useEffect(() => {
-    const interval = setInterval(() => {
-        const storedMessages = window.localStorage.getItem('ipx-chat');
-        if (storedMessages) {
-            const parsedMessages = JSON.parse(storedMessages);
-            if(JSON.stringify(parsedMessages) !== JSON.stringify(messages)) {
-                setMessages(parsedMessages);
-            }
-        }
-    }, 2000);
-    return () => clearInterval(interval);
-  }, [messages, setMessages]);
-
-
-  const handleSendMessage = () => {
+  const handleSendMessage = useCallback(async () => {
     if (!newMessage.trim() || !user) return;
-    const message: ChatMessage = {
-      id: `msg-${Date.now()}`,
-      user: { id: user.id, name: user.name, role: user.role as UserRole },
+    
+    const messageData = {
+      chatRoomId: CHAT_ROOM_ID,
+      senderId: user.id,
+      senderName: user.name,
+      senderRole: user.role,
+      user: { 
+        id: user.id, 
+        name: user.name, 
+        role: user.role as UserRole 
+      },
       content: newMessage,
-      timestamp: Date.now(),
+      timestamp: serverTimestamp(),
       ...(privateTo !== 'all' && { to: privateTo }),
     };
-    setMessages([...messages, message]);
+
+    // Clear input immediately for better UX
+    const messageContent = newMessage;
     setNewMessage('');
-    if (privateTo === 'all') {
+
+    try {
+      await addDoc(collection(db, FIRESTORE_COLLECTIONS.MESSAGES), messageData);
+      
+      if (privateTo === 'all') {
         awardPoints(5, 'for sending a message');
+      }
+    } catch (error) {
+      console.error('Error sending message:', error);
+      // Restore message on error
+      setNewMessage(messageContent);
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to send message. Please try again.',
+      });
     }
-  };
+  }, [newMessage, user, privateTo, awardPoints, toast]);
 
   const handleBotMessage = async () => {
     setBotLoading(true);
     try {
-        const result = await getBotAnnouncement();
-        const botMessage: ChatMessage = {
-            id: `msg-${Date.now()}`,
-            user: { id: 'bot-1', name: 'Announcer Bot', role: 'organizer', isBot: true },
-            content: result.announcement,
-            timestamp: Date.now(),
-        };
-        setMessages(prev => [...prev, botMessage]);
+      const result = await getBotAnnouncement();
+      
+      const botMessageData = {
+        chatRoomId: CHAT_ROOM_ID,
+        senderId: 'bot-1',
+        senderName: 'Announcer Bot',
+        senderRole: 'organizer',
+        isBot: true,
+        user: { 
+          id: 'bot-1', 
+          name: 'Announcer Bot', 
+          role: 'organizer' as UserRole, 
+          isBot: true 
+        },
+        content: result.announcement,
+        timestamp: serverTimestamp(),
+      };
+      
+      await addDoc(collection(db, FIRESTORE_COLLECTIONS.MESSAGES), botMessageData);
     } catch (error) {
-        toast({
-            variant: 'destructive',
-            title: 'Bot Error',
-            description: 'The announcer bot is taking a break. Please try again later.',
-        });
+      toast({
+        variant: 'destructive',
+        title: 'Bot Error',
+        description: 'The announcer bot is taking a break. Please try again later.',
+      });
     } finally {
-        setBotLoading(false);
+      setBotLoading(false);
     }
-  }
+  };
 
 
   if (!user) return null;
 
-  const visibleMessages = messages.filter(msg => {
-    // Public messages
-    if (!msg.to) return true;
-    // Private messages to me
-    if (msg.to === user.id) return true;
-    // My private messages to others
-    if (msg.user.id === user.id) return true;
-    return false;
-  });
+  const visibleMessages = messages; // Already filtered by Firestore query + client-side filter
 
-  const isLoading = botLoading;
+  const chatIsLoading = botLoading || isLoading;
 
   return (
     <div className="container py-8 h-[calc(100vh-4rem)] flex flex-col">
@@ -120,7 +212,7 @@ export default function ChatClient() {
             <p className="text-muted-foreground">Connect with attendees and organizers.</p>
         </div>
         {user.role === 'organizer' && (
-          <Button onClick={handleBotMessage} disabled={isLoading} variant="outline" className="interactive-element">
+          <Button onClick={handleBotMessage} disabled={chatIsLoading} variant="outline" className="interactive-element">
               {botLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4 text-primary" />}
               Send Session Alert
           </Button>
@@ -172,7 +264,7 @@ export default function ChatClient() {
           </div>
         </ScrollArea>
         <div className="p-4 border-t bg-background flex items-center gap-2">
-            <Select onValueChange={setPrivateTo} value={privateTo} disabled={isLoading}>
+            <Select onValueChange={setPrivateTo} value={privateTo} disabled={chatIsLoading}>
                 <SelectTrigger className="w-full md:w-[220px]">
                     <SelectValue placeholder="Send to..." />
                 </SelectTrigger>
@@ -196,13 +288,13 @@ export default function ChatClient() {
                 <Input 
                     value={newMessage} 
                     onChange={(e) => setNewMessage(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && !isLoading && handleSendMessage()}
+                    onKeyPress={(e) => e.key === 'Enter' && !chatIsLoading && handleSendMessage()}
                     placeholder="Type a message..."
-                    disabled={isLoading}
+                    disabled={chatIsLoading}
                 />
                 <Popover>
                     <PopoverTrigger asChild>
-                        <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8" disabled={isLoading}>
+                        <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8" disabled={chatIsLoading}>
                             <Smile />
                         </Button>
                     </PopoverTrigger>
@@ -217,7 +309,7 @@ export default function ChatClient() {
                     </PopoverContent>
                 </Popover>
             </div>
-            <Button onClick={handleSendMessage} disabled={isLoading}><Send className="h-4 w-4" /></Button>
+            <Button onClick={handleSendMessage} disabled={chatIsLoading}><Send className="h-4 w-4" /></Button>
         </div>
       </div>
     </div>

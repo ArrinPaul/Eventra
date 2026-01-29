@@ -95,10 +95,12 @@ interface StakeholderReportData {
 interface StakeholderShareViewProps {
   eventId: string;
   eventName: string;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
   onClose?: () => void;
 }
 
-export function StakeholderShareDialog({ eventId, eventName, onClose }: StakeholderShareViewProps) {
+export function StakeholderShareDialog({ eventId, eventName, open, onOpenChange, onClose }: StakeholderShareViewProps) {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [shareConfig, setShareConfig] = useState<ShareableReportConfig | null>(null);
@@ -189,15 +191,16 @@ export function StakeholderShareDialog({ eventId, eventName, onClose }: Stakehol
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h3 className="text-lg font-semibold">Share Analytics Report</h3>
-        <p className="text-sm text-muted-foreground">
-          Create a shareable link for sponsors, stakeholders, or administrators
-        </p>
-      </div>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Share Analytics Report</DialogTitle>
+          <DialogDescription>
+            Create a shareable link for sponsors, stakeholders, or administrators - {eventName}
+          </DialogDescription>
+        </DialogHeader>
 
+        <div className="space-y-6 py-4">
       {shareConfig ? (
         /* Existing Share Link */
         <motion.div
@@ -496,7 +499,9 @@ export function StakeholderShareDialog({ eventId, eventName, onClose }: Stakehol
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 

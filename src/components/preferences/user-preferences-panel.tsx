@@ -91,12 +91,16 @@ interface UserPreferences {
   };
 }
 
-export default function UserPreferencesPanel() {
+interface UserPreferencesPanelProps {
+  initialTab?: 'notifications' | 'privacy' | 'accessibility' | 'general';
+}
+
+export default function UserPreferencesPanel({ initialTab = 'notifications' }: UserPreferencesPanelProps) {
   const { user } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [activeTab, setActiveTab] = useState<'notifications' | 'privacy' | 'accessibility' | 'general'>('notifications');
+  const [activeTab, setActiveTab] = useState<'notifications' | 'privacy' | 'accessibility' | 'general'>(initialTab);
   
   const [notificationPrefs, setNotificationPrefs] = useState<NotificationPreferences>({
     email: {

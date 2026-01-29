@@ -21,6 +21,20 @@ import {
 } from '@/components/ui/popover';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
+import { 
+  collection, 
+  query, 
+  where, 
+  orderBy, 
+  limit, 
+  onSnapshot,
+  doc,
+  updateDoc,
+  deleteDoc,
+  writeBatch,
+  serverTimestamp
+} from 'firebase/firestore';
+import { db, FIRESTORE_COLLECTIONS } from '@/lib/firebase';
 import {
   Bell,
   BellOff,
@@ -119,11 +133,48 @@ export function NotificationBell() {
 
   useEffect(() => {
     if (user) {
-      loadNotifications();
+      // Subscribe to real-time notifications from Firestore
+      const notificationsRef = collection(db, FIRESTORE_COLLECTIONS.NOTIFICATIONS);
+      const q = query(
+        notificationsRef,
+        where('userId', '==', user.id),
+        orderBy('timestamp', 'desc'),
+        limit(50)
+      );
+
+      const unsubscribe = onSnapshot(q, (snapshot) => {
+        const notifications: Notification[] = snapshot.docs.map(doc => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            type: data.type,
+            title: data.title,
+            message: data.message,
+            timestamp: data.timestamp?.toDate?.() || new Date(data.timestamp),
+            read: data.read || false,
+            actionUrl: data.actionUrl,
+            actionLabel: data.actionLabel,
+            metadata: data.metadata,
+          };
+        });
+        
+        setState(prev => ({
+          ...prev,
+          notifications,
+          unreadCount: notifications.filter(n => !n.read).length
+        }));
+      }, (error) => {
+        console.error('Error subscribing to notifications:', error);
+        // Fall back to empty state on error
+        loadFallbackNotifications();
+      });
+
+      return () => unsubscribe();
     }
   }, [user]);
 
-  const loadNotifications = async () => {
+  // Fallback notifications for demo/development
+  const loadFallbackNotifications = () => {
     // Mock notifications - in production, fetch from Firestore
     const mockNotifications: Notification[] = [
       {
@@ -212,46 +263,100 @@ export function NotificationBell() {
     }));
   };
 
-  const markAsRead = (notificationId: string) => {
-    setState(prev => ({
-      ...prev,
-      notifications: prev.notifications.map(n => 
-        n.id === notificationId ? { ...n, read: true } : n
-      ),
-      unreadCount: Math.max(0, prev.unreadCount - 1)
-    }));
+  const markAsRead = async (notificationId: string) => {
+    try {
+      // Update in Firestore
+      await updateDoc(doc(db, FIRESTORE_COLLECTIONS.NOTIFICATIONS, notificationId), {
+        read: true,
+        readAt: serverTimestamp()
+      });
+      
+      // Optimistic update
+      setState(prev => ({
+        ...prev,
+        notifications: prev.notifications.map(n => 
+          n.id === notificationId ? { ...n, read: true } : n
+        ),
+        unreadCount: Math.max(0, prev.unreadCount - 1)
+      }));
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+    }
   };
 
-  const markAllAsRead = () => {
-    setState(prev => ({
-      ...prev,
-      notifications: prev.notifications.map(n => ({ ...n, read: true })),
-      unreadCount: 0
-    }));
-    toast({
-      title: 'All notifications marked as read'
-    });
+  const markAllAsRead = async () => {
+    try {
+      const unreadNotifications = state.notifications.filter(n => !n.read);
+      
+      if (unreadNotifications.length > 0) {
+        const batch = writeBatch(db);
+        unreadNotifications.forEach(n => {
+          batch.update(doc(db, FIRESTORE_COLLECTIONS.NOTIFICATIONS, n.id), {
+            read: true,
+            readAt: serverTimestamp()
+          });
+        });
+        await batch.commit();
+      }
+      
+      setState(prev => ({
+        ...prev,
+        notifications: prev.notifications.map(n => ({ ...n, read: true })),
+        unreadCount: 0
+      }));
+      toast({
+        title: 'All notifications marked as read'
+      });
+    } catch (error) {
+      console.error('Error marking all as read:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to mark notifications as read'
+      });
+    }
   };
 
-  const deleteNotification = (notificationId: string) => {
-    setState(prev => ({
-      ...prev,
-      notifications: prev.notifications.filter(n => n.id !== notificationId),
-      unreadCount: prev.notifications.find(n => n.id === notificationId && !n.read) 
-        ? prev.unreadCount - 1 
-        : prev.unreadCount
-    }));
+  const deleteNotification = async (notificationId: string) => {
+    try {
+      await deleteDoc(doc(db, FIRESTORE_COLLECTIONS.NOTIFICATIONS, notificationId));
+      
+      setState(prev => ({
+        ...prev,
+        notifications: prev.notifications.filter(n => n.id !== notificationId),
+        unreadCount: prev.notifications.find(n => n.id === notificationId && !n.read) 
+          ? prev.unreadCount - 1 
+          : prev.unreadCount
+      }));
+    } catch (error) {
+      console.error('Error deleting notification:', error);
+    }
   };
 
-  const clearAll = () => {
-    setState(prev => ({
-      ...prev,
-      notifications: [],
-      unreadCount: 0
-    }));
-    toast({
-      title: 'All notifications cleared'
-    });
+  const clearAll = async () => {
+    try {
+      const batch = writeBatch(db);
+      state.notifications.forEach(n => {
+        batch.delete(doc(db, FIRESTORE_COLLECTIONS.NOTIFICATIONS, n.id));
+      });
+      await batch.commit();
+      
+      setState(prev => ({
+        ...prev,
+        notifications: [],
+        unreadCount: 0
+      }));
+      toast({
+        title: 'All notifications cleared'
+      });
+    } catch (error) {
+      console.error('Error clearing notifications:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to clear notifications'
+      });
+    }
   };
 
   const getNotificationIcon = (type: NotificationType) => {

@@ -9,6 +9,7 @@ import { Menu, LogOut, Moon, Sun } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
+import { NotificationBell } from '@/components/notifications/notification-center';
 
 function ThemeToggle() {
     const { setTheme, theme } = useTheme();
@@ -128,6 +129,7 @@ export default function Header() {
         
         <div className="flex flex-1 items-center justify-end gap-6">
             {renderNavLinks()}
+            {user && <NotificationBell />}
             <ThemeToggle />
             <div className="flex items-center gap-4">
               {user ? (
