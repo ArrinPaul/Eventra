@@ -9,12 +9,12 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { sendPasswordResetEmail } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { auth } from '@/core/config/firebase';
 import { Loader2, Mail, ArrowLeft, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { getFirebaseErrorMessage } from '@/lib/utils';
+import { getFirebaseErrorMessage } from '@/core/utils/utils';
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email address.' }),

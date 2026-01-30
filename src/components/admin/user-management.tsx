@@ -75,7 +75,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { formatDistanceToNow } from 'date-fns';
-import { userManagementService, type UserData, type UserFilters } from '@/lib/user-management-service';
+import { userManagementService, type UserData, type UserFilters } from '@/features/admin/services/user-management-service';
 
 export default function UserManagement() {
   const { toast } = useToast();

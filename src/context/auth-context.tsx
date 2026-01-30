@@ -2,8 +2,8 @@
 import { createContext, ReactNode, useState, useEffect, useCallback } from 'react';
 import { User as FirebaseUser } from 'firebase/auth';
 import { doc, getDoc, setDoc, updateDoc, serverTimestamp, increment, arrayUnion, arrayRemove } from 'firebase/firestore';
-import { db, FIRESTORE_COLLECTIONS } from '@/lib/firebase';
-import { subscribeToAuthChanges, signOutUser } from '@/lib/auth-service';
+import { db, FIRESTORE_COLLECTIONS } from '@/core/config/firebase';
+import { subscribeToAuthChanges, signOutUser } from '@/features/auth/services/auth-service';
 import { useToast } from '@/hooks/use-toast';
 import { User } from '@/types';
 

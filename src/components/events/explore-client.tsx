@@ -37,10 +37,10 @@ import {
   RefreshCw
 } from 'lucide-react';
 import { EventCard } from '@/components/events/event-card';
-import { eventService } from '@/lib/firestore-services';
+import { eventService } from '@/core/services/firestore-services';
 import { useAuth } from '@/hooks/use-auth';
 import { getAIRecommendations, AIRecommendation } from '@/app/actions/ai-recommendations';
-import { cn } from '@/lib/utils';
+import { cn } from '@/core/utils/utils';
 import type { Event } from '@/types';
 import { getUserInterests, getUserSkills, getUserAttendedEvents } from '@/types';
 

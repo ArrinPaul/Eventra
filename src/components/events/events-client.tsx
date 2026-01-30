@@ -9,7 +9,7 @@ import { Plus, Edit, Trash2, Calendar, Clock, MapPin, Users, Tag, Loader2 } from
 import { useToast } from '@/hooks/use-toast';
 import { EventForm } from './event-form';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { eventService } from '@/lib/firestore-services';
+import { eventService } from '@/core/services/firestore-services';
 import Link from 'next/link';
 
 function EventCard({ event, isOrganizer, onEdit, onDelete }: { event: Event; isOrganizer: boolean; onEdit: (event: Event) => void; onDelete: (eventId: string) => void; }) {

@@ -3,7 +3,7 @@
 import React, { useRef, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MapPin, User } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/core/utils/utils';
 import { CampusZone, MapEvent, PathNode, getZoneCenter, hasLiveEvents } from './map-data';
 
 interface InteractiveCampusMapProps {

@@ -11,7 +11,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { Calendar, Clock, CheckCircle, XCircle, RefreshCw, Settings, ExternalLink } from 'lucide-react';
 import { doc, getDoc, updateDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
-import { db, functions } from '@/lib/firebase';
+import { db, functions } from '@/core/config/firebase';
 
 interface GoogleCalendarSync {
   googleEventId: string;
@@ -351,7 +351,7 @@ export default function GoogleCalendarIntegration() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="font-medium text-green-700 dark:text-green-400">
-                    ✅ Google Calendar Connected
+                    âœ… Google Calendar Connected
                   </p>
                   <p className="text-sm text-muted-foreground">
                     Your events will be automatically synced to Google Calendar

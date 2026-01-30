@@ -24,7 +24,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
-import { db } from '@/lib/firebase';
+import { db } from '@/core/config/firebase';
 import { collection, query, orderBy, getDocs, addDoc, updateDoc, deleteDoc, doc, where, serverTimestamp, limit as firestoreLimit, getDoc, setDoc } from 'firebase/firestore';
 import {
   Shield,
@@ -110,7 +110,7 @@ import {
   StopCircle,
   Square
 } from 'lucide-react';
-import { EVENTOS_CONFIG } from '@/lib/eventos-config';
+import { EVENTOS_CONFIG } from '@/core/config/eventos-config';
 import type { User as EventosUser, Organization } from '@/types';
 
 // Security Types
@@ -342,7 +342,7 @@ const SSO_PROVIDERS: SSOProvider[] = [
     id: 'azure_ad',
     name: 'Microsoft Azure AD',
     type: 'oidc',
-    logo: '🔷',
+    logo: 'ðŸ”·',
     isActive: true,
     configuration: {
       clientId: 'your-azure-client-id',
@@ -361,7 +361,7 @@ const SSO_PROVIDERS: SSOProvider[] = [
     id: 'google_workspace',
     name: 'Google Workspace',
     type: 'oauth2',
-    logo: '🟡',
+    logo: 'ðŸŸ¡',
     isActive: true,
     configuration: {
       clientId: 'your-google-client-id',
@@ -562,7 +562,7 @@ export function SecurityComplianceSystem() {
         id: `sso_${Date.now()}`,
         name: data.name,
         type: data.type,
-        logo: data.type === 'saml' ? '🔶' : data.type === 'oidc' ? '🔷' : '🟢',
+        logo: data.type === 'saml' ? 'ðŸ”¶' : data.type === 'oidc' ? 'ðŸ”·' : 'ðŸŸ¢',
         isActive: false,
         configuration: {
           clientId: data.clientId,

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '@/hooks/use-auth';
-import { ticketService, eventService } from '@/lib/firestore-services';
+import { ticketService, eventService } from '@/core/services/firestore-services';
 import { EventTicket, Event } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -38,7 +38,7 @@ import {
   VolumeX,
   Zap
 } from 'lucide-react';
-import { cn, getErrorMessage } from '@/lib/utils';
+import { cn, getErrorMessage } from '@/core/utils/utils';
 import { format } from 'date-fns';
 import { Html5Qrcode, Html5QrcodeScanner } from 'html5-qrcode';
 import { useToast } from '@/hooks/use-toast';

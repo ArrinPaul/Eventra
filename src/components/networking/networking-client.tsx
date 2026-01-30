@@ -18,7 +18,7 @@ import {
   Calendar, Video
 } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
-import { userProfileService, matchingService } from '@/lib/firestore-services';
+import { userProfileService, matchingService } from '@/core/services/firestore-services';
 import { UserProfile, ConnectionRequest, MatchProfile } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import ConnectionMessaging from './connection-messaging';
@@ -474,9 +474,9 @@ export default function NetworkingClient() {
                     <CardTitle className="text-lg">Networking Tips</CardTitle>
                 </CardHeader>
                 <CardContent className="text-sm space-y-3">
-                    <p>💡 Complete your profile to get better AI matches.</p>
-                    <p>🤝 Personalize your connection requests.</p>
-                    <p>📅 Schedule virtual coffee chats with new connections.</p>
+                    <p>ðŸ’¡ Complete your profile to get better AI matches.</p>
+                    <p>ðŸ¤ Personalize your connection requests.</p>
+                    <p>ðŸ“… Schedule virtual coffee chats with new connections.</p>
                 </CardContent>
             </Card>
         </div>

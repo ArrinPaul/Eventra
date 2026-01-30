@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { Event } from '@/types';
-import { eventService } from '@/lib/firestore-services';
+import { eventService } from '@/core/services/firestore-services';
 import { MyEventCard } from '@/components/events/my-event-card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -24,9 +24,9 @@ import {
   Share2
 } from 'lucide-react';
 import Link from 'next/link';
-import { cn } from '@/lib/utils';
+import { cn } from '@/core/utils/utils';
 import { format, isPast, isFuture, isToday } from 'date-fns';
-import { db, FIRESTORE_COLLECTIONS } from '@/lib/firebase';
+import { db, FIRESTORE_COLLECTIONS } from '@/core/config/firebase';
 import { doc, getDoc, updateDoc, arrayUnion, arrayRemove, setDoc, Timestamp } from 'firebase/firestore';
 
 // Helper function to safely parse event date

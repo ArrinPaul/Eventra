@@ -23,7 +23,7 @@ import {
   BookmarkCheck
 } from 'lucide-react';
 import { collection, query, where, orderBy, getDocs, limit, startAfter, DocumentSnapshot } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { db } from '@/core/config/firebase';
 
 interface SearchFilters {
   category: string;

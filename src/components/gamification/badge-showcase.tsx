@@ -18,7 +18,7 @@ import {
   Eye
 } from 'lucide-react';
 import { getBadgeDefinitions, getUserBadges, getBadgeProgress, type BadgeDefinition, type UserBadge } from '@/app/actions/badges';
-import { cn } from '@/lib/utils';
+import { cn } from '@/core/utils/utils';
 
 interface BadgeShowcaseProps {
   userId: string;
@@ -51,11 +51,11 @@ const rarityTextColors: { [key: string]: string } = {
 };
 
 const categoryIcons: { [key: string]: string } = {
-  attendance: '🎟️',
-  networking: '🤝',
-  engagement: '💬',
-  achievement: '🏆',
-  special: '✨'
+  attendance: 'ðŸŽŸï¸',
+  networking: 'ðŸ¤',
+  engagement: 'ðŸ’¬',
+  achievement: 'ðŸ†',
+  special: 'âœ¨'
 };
 
 export function BadgeShowcase({ userId, stats, compact = false }: BadgeShowcaseProps) {

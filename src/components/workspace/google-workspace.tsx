@@ -18,7 +18,7 @@ import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
-import { db } from '@/lib/firebase';
+import { db } from '@/core/config/firebase';
 import { collection, doc, getDoc, getDocs, setDoc, updateDoc, query, where, orderBy, serverTimestamp, deleteDoc, addDoc } from 'firebase/firestore';
 import {
   FileText,

@@ -13,8 +13,8 @@ import {
   QueryConstraint,
   DocumentData
 } from 'firebase/firestore';
-import { db, FIRESTORE_COLLECTIONS } from '@/lib/firebase';
-import { withRateLimit, rateLimitConfigs } from '@/lib/rate-limit';
+import { db, FIRESTORE_COLLECTIONS } from '@/core/config/firebase';
+import { withRateLimit, rateLimitConfigs } from '@/core/utils/rate-limit';
 
 export const dynamic = 'force-dynamic';
 

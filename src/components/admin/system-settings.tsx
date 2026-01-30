@@ -56,7 +56,7 @@ import {
   ExternalLink
 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { db } from '@/lib/firebase';
+import { db } from '@/core/config/firebase';
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 
 // Types
@@ -192,7 +192,7 @@ export default function SystemSettings() {
 
   const [apiKeys, setApiKeys] = useState({
     publicKey: 'pk_live_eventra_xxxxxxxxxxxxxxxxxxxx',
-    secretKey: '••••••••••••••••••••••••••••••••'
+    secretKey: 'â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢'
   });
 
   const [showSecretKey, setShowSecretKey] = useState(false);
@@ -529,8 +529,8 @@ export default function SystemSettings() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="USD">USD ($)</SelectItem>
-                      <SelectItem value="EUR">EUR (€)</SelectItem>
-                      <SelectItem value="GBP">GBP (£)</SelectItem>
+                      <SelectItem value="EUR">EUR (â‚¬)</SelectItem>
+                      <SelectItem value="GBP">GBP (Â£)</SelectItem>
                       <SelectItem value="CAD">CAD ($)</SelectItem>
                     </SelectContent>
                   </Select>
@@ -945,7 +945,7 @@ export default function SystemSettings() {
                   <Label>Secret Key</Label>
                   <div className="flex gap-2">
                     <Input 
-                      value={showSecretKey ? apiKeys.secretKey : '••••••••••••••••••••••••••••••••'} 
+                      value={showSecretKey ? apiKeys.secretKey : 'â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢'} 
                       readOnly 
                       className="font-mono" 
                     />

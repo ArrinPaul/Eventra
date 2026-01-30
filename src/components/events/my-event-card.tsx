@@ -16,7 +16,7 @@ import {
   Download,
   ExternalLink
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/core/utils/utils';
 import type { Event } from '@/types';
 import { format, isPast, isFuture, isToday, differenceInHours, differenceInMinutes } from 'date-fns';
 
@@ -56,7 +56,7 @@ export function MyEventCard({
         label: 'Live Now',
         variant: 'default' as const,
         className: 'bg-red-500 text-white animate-pulse',
-        icon: '🔴'
+        icon: 'ðŸ”´'
       };
     }
 
@@ -79,14 +79,14 @@ export function MyEventCard({
         label: `Starts in ${minutesUntil}m`,
         variant: 'default' as const,
         className: 'bg-orange-500 text-white',
-        icon: '⏰'
+        icon: 'â°'
       };
     } else if (hoursUntil < 24) {
       return {
         label: `Starts in ${hoursUntil}h`,
         variant: 'default' as const,
         className: 'bg-[hsl(var(--primary))]',
-        icon: '⏰'
+        icon: 'â°'
       };
     } else if (hoursUntil < 72) {
       const days = Math.floor(hoursUntil / 24);
@@ -171,7 +171,7 @@ export function MyEventCard({
         {/* Date & Time */}
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Calendar className="h-4 w-4 flex-shrink-0" />
-          <span>{format(displayDate, 'EEE, MMM d, yyyy · h:mm a')}</span>
+          <span>{format(displayDate, 'EEE, MMM d, yyyy Â· h:mm a')}</span>
         </div>
 
         {/* Location */}

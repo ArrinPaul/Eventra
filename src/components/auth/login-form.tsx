@@ -12,8 +12,8 @@ import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { Separator } from '@/components/ui/separator';
 import { Loader2, User, Briefcase } from 'lucide-react';
-import { signInWithGoogle, signInWithEmail } from '@/lib/auth-service';
-import { cn, getErrorMessage } from '@/lib/utils';
+import { signInWithGoogle, signInWithEmail } from '@/features/auth/services/auth-service';
+import { cn, getErrorMessage } from '@/core/utils/utils';
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Invalid email address.' }),

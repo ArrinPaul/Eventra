@@ -26,10 +26,10 @@ import {
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { httpsCallable } from 'firebase/functions';
-import { functions, db } from '@/lib/firebase';
+import { functions, db } from '@/core/config/firebase';
 import { collection, query, where, orderBy, getDocs, addDoc, updateDoc, doc, serverTimestamp } from 'firebase/firestore';
 import { useAuth } from '@/hooks/use-auth';
-import { getErrorMessage } from '@/lib/utils';
+import { getErrorMessage } from '@/core/utils/utils';
 
 // Simple rich text editor component since react-quill is not installed
 const SimpleEditor = ({ value, onChange, style }: { value: string; onChange: (val: string) => void; style?: React.CSSProperties }) => {
@@ -526,7 +526,7 @@ const NotationClient: React.FC<NotationClientProps> = ({ eventId, sessionId, use
                     {tags.map(tag => (
                       <Badge key={tag} variant="default" className="cursor-pointer"
                              onClick={() => removeTag(tag)}>
-                        {tag} ×
+                        {tag} Ãƒâ€”
                       </Badge>
                     ))}
                   </div>
@@ -575,7 +575,7 @@ const NotationClient: React.FC<NotationClientProps> = ({ eventId, sessionId, use
                     <CardDescription className="flex items-center gap-2 mt-2">
                       <Clock className="h-4 w-4" />
                       Updated {new Date(selectedNotation.updatedAt).toLocaleString()}
-                      • Version {selectedNotation.version}
+                      Ã¢â‚¬Â¢ Version {selectedNotation.version}
                     </CardDescription>
                   </div>
                   <div className="flex gap-2">

@@ -24,9 +24,9 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { DatePickerWithRange } from '@/components/ui/date-range-picker';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
-import { db } from '@/lib/firebase';
+import { db } from '@/core/config/firebase';
 import { collection, query, where, orderBy, getDocs, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, getDoc, limit as firestoreLimit, getCountFromServer } from 'firebase/firestore';
-import { FIRESTORE_COLLECTIONS } from '@/lib/firebase';
+import { FIRESTORE_COLLECTIONS } from '@/core/config/firebase';
 import {
   BarChart,
   Bar,
@@ -118,7 +118,7 @@ import {
   Fingerprint,
   Play
 } from 'lucide-react';
-import { EVENTOS_CONFIG } from '@/lib/eventos-config';
+import { EVENTOS_CONFIG } from '@/core/config/eventos-config';
 import type { Event, User, Organization } from '@/types';
 import { addDays, subDays, format } from 'date-fns';
 import type { DateRange } from 'react-day-picker';
@@ -700,7 +700,7 @@ export function AnalyticsReportingDashboard() {
               <div>
                 <CardTitle className="text-lg">{event.eventName}</CardTitle>
                 <CardDescription>
-                  {event.registrations.total.toLocaleString()} total registrations • 
+                  {event.registrations.total.toLocaleString()} total registrations â€¢ 
                   {formatPercentage(event.attendance.rate)} attendance rate
                 </CardDescription>
               </div>

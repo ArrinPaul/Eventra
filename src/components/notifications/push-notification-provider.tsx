@@ -9,7 +9,7 @@ import {
   requestNotificationPermission,
   isNotificationsSupported,
   getNotificationPermission
-} from '@/lib/notification-service';
+} from '@/features/notifications/services/notification-service';
 
 interface PushNotificationContextType {
   isSupported: boolean;

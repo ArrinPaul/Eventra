@@ -25,7 +25,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
-import { db } from '@/lib/firebase';
+import { db } from '@/core/config/firebase';
 import { collection, query, where, orderBy, getDocs, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, limit as firestoreLimit, getDoc } from 'firebase/firestore';
 import {
   Brain,
@@ -91,7 +91,7 @@ import {
   Lock,
   DollarSign
 } from 'lucide-react';
-import { EVENTOS_CONFIG } from '@/lib/eventos-config';
+import { EVENTOS_CONFIG } from '@/core/config/eventos-config';
 import type { Event, User, Organization } from '@/types';
 
 // AI Types
@@ -220,7 +220,7 @@ const AI_PROVIDERS: AIProvider[] = [
   {
     id: 'openai',
     name: 'OpenAI',
-    logo: '🤖',
+    logo: 'ðŸ¤–',
     description: 'Advanced language models including GPT-4 and GPT-4 Vision',
     models: [
       {
@@ -266,7 +266,7 @@ const AI_PROVIDERS: AIProvider[] = [
   {
     id: 'google',
     name: 'Google AI',
-    logo: '🟡',
+    logo: 'ðŸŸ¡',
     description: 'Gemini models with multimodal capabilities',
     models: [
       {
@@ -303,7 +303,7 @@ const AI_PROVIDERS: AIProvider[] = [
   {
     id: 'anthropic',
     name: 'Anthropic',
-    logo: '🔶',
+    logo: 'ðŸ”¶',
     description: 'Claude models focused on safety and helpfulness',
     models: [
       {
@@ -651,7 +651,7 @@ export function EnhancedAIFeatures() {
     }
     
     if (lowerInput.includes('help') || lowerInput.includes('how')) {
-      return `I'd be happy to help! Based on your question "${userInput}", here are some relevant features:\n\n• Event creation and management\n• Attendee tracking and engagement\n• AI-powered recommendations\n• Analytics and reporting\n\nWhat specific aspect would you like to explore?`;
+      return `I'd be happy to help! Based on your question "${userInput}", here are some relevant features:\n\nâ€¢ Event creation and management\nâ€¢ Attendee tracking and engagement\nâ€¢ AI-powered recommendations\nâ€¢ Analytics and reporting\n\nWhat specific aspect would you like to explore?`;
     }
     
     return `Thank you for your message: "${userInput}". I'm your AI assistant using the ${conversation.model} model. I can help you with event planning, attendee management, analytics, and more. How can I assist you further?`;
@@ -692,8 +692,8 @@ export function EnhancedAIFeatures() {
                       conversation.provider === 'google' ? 'bg-blue-100 text-blue-700' :
                       'bg-purple-100 text-purple-700'
                     }`}>
-                      {conversation.provider === 'openai' ? '🤖' :
-                       conversation.provider === 'google' ? '🟡' : '🔶'}
+                      {conversation.provider === 'openai' ? 'ðŸ¤–' :
+                       conversation.provider === 'google' ? 'ðŸŸ¡' : 'ðŸ”¶'}
                     </div>
                     <div className="flex-1 min-w-0">
                       <h4 className="font-medium truncate">{conversation.title}</h4>
@@ -726,8 +726,8 @@ export function EnhancedAIFeatures() {
                     </Badge>
                   </CardTitle>
                   <CardDescription>
-                    Model: {activeConversation.model} • 
-                    Temperature: {activeConversation.settings.temperature} • 
+                    Model: {activeConversation.model} â€¢ 
+                    Temperature: {activeConversation.settings.temperature} â€¢ 
                     Max Tokens: {activeConversation.settings.maxTokens}
                   </CardDescription>
                 </div>
@@ -758,13 +758,13 @@ export function EnhancedAIFeatures() {
                           {message.metadata && (
                             <div className="text-xs opacity-70 mt-2 flex items-center space-x-3">
                               {message.metadata.tokens && (
-                                <span>🪙 {message.metadata.tokens} tokens</span>
+                                <span>ðŸª™ {message.metadata.tokens} tokens</span>
                               )}
                               {message.metadata.cost && (
-                                <span>💰 {formatCurrency(message.metadata.cost)}</span>
+                                <span>ðŸ’° {formatCurrency(message.metadata.cost)}</span>
                               )}
                               {message.metadata.processingTime && (
-                                <span>⏱️ {message.metadata.processingTime}s</span>
+                                <span>â±ï¸ {message.metadata.processingTime}s</span>
                               )}
                             </div>
                           )}
@@ -776,7 +776,7 @@ export function EnhancedAIFeatures() {
                       
                       <Avatar className={`w-8 h-8 ${message.role === 'user' ? 'order-1 ml-3' : 'order-2 mr-3'}`}>
                         <AvatarFallback className={message.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-secondary'}>
-                          {message.role === 'user' ? user?.name?.[0] || 'U' : '🤖'}
+                          {message.role === 'user' ? user?.name?.[0] || 'U' : 'ðŸ¤–'}
                         </AvatarFallback>
                       </Avatar>
                     </div>
@@ -786,7 +786,7 @@ export function EnhancedAIFeatures() {
                     <div className="flex justify-start">
                       <div className="flex items-center space-x-3">
                         <Avatar className="w-8 h-8">
-                          <AvatarFallback className="bg-secondary">🤖</AvatarFallback>
+                          <AvatarFallback className="bg-secondary">ðŸ¤–</AvatarFallback>
                         </Avatar>
                         <div className="bg-muted rounded-lg px-4 py-2">
                           <div className="flex items-center space-x-2">
@@ -1133,7 +1133,7 @@ export function EnhancedAIFeatures() {
               <div>
                 <h3 className="font-semibold">AI Providers Status</h3>
                 <p className="text-sm text-muted-foreground">
-                  {AI_PROVIDERS.length} providers configured • All systems operational
+                  {AI_PROVIDERS.length} providers configured â€¢ All systems operational
                 </p>
               </div>
             </div>

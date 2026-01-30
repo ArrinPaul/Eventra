@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { eventService, ticketService } from '@/lib/firestore-services';
+import { eventService, ticketService } from '@/core/services/firestore-services';
 import { 
   Sparkles, 
   Calendar, 
@@ -24,7 +24,7 @@ import {
   Rocket,
   LayoutDashboard
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/core/utils/utils';
 import Image from 'next/image';
 
 // Animated counter component
@@ -535,7 +535,7 @@ export default function LandingPage() {
               <Link href="/register" className="hover:text-foreground transition-colors">Register</Link>
             </div>
             <p className="text-sm text-muted-foreground">
-              © 2026 EventOS. All rights reserved.
+              Â© 2026 EventOS. All rights reserved.
             </p>
           </div>
         </div>

@@ -4,7 +4,7 @@ import { Providers } from '@/components/providers';
 import { Toaster } from '@/components/ui/toaster';
 import FloatingAiChat from '@/components/chat/floating-ai-chat';
 import { Playfair_Display, PT_Sans } from 'next/font/google';
-import { baseMetadata, viewport as seoViewport, generateOrganizationSchema } from '@/lib/seo';
+import { baseMetadata, viewport as seoViewport, generateOrganizationSchema } from '@/core/services/seo';
 
 // Export SEO metadata
 export const metadata: Metadata = {

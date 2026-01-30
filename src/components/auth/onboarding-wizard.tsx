@@ -27,9 +27,9 @@ import {
   Sparkles,
   X
 } from 'lucide-react';
-import { cn, getErrorMessage } from '@/lib/utils';
-import { updateUserProfile } from '@/lib/auth-service';
-import { storage } from '@/lib/firebase';
+import { cn, getErrorMessage } from '@/core/utils/utils';
+import { updateUserProfile } from '@/features/auth/services/auth-service';
+import { storage } from '@/core/config/firebase';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 // Available interests for selection
@@ -266,7 +266,7 @@ export function OnboardingWizard() {
       }
 
       toast({
-        title: 'Welcome to EventOS! 🎉',
+        title: 'Welcome to EventOS! ÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â°',
         description: 'Your profile has been set up successfully.',
       });
 

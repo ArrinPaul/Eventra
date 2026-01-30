@@ -44,8 +44,8 @@ import {
   ChevronRight,
   Loader2
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { eventService } from '@/lib/firestore-services';
+import { cn } from '@/core/utils/utils';
+import { eventService } from '@/core/services/firestore-services';
 import { useToast } from '@/hooks/use-toast';
 import type { Event } from '@/types';
 
@@ -148,7 +148,7 @@ function EventRow({ event, onEdit, onDelete, onDuplicate }: EventRowProps) {
           </span>
           <span className="flex items-center gap-1">
             <Users className="h-3 w-3" />
-            {(event.registeredCount || event.registeredUsers?.length || 0)} / {event.capacity || '∞'}
+            {(event.registeredCount || event.registeredUsers?.length || 0)} / {event.capacity || 'âˆž'}
           </span>
         </div>
       </div>

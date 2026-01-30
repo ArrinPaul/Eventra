@@ -19,7 +19,7 @@ import {
   Activity,
   Zap,
 } from 'lucide-react';
-import { db } from '@/lib/firebase';
+import { db } from '@/core/config/firebase';
 import { collection, query, orderBy, getDocs, addDoc, updateDoc, deleteDoc, doc, where, serverTimestamp, limit as firestoreLimit } from 'firebase/firestore';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';

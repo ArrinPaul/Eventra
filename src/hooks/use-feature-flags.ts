@@ -7,7 +7,7 @@
 
 'use client';
 
-import { envConfig, isFeatureAvailable, getFeatureUnavailableMessage } from '@/lib/env-config';
+import { envConfig, isFeatureAvailable, getFeatureUnavailableMessage } from '@/core/config/env-config';
 
 // ============================================================
 // Hook for Feature Availability

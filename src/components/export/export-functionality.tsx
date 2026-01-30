@@ -19,7 +19,7 @@ import {
   Loader2
 } from 'lucide-react';
 import { collection, getDocs, query, where, orderBy, limit } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { db } from '@/core/config/firebase';
 
 interface ExportOptions {
   format: 'csv' | 'json' | 'pdf';
@@ -301,20 +301,20 @@ export default function ExportFunctionality() {
       
       EVENTS:
       ${data.events.map(event => `
-        • ${event.title} (${event.startTime})
+        â€¢ ${event.title} (${event.startTime})
           Location: ${event.location}
           Category: ${event.category}
       `).join('')}
       
       REGISTRATIONS:
       ${data.registrations.map(reg => `
-        • Event ${reg.eventId} - ${reg.status}
+        â€¢ Event ${reg.eventId} - ${reg.status}
           Registered: ${reg.registeredAt}
       `).join('')}
       
       COMMUNITIES:
       ${data.communities.map(comm => `
-        • ${comm.name} (${comm.memberCount} members)
+        â€¢ ${comm.name} (${comm.memberCount} members)
           Category: ${comm.category}
       `).join('')}
     `;
@@ -541,14 +541,14 @@ export default function ExportFunctionality() {
           <div className="space-y-3 p-4 bg-muted/50 rounded-lg">
             <h4 className="font-medium">What will be exported:</h4>
             <ul className="text-sm space-y-1 text-muted-foreground">
-              <li>• Your created events and their details</li>
-              <li>• Event registrations and attendance history</li>
-              <li>• Communities you've joined and participation data</li>
-              <li>• Professional connections and networking activity</li>
+              <li>â€¢ Your created events and their details</li>
+              <li>â€¢ Event registrations and attendance history</li>
+              <li>â€¢ Communities you've joined and participation data</li>
+              <li>â€¢ Professional connections and networking activity</li>
               {exportOptions.includePrivate && (
-                <li>• Private messages and chat history (if enabled)</li>
+                <li>â€¢ Private messages and chat history (if enabled)</li>
               )}
-              <li>• Account settings and preferences</li>
+              <li>â€¢ Account settings and preferences</li>
             </ul>
           </div>
 
@@ -557,8 +557,8 @@ export default function ExportFunctionality() {
             <div>
               <h4 className="font-medium">Ready to Export</h4>
               <p className="text-sm text-muted-foreground">
-                Export format: {exportOptions.format.toUpperCase()} • 
-                Range: {exportOptions.dateRange === 'all' ? 'All time' : `Past ${exportOptions.dateRange}`} • 
+                Export format: {exportOptions.format.toUpperCase()} â€¢ 
+                Range: {exportOptions.dateRange === 'all' ? 'All time' : `Past ${exportOptions.dateRange}`} â€¢ 
                 Privacy: {exportOptions.includePrivate ? 'Include private' : 'Public data only'}
               </p>
             </div>

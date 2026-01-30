@@ -7,10 +7,10 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Send, Smile, Bot, Sparkles, Loader2, MessageSquare } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/core/utils/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { getBotAnnouncement } from '@/lib/actions';
+import { getBotAnnouncement } from '@/core/actions/actions';
 import { useToast } from '@/hooks/use-toast';
 import { 
   collection, 
@@ -24,10 +24,10 @@ import {
   or,
   Timestamp
 } from 'firebase/firestore';
-import { db, FIRESTORE_COLLECTIONS } from '@/lib/firebase';
+import { db, FIRESTORE_COLLECTIONS } from '@/core/config/firebase';
 
 
-const EMOJIS = ['😀', '😂', '😍', '🤔', '👍', '🎉', '🚀', '💻'];
+const EMOJIS = ['ÃƒÂ°Ã…Â¸Ã‹Å“Ã¢â€šÂ¬', 'ÃƒÂ°Ã…Â¸Ã‹Å“Ã¢â‚¬Å¡', 'ÃƒÂ°Ã…Â¸Ã‹Å“Ã‚Â', 'ÃƒÂ°Ã…Â¸Ã‚Â¤Ã¢â‚¬Â', 'ÃƒÂ°Ã…Â¸Ã¢â‚¬ËœÃ‚Â', 'ÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â°', 'ÃƒÂ°Ã…Â¸Ã…Â¡Ã¢â€šÂ¬', 'ÃƒÂ°Ã…Â¸Ã¢â‚¬â„¢Ã‚Â»'];
 const CHAT_ROOM_ID = 'global-chat'; // Default global chat room
 
 export default function ChatClient() {

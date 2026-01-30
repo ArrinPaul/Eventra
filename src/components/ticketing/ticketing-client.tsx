@@ -39,7 +39,7 @@ import {
 import { format } from 'date-fns';
 import { useAuth } from '@/hooks/use-auth';
 import { EventTicketing, TicketType, EventTicket, BookingRequest, DiscountCode } from '@/types';
-import { cn } from '@/lib/utils';
+import { cn } from '@/core/utils/utils';
 import { useToast } from '@/hooks/use-toast';
 
 interface TicketSelection {
@@ -74,7 +74,7 @@ export function TicketingClient() {
   const loadEvents = async () => {
     setIsLoading(true);
     try {
-      const { ticketingServiceReal } = await import('@/lib/ticketing-service');
+      const { ticketingServiceReal } = await import('@/features/ticketing/services/ticketing-service');
       const ticketableEvents = await ticketingServiceReal.getTicketableEvents();
       // Cast local event type to EventTicketing - structures are compatible
       setEvents(ticketableEvents as unknown as EventTicketing[]);
@@ -88,7 +88,7 @@ export function TicketingClient() {
   const loadMyTickets = async () => {
     if (!user) return;
     try {
-      const { ticketingServiceReal } = await import('@/lib/ticketing-service');
+      const { ticketingServiceReal } = await import('@/features/ticketing/services/ticketing-service');
       const tickets = await ticketingServiceReal.getUserTickets(user.id);
       // Cast local ticket type to EventTicket - structures are compatible
       setMyTickets(tickets as unknown as EventTicket[]);
@@ -230,7 +230,7 @@ export function TicketingClient() {
         <div className="flex justify-between items-center">
           <div>
             <div className="text-2xl font-bold text-primary">
-              ₹{Math.min(...event.ticketTypes.map(t => t.price)).toLocaleString()}
+              Ã¢â€šÂ¹{Math.min(...event.ticketTypes.map(t => t.price)).toLocaleString()}
             </div>
             <div className="text-sm text-muted-foreground">onwards</div>
           </div>
@@ -292,7 +292,7 @@ export function TicketingClient() {
               </CardDescription>
             </div>
             <div className="text-right">
-              <div className="text-2xl font-bold">₹{ticketType.price.toLocaleString()}</div>
+              <div className="text-2xl font-bold">Ã¢â€šÂ¹{ticketType.price.toLocaleString()}</div>
               <div className="text-sm text-muted-foreground">
                 {availableQuantity} left
               </div>
@@ -358,7 +358,7 @@ export function TicketingClient() {
               {event?.title || 'Event Title'}
             </CardTitle>
             <CardDescription>
-              {ticket.ticketType.name} • {format(ticket.purchaseDate, 'MMM dd, yyyy')}
+              {ticket.ticketType.name} Ã¢â‚¬Â¢ {format(ticket.purchaseDate, 'MMM dd, yyyy')}
             </CardDescription>
           </div>
           <Badge 
@@ -377,7 +377,7 @@ export function TicketingClient() {
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div>
             <div className="text-muted-foreground">Price Paid</div>
-            <div className="font-medium">₹{ticket.price.toLocaleString()}</div>
+            <div className="font-medium">Ã¢â€šÂ¹{ticket.price.toLocaleString()}</div>
           </div>
           <div>
             <div className="text-muted-foreground">Ticket ID</div>
@@ -389,7 +389,7 @@ export function TicketingClient() {
           <Alert>
             <Gift className="h-4 w-4" />
             <AlertDescription>
-              You saved ₹{ticket.discount.amount} with code "{ticket.discount.code}"
+              You saved Ã¢â€šÂ¹{ticket.discount.amount} with code "{ticket.discount.code}"
             </AlertDescription>
           </Alert>
         )}
@@ -465,7 +465,7 @@ export function TicketingClient() {
             <div className="space-y-6">
               <div className="flex items-center gap-4">
                 <Button variant="ghost" onClick={() => setSelectedEvent(null)}>
-                  ← Back to Events
+                  Ã¢â€ Â Back to Events
                 </Button>
               </div>
               
@@ -549,8 +549,8 @@ export function TicketingClient() {
                               const ticketType = selectedEvent.ticketTypes.find(t => t.id === selection.ticketTypeId)!;
                               return (
                                 <div key={selection.ticketTypeId} className="flex justify-between text-sm">
-                                  <span>{ticketType.name} × {selection.quantity}</span>
-                                  <span>₹{(ticketType.price * selection.quantity).toLocaleString()}</span>
+                                  <span>{ticketType.name} Ãƒâ€” {selection.quantity}</span>
+                                  <span>Ã¢â€šÂ¹{(ticketType.price * selection.quantity).toLocaleString()}</span>
                                 </div>
                               );
                             })}
@@ -585,11 +585,11 @@ export function TicketingClient() {
                           <div className="space-y-2">
                             <div className="flex justify-between font-medium">
                               <span>Total ({getTotalTickets()} tickets)</span>
-                              <span>₹{getTotalAmount().toLocaleString()}</span>
+                              <span>Ã¢â€šÂ¹{getTotalAmount().toLocaleString()}</span>
                             </div>
                             {appliedDiscount && (
                               <div className="text-sm text-green-600">
-                                You saved ₹{(selectedTickets.reduce((sum, selection) => {
+                                You saved Ã¢â€šÂ¹{(selectedTickets.reduce((sum, selection) => {
                                   const ticketType = selectedEvent.ticketTypes.find(t => t.id === selection.ticketTypeId)!;
                                   return sum + (ticketType.price * selection.quantity);
                                 }, 0) - getTotalAmount()).toLocaleString()}!
@@ -601,7 +601,7 @@ export function TicketingClient() {
                             <DialogTrigger asChild>
                               <Button className="w-full" size="lg">
                                 <ShoppingCart className="h-4 w-4 mr-2" />
-                                Book Now - ₹{getTotalAmount().toLocaleString()}
+                                Book Now - Ã¢â€šÂ¹{getTotalAmount().toLocaleString()}
                               </Button>
                             </DialogTrigger>
                             <DialogContent className="max-w-md">
@@ -618,14 +618,14 @@ export function TicketingClient() {
                                     const ticketType = selectedEvent.ticketTypes.find(t => t.id === selection.ticketTypeId)!;
                                     return (
                                       <div key={selection.ticketTypeId} className="flex justify-between text-sm">
-                                        <span>{ticketType.name} × {selection.quantity}</span>
-                                        <span>₹{(ticketType.price * selection.quantity).toLocaleString()}</span>
+                                        <span>{ticketType.name} Ãƒâ€” {selection.quantity}</span>
+                                        <span>Ã¢â€šÂ¹{(ticketType.price * selection.quantity).toLocaleString()}</span>
                                       </div>
                                     );
                                   })}
                                   <div className="border-t pt-2 mt-2 flex justify-between font-medium">
                                     <span>Total</span>
-                                    <span>₹{getTotalAmount().toLocaleString()}</span>
+                                    <span>Ã¢â€šÂ¹{getTotalAmount().toLocaleString()}</span>
                                   </div>
                                 </div>
                                 

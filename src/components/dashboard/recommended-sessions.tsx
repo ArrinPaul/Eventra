@@ -1,8 +1,8 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/use-auth';
-import { getRecommendedSessions } from '@/lib/actions';
-import { AGENDA_STRING, SESSIONS } from '@/lib/data';
+import { getRecommendedSessions } from '@/core/actions/actions';
+import { AGENDA_STRING, SESSIONS } from '@/core/data/data';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Loader2, Sparkles, Plus, Minus, Calendar } from 'lucide-react';

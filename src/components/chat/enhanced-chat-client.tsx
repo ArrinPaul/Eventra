@@ -29,8 +29,8 @@ import {
   Loader2
 } from 'lucide-react';
 import { ChatRoom, ChatMessage, UserProfile } from '@/types';
-import { chatService, userService } from '@/lib/firestore-services';
-import { cn } from '@/lib/utils';
+import { chatService, userService } from '@/core/services/firestore-services';
+import { cn } from '@/core/utils/utils';
 import { useToast } from '@/hooks/use-toast';
 
 interface EnhancedChatClientProps {

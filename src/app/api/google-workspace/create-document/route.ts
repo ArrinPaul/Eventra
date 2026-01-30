@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { adminDb } from '@/lib/firebase-admin';
+import { adminDb } from '@/core/config/firebase-admin';
 
 interface CreateDocumentRequest {
   connectionId: string;
@@ -57,27 +57,27 @@ function generateDocumentContent(eventName: string, templateType: string): objec
           },
           {
             paragraph: {
-              elements: [{ textRun: { content: '• Opening remarks\n' } }],
+              elements: [{ textRun: { content: 'â€¢ Opening remarks\n' } }],
             },
           },
           {
             paragraph: {
-              elements: [{ textRun: { content: '• Keynote session\n' } }],
+              elements: [{ textRun: { content: 'â€¢ Keynote session\n' } }],
             },
           },
           {
             paragraph: {
-              elements: [{ textRun: { content: '• Breakout sessions\n' } }],
+              elements: [{ textRun: { content: 'â€¢ Breakout sessions\n' } }],
             },
           },
           {
             paragraph: {
-              elements: [{ textRun: { content: '• Networking\n' } }],
+              elements: [{ textRun: { content: 'â€¢ Networking\n' } }],
             },
           },
           {
             paragraph: {
-              elements: [{ textRun: { content: '• Closing\n' } }],
+              elements: [{ textRun: { content: 'â€¢ Closing\n' } }],
             },
           },
         ],
@@ -104,7 +104,7 @@ function generateDocumentContent(eventName: string, templateType: string): objec
           },
           {
             paragraph: {
-              elements: [{ textRun: { content: '• \n' } }],
+              elements: [{ textRun: { content: 'â€¢ \n' } }],
             },
           },
           {
@@ -124,7 +124,7 @@ function generateDocumentContent(eventName: string, templateType: string): objec
           },
           {
             paragraph: {
-              elements: [{ textRun: { content: '☐ \n' } }],
+              elements: [{ textRun: { content: 'â˜ \n' } }],
             },
           },
         ],
@@ -156,7 +156,7 @@ function generateDocumentContent(eventName: string, templateType: string): objec
           },
           {
             paragraph: {
-              elements: [{ textRun: { content: '• \n' } }],
+              elements: [{ textRun: { content: 'â€¢ \n' } }],
             },
           },
           {
@@ -166,12 +166,12 @@ function generateDocumentContent(eventName: string, templateType: string): objec
           },
           {
             paragraph: {
-              elements: [{ textRun: { content: '• Total Attendees: \n' } }],
+              elements: [{ textRun: { content: 'â€¢ Total Attendees: \n' } }],
             },
           },
           {
             paragraph: {
-              elements: [{ textRun: { content: '• Sessions: \n' } }],
+              elements: [{ textRun: { content: 'â€¢ Sessions: \n' } }],
             },
           },
         ],

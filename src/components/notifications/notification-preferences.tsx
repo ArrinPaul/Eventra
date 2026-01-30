@@ -27,7 +27,7 @@ import {
   RefreshCw
 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { db } from '@/lib/firebase';
+import { db } from '@/core/config/firebase';
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { useAuth } from '@/hooks/use-auth';
 

@@ -28,10 +28,10 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { cn } from '@/lib/utils';
+import { cn } from '@/core/utils/utils';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
-import { db } from '@/lib/firebase';
+import { db } from '@/core/config/firebase';
 import { 
   collection, 
   query, 
@@ -574,7 +574,7 @@ export default function ConnectionMessaging({
                               <span className="text-muted-foreground">You: </span>
                             )}
                             {conv.lastMessage?.type === 'meeting-invite'
-                              ? '📅 Meeting invite'
+                              ? 'Ã°Å¸â€œâ€¦ Meeting invite'
                               : conv.lastMessage?.content}
                           </p>
                           {conv.unreadCount > 0 && (

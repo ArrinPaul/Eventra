@@ -2,13 +2,13 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { SESSIONS as initialSessions, AGENDA_STRING } from '@/lib/data';
+import { SESSIONS as initialSessions, AGENDA_STRING } from '@/core/data/data';
 import type { Session, Event } from '@/types';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { Calendar, Clock, Plus, Minus, Sparkles, Loader2, User, Tag, AlertTriangle, MapPin } from 'lucide-react';
-import { getRecommendedSessions } from '@/lib/actions';
-import { eventService } from '@/lib/firestore-services';
+import { getRecommendedSessions } from '@/core/actions/actions';
+import { eventService } from '@/core/services/firestore-services';
 import {
   AlertDialog,
   AlertDialogAction,

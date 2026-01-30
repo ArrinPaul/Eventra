@@ -26,7 +26,7 @@ vi.mock('next/image', () => ({
 }));
 
 // Mock Firebase
-vi.mock('@/lib/firebase', () => ({
+vi.mock('@/core/config/firebase', () => ({
   auth: {
     currentUser: null,
     onAuthStateChanged: vi.fn(),

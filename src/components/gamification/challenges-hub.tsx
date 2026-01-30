@@ -28,7 +28,7 @@ import {
   type ChallengeDefinition, 
   type UserChallenge 
 } from '@/app/actions/challenges';
-import { cn } from '@/lib/utils';
+import { cn } from '@/core/utils/utils';
 import { useAuth } from '@/hooks/use-auth';
 import { toast } from '@/hooks/use-toast';
 
@@ -104,7 +104,7 @@ export function ChallengesHub({ compact = false }: ChallengesHubProps) {
       if (result.success && result.rewards) {
         await loadChallenges();
         toast({
-          title: '🎉 Rewards Claimed!',
+          title: 'ðŸŽ‰ Rewards Claimed!',
           description: `You earned ${result.rewards.xp} XP${result.rewards.badge ? ' and a new badge!' : ''}`,
         });
       }
@@ -401,7 +401,7 @@ function ChallengeCard({
           </div>
           <div className="flex flex-col items-end gap-2">
             <Badge variant={challenge.type === 'daily' ? 'default' : 'secondary'}>
-              {challenge.type === 'daily' ? '☀️ Daily' : '📅 Weekly'}
+              {challenge.type === 'daily' ? 'â˜€ï¸ Daily' : 'ðŸ“… Weekly'}
             </Badge>
             <div className="flex items-center text-sm text-muted-foreground">
               <Clock className="h-3 w-3 mr-1" />

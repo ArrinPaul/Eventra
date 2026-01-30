@@ -38,7 +38,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { Community, Post, Comment, Poll, AMASession } from '@/types';
-import { db, FIRESTORE_COLLECTIONS } from '@/lib/firebase';
+import { db, FIRESTORE_COLLECTIONS } from '@/core/config/firebase';
 import { 
   collection, 
   query, 
@@ -66,7 +66,7 @@ export function CommunityListClient() {
     name: '',
     description: '',
     category: 'General' as Community['category'],
-    icon: '💬',
+    icon: 'ðŸ’¬',
     rules: [''],
     isPrivate: false
   });
@@ -144,7 +144,7 @@ export function CommunityListClient() {
         name: '',
         description: '',
         category: 'General',
-        icon: '💬',
+        icon: 'ðŸ’¬',
         rules: [''],
         isPrivate: false
       });
@@ -329,7 +329,7 @@ export function CommunityListClient() {
               <div className="space-y-2">
                 <label className="text-sm font-medium">Icon</label>
                 <Input
-                  placeholder="🚀"
+                  placeholder="ðŸš€"
                   value={newCommunity.icon}
                   onChange={(e) => setNewCommunity(prev => ({ ...prev, icon: e.target.value }))}
                   maxLength={2}

@@ -158,7 +158,7 @@ export default function EventModeration() {
     
     try {
       // Import moderation service
-      const { moderationService } = await import('@/lib/moderation-service');
+      const { moderationService } = await import('@/features/admin/services/moderation-service');
       
       // Fetch real data from Firestore
       const [reportedEventsData, pendingEventsData, contentReportsData] = await Promise.all([

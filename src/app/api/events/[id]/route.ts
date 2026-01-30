@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { doc, getDoc, updateDoc, increment } from 'firebase/firestore';
-import { db, FIRESTORE_COLLECTIONS } from '@/lib/firebase';
+import { db, FIRESTORE_COLLECTIONS } from '@/core/config/firebase';
 
 export const dynamic = 'force-dynamic';
 

@@ -1,6 +1,6 @@
 'use server';
 
-import { db } from '@/lib/firebase';
+import { db } from '@/core/config/firebase';
 import { collection, addDoc, serverTimestamp, Timestamp } from 'firebase/firestore';
 
 // Notification types
@@ -68,7 +68,7 @@ export async function sendRegistrationConfirmation(
 ) {
   return createNotification({
     userId,
-    title: 'Registration Confirmed! 🎉',
+    title: 'Registration Confirmed! ðŸŽ‰',
     message: `You're registered for "${eventTitle}". Your ticket number is ${ticketNumber}.`,
     type: 'registration_confirmed',
     data: { eventId, eventTitle, ticketNumber }
@@ -83,7 +83,7 @@ export async function sendEventReminder(
   timeUntil: '24h' | '1h' | '15min'
 ) {
   const timeText = timeUntil === '24h' ? '24 hours' : timeUntil === '1h' ? '1 hour' : '15 minutes';
-  const emoji = timeUntil === '15min' ? '🚀' : timeUntil === '1h' ? '⏰' : '📅';
+  const emoji = timeUntil === '15min' ? 'ðŸš€' : timeUntil === '1h' ? 'â°' : 'ðŸ“…';
 
   return createNotification({
     userId,
@@ -104,7 +104,7 @@ export async function sendCertificateReady(
 ) {
   return createNotification({
     userId,
-    title: 'Certificate Ready! 🏆',
+    title: 'Certificate Ready! ðŸ†',
     message: `Your certificate for "${eventTitle}" is ready to download.`,
     type: 'certificate_ready',
     data: { eventId, eventTitle, certificateId }
@@ -120,7 +120,7 @@ export async function sendConnectionRequest(
 ) {
   return createNotification({
     userId,
-    title: 'New Connection Request! 👋',
+    title: 'New Connection Request! ðŸ‘‹',
     message: `${fromUserName} wants to connect with you.`,
     type: 'connection_request',
     data: { fromUserId, fromUserName, fromUserPhoto }
@@ -135,7 +135,7 @@ export async function sendConnectionAccepted(
 ) {
   return createNotification({
     userId,
-    title: 'Connection Accepted! 🤝',
+    title: 'Connection Accepted! ðŸ¤',
     message: `${acceptedByUserName} accepted your connection request.`,
     type: 'connection_accepted',
     data: { acceptedByUserId, acceptedByUserName }
@@ -152,7 +152,7 @@ export async function sendMessageNotification(
 ) {
   return createNotification({
     userId,
-    title: `New Message from ${fromUserName} 💬`,
+    title: `New Message from ${fromUserName} ðŸ’¬`,
     message: messagePreview ? `"${messagePreview.substring(0, 50)}${messagePreview.length > 50 ? '...' : ''}"` : 'You have a new message.',
     type: 'message_received',
     data: { fromUserId, fromUserName, conversationId }
@@ -169,7 +169,7 @@ export async function sendBadgeEarned(
 ) {
   return createNotification({
     userId,
-    title: 'Badge Earned! 🎖️',
+    title: 'Badge Earned! ðŸŽ–ï¸',
     message: `You earned the "${badgeName}" badge${xpEarned ? ` and ${xpEarned} XP` : ''}!`,
     type: 'badge_earned',
     data: { badgeId, badgeName, badgeDescription, xpEarned }
@@ -186,7 +186,7 @@ export async function sendChallengeCompleted(
 ) {
   return createNotification({
     userId,
-    title: 'Challenge Complete! 🏅',
+    title: 'Challenge Complete! ðŸ…',
     message: `You completed "${challengeName}" and earned ${xpReward} XP${badgeReward ? ` + ${badgeReward} badge` : ''}!`,
     type: 'challenge_completed',
     data: { challengeId, challengeName, xpReward, badgeReward }
@@ -203,7 +203,7 @@ export async function sendMeetingScheduled(
 ) {
   return createNotification({
     userId,
-    title: 'Meeting Scheduled! 📆',
+    title: 'Meeting Scheduled! ðŸ“†',
     message: `${organizerName} scheduled "${meetingTitle}" for ${scheduledTime.toLocaleDateString()} at ${scheduledTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}.`,
     type: 'meeting_scheduled',
     data: { meetingId, meetingTitle, scheduledTime: scheduledTime.toISOString(), organizerName }
@@ -218,7 +218,7 @@ export async function sendPostLiked(
 ) {
   return createNotification({
     userId,
-    title: 'Post Liked! ❤️',
+    title: 'Post Liked! â¤ï¸',
     message: `${likedByName} liked your post.`,
     type: 'post_liked',
     data: { postId, likedByName }
@@ -234,7 +234,7 @@ export async function sendCommentReceived(
 ) {
   return createNotification({
     userId,
-    title: 'New Comment! 💬',
+    title: 'New Comment! ðŸ’¬',
     message: `${commenterName} commented: "${commentPreview?.substring(0, 50) || 'View comment'}"`,
     type: 'comment_received',
     data: { postId, commenterId, commenterName }
@@ -249,7 +249,7 @@ export async function sendWaitlistAvailable(
 ) {
   return createNotification({
     userId,
-    title: 'Spot Available! 🎫',
+    title: 'Spot Available! ðŸŽ«',
     message: `A spot opened up for "${eventTitle}". Register now before it fills up!`,
     type: 'waitlist_available',
     data: { eventId, eventTitle },
@@ -266,10 +266,10 @@ export async function sendEventUpdate(
   updateDetails?: string
 ) {
   const titles = {
-    time_change: 'Event Time Changed! ⏰',
-    venue_change: 'Venue Changed! 📍',
-    cancelled: 'Event Cancelled 😔',
-    other: 'Event Update! 📢'
+    time_change: 'Event Time Changed! â°',
+    venue_change: 'Venue Changed! ðŸ“',
+    cancelled: 'Event Cancelled ðŸ˜”',
+    other: 'Event Update! ðŸ“¢'
   };
 
   return createNotification({

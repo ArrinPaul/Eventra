@@ -51,10 +51,10 @@ import {
   Trash2,
   GripVertical
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/core/utils/utils';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
-import { eventService } from '@/lib/firestore-services';
+import { eventService } from '@/core/services/firestore-services';
 import { format } from 'date-fns';
 import type { Event } from '@/types';
 
@@ -407,7 +407,7 @@ export default function EventCreationWizard() {
       await eventService.createEvent(eventData as Omit<Event, 'id'>);
       
       toast({ 
-        title: 'Event Published! 🎉', 
+        title: 'Event Published! ðŸŽ‰', 
         description: 'Your event is now live and visible to attendees.' 
       });
       
@@ -504,7 +504,7 @@ export default function EventCreationWizard() {
             <Badge key={tag} variant="secondary" className="gap-1">
               {tag}
               <button onClick={() => handleRemoveTag(tag)} className="ml-1 hover:text-destructive">
-                ×
+                Ã—
               </button>
             </Badge>
           ))}

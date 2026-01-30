@@ -19,10 +19,10 @@ import {
   ChevronRight,
   Zap
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/core/utils/utils';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
-import { eventService } from '@/lib/firestore-services';
+import { eventService } from '@/core/services/firestore-services';
 import type { Event } from '@/types';
 
 interface EventCardProps {
@@ -146,7 +146,7 @@ export function EventCard({
     try {
       await eventService.registerForEvent(event.id, user.uid);
       toast({
-        title: 'Registered! 🎉',
+        title: 'Registered! ðŸŽ‰',
         description: `You're now registered for ${event.title}`,
       });
       setLikeCount(prev => prev + 1);
@@ -265,7 +265,7 @@ export function EventCard({
                   <span>{likeCount} interested</span>
                   {event.capacity && (
                     <span className="text-muted-foreground">
-                      · {event.capacity - registeredCount} spots left
+                      Â· {event.capacity - registeredCount} spots left
                     </span>
                   )}
                 </div>
@@ -306,7 +306,7 @@ export function EventCard({
               <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
                 <Clock className="w-3 h-3" />
                 <span>{formatTime(displayDate)}</span>
-                <span>·</span>
+                <span>Â·</span>
                 <MapPin className="w-3 h-3" />
                 <span className="truncate">{getLocationString()}</span>
               </div>

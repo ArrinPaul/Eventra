@@ -34,7 +34,7 @@ import {
   Eye,
   Mail
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/core/utils/utils';
 import { useToast } from '@/hooks/use-toast';
 import { 
   getCertificateTemplates, 

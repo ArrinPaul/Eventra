@@ -13,7 +13,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
-import { cn } from '@/lib/utils';
+import { cn } from '@/core/utils/utils';
 import { 
   FileText, 
   Table, 
@@ -46,7 +46,7 @@ import {
 } from 'lucide-react';
 import { httpsCallable, getFunctions } from 'firebase/functions';
 import { collection, query, where, orderBy, onSnapshot, doc, updateDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { db } from '@/core/config/firebase';
 
 interface GoogleWorkspaceDocument {
   id: string;

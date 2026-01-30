@@ -21,9 +21,9 @@ import {
   Loader2
 } from 'lucide-react';
 import { Match, UserProfile, MatchProfile } from '@/types';
-import { matchingService, userService } from '@/lib/firestore-services';
-import { cn } from '@/lib/utils';
-import { db, FIRESTORE_COLLECTIONS } from '@/lib/firebase';
+import { matchingService, userService } from '@/core/services/firestore-services';
+import { cn } from '@/core/utils/utils';
+import { db, FIRESTORE_COLLECTIONS } from '@/core/config/firebase';
 import { collection, query, where, getDocs, doc, getDoc, orderBy, limit } from 'firebase/firestore';
 
 // Local UserProfile type for component
@@ -375,7 +375,7 @@ export default function MatchmakingClient() {
                 <div className="space-y-2">
                   {currentMatch.icebreakers.slice(0, 2).map((icebreaker: string, index: number) => (
                     <div key={index} className="text-xs bg-muted/50 p-2 rounded">
-                      💡 {icebreaker}
+                      Ã°Å¸â€™Â¡ {icebreaker}
                     </div>
                   ))}
                 </div>

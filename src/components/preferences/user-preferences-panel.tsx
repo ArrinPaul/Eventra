@@ -25,7 +25,7 @@ import {
   Save
 } from 'lucide-react';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { db } from '@/core/config/firebase';
 
 interface NotificationPreferences {
   email: {
@@ -726,9 +726,9 @@ export default function UserPreferencesPanel({ initialTab = 'notifications' }: U
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="USD">USD ($)</SelectItem>
-                        <SelectItem value="EUR">EUR (€)</SelectItem>
-                        <SelectItem value="GBP">GBP (£)</SelectItem>
-                        <SelectItem value="JPY">JPY (¥)</SelectItem>
+                        <SelectItem value="EUR">EUR (â‚¬)</SelectItem>
+                        <SelectItem value="GBP">GBP (Â£)</SelectItem>
+                        <SelectItem value="JPY">JPY (Â¥)</SelectItem>
                         <SelectItem value="CAD">CAD (C$)</SelectItem>
                       </SelectContent>
                     </Select>

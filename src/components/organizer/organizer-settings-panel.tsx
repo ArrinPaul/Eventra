@@ -43,7 +43,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
-import { db } from '@/lib/firebase';
+import { db } from '@/core/config/firebase';
 import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import { useAuth } from '@/hooks/use-auth';
 
@@ -443,7 +443,7 @@ export function OrganizerSettingsPanel() {
                 <div className="space-y-1">
                   <p className="font-medium">Primary API Key</p>
                   <code className="text-sm bg-muted px-2 py-1 rounded">
-                    {showApiKey ? 'evt_live_abc123xyz789...' : '••••••••••••••••••••'}
+                    {showApiKey ? 'evt_live_abc123xyz789...' : 'â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢'}
                   </code>
                 </div>
                 <div className="flex gap-2">

@@ -43,7 +43,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { Community, Post, Comment, Poll, AMASession } from '@/types';
-import { db, FIRESTORE_COLLECTIONS } from '@/lib/firebase';
+import { db, FIRESTORE_COLLECTIONS } from '@/core/config/firebase';
 import { 
   collection, 
   query, 
@@ -376,9 +376,9 @@ export function CommunityDetailClient({ communityId }: CommunityDetailClientProp
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="hot">🔥 Hot</SelectItem>
-                <SelectItem value="new">🕒 New</SelectItem>
-                <SelectItem value="top">⬆️ Top</SelectItem>
+                <SelectItem value="hot">ðŸ”¥ Hot</SelectItem>
+                <SelectItem value="new">ðŸ•’ New</SelectItem>
+                <SelectItem value="top">â¬†ï¸ Top</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -422,11 +422,11 @@ export function CommunityDetailClient({ communityId }: CommunityDetailClientProp
                       
                       <div className="flex items-center gap-2 text-sm text-gray-500 mb-3">
                         <span>by User {post.authorId}</span>
-                        <span>•</span>
+                        <span>â€¢</span>
                         <span>{new Date(post.createdAt).toLocaleDateString()}</span>
                         {post.type === 'poll' && (
                           <>
-                            <span>•</span>
+                            <span>â€¢</span>
                             <Badge variant="outline" className="text-xs">Poll</Badge>
                           </>
                         )}
@@ -631,10 +631,10 @@ export function CommunityDetailClient({ communityId }: CommunityDetailClientProp
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="text">💬 Discussion</SelectItem>
-                  <SelectItem value="poll">📊 Poll</SelectItem>
-                  <SelectItem value="link">🔗 Link Share</SelectItem>
-                  <SelectItem value="ama">❓ Ask Me Anything</SelectItem>
+                  <SelectItem value="text">ðŸ’¬ Discussion</SelectItem>
+                  <SelectItem value="poll">ðŸ“Š Poll</SelectItem>
+                  <SelectItem value="link">ðŸ”— Link Share</SelectItem>
+                  <SelectItem value="ama">â“ Ask Me Anything</SelectItem>
                 </SelectContent>
               </Select>
             </div>

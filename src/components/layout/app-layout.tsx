@@ -7,7 +7,7 @@ import SidebarNavigation from '@/components/layout/sidebar-navigation';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Menu, X } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/core/utils/utils';
 
 interface AppLayoutProps {
   children: React.ReactNode;

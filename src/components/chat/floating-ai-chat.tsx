@@ -8,9 +8,9 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useAuth } from '@/hooks/use-auth';
-import { getKnowledgeBotAnswer } from '@/lib/actions';
-import { AGENDA_STRING } from '@/lib/data';
-import { cn } from '@/lib/utils';
+import { getKnowledgeBotAnswer } from '@/core/actions/actions';
+import { AGENDA_STRING } from '@/core/data/data';
+import { cn } from '@/core/utils/utils';
 
 type Message = {
     sender: 'user' | 'bot';

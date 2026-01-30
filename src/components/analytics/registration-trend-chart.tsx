@@ -3,7 +3,7 @@
 import React, { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/core/utils/utils';
 
 interface TrendDataPoint {
   date: string;

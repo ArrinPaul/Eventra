@@ -16,10 +16,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { cn } from '@/lib/utils';
+import { cn } from '@/core/utils/utils';
 import InteractiveCampusMap from './interactive-campus-map';
 import { CampusZone, MapEvent, PathNode, CAMPUS_ZONES, findPath } from './map-data';
-import { db } from '@/lib/firebase';
+import { db } from '@/core/config/firebase';
 import { collection, query, where, getDocs, Timestamp } from 'firebase/firestore';
 
 export default function CampusMapClient() {

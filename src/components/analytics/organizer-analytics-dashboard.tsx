@@ -130,7 +130,7 @@ export default function OrganizerAnalyticsDashboard({ organizerId }: OrganizerAn
     
     try {
       // Import analytics service
-      const { analyticsService } = await import('@/lib/analytics-service');
+      const { analyticsService } = await import('@/features/analytics/services/analytics-service');
       
       // Fetch real data from Firestore
       const [eventsData, funnelDataResult, demographicsData, revenueData] = await Promise.all([
@@ -452,7 +452,7 @@ export default function OrganizerAnalyticsDashboard({ organizerId }: OrganizerAn
                             </div>
                             {event.satisfactionScore > 0 && (
                               <div className="flex items-center gap-1 text-xs text-amber-600">
-                                ⭐ {event.satisfactionScore}/5 rating
+                                â­ {event.satisfactionScore}/5 rating
                               </div>
                             )}
                           </div>

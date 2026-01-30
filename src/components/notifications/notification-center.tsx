@@ -34,7 +34,7 @@ import {
   writeBatch,
   serverTimestamp
 } from 'firebase/firestore';
-import { db, FIRESTORE_COLLECTIONS } from '@/lib/firebase';
+import { db, FIRESTORE_COLLECTIONS } from '@/core/config/firebase';
 import {
   Bell,
   BellOff,

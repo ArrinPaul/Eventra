@@ -18,7 +18,7 @@
 
 import { checkAndAwardBadges, awardXP, type BadgeDefinition } from './badges';
 import { getUserChallenges, getActiveChallenges, updateChallengeProgress } from './challenges';
-import { db } from '@/lib/firebase';
+import { db } from '@/core/config/firebase';
 import { doc, getDoc, updateDoc, collection, query, where, getDocs, setDoc } from 'firebase/firestore';
 
 export type UserActionType = 

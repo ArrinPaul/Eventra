@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Crown, Medal, Award, Trophy, TrendingUp, Users, Flame, Sparkles, Calendar, Filter } from 'lucide-react';
 import type { User } from '@/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { cn } from '@/lib/utils';
+import { cn } from '@/core/utils/utils';
 
 const getRankingColor = (rank: number) => {
     if (rank === 1) return 'text-amber-400';
@@ -27,9 +27,9 @@ const getRankingIcon = (rank: number) => {
 }
 
 const getRankBadge = (rank: number) => {
-    if (rank === 1) return <Badge className="bg-gradient-to-r from-amber-500 to-yellow-400 text-white">🥇 Champion</Badge>;
-    if (rank === 2) return <Badge className="bg-gradient-to-r from-slate-400 to-slate-300 text-white">🥈 Runner-up</Badge>;
-    if (rank === 3) return <Badge className="bg-gradient-to-r from-orange-500 to-amber-400 text-white">🥉 Third Place</Badge>;
+    if (rank === 1) return <Badge className="bg-gradient-to-r from-amber-500 to-yellow-400 text-white">ðŸ¥‡ Champion</Badge>;
+    if (rank === 2) return <Badge className="bg-gradient-to-r from-slate-400 to-slate-300 text-white">ðŸ¥ˆ Runner-up</Badge>;
+    if (rank === 3) return <Badge className="bg-gradient-to-r from-orange-500 to-amber-400 text-white">ðŸ¥‰ Third Place</Badge>;
     return null;
 }
 
@@ -94,10 +94,10 @@ export default function LeaderboardClient() {
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="all">All Categories</SelectItem>
-                            <SelectItem value="tech">🖥️ Tech</SelectItem>
-                            <SelectItem value="business">💼 Business</SelectItem>
-                            <SelectItem value="design">🎨 Design</SelectItem>
-                            <SelectItem value="marketing">📢 Marketing</SelectItem>
+                            <SelectItem value="tech">ðŸ–¥ï¸ Tech</SelectItem>
+                            <SelectItem value="business">ðŸ’¼ Business</SelectItem>
+                            <SelectItem value="design">ðŸŽ¨ Design</SelectItem>
+                            <SelectItem value="marketing">ðŸ“¢ Marketing</SelectItem>
                         </SelectContent>
                     </Select>
                 </div>
@@ -200,7 +200,7 @@ export default function LeaderboardClient() {
                         Full Rankings
                     </CardTitle>
                     <CardDescription>
-                        {rankedUsers.length} participants · {timeFilter === 'weekly' ? 'This week' : timeFilter === 'monthly' ? 'This month' : 'All time'}
+                        {rankedUsers.length} participants Â· {timeFilter === 'weekly' ? 'This week' : timeFilter === 'monthly' ? 'This month' : 'All time'}
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="p-0">

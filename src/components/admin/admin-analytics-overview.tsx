@@ -43,7 +43,7 @@ import {
   type UserGrowthData, 
   type RealtimeMetrics, 
   type EngagementMetrics 
-} from '@/lib/analytics-service';
+} from '@/features/analytics/services/analytics-service';
 import { useToast } from '@/hooks/use-toast';
 
 export default function AdminAnalyticsOverview() {
@@ -542,7 +542,7 @@ export default function AdminAnalyticsOverview() {
                           <div className="flex-1 min-w-0">
                             <p className="font-medium truncate">{event.title}</p>
                             <p className="text-sm text-muted-foreground">
-                              {event.registrations} registrations • {((event.attendance / event.registrations) * 100).toFixed(0)}% attendance
+                              {event.registrations} registrations â€¢ {((event.attendance / event.registrations) * 100).toFixed(0)}% attendance
                             </p>
                           </div>
                         </div>

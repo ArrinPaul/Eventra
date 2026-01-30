@@ -18,8 +18,8 @@ import {
   Search, Loader2, Trash2
 } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
-import { cn } from '@/lib/utils';
-import { feedService, userProfileService } from '@/lib/firestore-services';
+import { cn } from '@/core/utils/utils';
+import { feedService, userProfileService } from '@/core/services/firestore-services';
 import { FeedPost } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -28,7 +28,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { db } from '@/lib/firebase';
+import { db } from '@/core/config/firebase';
 import { collection, query, where, orderBy, getDocs, addDoc, serverTimestamp } from 'firebase/firestore';
 
 // Types

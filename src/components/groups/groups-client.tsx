@@ -49,7 +49,7 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useAuth } from '@/hooks/use-auth';
-import { groupService } from '@/lib/firestore-services';
+import { groupService } from '@/core/services/firestore-services';
 import { RecurringGroup, GroupCalendarEvent, GroupDiscussion, GroupResource, GroupSurvey } from '@/types';
 
 export function GroupsClient() {

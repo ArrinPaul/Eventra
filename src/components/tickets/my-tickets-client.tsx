@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/use-auth';
-import { ticketService } from '@/lib/firestore-services';
+import { ticketService } from '@/core/services/firestore-services';
 import { EventTicket } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -29,7 +29,7 @@ import {
   ChevronRight,
   Sparkles
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/core/utils/utils';
 import { format, isPast, isFuture, isToday, differenceInHours, differenceInMinutes } from 'date-fns';
 import Link from 'next/link';
 import { QRCodeSVG } from 'qrcode.react';
@@ -240,7 +240,7 @@ function TicketModal({
       <body>
         <div class="ticket">
           <div class="header">
-            <h1>🎫 Event Ticket</h1>
+            <h1>ðŸŽ« Event Ticket</h1>
             <p>${ticket.event?.title || 'Event'}</p>
           </div>
           <div class="qr-section">
@@ -274,7 +274,7 @@ function TicketModal({
           </div>
           <div class="footer">
             <p>Present this ticket at the venue for entry</p>
-            <p>© EventOS - eventos.app</p>
+            <p>Â© EventOS - eventos.app</p>
           </div>
         </div>
       </body>

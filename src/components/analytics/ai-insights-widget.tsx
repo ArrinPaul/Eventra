@@ -17,8 +17,8 @@ import {
   ChevronRight,
   Zap
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { db } from '@/lib/firebase';
+import { cn } from '@/core/utils/utils';
+import { db } from '@/core/config/firebase';
 import { doc, getDoc, setDoc, serverTimestamp, Timestamp } from 'firebase/firestore';
 
 interface EventData {
@@ -71,7 +71,7 @@ export function AIInsightsWidget({
     if (growthRate > 20) {
       generatedInsights.push({
         type: 'trend',
-        title: 'Registrations Surging! 🚀',
+        title: 'Registrations Surging! Ã°Å¸Å¡â‚¬',
         description: `Your event is trending ${Math.round(growthRate)}% higher than the previous period. Keep the momentum going!`,
         metric: `+${Math.round(growthRate)}%`,
         priority: 'high',
@@ -100,7 +100,7 @@ export function AIInsightsWidget({
     if (data.checkInRate >= 80) {
       generatedInsights.push({
         type: 'achievement',
-        title: 'Excellent Attendance! 🎉',
+        title: 'Excellent Attendance! Ã°Å¸Å½â€°',
         description: `${data.checkInRate}% check-in rate is outstanding. Your attendees are highly engaged.`,
         metric: `${data.checkInRate}%`,
         priority: 'low',

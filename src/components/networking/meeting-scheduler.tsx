@@ -43,10 +43,10 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { cn } from '@/lib/utils';
+import { cn } from '@/core/utils/utils';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
-import { db } from '@/lib/firebase';
+import { db } from '@/core/config/firebase';
 import { 
   collection, 
   query, 
@@ -590,7 +590,7 @@ export default function MeetingScheduler({
                                 <div>
                                   <h4 className="font-medium">{meeting.title}</h4>
                                   <p className="text-sm text-muted-foreground">
-                                    {formatDateTime(new Date(meeting.startTime))} • {meeting.duration} min
+                                    {formatDateTime(new Date(meeting.startTime))} Ã¢â‚¬Â¢ {meeting.duration} min
                                   </p>
                                 </div>
                                 <div className="flex items-center gap-2">

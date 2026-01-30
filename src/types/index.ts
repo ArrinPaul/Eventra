@@ -2,7 +2,7 @@
  * EventOS Types - Consolidated
  */
 
-export * from '../lib/eventos-config';
+export * from '../core/config/eventos-config';
 
 // ------------------------------------------------------------------
 // Legacy / Simple Types (for backward compatibility with existing components)
@@ -11,7 +11,7 @@ export * from '../lib/eventos-config';
 export type UserRole = 'student' | 'professional' | 'organizer';
 
 // Re-export EventOSRole for components that might use it
-export type { EventOSRole } from '../lib/eventos-config';
+export type { EventOSRole } from '../core/config/eventos-config';
 
 export interface LegacyBaseUser {
   id: string;
@@ -107,7 +107,7 @@ export interface ChatMessage {
 // EventOS Enhanced Types
 // ------------------------------------------------------------------
 
-import { EventOSRole } from '../lib/eventos-config';
+import { EventOSRole } from '../core/config/eventos-config';
 
 // Organization/Tenant Types
 export interface Organization {

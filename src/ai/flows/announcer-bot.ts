@@ -8,7 +8,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import { SESSIONS } from '@/lib/data';
+import { SESSIONS } from '@/core/data/data';
 
 const GenerateAnnouncementOutputSchema = z.object({
   announcement: z.string().describe('A fun, engaging, and brief announcement about the session, formatted as a chat message. Include an emoji.'),

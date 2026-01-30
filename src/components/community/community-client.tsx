@@ -10,8 +10,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ArrowUp, ArrowDown, MessageCircle, Plus, Search, Users, TrendingUp, Loader2 } from 'lucide-react';
 import { Community, Post, Comment } from '@/types';
-import { communityService } from '@/lib/firestore-services';
-import { cn } from '@/lib/utils';
+import { communityService } from '@/core/services/firestore-services';
+import { cn } from '@/core/utils/utils';
 import { useToast } from '@/hooks/use-toast';
 
 export default function CommunityClient() {
@@ -231,7 +231,7 @@ export default function CommunityClient() {
           onClick={() => setSelectedCommunity(null)}
           className="mb-4"
         >
-          ← Back to Communities
+          â† Back to Communities
         </Button>
         
         <div className="flex items-start gap-4">

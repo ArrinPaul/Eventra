@@ -18,7 +18,7 @@ import {
   Loader2,
   Share2
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/core/utils/utils';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { getUserCertificates, Certificate, getCertificateTemplates, CertificateTemplate } from '@/app/actions/certificates';

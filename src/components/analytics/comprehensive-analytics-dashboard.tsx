@@ -26,7 +26,7 @@ import {
   Sparkles
 } from 'lucide-react';
 import { collection, getDocs, query, where, orderBy, limit } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { db } from '@/core/config/firebase';
 
 // Import AI Analytics Components
 import { RegistrationTrendChart } from '@/components/analytics/registration-trend-chart';

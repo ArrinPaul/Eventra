@@ -52,10 +52,10 @@ import {
   ChevronDown,
   Bot
 } from 'lucide-react';
-import { cn, getErrorMessage } from '@/lib/utils';
+import { cn, getErrorMessage } from '@/core/utils/utils';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
-import { eventService, ticketService, userProfileService } from '@/lib/firestore-services';
+import { eventService, ticketService, userProfileService } from '@/core/services/firestore-services';
 import type { Event, AgendaItem, SpeakerInfo, UserProfile } from '@/types';
 
 // Import AI Chatbot
@@ -158,7 +158,7 @@ export default function EventDetailsClient({ eventId }: EventDetailsClientProps)
       }
       
       toast({ 
-        title: 'Registered! 🎉', 
+        title: 'Registered! ðŸŽ‰', 
         description: 'Check your tickets page to view your QR code.',
         action: (
           <ToastAction altText="View Ticket" onClick={() => router.push('/tickets')}>
@@ -684,7 +684,7 @@ export default function EventDetailsClient({ eventId }: EventDetailsClientProps)
                   <span>{event.registeredCount || 0} registered</span>
                   {spotsLeft !== null && spotsLeft > 0 && (
                     <>
-                      <span>·</span>
+                      <span>Â·</span>
                       <span className={cn(spotsLeft < 10 && "text-orange-500 font-medium")}>
                         {spotsLeft} spots left
                       </span>

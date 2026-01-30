@@ -1,6 +1,6 @@
 'use server';
 
-import { db } from '@/lib/firebase';
+import { db } from '@/core/config/firebase';
 import { collection, doc, getDoc, getDocs, setDoc, updateDoc, query, where, serverTimestamp, Timestamp } from 'firebase/firestore';
 
 // Challenge definitions
@@ -52,7 +52,7 @@ export async function getDefaultWeeklyChallenges(): Promise<Omit<ChallengeDefini
       id: 'weekly_explorer',
       name: 'Weekly Explorer',
       description: 'Discover and attend events across different categories this week',
-      icon: '🗺️',
+      icon: 'ðŸ—ºï¸',
       type: 'weekly',
       category: 'exploration',
       tasks: [
@@ -80,7 +80,7 @@ export async function getDefaultWeeklyChallenges(): Promise<Omit<ChallengeDefini
       id: 'weekly_networker',
       name: 'Social Spark',
       description: 'Expand your network and make meaningful connections',
-      icon: '🌐',
+      icon: 'ðŸŒ',
       type: 'weekly',
       category: 'networking',
       tasks: [
@@ -109,7 +109,7 @@ export async function getDefaultWeeklyChallenges(): Promise<Omit<ChallengeDefini
       id: 'weekly_contributor',
       name: 'Voice of the Community',
       description: 'Share your thoughts and engage with the community',
-      icon: '💬',
+      icon: 'ðŸ’¬',
       type: 'weekly',
       category: 'engagement',
       tasks: [
@@ -142,7 +142,7 @@ export async function getDailyChallengeTemplates(): Promise<Omit<ChallengeDefini
     {
       name: 'Daily Check-In',
       description: 'Start your day by checking in to the platform',
-      icon: '☀️',
+      icon: 'â˜€ï¸',
       type: 'daily',
       category: 'engagement',
       tasks: [
@@ -161,7 +161,7 @@ export async function getDailyChallengeTemplates(): Promise<Omit<ChallengeDefini
     {
       name: 'Connect Today',
       description: 'Make a new connection today',
-      icon: '🤝',
+      icon: 'ðŸ¤',
       type: 'daily',
       category: 'networking',
       tasks: [
@@ -180,7 +180,7 @@ export async function getDailyChallengeTemplates(): Promise<Omit<ChallengeDefini
     {
       name: 'Share Your Thoughts',
       description: 'Contribute to a community discussion',
-      icon: '💭',
+      icon: 'ðŸ’­',
       type: 'daily',
       category: 'engagement',
       tasks: [

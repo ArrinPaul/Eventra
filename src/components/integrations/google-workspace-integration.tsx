@@ -19,8 +19,8 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '../../hooks/use-toast';
-import { permissionsService } from '../../lib/permissions-service';
-import { integrationService } from '../../lib/integration-service';
+import { permissionsService } from '@/features/auth/services/permissions-service';
+import { integrationService } from '@/features/integrations/services/integration-service';
 import { 
   Dialog,
   DialogContent,
@@ -33,7 +33,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Textarea } from '../ui/textarea';
-import { db } from '@/lib/firebase';
+import { db } from '@/core/config/firebase';
 import { doc, getDoc, setDoc, collection, query, where, getDocs, serverTimestamp } from 'firebase/firestore';
 
 interface GoogleWorkspaceIntegrationProps {
@@ -641,7 +641,7 @@ export default function GoogleWorkspaceIntegration({ eventId, eventTitle }: Goog
                       <div>
                         <div className="font-medium text-sm">{doc.documentTitle}</div>
                         <div className="text-xs text-muted-foreground">
-                          {doc.templateType.replace('_', ' ')} • {doc.createdAt.toLocaleDateString()}
+                          {doc.templateType.replace('_', ' ')} â€¢ {doc.createdAt.toLocaleDateString()}
                         </div>
                       </div>
                       <Button size="sm" variant="outline" asChild>
@@ -741,7 +741,7 @@ export default function GoogleWorkspaceIntegration({ eventId, eventTitle }: Goog
                       <div>
                         <div className="font-medium text-sm">{sheet.spreadsheetTitle}</div>
                         <div className="text-xs text-muted-foreground">
-                          {sheet.templateType} • {sheet.createdAt.toLocaleDateString()}
+                          {sheet.templateType} â€¢ {sheet.createdAt.toLocaleDateString()}
                           {sheet.autoSync && <Badge variant="secondary" className="ml-2">Auto-sync</Badge>}
                         </div>
                       </div>

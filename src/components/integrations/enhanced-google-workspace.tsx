@@ -33,7 +33,7 @@ import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Textarea } from '../ui/textarea';
-import { db } from '@/lib/firebase';
+import { db } from '@/core/config/firebase';
 import { doc, getDoc } from 'firebase/firestore';
 
 interface EnhancedGoogleWorkspaceProps {
@@ -565,7 +565,7 @@ export default function EnhancedGoogleWorkspace({ eventId, eventTitle, userRole 
                           <div>
                             <p className="font-medium">{sessionFile?.name || 'Unknown File'}</p>
                             <p className="text-sm text-muted-foreground">
-                              {session.participants.length} participants • 
+                              {session.participants.length} participants â€¢ 
                               Last activity: {session.lastActivity.toLocaleTimeString()}
                             </p>
                           </div>

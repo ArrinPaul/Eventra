@@ -39,7 +39,7 @@ import {
   Clock
 } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
-import { gamificationService } from '@/lib/firestore-services';
+import { gamificationService } from '@/core/services/firestore-services';
 import { BadgeShowcase } from './badge-showcase';
 import { ChallengesHub } from './challenges-hub';
 import { 
@@ -70,20 +70,20 @@ export function GamificationClient() {
   // Feedback form
   const [feedbackText, setFeedbackText] = useState('');
   const [feedbackRating, setFeedbackRating] = useState(5);
-  const [feedbackEmoji, setFeedbackEmoji] = useState('😊');
+  const [feedbackEmoji, setFeedbackEmoji] = useState('ðŸ˜Š');
   const [isAnonymous, setIsAnonymous] = useState(false);
 
   const levelSystem = [
-    { level: 1, name: 'Newcomer', requiredXP: 0, color: '#6B7280', icon: '🌱' },
-    { level: 2, name: 'Explorer', requiredXP: 100, color: '#10B981', icon: '🔍' },
-    { level: 3, name: 'Contributor', requiredXP: 300, color: '#3B82F6', icon: '🤝' },
-    { level: 4, name: 'Enthusiast', requiredXP: 600, color: '#8B5CF6', icon: '⭐' },
-    { level: 5, name: 'Expert', requiredXP: 1000, color: '#F59E0B', icon: '🎯' },
-    { level: 6, name: 'Champion', requiredXP: 1500, color: '#EF4444', icon: '🏆' },
-    { level: 7, name: 'Legend', requiredXP: 2500, color: '#EC4899', icon: '👑' },
+    { level: 1, name: 'Newcomer', requiredXP: 0, color: '#6B7280', icon: 'ðŸŒ±' },
+    { level: 2, name: 'Explorer', requiredXP: 100, color: '#10B981', icon: 'ðŸ”' },
+    { level: 3, name: 'Contributor', requiredXP: 300, color: '#3B82F6', icon: 'ðŸ¤' },
+    { level: 4, name: 'Enthusiast', requiredXP: 600, color: '#8B5CF6', icon: 'â­' },
+    { level: 5, name: 'Expert', requiredXP: 1000, color: '#F59E0B', icon: 'ðŸŽ¯' },
+    { level: 6, name: 'Champion', requiredXP: 1500, color: '#EF4444', icon: 'ðŸ†' },
+    { level: 7, name: 'Legend', requiredXP: 2500, color: '#EC4899', icon: 'ðŸ‘‘' },
   ];
 
-  const emojiOptions = ['😊', '😍', '🤩', '👏', '🔥', '💖', '🎉', '⚡', '🚀', '💎'];
+  const emojiOptions = ['ðŸ˜Š', 'ðŸ˜', 'ðŸ¤©', 'ðŸ‘', 'ðŸ”¥', 'ðŸ’–', 'ðŸŽ‰', 'âš¡', 'ðŸš€', 'ðŸ’Ž'];
 
   useEffect(() => {
     if (user) {
@@ -203,7 +203,7 @@ export function GamificationClient() {
       // Reset form
       setFeedbackText('');
       setFeedbackRating(5);
-      setFeedbackEmoji('😊');
+      setFeedbackEmoji('ðŸ˜Š');
       setIsAnonymous(false);
     } catch (error) {
       console.error('Error adding feedback:', error);
@@ -289,7 +289,7 @@ export function GamificationClient() {
                     <div>
                       <p className="font-medium capitalize">{streak.type.replace('_', ' ')}</p>
                       <p className="text-sm text-gray-600">
-                        Current: {streak.currentStreak} • Best: {streak.longestStreak}
+                        Current: {streak.currentStreak} â€¢ Best: {streak.longestStreak}
                       </p>
                     </div>
                     <div className="flex items-center gap-2">

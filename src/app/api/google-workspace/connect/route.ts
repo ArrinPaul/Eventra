@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { adminDb } from '@/lib/firebase-admin';
+import { adminDb } from '@/core/config/firebase-admin';
 
 // Google OAuth configuration
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;

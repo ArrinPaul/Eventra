@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { cn } from '@/lib/utils';
+import { cn } from '@/core/utils/utils';
 import { CheckCircle, Users, AlertCircle } from 'lucide-react';
 
 interface CheckInGaugeProps {

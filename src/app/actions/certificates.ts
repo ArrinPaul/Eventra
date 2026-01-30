@@ -1,6 +1,6 @@
 'use server';
 
-import { db } from '@/lib/firebase';
+import { db } from '@/core/config/firebase';
 import { 
   collection, 
   doc, 
@@ -95,7 +95,7 @@ const DEFAULT_TEMPLATES: Omit<CertificateTemplate, 'id' | 'createdAt' | 'created
         <div style="background: white; border-radius: 20px; padding: 40px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); height: calc(100% - 80px);">
           <div style="text-align: center;">
             <div style="width: 60px; height: 60px; background: {{primaryColor}}; border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center;">
-              <span style="color: white; font-size: 30px;">✓</span>
+              <span style="color: white; font-size: 30px;">âœ“</span>
             </div>
             <h1 style="color: {{primaryColor}}; font-size: 28px; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 3px;">Certificate of Completion</h1>
             <p style="color: #999; font-size: 14px; margin-bottom: 30px;">Proudly presented to</p>
@@ -123,7 +123,7 @@ const DEFAULT_TEMPLATES: Omit<CertificateTemplate, 'id' | 'createdAt' | 'created
     htmlTemplate: `
       <div style="width: 800px; height: 600px; padding: 40px; font-family: {{fontFamily}}; background: {{backgroundColor}}; position: relative; background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="none" stroke="%23{{primaryColorHex}}" stroke-width="0.5" opacity="0.1"/></svg>'); background-size: 100px 100px;">
         <div style="text-align: center; padding-top: 40px;">
-          <div style="font-size: 40px; margin-bottom: 20px;">🎤</div>
+          <div style="font-size: 40px; margin-bottom: 20px;">ðŸŽ¤</div>
           <h1 style="color: {{primaryColor}}; font-size: 32px; margin-bottom: 10px;">SPEAKER CERTIFICATE</h1>
           <p style="color: #666; font-size: 14px; margin-bottom: 40px;">In recognition of outstanding contribution</p>
           <h2 style="color: #333; font-size: 36px; margin-bottom: 30px;">{{recipientName}}</h2>

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { cn } from '@/lib/utils';
+import { cn } from '@/core/utils/utils';
 import {
   LayoutDashboard,
   Calendar,
