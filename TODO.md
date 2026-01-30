@@ -52,6 +52,10 @@ This document provides a granular, step-by-step checklist for building EventOS, 
 | ✅ Create Document | Google Docs creation | `src/app/api/google-workspace/create-document/route.ts` |
 | ✅ Create Spreadsheet | Google Sheets creation | `src/app/api/google-workspace/create-spreadsheet/route.ts` |
 | ✅ Sync Registrations | Registration data sync | `src/app/api/google-workspace/sync-registrations/route.ts` |
+| ✅ Google Calendar Connect | OAuth initiation | `src/app/api/google-calendar/connect/route.ts` |
+| ✅ Google Calendar Callback | OAuth callback handler | `src/app/api/google-calendar/callback/route.ts` |
+| ✅ Google Calendar Disconnect | Token revocation | `src/app/api/google-calendar/disconnect/route.ts` |
+| ✅ Google Calendar Sync | Event sync (CRUD) | `src/app/api/google-calendar/sync/route.ts` |
 
 ### ✅ ENABLED PAGES (Previously Placeholder)
 
@@ -64,13 +68,18 @@ This document provides a granular, step-by-step checklist for building EventOS, 
 
 ---
 
-### ⚠️ EXPECTED PLACEHOLDERS (External Service Dependencies)
+### ✅ EXTERNAL SERVICE INTEGRATIONS (All Implemented)
 
-| Component | Status | Notes |
-|-----------|--------|-------|
-| Google Workspace OAuth | Demo mode until configured | Requires Google Cloud Console setup with OAuth credentials |
-| AI Provider APIs | Mock responses | Requires OpenAI/Anthropic API keys for production |
-| Google Calendar Sync | Demo mode | Requires OAuth + Calendar API setup |
+| Component | Status | Implementation |
+|-----------|--------|----------------|
+| Google Workspace OAuth | ✅ Full Implementation | API routes with OAuth flow, graceful fallback when credentials not configured |
+| AI Provider APIs | ✅ Using Genkit + Google AI | Real AI using Gemini 2.5 Flash via `@genkit-ai/googleai` |
+| Google Calendar Sync | ✅ Full Implementation | API routes for OAuth + event CRUD operations |
+
+> **Note:** These integrations require environment variables to be configured:
+> - `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` for OAuth
+> - `GOOGLE_API_KEY` for Genkit/Google AI
+> When not configured, integrations show helpful setup instructions instead of broken states.
 
 ---
 
