@@ -2,7 +2,7 @@
 
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { getMessaging, getToken, onMessage } from 'firebase/messaging';
-import { app } from './firebase';
+import { app } from '@/core/config/firebase';
 
 // Initialize Functions
 const functions = getFunctions(app);
@@ -162,85 +162,85 @@ export function getNotificationPermission(): 'granted' | 'denied' | 'default' {
 // Notification templates for common events
 export const NotificationTemplates = {
   eventRegistration: (eventTitle: string) => ({
-    title: 'Registration Confirmed! 🎉',
+    title: 'Registration Confirmed! ðŸŽ‰',
     message: `You're registered for "${eventTitle}". See you there!`,
     type: NOTIFICATION_TYPES.REGISTRATION_CONFIRMED
   }),
   
   eventReminder24h: (eventTitle: string) => ({
-    title: 'Event Tomorrow! 📅',
+    title: 'Event Tomorrow! ðŸ“…',
     message: `"${eventTitle}" starts in 24 hours. Get ready!`,
     type: NOTIFICATION_TYPES.EVENT_REMINDER
   }),
   
   eventReminder1h: (eventTitle: string) => ({
-    title: 'Event Starting Soon! ⏰',
+    title: 'Event Starting Soon! â°',
     message: `"${eventTitle}" starts in 1 hour!`,
     type: NOTIFICATION_TYPES.EVENT_REMINDER
   }),
   
   eventStarting: (eventTitle: string) => ({
-    title: 'Event Starting Now! 🚀',
+    title: 'Event Starting Now! ðŸš€',
     message: `"${eventTitle}" is starting! Join now.`,
     type: NOTIFICATION_TYPES.EVENT_STARTING
   }),
   
   certificateReady: (eventTitle: string) => ({
-    title: 'Certificate Ready! 🏆',
+    title: 'Certificate Ready! ðŸ†',
     message: `Your certificate for "${eventTitle}" is ready to download.`,
     type: NOTIFICATION_TYPES.CERTIFICATE_READY
   }),
   
   connectionRequest: (userName: string) => ({
-    title: 'New Connection Request! 👋',
+    title: 'New Connection Request! ðŸ‘‹',
     message: `${userName} wants to connect with you.`,
     type: NOTIFICATION_TYPES.CONNECTION_REQUEST
   }),
   
   connectionAccepted: (userName: string) => ({
-    title: 'Connection Accepted! 🤝',
+    title: 'Connection Accepted! ðŸ¤',
     message: `${userName} accepted your connection request.`,
     type: NOTIFICATION_TYPES.CONNECTION_ACCEPTED
   }),
   
   messageReceived: (senderName: string) => ({
-    title: 'New Message! 💬',
+    title: 'New Message! ðŸ’¬',
     message: `${senderName} sent you a message.`,
     type: NOTIFICATION_TYPES.MESSAGE_RECEIVED
   }),
   
   badgeEarned: (badgeName: string) => ({
-    title: 'Badge Earned! 🎖️',
+    title: 'Badge Earned! ðŸŽ–ï¸',
     message: `You earned the "${badgeName}" badge!`,
     type: NOTIFICATION_TYPES.BADGE_EARNED
   }),
   
   challengeCompleted: (challengeName: string, xp: number) => ({
-    title: 'Challenge Complete! 🏅',
+    title: 'Challenge Complete! ðŸ…',
     message: `You completed "${challengeName}" and earned ${xp} XP!`,
     type: NOTIFICATION_TYPES.CHALLENGE_COMPLETED
   }),
   
   meetingScheduled: (meetingTitle: string, dateTime: string) => ({
-    title: 'Meeting Scheduled! 📆',
+    title: 'Meeting Scheduled! ðŸ“†',
     message: `"${meetingTitle}" is scheduled for ${dateTime}.`,
     type: NOTIFICATION_TYPES.MEETING_SCHEDULED
   }),
   
   postLiked: (userName: string) => ({
-    title: 'Post Liked! ❤️',
+    title: 'Post Liked! â¤ï¸',
     message: `${userName} liked your post.`,
     type: NOTIFICATION_TYPES.POST_LIKED
   }),
   
   commentReceived: (userName: string) => ({
-    title: 'New Comment! 💬',
+    title: 'New Comment! ðŸ’¬',
     message: `${userName} commented on your post.`,
     type: NOTIFICATION_TYPES.COMMENT_RECEIVED
   }),
   
   waitlistAvailable: (eventTitle: string) => ({
-    title: 'Spot Available! 🎫',
+    title: 'Spot Available! ðŸŽ«',
     message: `A spot opened up for "${eventTitle}". Register now!`,
     type: NOTIFICATION_TYPES.WAITLIST_AVAILABLE
   })

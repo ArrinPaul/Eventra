@@ -122,19 +122,9 @@ export function GamificationClient() {
       setUserTitles(titlesData);
       setFeedbackWalls(wallsData);
 
-      // Mock leaderboard
-      setLeaderboard({
-        id: 'global',
-        type: 'global',
-        entries: [
-          { userId: 'user1', points: 2450, rank: 1, badgeCount: 12, eventCount: 25, connectionCount: 67 },
-          { userId: user.id, points: xpData?.totalXP || 1850, rank: 2, badgeCount: 8, eventCount: 18, connectionCount: 45 },
-          { userId: 'user3', points: 1650, rank: 3, badgeCount: 6, eventCount: 15, connectionCount: 32 },
-          { userId: 'user4', points: 1420, rank: 4, badgeCount: 5, eventCount: 12, connectionCount: 28 },
-          { userId: 'user5', points: 1200, rank: 5, badgeCount: 4, eventCount: 10, connectionCount: 25 }
-        ],
-        lastUpdated: new Date()
-      });
+      // Real leaderboard
+      const leaderboardData = await gamificationService.getLeaderboard();
+      setLeaderboard(leaderboardData);
 
     } catch (error) {
       console.error('Error loading gamification data:', error);

@@ -18,8 +18,9 @@ import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
-import { db } from '@/core/config/firebase';
-import { collection, doc, getDoc, getDocs, setDoc, updateDoc, query, where, orderBy, serverTimestamp, deleteDoc, addDoc } from 'firebase/firestore';
+import { db, functions } from '@/core/config/firebase';
+import { doc, getDoc, collection, query, where, getDocs, orderBy } from 'firebase/firestore';
+import { httpsCallable } from 'firebase/functions';
 import {
   FileText,
   Table2,
@@ -231,56 +232,15 @@ export function GoogleWorkspaceIntegration() {
     
     setIsConnecting(true);
     try {
-      // OAuth2 flow: In production, use Google Identity Services or Firebase Auth
-      // Implementation options:
-      // 1. Firebase Auth with Google provider + additional scopes
-      // 2. Google Identity Services (gsi) client library
-      // 3. Server-side OAuth flow via API route
-      
-      // For production, redirect to OAuth URL:
-      // const oauthUrl = `https://accounts.google.com/o/oauth2/v2/auth?
-      //   client_id=${GOOGLE_CLIENT_ID}
-      //   &redirect_uri=${encodeURIComponent(window.location.origin + '/api/auth/google/callback')}
-      //   &response_type=code
-      //   &scope=${encodeURIComponent('https://www.googleapis.com/auth/documents https://www.googleapis.com/auth/spreadsheets')}
-      //   &access_type=offline
-      //   &prompt=consent`;
-      // window.location.href = oauthUrl;
-      
-      // Demo mode: Create pending integration record
-      const newIntegration: GoogleWorkspaceIntegration = {
-        isConnected: true,
-        accessToken: 'pending-oauth-token',
-        refreshToken: 'pending-refresh-token',
-        expiresAt: new Date(Date.now() + 3600000),
-        permissions: ['https://www.googleapis.com/auth/documents', 'https://www.googleapis.com/auth/spreadsheets'],
-        userInfo: {
-          email: user?.email || 'user@example.com',
-          name: user?.displayName || user?.name || 'User',
-          picture: user?.avatar || '',
-        },
-        settings: {
-          autoCreateDocs: true,
-          defaultPermissions: ['reader'],
-          syncEnabled: true,
-          notificationsEnabled: true,
-        },
-      };
-      
-      // Save to Firestore
-      await setDoc(doc(db, 'integrations', `google_workspace_${user.uid}`), {
-        ...newIntegration,
-        userId: user.uid,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-      });
-      
-      setIntegration(newIntegration);
-      
-      toast({
-        title: 'Google Workspace Connected!',
-        description: 'You can now create and manage documents directly from EventOS.',
-      });
+      // Call Firebase Cloud Function to get auth URL
+      const getAuthUrlFn = httpsCallable(functions, 'getGoogleWorkspaceAuthUrl');
+      const result = await getAuthUrlFn();
+      const data = result.data as { authUrl: string };
+
+      if (data.authUrl) {
+        // Open the auth URL in a popup or redirect
+        window.location.href = data.authUrl;
+      }
     } catch (error) {
       console.error('Google Workspace connection failed:', error);
       toast({
@@ -385,59 +345,48 @@ export function GoogleWorkspaceIntegration() {
     
     setIsLoading(true);
     try {
-      // TODO: In production, call Google Docs/Sheets API to create document
-      // For now, create a placeholder document in Firestore
-      const newDocData = {
-        title,
-        type: template.type,
-        url: `https://docs.google.com/${template.type}/d/pending`,
-        webViewLink: `https://docs.google.com/${template.type}/d/pending/edit`,
-        webContentLink: `https://docs.google.com/${template.type}/d/pending/export`,
-        createdTime: new Date().toISOString(),
-        modifiedTime: new Date().toISOString(),
-        createdBy: user.uid,
-        lastModifiedBy: user.uid,
-        permissions: [
-          { 
-            id: 'perm-new', 
-            type: 'user', 
-            role: 'owner', 
-            emailAddress: user?.email, 
-            displayName: user?.displayName || user?.name 
-          },
-        ],
-        mimeType: template.type === 'document' ? 'application/vnd.google-apps.document' : 'application/vnd.google-apps.spreadsheet',
-        eventId: eventId || null,
-        organizationId: user?.organizationId || '',
-        isTemplate: false,
-        tags: [template.category],
-        collaborators: [user.uid],
-        status: 'draft',
-        metadata: {
-          purpose: template.category,
-          autoSync: integration.settings.syncEnabled,
-          syncFrequency: 'real-time',
-        },
-      };
+      let result;
       
-      // Save to Firestore
-      const docRef = await addDoc(collection(db, 'workspace_documents'), newDocData);
-      
-      const newDocument: GoogleWorkspaceDocument = {
-        id: docRef.id,
-        ...newDocData,
-      } as GoogleWorkspaceDocument;
-      
-      setDocuments(prev => [newDocument, ...prev]);
-      setShowCreateDialog(false);
-      
-      toast({
-        title: 'Document Created!',
-        description: `${template.name} has been created and is ready for collaboration.`,
-      });
-      
-      // Open the document in a new tab
-      window.open(newDocument.webViewLink, '_blank');
+      if (template.type === 'document') {
+        const createEventDocumentFn = httpsCallable(functions, 'createEventDocument');
+        result = await createEventDocumentFn({
+          eventId: eventId || 'general', // Fallback if no event selected
+          template: {
+            templateType: template.category,
+            title: title,
+            content: template.description
+          }
+        });
+      } else {
+        const createEventSpreadsheetFn = httpsCallable(functions, 'createEventSpreadsheet');
+        result = await createEventSpreadsheetFn({
+          eventId: eventId || 'general',
+          template: {
+            templateType: template.category,
+            title: title,
+            sheets: [{ title: 'Sheet1', headers: ['Column A', 'Column B'] }] // Default sheet
+          }
+        });
+      }
+
+      const data = result.data as { success: boolean; documentUrl?: string; spreadsheetUrl?: string };
+
+      if (data.success) {
+        toast({
+          title: 'Document Created!',
+          description: `${template.name} has been created and is ready for collaboration.`,
+        });
+        
+        // Open the document in a new tab
+        const url = data.documentUrl || data.spreadsheetUrl;
+        if (url) {
+          window.open(url, '_blank');
+        }
+        
+        // Refresh list
+        loadDocuments();
+        setShowCreateDialog(false);
+      }
     } catch (error) {
       console.error('Document creation failed:', error);
       toast({

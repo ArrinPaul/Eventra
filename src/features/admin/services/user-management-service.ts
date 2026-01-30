@@ -3,7 +3,7 @@
  * Admin functions for managing users via Firestore
  */
 
-import { db, FIRESTORE_COLLECTIONS } from './firebase';
+import { db, FIRESTORE_COLLECTIONS } from '@/core/config/firebase';
 import {
   collection,
   query,

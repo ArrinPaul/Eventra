@@ -9,7 +9,7 @@ import { getFirestore, Firestore, connectFirestoreEmulator } from 'firebase/fire
 import { getFunctions, Functions, connectFunctionsEmulator } from 'firebase/functions';
 import { getStorage, FirebaseStorage, connectStorageEmulator } from 'firebase/storage';
 import { getAnalytics, Analytics } from 'firebase/analytics';
-import { EVENTOS_CONFIG } from './eventos-config';
+import { EVENTOS_CONFIG } from '@/core/config/eventos-config';
 
 // Firebase configuration
 const firebaseConfig = EVENTOS_CONFIG.firebase.config;
@@ -45,9 +45,9 @@ if (EVENTOS_CONFIG.firebase.emulator.enabled && typeof window !== 'undefined') {
       connectFirestoreEmulator(db, firestore.host, firestore.port);
       connectFunctionsEmulator(functions, functionsConfig.host, functionsConfig.port);
       connectStorageEmulator(storage, storageConfig.host, storageConfig.port);
-      console.log('🚀 Connected to Firebase Emulators');
+      console.log('ðŸš€ Connected to Firebase Emulators');
     } catch (error) {
-      console.warn('⚠️ Could not connect to Firebase Emulators:', error);
+      console.warn('âš ï¸ Could not connect to Firebase Emulators:', error);
     }
   }
 }

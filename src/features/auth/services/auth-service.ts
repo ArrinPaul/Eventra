@@ -15,10 +15,10 @@ import {
   updateProfile
 } from 'firebase/auth';
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
-import { auth, db } from './firebase';
-import { FIRESTORE_COLLECTIONS } from './firebase';
-import { EventOSRole } from './eventos-config';
-import { getFirebaseErrorMessage, isFirebaseError } from './utils';
+import { auth, db } from '@/core/config/firebase';
+import { FIRESTORE_COLLECTIONS } from '@/core/config/firebase';
+import { EventOSRole } from '@/core/config/eventos-config';
+import { getFirebaseErrorMessage, isFirebaseError } from '@/core/utils/utils';
 
 // Google Auth Provider
 const googleProvider = new GoogleAuthProvider();

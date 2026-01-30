@@ -303,44 +303,42 @@ export default function GoogleWorkspaceIntegration({ eventId, eventTitle }: Goog
     setLoading(true);
     try {
       const template = DOCUMENT_TEMPLATES.find(t => t.value === selectedDocumentTemplate);
+      const title = customDocumentTitle || template?.label || 'Untitled Document';
       
-      const response = await fetch('/api/google-workspace/create-document', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${user?.token}`,
-        },
-        body: JSON.stringify({
-          eventId,
-          template: {
-            templateType: selectedDocumentTemplate,
-            title: customDocumentTitle || template?.label,
-            content: customDocumentContent,
-          },
-        }),
+      const createEventDocumentFn = httpsCallable(functions, 'createEventDocument');
+      const result = await createEventDocumentFn({
+        eventId,
+        template: {
+          templateType: selectedDocumentTemplate,
+          title: title,
+          content: customDocumentContent || template?.description || '',
+        }
       });
 
-      const result = await response.json();
+      const data = result.data as { success: boolean; documentId: string; documentUrl: string };
       
-      if (result.success) {
+      if (data.success) {
         toast({
           title: "Document Created",
-          description: `${template?.label} has been created successfully.`,
+          description: `${title} has been created successfully in Google Docs.`,
         });
         setShowDocumentDialog(false);
         setSelectedDocumentTemplate('');
         setCustomDocumentTitle('');
         setCustomDocumentContent('');
-        loadWorkspaceItems();
         
         // Open the document in a new tab
-        window.open(result.documentUrl, '_blank');
+        if (data.documentUrl) {
+          window.open(data.documentUrl, '_blank');
+        }
+        
+        loadWorkspaceItems();
       }
     } catch (error) {
       console.error('Error creating document:', error);
       toast({
         title: "Error",
-        description: "Failed to create document. Please try again.",
+        description: "Failed to create document. Ensure Google Workspace is connected.",
         variant: "destructive",
       });
     } finally {
@@ -370,43 +368,41 @@ export default function GoogleWorkspaceIntegration({ eventId, eventTitle }: Goog
     setLoading(true);
     try {
       const template = SPREADSHEET_TEMPLATES.find(t => t.value === selectedSpreadsheetTemplate);
+      const title = customSpreadsheetTitle || template?.label || 'Untitled Spreadsheet';
       
-      const response = await fetch('/api/google-workspace/create-spreadsheet', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${user?.token}`,
-        },
-        body: JSON.stringify({
-          eventId,
-          template: {
-            templateType: selectedSpreadsheetTemplate,
-            title: customSpreadsheetTitle || template?.label,
-            sheets: template?.sheets || [],
-          },
-        }),
+      const createEventSpreadsheetFn = httpsCallable(functions, 'createEventSpreadsheet');
+      const result = await createEventSpreadsheetFn({
+        eventId,
+        template: {
+          templateType: selectedSpreadsheetTemplate,
+          title: title,
+          sheets: template?.sheets || []
+        }
       });
 
-      const result = await response.json();
+      const data = result.data as { success: boolean; spreadsheetId: string; spreadsheetUrl: string };
       
-      if (result.success) {
+      if (data.success) {
         toast({
           title: "Spreadsheet Created",
-          description: `${template?.label} has been created successfully.`,
+          description: `${title} has been created successfully in Google Sheets.`,
         });
         setShowSpreadsheetDialog(false);
         setSelectedSpreadsheetTemplate('');
         setCustomSpreadsheetTitle('');
-        loadWorkspaceItems();
         
         // Open the spreadsheet in a new tab
-        window.open(result.spreadsheetUrl, '_blank');
+        if (data.spreadsheetUrl) {
+          window.open(data.spreadsheetUrl, '_blank');
+        }
+        
+        loadWorkspaceItems();
       }
     } catch (error) {
       console.error('Error creating spreadsheet:', error);
       toast({
         title: "Error",
-        description: "Failed to create spreadsheet. Please try again.",
+        description: "Failed to create spreadsheet. Ensure Google Workspace is connected.",
         variant: "destructive",
       });
     } finally {

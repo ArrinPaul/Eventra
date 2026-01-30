@@ -84,56 +84,35 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Parse state to get return URL
-    let returnUrl = '/integrations';
-    if (state) {
-      try {
-        const stateData = JSON.parse(Buffer.from(state, 'base64').toString());
-        returnUrl = stateData.returnUrl || '/integrations';
-      } catch {
-        // Invalid state, use default return URL
-      }
-    }
-
     // Exchange code for tokens
     const tokens = await exchangeCodeForTokens(code);
     
     // Get user info
     const userInfo = await getUserInfo(tokens.access_token);
 
-    // Store tokens in Firestore (in production, associate with authenticated user)
-    // For now, we'll store a placeholder that the client can update
-    const connectionData = {
-      provider: 'google-workspace',
-      email: userInfo.email,
-      name: userInfo.name,
-      picture: userInfo.picture,
-      accessToken: tokens.access_token,
-      refreshToken: tokens.refresh_token,
-      expiresAt: Date.now() + tokens.expires_in * 1000,
-      scope: tokens.scope,
-      connectedAt: new Date().toISOString(),
-    };
+    // The state parameter contains the userId
+    const userId = state;
 
-    // Create a temporary connection ID that the client will claim
-    const tempConnectionId = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
-    // Store in Firestore with a short TTL (will be claimed by user or expire)
-    if (adminDb) {
-      await adminDb.collection('google_workspace_connections').doc(tempConnectionId).set({
-        ...connectionData,
-        claimed: false,
-        createdAt: new Date(),
-        expiresAt: new Date(Date.now() + 5 * 60 * 1000), // 5 minute TTL for claiming
+    if (userId && adminDb) {
+      // Update user document directly
+      await adminDb.collection('users').doc(userId).update({
+        googleWorkspace: {
+          accessToken: tokens.access_token,
+          refreshToken: tokens.refresh_token,
+          expiryDate: Date.now() + tokens.expires_in * 1000,
+          connected: true,
+          connectedAt: new Date(),
+          email: userInfo.email,
+          name: userInfo.name,
+          picture: userInfo.picture,
+          scope: tokens.scope
+        }
       });
     }
 
     // Redirect back to integrations page with success indicator
     return NextResponse.redirect(
-      new URL(
-        `${returnUrl}?google_connected=true&connection_id=${tempConnectionId}&email=${encodeURIComponent(userInfo.email)}`,
-        request.url
-      )
+      new URL('/integrations?google_connected=true', request.url)
     );
   } catch (error) {
     console.error('Error in Google OAuth callback:', error);

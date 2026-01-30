@@ -391,41 +391,118 @@ export const webScraperFunctions = {
 
 // Helper functions for scraping different sources
 async function scrapeEventbriteEvents(query: string, location: string, category: string): Promise<ScrapedEvent[]> {
-  // Mock implementation - replace with actual Eventbrite API or scraping logic
-  const events: ScrapedEvent[] = [
-    {
-      title: "Tech Meetup 2024",
-      description: "Join us for an exciting technology meetup featuring the latest innovations.",
-      date: new Date('2024-03-15'),
-      location: "San Francisco, CA",
-      url: "https://eventbrite.com/event/tech-meetup-2024",
-      organizer: "Tech Community SF",
-      category: "technology",
-      price: "Free",
-      source: 'eventbrite'
-    }
-  ];
+  try {
+    const searchUrl = `https://www.eventbrite.com/d/${encodeURIComponent(location || 'online')}/${encodeURIComponent(query || category)}/`;
+    const response = await axios.get(searchUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+      }
+    });
 
-  return events;
+    const $ = cheerio.load(response.data);
+    const events: ScrapedEvent[] = [];
+
+    // Look for JSON-LD data first (most reliable)
+    $('script[type="application/ld+json"]').each((i, el) => {
+      try {
+        const json = JSON.parse($(el).html() || '{}');
+        const items = Array.isArray(json) ? json : [json];
+        
+        items.forEach(item => {
+          if (item['@type'] === 'Event' || item['@type'] === 'EducationEvent') {
+            events.push({
+              title: item.name,
+              description: item.description || '',
+              date: new Date(item.startDate),
+              location: item.location?.name || item.location?.address?.addressLocality || 'Online',
+              url: item.url,
+              organizer: item.organizer?.name || 'Eventbrite Organizer',
+              category: category || 'General',
+              price: item.offers?.price ? `${item.offers.price} ${item.offers.priceCurrency}` : 'Free',
+              imageUrl: item.image,
+              source: 'eventbrite'
+            });
+          }
+        });
+      } catch (e) {
+        // Continue if JSON parse fails
+      }
+    });
+
+    // Fallback to HTML parsing if no JSON-LD found or to supplement
+    if (events.length === 0) {
+      $('.feed-standard-card-content').each((i, el) => {
+        const title = $(el).find('h3').text().trim();
+        const dateText = $(el).find('.event-card__date').text().trim();
+        const loc = $(el).find('.event-card__location').text().trim();
+        const link = $(el).find('a.event-card-link').attr('href');
+        
+        if (title && link) {
+           events.push({
+             title,
+             description: '',
+             date: new Date(), // Hard to parse relative dates without library
+             location: loc || location,
+             url: link,
+             organizer: 'Eventbrite',
+             category: category || 'General',
+             source: 'eventbrite'
+           });
+        }
+      });
+    }
+
+    return events.slice(0, 10); // Limit to top 10
+  } catch (error) {
+    console.error('Real scraping failed for Eventbrite:', error);
+    return [];
+  }
 }
 
 async function scrapeMeetupEvents(query: string, location: string, category: string): Promise<ScrapedEvent[]> {
-  // Mock implementation - replace with actual Meetup API or scraping logic
-  const events: ScrapedEvent[] = [
-    {
-      title: "Business Networking Event",
-      description: "Connect with local business professionals and entrepreneurs.",
-      date: new Date('2024-03-20'),
-      location: "New York, NY",
-      url: "https://meetup.com/event/business-networking",
-      organizer: "NYC Business Network",
-      category: "business",
-      price: "$10",
-      source: 'meetup'
-    }
-  ];
+  try {
+    const searchUrl = `https://www.meetup.com/find/?keywords=${encodeURIComponent(query)}&location=${encodeURIComponent(location)}`;
+    const response = await axios.get(searchUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+      }
+    });
 
-  return events;
+    const $ = cheerio.load(response.data);
+    const events: ScrapedEvent[] = [];
+
+    // Meetup often uses JSON-LD
+    $('script[type="application/ld+json"]').each((i, el) => {
+      try {
+        const json = JSON.parse($(el).html() || '{}');
+        const items = Array.isArray(json) ? json : [json];
+        
+        items.forEach(item => {
+           if (item['@type'] === 'Event') {
+             events.push({
+               title: item.name,
+               description: item.description || '',
+               date: new Date(item.startDate),
+               location: item.location?.name || 'Online',
+               url: item.url,
+               organizer: item.organizer?.name || 'Meetup Group',
+               category: category || 'Community',
+               price: item.offers?.price ? `${item.offers.price}` : 'Free',
+               imageUrl: item.image,
+               source: 'meetup'
+             });
+           }
+        });
+      } catch (e) {
+        // Ignore parse errors
+      }
+    });
+
+    return events.slice(0, 10);
+  } catch (error) {
+    console.error('Real scraping failed for Meetup:', error);
+    return [];
+  }
 }
 
 async function scrapeIEEEEvents(category: string): Promise<ScrapedEvent[]> {

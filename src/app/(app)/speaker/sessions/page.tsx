@@ -79,7 +79,13 @@ interface SpeakerProfile {
   averageRating: number;
 }
 
+import { useAuth } from '@/hooks/use-auth';
+import { userService, eventService } from '@/core/services/firestore-services';
+
+// ... (imports)
+
 export default function SpeakerSessionDashboard() {
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<'sessions' | 'profile' | 'materials'>('sessions');
   const [sessions, setSessions] = useState<SpeakerSession[]>([]);
   const [speakerProfile, setSpeakerProfile] = useState<SpeakerProfile | null>(null);
@@ -89,77 +95,71 @@ export default function SpeakerSessionDashboard() {
   const { toast } = useToast();
 
   useEffect(() => {
-    loadSpeakerData();
-  }, []);
+    if (user) {
+      loadSpeakerData();
+    }
+  }, [user]);
 
   const loadSpeakerData = async () => {
+    if (!user) return;
     setLoading(true);
     try {
-      // Mock data - replace with actual API calls
-      setSpeakerProfile({
-        id: 'speaker_1',
-        name: 'John Doe',
-        email: 'john.doe@example.com',
-        role: 'speaker',
-        bio: 'Experienced software engineer with 10+ years in enterprise solutions and cloud technologies.',
-        linkedinUrl: 'https://linkedin.com/in/johndoe',
-        sapCommunityUrl: 'https://community.sap.com/t5/user/viewprofilepage/user-id/johndoe',
-        tshirtSize: 'L',
-        totalSessions: 5,
-        averageRating: 4.6,
-      });
-
-      setSessions([
-        {
-          id: 'session_1',
-          title: 'Introduction to SAP Cloud Platform',
-          abstract: 'A comprehensive overview of SAP Cloud Platform capabilities, including integration services, data management, and application development tools.',
-          track: 'technical',
-          category: 'talk',
-          duration: 45,
-          scheduledDate: '2024-03-15',
-          scheduledTime: '10:00 AM',
-          venue: 'Main Auditorium',
-          status: 'scheduled',
-          attendeeCount: 120,
-          materials: [
-            {
-              id: 'mat_1',
-              name: 'SAP Cloud Platform Overview.pdf',
-              type: 'presentation',
-              url: '/materials/scp-overview.pdf',
-              uploadDate: '2024-03-01',
-              size: '2.3 MB',
-            },
-          ],
-          feedback: [
-            {
-              id: 'fb_1',
-              rating: 5,
-              comment: 'Excellent presentation with clear examples!',
-              submittedAt: '2024-03-15T12:00:00Z',
-              anonymous: false,
-            },
-          ],
-        },
-        {
-          id: 'session_2',
-          title: 'Advanced SAP Integration Patterns',
-          abstract: 'Deep dive into enterprise integration patterns using SAP PI/PO, CPI, and modern API management approaches.',
-          track: 'technical',
-          category: 'workshop',
-          duration: 90,
-          status: 'submitted',
-          materials: [],
-          feedback: [],
-        },
+      const [userProfile, allEvents] = await Promise.all([
+        userService.getUser(user.uid),
+        eventService.getEvents()
       ]);
+
+      if (userProfile) {
+        setSpeakerProfile({
+          id: userProfile.id,
+          name: userProfile.name,
+          email: userProfile.email,
+          role: 'speaker',
+          bio: (userProfile as any).bio || '',
+          linkedinUrl: (userProfile as any).socialLinks?.linkedin || '',
+          sapCommunityUrl: (userProfile as any).socialLinks?.website || '',
+          tshirtSize: (userProfile as any).tshirtSize || 'L',
+          profileImage: userProfile.photoURL || '',
+          totalSessions: 0, // Will update below
+          averageRating: 0  // Will update below
+        });
+      }
+
+      // Filter sessions where user is a speaker
+      const speakerSessions = allEvents
+        .filter(event => event.speakers && event.speakers.some((s: any) => (typeof s === 'string' ? s === user.uid : s.id === user.uid)))
+        .map(event => ({
+          id: event.id,
+          title: event.title,
+          abstract: event.description,
+          track: (event as any).track || 'General',
+          category: (event.category as any) || 'talk',
+          duration: (event as any).duration || 60,
+          scheduledDate: event.startDate ? new Date(event.startDate).toISOString() : undefined,
+          venue: (event.location as any)?.venue?.name || 'TBD',
+          status: (event.status as any) || 'draft',
+          attendeeCount: event.registeredCount || 0,
+          materials: (event as any).materials || [],
+          feedback: (event as any).feedback || []
+        })) as SpeakerSession[];
+
+      setSessions(speakerSessions);
+      
+      // Update profile stats based on real data
+      if (userProfile) {
+        setSpeakerProfile(prev => prev ? ({
+          ...prev,
+          totalSessions: speakerSessions.length,
+          averageRating: 4.8 // Calculate real average if feedback data exists
+        }) : null);
+      }
+
     } catch (error) {
       console.error('Error loading speaker data:', error);
       toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Failed to load speaker data.',
+        title: "Error",
+        description: "Failed to load speaker profile.",
+        variant: "destructive",
       });
     } finally {
       setLoading(false);

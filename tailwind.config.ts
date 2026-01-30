@@ -71,6 +71,21 @@ export default {
           border: 'hsl(var(--sidebar-border))',
           ring: 'hsl(var(--sidebar-ring))',
         },
+        // Eventtts feature colors
+        'feature-purple': '#8B5CF6',
+        'feature-cyan': '#06B6D4',
+        'feature-green': '#10B981',
+        'feature-orange': '#F59E0B',
+        'feature-pink': '#EC4899',
+      },
+      backgroundImage: {
+        'gradient-red-hero': 'linear-gradient(135deg, #DC2626 0%, #EF4444 50%, #F87171 100%)',
+        'gradient-blue-section': 'linear-gradient(135deg, #3B82F6 0%, #60A5FA 50%, #22D3EE 100%)',
+      },
+      boxShadow: {
+        'card': '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
+        'card-hover': '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+        'feature-icon': '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
       },
       borderRadius: {
         lg: 'var(--radius)',

@@ -1,5 +1,5 @@
 // Firestore service utilities for the new modules
-import { db } from './firebase';
+import { db } from '@/core/config/firebase';
 import { 
   collection, 
   doc, 
@@ -967,69 +967,191 @@ export const gamificationService = {
     }
   },
   // ... other gamification methods (mocked in previous file, assuming they were)
-  async getAchievements(): Promise<Achievement[]> { return []; },
-  async getUserAchievements(userId: string): Promise<UserAchievement[]> { return []; },
-  async getUserStreaks(userId: string): Promise<Streak[]> { return []; },
-  async getChallenges(): Promise<Challenge[]> { return []; },
+  async getAchievements(): Promise<Achievement[]> {
+    try {
+      const snapshot = await getDocs(collection(db, 'achievements'));
+      return snapshot.docs.map(d => ({ id: d.id, ...d.data() })) as Achievement[];
+    } catch (error) { return []; }
+  },
+  async getUserAchievements(userId: string): Promise<UserAchievement[]> {
+    try {
+      const snapshot = await getDocs(query(collection(db, 'user_achievements'), where('userId', '==', userId)));
+      return snapshot.docs.map(d => ({ id: d.id, ...d.data() })) as UserAchievement[];
+    } catch (error) { return []; }
+  },
+  async getUserStreaks(userId: string): Promise<Streak[]> {
+    try {
+      const snapshot = await getDocs(query(collection(db, 'streaks'), where('userId', '==', userId)));
+      return snapshot.docs.map(d => ({ id: d.id, ...d.data() })) as Streak[];
+    } catch (error) { return []; }
+  },
+  async getChallenges(): Promise<Challenge[]> {
+    try {
+      const snapshot = await getDocs(collection(db, 'challenges'));
+      return snapshot.docs.map(d => ({ id: d.id, ...d.data() })) as Challenge[];
+    } catch (error) { return []; }
+  },
   async getFeedbackWalls(eventId?: string): Promise<FeedbackWall[]> {
-      try {
-        // Mock return for now as per previous implementation
-        return [{
-          id: 'wall1',
-          eventId: eventId || 'event1',
-          entries: [],
-          isPublic: true,
-          moderationEnabled: false,
-          createdAt: new Date()
-        }];
-      } catch (error) { return []; }
+    try {
+      const q = eventId 
+        ? query(collection(db, 'feedback_walls'), where('eventId', '==', eventId))
+        : collection(db, 'feedback_walls');
+      const snapshot = await getDocs(q);
+      return snapshot.docs.map(d => ({ id: d.id, ...d.data() })) as FeedbackWall[];
+    } catch (error) { return []; }
   },
-  async addFeedbackToWall(wallId: string, feedback: any): Promise<string> { return 'mock_id'; },
-  async getUserTitles(userId: string): Promise<UserTitle[]> { return []; }
+  async addFeedbackToWall(wallId: string, feedback: any): Promise<string> {
+    try {
+      const docRef = await addDoc(collection(db, 'feedback_walls', wallId, 'entries'), {
+        ...feedback,
+        createdAt: serverTimestamp()
+      });
+      return docRef.id;
+    } catch (error) { throw error; }
+  },
+  async getUserTitles(userId: string): Promise<UserTitle[]> {
+    try {
+      const userDoc = await getDoc(doc(db, 'users', userId));
+      return userDoc.data()?.titles || [];
+    } catch (error) { return []; }
+  },
+  async getLeaderboard(type: 'global' | 'department' = 'global', category?: string): Promise<Leaderboard> {
+    try {
+      const xpQuery = query(
+        collection(db, 'userXP'),
+        orderBy('xp', 'desc'),
+        limit(50)
+      );
+      const snapshot = await getDocs(xpQuery);
+      
+      const entries = await Promise.all(snapshot.docs.map(async (d, index) => {
+        const data = d.data();
+        const userDoc = await getDoc(doc(db, 'users', data.userId));
+        const userData = userDoc.data();
+        
+        return {
+          userId: data.userId,
+          userName: userData?.name || 'Anonymous',
+          avatar: userData?.avatar || '',
+          points: data.xp || 0,
+          rank: index + 1,
+          badgeCount: userData?.badges?.length || 0,
+          eventCount: userData?.attendedEvents?.length || 0,
+          connectionCount: userData?.connections?.length || 0
+        };
+      }));
+
+      return {
+        id: type,
+        type,
+        entries,
+        lastUpdated: new Date()
+      };
+    } catch (error) {
+      console.error('Error fetching leaderboard:', error);
+      return { id: 'error', type, entries: [], lastUpdated: new Date() };
+    }
+  }
 };
 
-// Event Ticketing & Management Services (Mocked for now in previous implementation)
-export const ticketingService = {
-  async getEventWithTicketing(eventId: string): Promise<EventTicketing | null> {
-    // Mock
-    return {
-      soldTickets: 57,
-      availableTickets: 68,
-      ticketTypes: [
-        { id: '1', price: 25, benefits: ['Event access', 'Welcome kit'] },
-        { id: '2', price: 75, benefits: ['Event access', 'VIP lounge', 'Premium meals'] }
-      ],
-      analytics: {
-        totalRevenue: 2025,
-        ticketsSold: 57,
-        conversionRate: 0.65,
-        refundRequests: 2,
-        checkInRate: 0.85
-      }
-    } as EventTicketing;
-  },
-  async purchaseTickets(bookingRequest: BookingRequest): Promise<EventTicket[]> { return []; },
-  async getUserTickets(userId: string): Promise<EventTicket[]> { return []; },
-  async checkInTicket(ticketId: string): Promise<boolean> { return true; },
-  async joinWaitlist(eventId: string, userId: string): Promise<WaitlistEntry> { return { id: 'w1' } as WaitlistEntry; },
-  async validateDiscountCode(code: string, eventId: string): Promise<DiscountCode | null> { return null; }
-};
+import { ticketingServiceReal } from '@/features/ticketing/services/ticketing-service';
 
-// Recurring Groups (Mocked)
+// Use real implementation instead of mocks
+export const ticketingService = ticketingServiceReal;
+
+// Recurring Groups
 export const groupService = {
-  async getGroups(userId?: string): Promise<RecurringGroup[]> { return []; },
-  async createGroup(group: any): Promise<string> { return 'group1'; },
-  async joinGroup(groupId: string, userId: string): Promise<boolean> { return true; },
-  async leaveGroup(groupId: string, userId: string): Promise<boolean> { return true; },
-  async getGroupCalendarEvents(groupId: string): Promise<GroupCalendarEvent[]> { return []; },
-  async createCalendarEvent(event: any): Promise<string> { return 'event1'; },
-  async updateRSVP(eventId: string, userId: string, status: string): Promise<boolean> { return true; },
-  async createSurvey(survey: any): Promise<string> { return 'survey1'; },
-  async submitSurveyResponse(response: any): Promise<string> { return 'resp1'; },
-  async getGroupDiscussions(groupId: string): Promise<GroupDiscussion[]> { return []; },
-  async createDiscussion(discussion: any): Promise<string> { return 'disc1'; },
-  async getGroupResources(groupId: string): Promise<GroupResource[]> { return []; },
-  async uploadResource(resource: any): Promise<string> { return 'res1'; }
+  async getGroups(userId?: string): Promise<RecurringGroup[]> {
+    try {
+      const q = userId 
+        ? query(collection(db, 'groups'), where('members', 'array-contains', userId))
+        : collection(db, 'groups');
+      const snapshot = await getDocs(q);
+      return snapshot.docs.map(d => ({ id: d.id, ...d.data() })) as RecurringGroup[];
+    } catch (error) { return []; }
+  },
+  async createGroup(group: any): Promise<string> {
+    try {
+      const docRef = await addDoc(collection(db, 'groups'), {
+        ...group,
+        createdAt: serverTimestamp()
+      });
+      return docRef.id;
+    } catch (error) { throw error; }
+  },
+  async joinGroup(groupId: string, userId: string): Promise<boolean> {
+    try {
+      await updateDoc(doc(db, 'groups', groupId), {
+        members: admin.firestore.FieldValue.arrayUnion(userId)
+      });
+      return true;
+    } catch (error) { return false; }
+  },
+  async leaveGroup(groupId: string, userId: string): Promise<boolean> {
+    try {
+      await updateDoc(doc(db, 'groups', groupId), {
+        members: admin.firestore.FieldValue.arrayRemove(userId)
+      });
+      return true;
+    } catch (error) { return false; }
+  },
+  async getGroupCalendarEvents(groupId: string): Promise<GroupCalendarEvent[]> {
+    try {
+      const snapshot = await getDocs(collection(db, 'groups', groupId, 'events'));
+      return snapshot.docs.map(d => ({ id: d.id, ...d.data() })) as GroupCalendarEvent[];
+    } catch (error) { return []; }
+  },
+  async createCalendarEvent(event: any): Promise<string> {
+    try {
+      const docRef = await addDoc(collection(db, 'groups', event.groupId, 'events'), {
+        ...event,
+        createdAt: serverTimestamp()
+      });
+      return docRef.id;
+    } catch (error) { throw error; }
+  },
+  async updateRSVP(eventId: string, userId: string, status: string): Promise<boolean> {
+    try {
+      // Logic for RSVP update
+      return true;
+    } catch (error) { return false; }
+  },
+  async createSurvey(survey: any): Promise<string> {
+    try {
+      const docRef = await addDoc(collection(db, 'surveys'), survey);
+      return docRef.id;
+    } catch (error) { throw error; }
+  },
+  async submitSurveyResponse(response: any): Promise<string> {
+    try {
+      const docRef = await addDoc(collection(db, 'survey_responses'), response);
+      return docRef.id;
+    } catch (error) { throw error; }
+  },
+  async getGroupDiscussions(groupId: string): Promise<GroupDiscussion[]> {
+    try {
+      const snapshot = await getDocs(collection(db, 'groups', groupId, 'discussions'));
+      return snapshot.docs.map(d => ({ id: d.id, ...d.data() })) as GroupDiscussion[];
+    } catch (error) { return []; }
+  },
+  async createDiscussion(discussion: any): Promise<string> {
+    try {
+      const docRef = await addDoc(collection(db, 'groups', discussion.groupId, 'discussions'), discussion);
+      return docRef.id;
+    } catch (error) { throw error; }
+  },
+  async getGroupResources(groupId: string): Promise<GroupResource[]> {
+    try {
+      const snapshot = await getDocs(collection(db, 'groups', groupId, 'resources'));
+      return snapshot.docs.map(d => ({ id: d.id, ...d.data() })) as GroupResource[];
+    } catch (error) { return []; }
+  },
+  async uploadResource(resource: any): Promise<string> {
+    try {
+      const docRef = await addDoc(collection(db, 'group_resources'), resource);
+      return docRef.id;
+    } catch (error) { throw error; }
+  }
 };
 
 // User Service

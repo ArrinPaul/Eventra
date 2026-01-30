@@ -11,7 +11,7 @@ import {
   serverTimestamp 
 } from 'firebase/firestore';
 import { getFunctions, httpsCallable } from 'firebase/functions';
-import { db } from './firebase';
+import { db } from '@/core/config/firebase';
 
 export interface IntegratedEvent {
   id: string;

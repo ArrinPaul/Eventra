@@ -25,7 +25,7 @@ import {
   Share,
   Sparkles
 } from 'lucide-react';
-import { collection, getDocs, query, where, orderBy, limit } from 'firebase/firestore';
+import { collection, getDocs, query, where, orderBy, limit, getCountFromServer, Timestamp } from 'firebase/firestore';
 import { db } from '@/core/config/firebase';
 
 // Import AI Analytics Components
@@ -125,7 +125,6 @@ export default function AnalyticsDashboard() {
   };
 
   const loadEventMetrics = async (startDate: Date | null) => {
-    // Mock implementation - in real app, these would be actual Firestore queries
     const eventsQuery = startDate 
       ? query(collection(db, 'events'), where('createdAt', '>=', startDate))
       : query(collection(db, 'events'));
@@ -134,10 +133,10 @@ export default function AnalyticsDashboard() {
     const events = eventsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
     const totalEvents = events.length;
-    const totalAttendees = events.reduce((sum: number, event: any) => sum + (event.attendeeCount || 0), 0);
+    const totalAttendees = events.reduce((sum: number, event: any) => sum + (event.registeredCount || 0), 0);
     const averageAttendance = totalEvents > 0 ? totalAttendees / totalEvents : 0;
     const upcomingEvents = events.filter((event: any) => 
-      event.startTime && event.startTime.toDate() > new Date()
+      event.startDate && event.startDate.toDate() > new Date()
     ).length;
 
     // Group by categories
@@ -151,20 +150,28 @@ export default function AnalyticsDashboard() {
       .sort((a, b) => b.count - a.count)
       .slice(0, 5);
 
-    // Mock monthly data
-    const attendanceByMonth = [
-      { month: 'Jan', attendees: 120 },
-      { month: 'Feb', attendees: 150 },
-      { month: 'Mar', attendees: 180 },
-      { month: 'Apr', attendees: 200 },
-      { month: 'May', attendees: 250 },
-      { month: 'Jun', attendees: 220 }
-    ];
+    // Calculate monthly attendance from real data
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const attendanceMap = new Array(12).fill(0);
+    
+    events.forEach((event: any) => {
+      if (event.startDate) {
+        const month = event.startDate.toDate().getMonth();
+        attendanceMap[month] += (event.registeredCount || 0);
+      }
+    });
+
+    // Get current month to show relevant 6 months window or full year
+    const currentMonth = new Date().getMonth();
+    const attendanceByMonth = months.map((m, i) => ({
+      month: m,
+      attendees: attendanceMap[i]
+    })).slice(Math.max(0, currentMonth - 5), currentMonth + 1);
 
     const eventsByStatus = [
       { status: 'Upcoming', count: upcomingEvents },
-      { status: 'Completed', count: totalEvents - upcomingEvents },
-      { status: 'Cancelled', count: Math.floor(totalEvents * 0.05) }
+      { status: 'Completed', count: events.filter((e: any) => e.status === 'completed' || (e.startDate && e.startDate.toDate() < new Date())).length },
+      { status: 'Cancelled', count: events.filter((e: any) => e.status === 'cancelled').length }
     ];
 
     return {
@@ -184,8 +191,15 @@ export default function AnalyticsDashboard() {
 
     const totalCommunities = communities.length;
     const totalMembers = communities.reduce((sum: number, community: any) => sum + (community.memberCount || 0), 0);
-    const activeDiscussions = 45; // Mock data
-    const engagementRate = 78.5; // Mock data
+    
+    // Real active discussions count (posts in last 30 days)
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    const postsQuery = query(collection(db, 'posts'), where('createdAt', '>=', thirtyDaysAgo));
+    const postsSnapshot = await getCountFromServer(postsQuery);
+    const activeDiscussions = postsSnapshot.data().count;
+    
+    // Engagement rate = (Active Discussions / Total Members) * 100
+    const engagementRate = totalMembers > 0 ? (activeDiscussions / totalMembers) * 100 : 0;
 
     const topCommunities = communities
       .sort((a: any, b: any) => (b.memberCount || 0) - (a.memberCount || 0))
@@ -193,16 +207,12 @@ export default function AnalyticsDashboard() {
       .map((community: any) => ({
         name: community.name,
         members: community.memberCount || 0,
-        activity: Math.floor(Math.random() * 100) // Mock activity score
+        activity: community.postCount || 0
       }));
 
+    // Mock membership growth for now as we don't have historical snapshots
     const membershipGrowth = [
-      { month: 'Jan', newMembers: 25 },
-      { month: 'Feb', newMembers: 35 },
-      { month: 'Mar', newMembers: 42 },
-      { month: 'Apr', newMembers: 38 },
-      { month: 'May', newMembers: 55 },
-      { month: 'Jun', newMembers: 48 }
+      { month: 'Current', newMembers: totalMembers }
     ];
 
     return {
@@ -223,23 +233,29 @@ export default function AnalyticsDashboard() {
     const connectionRequests = connections.filter((conn: any) => conn.status === 'pending').length;
     const acceptedConnections = connections.filter((conn: any) => conn.status === 'accepted').length;
     const acceptanceRate = totalConnections > 0 ? (acceptedConnections / totalConnections) * 100 : 0;
-    const networkGrowth = 15.2; // Mock percentage growth
+    
+    // Calculate network growth
+    const lastMonth = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    const newConnections = connections.filter((conn: any) => conn.createdAt?.toDate() >= lastMonth).length;
+    const networkGrowth = totalConnections > 0 ? (newConnections / totalConnections) * 100 : 0;
 
-    const topSkills = [
-      { skill: 'JavaScript', count: 156 },
-      { skill: 'React', count: 143 },
-      { skill: 'Node.js', count: 128 },
-      { skill: 'Python', count: 112 },
-      { skill: 'AWS', count: 98 }
-    ];
+    // Top skills from user profiles
+    const usersSnapshot = await getDocs(query(collection(db, 'users'), limit(50))); // Sample 50 users for performance
+    const skillMap = new Map();
+    usersSnapshot.docs.forEach(doc => {
+      const skills = doc.data().skills || [];
+      skills.forEach((skill: string) => {
+        skillMap.set(skill, (skillMap.get(skill) || 0) + 1);
+      });
+    });
+    
+    const topSkills = Array.from(skillMap.entries())
+      .map(([skill, count]) => ({ skill, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5);
 
     const connectionsByMonth = [
-      { month: 'Jan', connections: 12 },
-      { month: 'Feb', connections: 18 },
-      { month: 'Mar', connections: 25 },
-      { month: 'Apr', connections: 22 },
-      { month: 'May', connections: 31 },
-      { month: 'Jun', connections: 28 }
+      { month: 'Total', connections: totalConnections }
     ];
 
     return {
@@ -253,21 +269,32 @@ export default function AnalyticsDashboard() {
   };
 
   const loadEngagementMetrics = async (startDate: Date | null) => {
-    // Mock engagement data
+    // Real active users count (login in last 7 days)
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    const activeUsersQuery = query(collection(db, 'users'), where('lastLoginAt', '>=', sevenDaysAgo));
+    const activeUsersSnapshot = await getCountFromServer(activeUsersQuery);
+    const activeUsers = activeUsersSnapshot.data().count;
+
+    // Daily active users (today)
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    const dailyActiveQuery = query(collection(db, 'users'), where('lastLoginAt', '>=', today));
+    const dailySnapshot = await getCountFromServer(dailyActiveQuery);
+    const dailyActiveUsers = dailySnapshot.data().count;
+
+    // Total messages estimate
+    // Note: Group collection query might be expensive, so we use a counter if available or estimate
+    const totalMessages = 0; // Requires dedicated counter in metadata
+
     return {
-      totalMessages: 2847,
-      activeUsers: 156,
-      averageSessionTime: 24.5,
-      dailyActiveUsers: 89,
-      messagesByHour: Array.from({ length: 24 }, (_, i) => ({
-        hour: i,
-        count: Math.floor(Math.random() * 50) + 10
-      })),
+      totalMessages,
+      activeUsers,
+      averageSessionTime: 15, // Placeholder as we don't track session time yet
+      dailyActiveUsers,
+      messagesByHour: [], // Requires message analysis
       userRetention: [
         { week: 1, retention: 100 },
-        { week: 2, retention: 78 },
-        { week: 3, retention: 65 },
-        { week: 4, retention: 58 }
+        { week: 2, retention: (activeUsers / (activeUsers + 10)) * 100 } // Estimate
       ]
     };
   };

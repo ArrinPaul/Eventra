@@ -3,7 +3,7 @@
  * Provides real-time analytics data from Firestore
  */
 
-import { db, FIRESTORE_COLLECTIONS } from './firebase';
+import { db, FIRESTORE_COLLECTIONS } from '@/core/config/firebase';
 import {
   collection,
   query,

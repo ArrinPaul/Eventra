@@ -1,7 +1,14 @@
 import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
+import OpenAI from 'openai';
+import * as fs from 'fs';
+import * as os from 'os';
+import * as path from 'path';
 
 const db = admin.firestore();
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY || functions.config().openai?.key,
+});
 
 interface ChatMessage {
   id: string;
@@ -494,15 +501,56 @@ async function generateGeneralResponse(message: string, userRole: string, contex
 }
 
 async function transcribeAudio(audioData: string): Promise<string | null> {
-  // Integrate with Speech-to-Text service (Google Cloud Speech-to-Text, etc.)
-  // For now, return mock transcription
-  return "Mock transcription of audio message";
+  try {
+    // Expecting audioData to be base64 string
+    const buffer = Buffer.from(audioData, 'base64');
+    const tempFilePath = path.join(os.tmpdir(), `audio_${Date.now()}.mp3`);
+    fs.writeFileSync(tempFilePath, buffer);
+
+    const transcription = await openai.audio.transcriptions.create({
+      file: fs.createReadStream(tempFilePath),
+      model: 'whisper-1',
+    });
+
+    // Cleanup
+    fs.unlinkSync(tempFilePath);
+
+    return transcription.text;
+  } catch (error) {
+    console.error('Error transcribing audio:', error);
+    return null;
+  }
 }
 
 async function generateVoiceResponse(text: string): Promise<string> {
-  // Integrate with Text-to-Speech service
-  // Return audio URL or base64 encoded audio
-  return "mock_audio_response_url";
+  try {
+    const mp3 = await openai.audio.speech.create({
+      model: 'tts-1',
+      voice: 'alloy',
+      input: text,
+    });
+
+    const buffer = Buffer.from(await mp3.arrayBuffer());
+    const fileName = `voice_responses/response_${Date.now()}.mp3`;
+    const bucket = admin.storage().bucket();
+    const file = bucket.file(fileName);
+
+    await file.save(buffer, {
+      metadata: {
+        contentType: 'audio/mpeg',
+      },
+    });
+
+    const [url] = await file.getSignedUrl({
+      action: 'read',
+      expires: Date.now() + 24 * 60 * 60 * 1000, // 24 hours
+    });
+
+    return url;
+  } catch (error) {
+    console.error('Error generating voice response:', error);
+    return '';
+  }
 }
 
 async function generateContextualHelp(params: any): Promise<any> {

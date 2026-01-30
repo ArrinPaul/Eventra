@@ -585,20 +585,31 @@ export function EnhancedAIFeatures() {
     setCurrentMessage('');
 
     try {
-      // TODO: Replace with actual AI provider API call (OpenAI, Anthropic, etc.)
-      // This mock response demonstrates the conversation flow
-      // In production, call the appropriate AI API based on activeConversation.provider
       const startTime = Date.now();
       
-      // For demo purposes, generate a contextual mock response
-      // Real implementation would call: await callAIProvider(activeConversation.provider, userMessage.content, activeConversation.messages)
+      // Call real AI API route
+      const response = await fetch('/api/ai/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          question: userMessage.content,
+          eventId: activeConversation.metadata.eventId,
+          provider: activeConversation.provider,
+          model: activeConversation.model
+        })
+      });
+
+      const data = await response.json();
+      
+      if (!response.ok) throw new Error(data.error || 'Failed to get AI response');
+
       const aiMessage: Message = {
         id: `msg_${Date.now() + 1}`,
         role: 'assistant',
-        content: generateContextualResponse(userMessage.content, activeConversation),
+        content: data.answer || "I'm sorry, I couldn't process that.",
         timestamp: new Date(),
         metadata: {
-          tokens: Math.floor(userMessage.content.length * 1.5),
+          tokens: Math.floor(userMessage.content.length * 1.5), // Estimate if not returned
           cost: 0.001 * (userMessage.content.length / 100),
           processingTime: (Date.now() - startTime) / 1000,
           model: activeConversation.model,
