@@ -17,10 +17,10 @@ import {
   Workflow,
 } from 'lucide-react';
 
-// Import all integration components
-import EnhancedGoogleWorkspace from '@/components/workspace/enhanced-google-workspace';
-import NotationSystem from '@/components/notation/notation-system';
-import N8nAutomation from '@/components/automation/n8n-automation';
+// Import FUNCTIONAL integration components (not placeholder versions)
+import GoogleWorkspaceIntegration from '@/components/integrations/google-workspace-integration';
+import NotationClient from '@/components/notation/notation-client';
+import N8nAutomation from '@/components/integrations/n8n-automation';
 import AIChatbot from '@/components/ai/ai-chatbot';
 import AIInsightsDashboard from '@/components/ai/ai-insights-dashboard';
 import WebScraperTimeline from '@/components/scraper/web-scraper-timeline';
@@ -125,11 +125,12 @@ export default function IntegrationsHub() {
   const renderModuleComponent = () => {
     switch (activeModule) {
       case 'google-workspace':
-        return <EnhancedGoogleWorkspace />;
+        // Google Workspace integration - shows global settings when no event selected
+        return <GoogleWorkspaceIntegration eventId="" eventTitle="Global Integration Settings" />;
       case 'notation-system':
-        return <NotationSystem />;
+        return <NotationClient />;
       case 'n8n-automation':
-        return <N8nAutomation />;
+        return <N8nAutomation userRole="organizer" />;
       case 'ai-chatbot':
         return <AIChatbot />;
       case 'ai-insights':

@@ -121,6 +121,11 @@ export default function OrganizerAnalyticsDashboard({ organizerId }: OrganizerAn
   }, [timeRange, selectedEvent, organizerId]);
 
   const loadAnalyticsData = async () => {
+    if (!organizerId) {
+      setLoading(false);
+      return;
+    }
+    
     setLoading(true);
     
     try {

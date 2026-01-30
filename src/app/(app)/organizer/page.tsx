@@ -53,6 +53,9 @@ import Link from 'next/link';
 // Certificate management
 import { CertificateManager } from '@/components/certificates/certificate-manager';
 
+// Settings panel
+import { OrganizerSettingsPanel } from '@/components/organizer/organizer-settings-panel';
+
 interface Event {
   id: string;
   title: string;
@@ -758,10 +761,7 @@ export default function OrganizerPage() {
         </TabsContent>
 
         <TabsContent value="settings">
-          <div className="text-center py-12 text-gray-500">
-            <Settings className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-            <p>Settings panel coming soon...</p>
-          </div>
+          <OrganizerSettingsPanel />
         </TabsContent>
       </Tabs>
 

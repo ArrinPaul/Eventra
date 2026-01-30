@@ -50,27 +50,28 @@ export default function CampusMapClient() {
         );
         
         const snapshot = await getDocs(q);
-        const events: MapEvent[] = snapshot.docs
+        const mappedEvents = snapshot.docs
           .map(doc => {
             const data = doc.data();
             // Map venue/location to zone ID
             const zoneId = mapVenueToZone(data.venue || data.location || '');
             if (!zoneId) return null;
             
-            return {
+            const event: MapEvent = {
               id: doc.id,
-              title: data.title,
+              title: data.title as string,
               zoneId,
               startTime: data.startTime?.toDate?.()?.toISOString() || new Date().toISOString(),
               endTime: data.endTime?.toDate?.()?.toISOString() || new Date().toISOString(),
-              category: data.category || 'Event',
-              attendees: data.registeredCount || 0,
-              description: data.description,
+              category: (data.category || 'Event') as string,
+              attendees: (data.registeredCount || 0) as number,
+              description: data.description as string | undefined,
             };
+            return event;
           })
           .filter((e): e is MapEvent => e !== null);
         
-        setMapEvents(events);
+        setMapEvents(mappedEvents);
       } catch (error) {
         console.error('Error loading map events:', error);
       } finally {

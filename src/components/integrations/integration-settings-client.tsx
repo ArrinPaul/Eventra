@@ -226,19 +226,20 @@ export default function IntegrationSettingsClient({
       });
 
       // Merge with templates
-      const mergedIntegrations = INTEGRATION_TEMPLATES
+      const mergedIntegrations: IntegrationConfig[] = INTEGRATION_TEMPLATES
         .filter(template => !allowedIntegrations || allowedIntegrations.includes(template.type!))
         .map(template => {
           const existing = existingIntegrations[template.type!];
           if (existing) {
             return {
               ...existing,
-              icon: template.icon
+              icon: template.icon!
             };
           }
           return {
             id: `new-${template.type}`,
             ...template,
+            icon: template.icon!,
             status: 'disconnected' as const,
             enabled: false
           } as IntegrationConfig;
@@ -300,8 +301,8 @@ export default function IntegrationSettingsClient({
     setSelectedIntegration(integration);
     setConfigForm({
       enabled: integration.enabled,
-      credentials: { ...integration.credentials } || {},
-      settings: { ...integration.settings } || {},
+      credentials: { ...integration.credentials },
+      settings: { ...integration.settings },
       webhookUrl: integration.webhookUrl || ''
     });
     setShowConfigDialog(true);
