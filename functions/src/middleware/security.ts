@@ -109,10 +109,21 @@ export const rateLimit = async (
 /**
  * Input validation middleware
  */
-export const validateInput = (data: any, schema: any): void => {
+interface FieldRules {
+  required?: boolean;
+  type?: string;
+  minLength?: number;
+  maxLength?: number;
+  min?: number;
+  max?: number;
+  pattern?: RegExp;
+  enum?: string[];
+}
+
+export const validateInput = (data: Record<string, unknown>, schema: Record<string, FieldRules>): void => {
   for (const [key, rules] of Object.entries(schema)) {
     const value = data[key];
-    const fieldRules = rules as any;
+    const fieldRules = rules;
     
     // Required field check
     if (fieldRules.required && (value === undefined || value === null || value === '')) {

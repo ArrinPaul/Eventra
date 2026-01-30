@@ -230,9 +230,10 @@ export const createEventDocument = functions.https.onCall(async (data: any, cont
       message: 'Document created successfully'
     };
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error creating event document:', error);
-    throw new functions.https.HttpsError('internal', `Failed to create document: ${error.message}`);
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    throw new functions.https.HttpsError('internal', `Failed to create document: ${message}`);
   }
 });
 
@@ -356,9 +357,10 @@ export const createEventSpreadsheet = functions.https.onCall(async (data: any, c
       message: 'Spreadsheet created successfully'
     };
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error creating event spreadsheet:', error);
-    throw new functions.https.HttpsError('internal', `Failed to create spreadsheet: ${error.message}`);
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    throw new functions.https.HttpsError('internal', `Failed to create spreadsheet: ${message}`);
   }
 });
 
@@ -451,9 +453,10 @@ export const syncRegistrationsToSheet = functions.https.onCall(async (data: any,
       message: 'Registrations synced to spreadsheet successfully'
     };
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error syncing registrations to sheet:', error);
-    throw new functions.https.HttpsError('internal', `Failed to sync data: ${error.message}`);
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    throw new functions.https.HttpsError('internal', `Failed to sync data: ${message}`);
   }
 });
 
@@ -798,7 +801,7 @@ export const manageWorkspaceFile = functions.https.onCall(async (data: any, cont
         const fileName = `exports/${userId}/${fileData.fileId}_${Date.now()}.pdf`;
         const file = bucket.file(fileName);
 
-        await file.save(pdfResponse.data as any, {
+        await file.save(pdfResponse.data as Buffer, {
           metadata: {
             contentType: 'application/pdf',
           },
@@ -814,9 +817,10 @@ export const manageWorkspaceFile = functions.https.onCall(async (data: any, cont
       default:
         throw new functions.https.HttpsError('invalid-argument', 'Invalid action');
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error managing workspace file:', error);
-    throw new functions.https.HttpsError('internal', `Failed to ${action} file: ${error.message}`);
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    throw new functions.https.HttpsError('internal', `Failed to ${action} file: ${message}`);
   }
 });
 

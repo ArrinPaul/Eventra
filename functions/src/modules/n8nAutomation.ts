@@ -369,23 +369,34 @@ async function generateWorkflowStats(): Promise<void> {
       .where('executedAt', '>=', last24Hours)
       .get();
 
-    const stats = {
+    const stats: {
+      total: number;
+      success: number;
+      error: number;
+      timeout: number;
+      byWorkflow: Record<string, { total: number; success: number; error: number; timeout: number }>;
+    } = {
       total: executions.size,
       success: 0,
       error: 0,
       timeout: 0,
-      byWorkflow: {} as any
+      byWorkflow: {}
     };
 
     executions.docs.forEach(doc => {
       const data = doc.data();
-      stats[data.status as keyof typeof stats]++;
+      const status = data.status as 'success' | 'error' | 'timeout';
+      if (status in stats && status !== 'total' && status !== 'byWorkflow') {
+        stats[status]++;
+      }
       
       if (!stats.byWorkflow[data.workflowEvent]) {
         stats.byWorkflow[data.workflowEvent] = { total: 0, success: 0, error: 0, timeout: 0 };
       }
       stats.byWorkflow[data.workflowEvent].total++;
-      stats.byWorkflow[data.workflowEvent][data.status]++;
+      if (status in stats.byWorkflow[data.workflowEvent]) {
+        stats.byWorkflow[data.workflowEvent][status]++;
+      }
     });
 
     // Store stats

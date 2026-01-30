@@ -251,15 +251,17 @@ export const syncEventToGoogleCalendar = functions.https.onCall(async (data: any
       googleEventId: googleCalendarEventId 
     };
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error syncing event to Google Calendar:', error);
     
     // Handle specific Google API errors
-    if (error.code === 401) {
+    const errorObj = error as { code?: number; message?: string };
+    if (errorObj.code === 401) {
       throw new functions.https.HttpsError('unauthenticated', 'Google Calendar access expired. Please reconnect.');
     }
     
-    throw new functions.https.HttpsError('internal', `Failed to sync event: ${error.message}`);
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    throw new functions.https.HttpsError('internal', `Failed to sync event: ${message}`);
   }
 });
 
@@ -295,11 +297,11 @@ export const autoSyncUserEvents = functions.https.onCall(async (data: any, conte
           success: true,
           googleEventId: syncResult.googleEventId
         });
-      } catch (error: any) {
+      } catch (error: unknown) {
         syncResults.push({
           eventId: registration.eventId,
           success: false,
-          error: error.message
+          error: error instanceof Error ? error.message : 'Unknown error'
         });
       }
     }
