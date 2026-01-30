@@ -1006,3 +1006,65 @@ export interface FeedbackWall { id: string; entries: any[]; [key: string]: any; 
 export interface WallFeedback { id: string; likes: number; [key: string]: any; }
 export interface Leaderboard { id: string; entries: any[]; [key: string]: any; }
 export interface MatchProfile { id: string; userId: string; careerGoals: string[]; interests: string[]; skills: string[]; lookingFor: string[]; availability: string; preferredMeetingTypes: string[]; matchScore: number; commonInterests: string[]; icebreakers: string[]; [key: string]: any; }
+
+// Type helper for accessing optional user profile properties
+export interface UserWithOptionalProfiles {
+  id?: string;
+  attendeeProfile?: {
+    interests?: string[];
+    lookingFor?: string[];
+    skills?: string[];
+  };
+  interests?: string[] | string;
+  skills?: string[];
+  attendedEvents?: string[];
+  myEvents?: string[];
+}
+
+// Type guard functions
+export function isAttendee(user: User | null): user is Attendee {
+  return user !== null && user.role === 'attendee';
+}
+
+export function isSpeaker(user: User | null): user is Speaker {
+  return user !== null && user.role === 'speaker';
+}
+
+export function isOrganizer(user: User | null): user is Organizer {
+  return user !== null && user.role === 'organizer';
+}
+
+export function isAdmin(user: User | null): user is Admin {
+  return user !== null && user.role === 'admin';
+}
+
+// Helper to safely extract user interests
+export function getUserInterests(user: User | null): string[] {
+  if (!user) return [];
+  if (isAttendee(user)) {
+    return user.attendeeProfile?.interests || [];
+  }
+  // Handle legacy user types
+  const legacyInterests = (user as UserWithOptionalProfiles).interests;
+  if (Array.isArray(legacyInterests)) return legacyInterests;
+  if (typeof legacyInterests === 'string') return legacyInterests.split(',').map(s => s.trim());
+  return [];
+}
+
+// Helper to safely extract user skills/lookingFor
+export function getUserSkills(user: User | null): string[] {
+  if (!user) return [];
+  if (isAttendee(user)) {
+    return user.attendeeProfile?.lookingFor || [];
+  }
+  return (user as UserWithOptionalProfiles).skills || [];
+}
+
+// Helper to get attended events
+export function getUserAttendedEvents(user: User | null): string[] {
+  if (!user) return [];
+  if (isAttendee(user)) {
+    return user.attendedEvents || [];
+  }
+  return (user as UserWithOptionalProfiles).myEvents || [];
+}

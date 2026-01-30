@@ -346,7 +346,7 @@ export default function SpeakerSessionDashboard() {
             <label className="block text-sm font-medium mb-2">Category *</label>
             <Select
               value={formData.category || 'talk'}
-              onValueChange={(value) => setFormData(prev => ({ ...prev, category: value as any }))}
+              onValueChange={(value) => setFormData(prev => ({ ...prev, category: value as 'talk' | 'workshop' | 'demo' }))}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select category" />
@@ -824,7 +824,7 @@ export default function SpeakerSessionDashboard() {
           ].map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
+              onClick={() => setActiveTab(tab.id as 'sessions' | 'profile' | 'materials')}
               className={`flex items-center space-x-2 py-2 px-1 border-b-2 font-medium text-sm ${
                 activeTab === tab.id
                   ? 'border-blue-500 text-blue-600'

@@ -506,16 +506,20 @@ export const eventService = {
       
       if (eventDoc.exists()) {
         const event = eventDoc.data() as Event;
-        const currentAttendees = (event as any).attendees || [];
+        // Use attendees if available, otherwise empty array
+        const currentAttendees = event.attendees || [];
         
         if (!currentAttendees.includes(userId)) {
-          const updates: any = {
+          const updates: Record<string, unknown> = {
             attendees: [...currentAttendees, userId],
             registeredCount: (event.registeredCount || 0) + 1
           };
           
           if (event.pricing) {
-             updates['ticketing.soldTickets'] = (event as any).ticketing?.soldTickets ? (event as any).ticketing.soldTickets + 1 : 1;
+             // Access ticketing through Record since it might not be on the base Event type
+             const eventData = eventDoc.data() as Record<string, unknown>;
+             const ticketing = eventData.ticketing as { soldTickets?: number } | undefined;
+             updates['ticketing.soldTickets'] = ticketing?.soldTickets ? ticketing.soldTickets + 1 : 1;
           }
 
           await updateDoc(eventRef, updates);
@@ -706,8 +710,11 @@ export const ticketService = {
         let currency = 'USD';
         if (event.pricing && event.pricing.type !== 'free' && !event.pricing.isFree) {
           price = event.pricing.basePrice || 0;
-          if (ticketTypeId && (event as any).ticketTypes) {
-            const ticketType = (event as any).ticketTypes.find((t: any) => t.id === ticketTypeId);
+          // Access ticketTypes which may be on the event data
+          const eventData = eventDoc.data() as Record<string, unknown>;
+          const ticketTypes = eventData.ticketTypes as Array<{ id: string; price?: number }> | undefined;
+          if (ticketTypeId && ticketTypes) {
+            const ticketType = ticketTypes.find((t) => t.id === ticketTypeId);
             if (ticketType) {
               price = ticketType.price || price;
             }

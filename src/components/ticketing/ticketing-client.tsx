@@ -89,7 +89,8 @@ export function TicketingClient() {
     try {
       const { ticketingServiceReal } = await import('@/lib/ticketing-service');
       const tickets = await ticketingServiceReal.getUserTickets(user.id);
-      setMyTickets(tickets as any);
+      // Cast local ticket type to EventTicket - structures are compatible
+      setMyTickets(tickets as unknown as EventTicket[]);
     } catch (error) {
       console.error('Error loading tickets:', error);
     }

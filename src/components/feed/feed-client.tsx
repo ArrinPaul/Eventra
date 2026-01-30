@@ -283,7 +283,7 @@ export default function FeedClient() {
       const postData: Omit<FeedPost, 'id'> = {
         authorId: user.uid,
         content: newPost.content,
-        type: newPost.type as any, // Cast to any if strict string types mismatch with input
+        type: newPost.type, // FeedPost.type is string, compatible with 'text'
         mediaUrls: newPost.mediaUrls,
         likes: 0,
         comments: 0,
@@ -295,7 +295,7 @@ export default function FeedClient() {
         likedBy: [],
         repostedBy: [],
         tags: newPost.tags.split(',').map(tag => tag.trim()).filter(Boolean),
-        visibility: newPost.visibility as any,
+        visibility: newPost.visibility, // FeedPost.visibility is string, compatible with 'public' | 'private'
         location: newPost.location || undefined,
         mentions: []
       };

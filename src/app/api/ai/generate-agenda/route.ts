@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateAgenda } from '@/ai/flows/event-planner';
 
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  return 'An unexpected error occurred';
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -25,10 +30,10 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json({ agenda: result });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Agenda generation error:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to generate agenda' },
+      { error: getErrorMessage(error) },
       { status: 500 }
     );
   }

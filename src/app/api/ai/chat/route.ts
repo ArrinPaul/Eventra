@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { answerQuestion } from '@/ai/flows/event-knowledge-bot';
 
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  return 'An unexpected error occurred';
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -24,12 +29,12 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json({ answer: result.answer });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Chat API error:', error);
     return NextResponse.json(
       { 
         answer: "I apologize, but I'm having trouble processing your question right now. Please try again in a moment.",
-        error: error.message || 'Failed to process question' 
+        error: getErrorMessage(error)
       },
       { status: 200 } // Return 200 with error message for better UX
     );

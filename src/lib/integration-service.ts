@@ -79,8 +79,8 @@ class IntegrationService {
   }) {
     try {
       const results = {
-        documents: {} as any,
-        spreadsheets: {} as any,
+        documents: {} as Record<string, unknown>,
+        spreadsheets: {} as Record<string, unknown>,
         success: true,
         errors: [] as string[]
       };
@@ -156,9 +156,11 @@ class IntegrationService {
       const syncRegistrations = httpsCallable(this.functions, 'syncRegistrationsToSheet');
       const result = await syncRegistrations({ eventId });
       
+      // Cast result.data to expected shape
+      const data = result.data as { syncedRecords?: number } | null;
       return {
         success: true,
-        syncedRecords: (result.data as any).syncedRecords || 0,
+        syncedRecords: data?.syncedRecords || 0,
         errors: []
       };
     } catch (error) {

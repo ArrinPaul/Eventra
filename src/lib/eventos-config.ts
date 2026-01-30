@@ -272,7 +272,9 @@ export const canAccessFeature = (userPlan: string, feature: string): boolean => 
   const plan = EVENTOS_CONFIG.plans[userPlan.toUpperCase() as SubscriptionPlan];
   if (!plan) return false;
   
-  return (plan.features as any)[feature] === true || (plan.features as any)[feature] > 0;
+  // Type-safe feature access with Record
+  const features = plan.features as Record<string, boolean | number>;
+  return features[feature] === true || (typeof features[feature] === 'number' && features[feature] > 0);
 };
 
 export const isFeatureEnabled = (feature: keyof typeof EVENTOS_CONFIG.features): boolean => {

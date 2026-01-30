@@ -13,7 +13,7 @@ import Link from 'next/link';
 import { Separator } from '@/components/ui/separator';
 import { Loader2, User, Briefcase } from 'lucide-react';
 import { signInWithGoogle, signInWithEmail } from '@/lib/auth-service';
-import { cn } from '@/lib/utils';
+import { cn, getErrorMessage } from '@/lib/utils';
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Invalid email address.' }),
@@ -101,11 +101,11 @@ export function LoginForm() {
           router.push(callbackUrl);
         }
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         variant: 'destructive',
         title: 'Google Sign-In Failed',
-        description: error.message || 'Could not sign in with Google. Please try again.',
+        description: getErrorMessage(error),
       });
     } finally {
       setIsGoogleLoading(false);

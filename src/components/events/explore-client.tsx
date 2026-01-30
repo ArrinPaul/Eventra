@@ -42,6 +42,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { getAIRecommendations, AIRecommendation } from '@/app/actions/ai-recommendations';
 import { cn } from '@/lib/utils';
 import type { Event } from '@/types';
+import { getUserInterests, getUserSkills, getUserAttendedEvents } from '@/types';
 
 const categories = [
   'All',
@@ -132,18 +133,10 @@ export default function ExploreClient() {
     setAiError(null);
     
     try {
-      // Get user preferences from their profile or use defaults
-      // Handle different user types (Attendee has attendeeProfile, others may not)
-      const userData = user as any; // Cast to any to safely access optional nested properties
-      const userInterests = userData?.attendeeProfile?.interests 
-        || userData?.interests 
-        || ['Tech', 'Networking', 'Career'];
-      const userSkills = userData?.attendeeProfile?.lookingFor 
-        || userData?.skills 
-        || ['networking', 'learning'];
-      const pastEventTypes = userData?.attendedEvents?.slice(0, 5).map(() => 'Workshop') 
-        || userData?.myEvents?.slice(0, 5).map(() => 'Workshop') 
-        || [];
+      // Get user preferences from their profile using type-safe helpers
+      const userInterests = getUserInterests(user) || ['Tech', 'Networking', 'Career'];
+      const userSkills = getUserSkills(user) || ['networking', 'learning'];
+      const pastEventTypes = getUserAttendedEvents(user).slice(0, 5).map(() => 'Workshop');
       
       const result = await getAIRecommendations(
         user?.id || 'guest',

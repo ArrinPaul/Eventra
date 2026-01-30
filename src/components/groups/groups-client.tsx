@@ -793,7 +793,7 @@ export function GroupsClient() {
               <div className="grid gap-4 md:grid-cols-3">
                 <div className="space-y-2">
                   <Label>Frequency</Label>
-                  <Select value={groupForm.frequency} onValueChange={(value) => setGroupForm(prev => ({ ...prev, frequency: value as any }))}>
+                  <Select value={groupForm.frequency} onValueChange={(value) => setGroupForm(prev => ({ ...prev, frequency: value as 'weekly' | 'biweekly' | 'monthly' }))}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -856,7 +856,7 @@ export function GroupsClient() {
               
               <div className="space-y-2">
                 <Label>Meeting Type</Label>
-                <Select value={groupForm.locationType} onValueChange={(value) => setGroupForm(prev => ({ ...prev, locationType: value as any }))}>
+                <Select value={groupForm.locationType} onValueChange={(value) => setGroupForm(prev => ({ ...prev, locationType: value as 'physical' | 'virtual' | 'hybrid' }))}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>

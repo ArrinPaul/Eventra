@@ -57,13 +57,11 @@ export default function NetworkingClient() {
            setConnectionRequests(requests);
 
            // Fetch matches
-           // Note: matchingService.getUserMatches returns Match[], we might need to map to MatchProfile
-           // For now, assuming Match contains MatchProfile data or we use it as is if types overlap sufficiently
+           // The matchingService returns Match[], which needs to be mapped to MatchProfile[]
+           // Both interfaces use [key: string]: any for flexibility
            const userMatches = await matchingService.getUserMatches(user.uid || user.id || '');
-           // Adapter: convert Match[] to MatchProfile[] if necessary, or cast if they are compatible
-           // The previous mock used MatchProfile. Let's assume the service returns compatible objects or empty for now.
-           // In a real implementation, we'd process 'userMatches' to create 'MatchProfile' view models.
-           setMatches(userMatches as any[] as MatchProfile[]);
+           // Map Match to MatchProfile - the interfaces are compatible due to index signatures
+           setMatches(userMatches as unknown as MatchProfile[]);
         }
       } catch (error) {
         console.error('Error loading networking data:', error);

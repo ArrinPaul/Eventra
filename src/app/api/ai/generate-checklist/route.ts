@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateChecklist } from '@/ai/flows/event-planner';
 
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  return 'An unexpected error occurred';
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -25,10 +30,10 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json({ checklist: result });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Checklist generation error:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to generate checklist' },
+      { error: getErrorMessage(error) },
       { status: 500 }
     );
   }

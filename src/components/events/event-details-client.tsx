@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
+import { ToastAction } from '@/components/ui/toast';
 import {
   Accordion,
   AccordionContent,
@@ -160,14 +161,10 @@ export default function EventDetailsClient({ eventId }: EventDetailsClientProps)
         title: 'Registered! 🎉', 
         description: 'Check your tickets page to view your QR code.',
         action: (
-          <Button 
-            size="sm" 
-            variant="outline"
-            onClick={() => router.push('/tickets')}
-          >
+          <ToastAction altText="View Ticket" onClick={() => router.push('/tickets')}>
             View Ticket
-          </Button>
-        ) as React.ReactNode
+          </ToastAction>
+        )
       });
     } catch (error: unknown) {
       toast({ 

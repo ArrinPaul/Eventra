@@ -404,7 +404,7 @@ export default function EventCreationWizard() {
         }),
       };
 
-      await eventService.createEvent(eventData as any);
+      await eventService.createEvent(eventData as Omit<Event, 'id'>);
       
       toast({ 
         title: 'Event Published! 🎉', 
@@ -1031,7 +1031,7 @@ export default function EventCreationWizard() {
                     <Label className="text-xs">Field Type</Label>
                     <Select
                       value={field.type}
-                      onValueChange={(v) => updateCustomField(field.id, { type: v as any })}
+                      onValueChange={(v) => updateCustomField(field.id, { type: v as 'text' | 'email' | 'phone' | 'select' | 'checkbox' })}
                     >
                       <SelectTrigger>
                         <SelectValue />

@@ -639,7 +639,7 @@ export default function WebScraperTimeline() {
           ].map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
+              onClick={() => setActiveTab(tab.id as 'scraper' | 'timeline' | 'analytics' | 'targets')}
               className={`flex items-center space-x-2 px-6 py-4 border-b-2 transition-colors ${
                 activeTab === tab.id
                   ? 'border-blue-500 text-blue-600 bg-blue-50'

@@ -791,7 +791,7 @@ export default function N8nAutomation({ eventId, eventTitle, userRole }: N8nAuto
                       <Label>Action Type</Label>
                       <Select 
                         value={action.type} 
-                        onValueChange={(type) => updateAction(action.id, { type: type as any })}
+                        onValueChange={(type) => updateAction(action.id, { type: type as 'email' | 'slack' | 'discord' | 'webhook' | 'database' | 'notification' })}
                       >
                         <SelectTrigger>
                           <SelectValue />

@@ -32,29 +32,33 @@ export async function getAIRecommendations(
 ): Promise<AIRecommendationsResult> {
   try {
     // Transform events to the format expected by the AI flow
-    const transformedEvents = availableEvents.slice(0, 20).map(event => ({
-      id: event.id,
-      title: event.title,
-      description: event.description || '',
-      type: event.category || 'General',
-      tags: event.tags || [],
-      difficulty: (event as any).difficulty || 'intermediate' as const,
-      format: mapEventFormat(event.category || ''),
-      duration: 120, // Default 2 hours
-      speakers: event.speakers?.map(s => {
-        if (typeof s === 'string') {
-          return { name: s, expertise: [] };
-        }
-        // Handle Speaker object - expertise is in speakerProfile
-        const speakerAny = s as any;
-        return {
-          name: speakerAny.name || speakerAny.displayName || 'Speaker',
-          expertise: speakerAny.speakerProfile?.expertise || speakerAny.expertise || []
-        };
-      }) || [],
-      expectedAttendees: event.registeredCount || 0,
-      prerequisites: []
-    }));
+    const transformedEvents = availableEvents.slice(0, 20).map(event => {
+      // Access extended event properties that may not be on the base Event type
+      const eventData = event as Event & { difficulty?: 'advanced' | 'intermediate' | 'beginner' };
+      return {
+        id: event.id,
+        title: event.title,
+        description: event.description || '',
+        type: event.category || 'General',
+        tags: event.tags || [],
+        difficulty: eventData.difficulty || ('intermediate' as const),
+        format: mapEventFormat(event.category || ''),
+        duration: 120, // Default 2 hours
+        speakers: event.speakers?.map(s => {
+          if (typeof s === 'string') {
+            return { name: s, expertise: [] };
+          }
+          // Handle Speaker object - expertise is in speakerProfile
+          const speakerObj = s as { name?: string; displayName?: string; speakerProfile?: { expertise?: string[] }; expertise?: string[] };
+          return {
+            name: speakerObj.name || speakerObj.displayName || 'Speaker',
+            expertise: speakerObj.speakerProfile?.expertise || speakerObj.expertise || []
+          };
+        }) || [],
+        expectedAttendees: event.registeredCount || 0,
+        prerequisites: [] as string[]
+      };
+    });
 
     // Build user behavior profile
     const userBehavior: EventRecommendationInput['userBehavior'] = {

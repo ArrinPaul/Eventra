@@ -87,6 +87,10 @@ export interface Conversation {
   isPinned: boolean;
   isMuted: boolean;
   isArchived: boolean;
+  // Firestore arrays for tracking which users have these settings
+  pinnedBy?: string[];
+  mutedBy?: string[];
+  archivedBy?: string[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -349,8 +353,8 @@ export default function ConnectionMessaging({
     try {
       const convRef = doc(db, 'direct_conversations', convId);
       const newPinnedBy = conv.isPinned 
-        ? (conv as any).pinnedBy?.filter((id: string) => id !== user.id) || []
-        : [...((conv as any).pinnedBy || []), user.id];
+        ? conv.pinnedBy?.filter((id: string) => id !== user.id) || []
+        : [...(conv.pinnedBy || []), user.id];
       
       await updateDoc(convRef, { pinnedBy: newPinnedBy });
     } catch (error) {
@@ -376,8 +380,8 @@ export default function ConnectionMessaging({
     try {
       const convRef = doc(db, 'direct_conversations', convId);
       const newMutedBy = conv.isMuted 
-        ? (conv as any).mutedBy?.filter((id: string) => id !== user.id) || []
-        : [...((conv as any).mutedBy || []), user.id];
+        ? conv.mutedBy?.filter((id: string) => id !== user.id) || []
+        : [...(conv.mutedBy || []), user.id];
       
       await updateDoc(convRef, { mutedBy: newMutedBy });
     } catch (error) {
@@ -405,7 +409,7 @@ export default function ConnectionMessaging({
 
     try {
       const convRef = doc(db, 'direct_conversations', convId);
-      const newArchivedBy = [...((conv as any).archivedBy || []), user.id];
+      const newArchivedBy = [...(conv.archivedBy || []), user.id];
       
       await updateDoc(convRef, { archivedBy: newArchivedBy });
       

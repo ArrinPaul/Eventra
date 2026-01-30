@@ -250,15 +250,16 @@ export default function OrganizerDashboard() {
 
   const handleDuplicate = async (event: Event) => {
     try {
-      const duplicatedEvent = {
-        ...event,
+      // Create a copy without the id field
+      const { id: _id, ...eventWithoutId } = event;
+      const duplicatedEvent: Omit<Event, 'id'> = {
+        ...eventWithoutId,
         title: `${event.title} (Copy)`,
         status: 'draft',
         registeredCount: 0,
       };
-      delete (duplicatedEvent as any).id;
       
-      const newId = await eventService.createEvent(duplicatedEvent as any);
+      const newId = await eventService.createEvent(duplicatedEvent);
       setEvents([...events, { ...duplicatedEvent, id: newId } as Event]);
       toast({ title: 'Event Duplicated', description: 'A copy has been created as a draft.' });
     } catch (error) {

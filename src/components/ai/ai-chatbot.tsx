@@ -141,14 +141,15 @@ export default function AIChatbot({
 
   const initializeSpeechRecognition = () => {
     if (typeof window !== 'undefined' && 'webkitSpeechRecognition' in window) {
-      const SpeechRecognition = (window as any).webkitSpeechRecognition;
+      // webkitSpeechRecognition is Safari's implementation of the Speech Recognition API
+      const SpeechRecognition = (window as unknown as { webkitSpeechRecognition: new () => SpeechRecognition }).webkitSpeechRecognition;
       const recognition = new SpeechRecognition();
       
       recognition.continuous = false;
       recognition.interimResults = false;
       recognition.lang = 'en-US';
       
-      recognition.onresult = (event: any) => {
+      recognition.onresult = (event: SpeechRecognitionEvent) => {
         const transcript = event.results[0][0].transcript;
         setInputMessage(transcript);
         setIsListening(false);

@@ -378,7 +378,14 @@ function TicketModal({
                 <TicketStatusBadge status={ticket.status} />
                 {ticket.status === 'checked-in' && ticket.checkInTime && (
                   <span className="text-xs text-muted-foreground">
-                    Checked in at {format(new Date(ticket.checkInTime as any), 'h:mm a')}
+                    Checked in at {format(
+                      ticket.checkInTime instanceof Date 
+                        ? ticket.checkInTime 
+                        : typeof ticket.checkInTime === 'object' && 'toDate' in ticket.checkInTime
+                          ? (ticket.checkInTime as { toDate: () => Date }).toDate()
+                          : new Date(ticket.checkInTime as unknown as string), 
+                      'h:mm a'
+                    )}
                   </span>
                 )}
               </div>

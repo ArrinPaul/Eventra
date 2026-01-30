@@ -368,24 +368,24 @@ class PermissionsService {
       
       case 'create_document':
         return {
-          allowed: this.canCreateDocument(user, event, resource.type as any),
-          reason: !this.canCreateDocument(user, event, resource.type as any)
+          allowed: this.canCreateDocument(user, event, resource.type as 'event_summary' | 'meeting_notes' | 'planning' | 'template'),
+          reason: !this.canCreateDocument(user, event, resource.type as 'event_summary' | 'meeting_notes' | 'planning' | 'template')
             ? `Cannot create ${resource.type} document`
             : undefined
         };
       
       case 'create_spreadsheet':
         return {
-          allowed: this.canCreateSpreadsheet(user, event, resource.type as any),
-          reason: !this.canCreateSpreadsheet(user, event, resource.type as any)
+          allowed: this.canCreateSpreadsheet(user, event, resource.type as 'registrations' | 'analytics' | 'feedback' | 'planning' | 'custom'),
+          reason: !this.canCreateSpreadsheet(user, event, resource.type as 'registrations' | 'analytics' | 'feedback' | 'planning' | 'custom')
             ? `Cannot create ${resource.type} spreadsheet`
             : undefined
         };
       
       case 'sync_data':
         return {
-          allowed: this.canSyncData(user, event, resource.type as any),
-          reason: !this.canSyncData(user, event, resource.type as any)
+          allowed: this.canSyncData(user, event, resource.type as 'registrations' | 'feedback' | 'analytics' | 'all'),
+          reason: !this.canSyncData(user, event, resource.type as 'registrations' | 'feedback' | 'analytics' | 'all')
             ? `Cannot sync ${resource.type} data`
             : undefined
         };

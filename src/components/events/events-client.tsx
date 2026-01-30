@@ -91,7 +91,7 @@ export default function EventsClient() {
         toast({ title: 'Event Updated', description: `"${eventData.title}" has been updated.` });
       } else {
         // Ensure organizationId is set
-        const newEventData = {
+        const newEventData: Omit<Event, 'id'> = {
           ...eventData,
           organizationId: user?.organizationId || 'default',
           startDate: eventData.startDate || new Date(), // Fallback if form returns legacy only
@@ -99,7 +99,7 @@ export default function EventsClient() {
           status: 'published',
           visibility: 'public'
         };
-        const newId = await eventService.createEvent(newEventData as any);
+        const newId = await eventService.createEvent(newEventData);
         setEvents([...events, { ...newEventData, id: newId } as Event]);
         toast({ title: 'Event Created', description: `"${eventData.title}" has been added.` });
       }
