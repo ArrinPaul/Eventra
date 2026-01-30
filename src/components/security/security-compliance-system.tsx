@@ -107,11 +107,11 @@ import {
   SkipForward,
   Play,
   Pause,
-  Stop,
+  StopCircle,
   Square
 } from 'lucide-react';
 import { EVENTOS_CONFIG } from '@/lib/eventos-config';
-import type { User as EventosUser, Organization } from '@/types/eventos';
+import type { User as EventosUser, Organization } from '@/types';
 
 // Security Types
 interface SecurityPolicy {

@@ -214,7 +214,7 @@ export function GroupsClient() {
   const filteredGroups = groups.filter(group => {
     const matchesSearch = group.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          group.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         group.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
+                         group.tags.some((tag: string) => tag.toLowerCase().includes(searchTerm.toLowerCase()));
     
     const matchesCategory = categoryFilter === 'all' || group.category === categoryFilter;
     
@@ -348,7 +348,7 @@ export function GroupsClient() {
                   </div>
 
                   <div className="flex flex-wrap gap-1">
-                    {group.tags.slice(0, 3).map((tag, index) => (
+                    {group.tags.slice(0, 3).map((tag: string, index: number) => (
                       <Badge key={index} variant="outline" className="text-xs">
                         {tag}
                       </Badge>
@@ -493,7 +493,7 @@ export function GroupsClient() {
                             </div>
                             <div className="flex items-center gap-1">
                               <Users className="h-4 w-4" />
-                              {event.attendees.filter(a => a.status === 'going').length} going
+                              {event.attendees.filter((a: { status: string }) => a.status === 'going').length} going
                             </div>
                           </div>
                         </div>
@@ -659,7 +659,7 @@ export function GroupsClient() {
                       <Progress value={(selectedGroup.members.length / selectedGroup.maxMembers) * 100} />
                       
                       <div className="space-y-2">
-                        {selectedGroup.members.slice(0, 5).map((memberId, index) => (
+                        {selectedGroup.members.slice(0, 5).map((memberId: string, index: number) => (
                           <div key={memberId} className="flex items-center gap-2">
                             <Avatar className="h-8 w-8">
                               <AvatarFallback>M{index + 1}</AvatarFallback>

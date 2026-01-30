@@ -98,7 +98,7 @@ export function RegisterForm() {
 
   const role = form.watch('role');
 
-  function onSubmit(values: FormValues) {
+  async function onSubmit(values: FormValues) {
     if (users.find(u => u.email === values.email)) {
         toast({
             variant: 'destructive',
@@ -110,7 +110,7 @@ export function RegisterForm() {
       
     const { emergencyContactName, emergencyContactNumber, ...rest } = values;
 
-    const newUser = register({
+    const newUser = await register({
       ...rest,
       interests: values.interests || '', // Ensure interests is a string
       emergencyContact: {

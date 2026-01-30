@@ -223,17 +223,17 @@ export default function ChatClient() {
         <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
           <div className="space-y-4">
             {visibleMessages.map(msg => {
-              const isMe = msg.user.id === user.id;
-              const isBot = !!msg.user.isBot;
+              const isMe = msg.user?.id === user.id;
+              const isBot = !!msg.user?.isBot;
               const isPrivate = !!msg.to;
-              const isAssistant = msg.user.id === 'bot-2';
-              const isOrganizerMessage = msg.user.role === 'organizer';
+              const isAssistant = msg.user?.id === 'bot-2';
+              const isOrganizerMessage = msg.user?.role === 'organizer';
 
               return (
                 <div key={msg.id} className={cn('flex items-start gap-3', isMe ? 'justify-end' : 'justify-start')}>
                   {!isMe && (
                     <Avatar className="h-8 w-8">
-                       {isBot ? <Bot /> : <AvatarFallback>{msg.user.name.charAt(0)}</AvatarFallback>}
+                       {isBot ? <Bot /> : <AvatarFallback>{msg.user?.name?.charAt(0) || '?'}</AvatarFallback>}
                     </Avatar>
                   )}
                   <div className={cn(
@@ -244,9 +244,9 @@ export default function ChatClient() {
                     isBot ? 'bg-purple-100 dark:bg-purple-900/30 border-l-4 border-purple-500' : ''
                   )}>
                     <div className="flex items-center justify-between gap-4 mb-1">
-                        {!isMe && <p className="font-bold text-sm">{msg.user.name}</p>}
-                        {!isMe && !isBot && (
-                            <Button variant="ghost" size="sm" className="h-auto px-1 py-0" onClick={() => setPrivateTo(msg.user.id)}>
+                        {!isMe && <p className="font-bold text-sm">{msg.user?.name}</p>}
+                        {!isMe && !isBot && msg.user?.id && (
+                            <Button variant="ghost" size="sm" className="h-auto px-1 py-0" onClick={() => setPrivateTo(msg.user!.id)}>
                                 <MessageSquare className="h-4 w-4 text-muted-foreground hover:text-primary"/>
                             </Button>
                         )}

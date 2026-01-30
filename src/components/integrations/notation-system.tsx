@@ -306,10 +306,10 @@ export default function NotationSystem({ eventId, eventTitle, userRole }: Notati
     }
   };
 
-  const exportDocument = async (document: NotationDocument, format: 'pdf' | 'markdown' | 'html') => {
+  const exportDocument = async (doc: NotationDocument, format: 'pdf' | 'markdown' | 'html') => {
     setLoading(true);
     try {
-      const response = await fetch(`/api/notation/documents/${document.id}/export`, {
+      const response = await fetch(`/api/notation/documents/${doc.id}/export`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -321,12 +321,12 @@ export default function NotationSystem({ eventId, eventTitle, userRole }: Notati
       const data = await response.json();
       if (data.success && data.downloadUrl) {
         // Create download link
-        const link = document.createElement('a');
+        const link = window.document.createElement('a');
         link.href = data.downloadUrl;
-        link.download = `${document.title}.${format}`;
-        document.body.appendChild(link);
+        link.download = `${doc.title}.${format}`;
+        window.document.body.appendChild(link);
         link.click();
-        document.body.removeChild(link);
+        window.document.body.removeChild(link);
         
         toast({
           title: "Export Complete",
@@ -715,7 +715,7 @@ export default function NotationSystem({ eventId, eventTitle, userRole }: Notati
             
             <div>
               <Label htmlFor="doc-category">Category</Label>
-              <Select value={documentCategory} onValueChange={setDocumentCategory}>
+              <Select value={documentCategory} onValueChange={(v) => setDocumentCategory(v as typeof documentCategory)}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -771,7 +771,7 @@ export default function NotationSystem({ eventId, eventTitle, userRole }: Notati
             
             <div>
               <Label htmlFor="share-role">Permission Level</Label>
-              <Select value={shareRole} onValueChange={setShareRole}>
+              <Select value={shareRole} onValueChange={(v) => setShareRole(v as typeof shareRole)}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>

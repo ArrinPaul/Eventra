@@ -22,7 +22,7 @@ import { db } from '@/lib/firebase';
 import { collection, doc, getDoc, getDocs, setDoc, updateDoc, query, where, orderBy, serverTimestamp, deleteDoc, addDoc } from 'firebase/firestore';
 import {
   FileText,
-  Spreadsheet,
+  Table2,
   Plus,
   ExternalLink,
   RefreshCw,
@@ -668,7 +668,7 @@ export function GoogleWorkspaceIntegration() {
                         {doc.type === 'document' ? (
                           <FileText className="w-5 h-5" />
                         ) : (
-                          <Spreadsheet className="w-5 h-5" />
+                          <Table2 className="w-5 h-5" />
                         )}
                       </div>
                       
@@ -734,7 +734,7 @@ export function GoogleWorkspaceIntegration() {
                           {template.type === 'document' ? (
                             <FileText className="w-5 h-5" />
                           ) : (
-                            <Spreadsheet className="w-5 h-5" />
+                            <Table2 className="w-5 h-5" />
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
@@ -807,7 +807,7 @@ export function GoogleWorkspaceIntegration() {
                         {template.type === 'document' ? (
                           <FileText className="w-4 h-4" />
                         ) : (
-                          <Spreadsheet className="w-4 h-4" />
+                          <Table2 className="w-4 h-4" />
                         )}
                       </div>
                       <div className="text-left">

@@ -302,6 +302,16 @@ Rate speaker quality and presentation effectiveness
 - Email:
 - Organization:
 - Would you like to be contacted about future events? Yes/No`
+    },
+    custom: {
+      title: 'Custom Document',
+      content: `# Custom Document
+
+## Description
+Enter your custom content here.
+
+## Notes
+[Your notes]`
     }
   };
 
@@ -364,6 +374,15 @@ Rate speaker quality and presentation effectiveness
         {
           title: 'Timeline',
           headers: ['Milestone', 'Planned Date', 'Actual Date', 'Status', 'Dependencies']
+        }
+      ]
+    },
+    custom: {
+      title: 'Custom Spreadsheet',
+      sheets: [
+        {
+          title: 'Sheet1',
+          headers: ['Column A', 'Column B', 'Column C', 'Column D']
         }
       ]
     }
@@ -478,7 +497,7 @@ Rate speaker quality and presentation effectiveness
       const result = await getAuthUrl();
       
       // Open Google OAuth window
-      const authWindow = window.open(result.data.authUrl, 'google-auth', 'width=500,height=600');
+      const authWindow = window.open((result.data as { authUrl: string }).authUrl, 'google-auth', 'width=500,height=600');
       
       // Listen for the auth completion (you'd implement a callback handler)
       const checkClosed = setInterval(() => {
@@ -538,8 +557,9 @@ Rate speaker quality and presentation effectiveness
       setSelectedEvent('');
 
       // Open the created document
-      if (result.data.documentUrl) {
-        window.open(result.data.documentUrl, '_blank');
+      const docData = result.data as { documentUrl?: string };
+      if (docData.documentUrl) {
+        window.open(docData.documentUrl, '_blank');
       }
 
     } catch (error) {
@@ -592,8 +612,9 @@ Rate speaker quality and presentation effectiveness
       setSelectedEvent('');
 
       // Open the created spreadsheet
-      if (result.data.spreadsheetUrl) {
-        window.open(result.data.spreadsheetUrl, '_blank');
+      const sheetData = result.data as { spreadsheetUrl?: string };
+      if (sheetData.spreadsheetUrl) {
+        window.open(sheetData.spreadsheetUrl, '_blank');
       }
 
     } catch (error) {
@@ -809,7 +830,7 @@ Rate speaker quality and presentation effectiveness
                 <Label>Template Type</Label>
                 <Select 
                   value={documentTemplate.templateType} 
-                  onValueChange={(value: any) => setDocumentTemplate(prev => ({ 
+                  onValueChange={(value: keyof typeof documentTemplates) => setDocumentTemplate(prev => ({ 
                     ...prev, 
                     templateType: value,
                     content: documentTemplates[value].content 
@@ -898,7 +919,7 @@ Rate speaker quality and presentation effectiveness
                 <Label>Template Type</Label>
                 <Select 
                   value={spreadsheetTemplate.templateType} 
-                  onValueChange={(value: any) => setSpreadsheetTemplate(prev => ({ 
+                  onValueChange={(value: keyof typeof spreadsheetTemplates) => setSpreadsheetTemplate(prev => ({ 
                     ...prev, 
                     templateType: value,
                     sheets: spreadsheetTemplates[value].sheets 

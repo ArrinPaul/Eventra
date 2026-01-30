@@ -31,8 +31,10 @@ export interface LegacyBaseUser {
   interests: string;
   points: number;
   avatar?: string; // Added for compatibility
+  photoURL?: string; // Firebase photo URL
   organizationId?: string; // Added for compatibility
   displayName?: string; // Added for compatibility
+  token?: string; // Auth token for API calls
 }
 
 export interface Student extends LegacyBaseUser {
@@ -187,10 +189,14 @@ export interface BaseUser {
   
   // Basic profile information
   avatar?: string;
+  photoURL?: string; // Firebase photo URL
   phone?: string;
   timezone?: string;
   language?: string;
   bio?: string;
+  
+  // Auth token for API calls
+  token?: string;
   
   // Organization association
   organizationId: string;
@@ -268,6 +274,7 @@ export interface Attendee extends BaseUser {
     linkedinUrl?: string;
     twitterUrl?: string;
     websiteUrl?: string;
+    lookingFor?: string[]; // What they're looking to connect about
   };
   
   // Event-related
@@ -932,9 +939,9 @@ export interface AnalyticsEvent {
 }
 
 // Placeholder types to fix missing exports
-export interface Community { id: string; name: string; description?: string; memberCount: number; rules: string[]; moderators: string[]; [key: string]: any; }
-export interface Post { id: string; content: string; authorId: string; communityId: string; likes: number; comments: number; tags: string[]; poll?: Poll; [key: string]: any; }
-export interface Comment { id: string; postId: string; authorId: string; content: string; likes: number; [key: string]: any; }
+export interface Community { id: string; name: string; description?: string; category: string; icon: string; memberCount: number; postCount: number; rules: string[]; moderators: string[]; createdBy: string; isPrivate?: boolean; members?: string[]; createdAt?: Date; [key: string]: any; }
+export interface Post { id: string; title: string; content: string; authorId: string; communityId: string; type: 'text' | 'link' | 'image' | 'poll'; upvotes: number; downvotes: number; votedBy: Record<string, 'up' | 'down'>; commentCount: number; likes?: number; comments?: number; tags: string[]; poll?: Poll; createdAt: Date; updatedAt: Date; isPinned: boolean; isLocked: boolean; [key: string]: any; }
+export interface Comment { id: string; postId: string; authorId: string; content: string; likes: number; createdAt?: Date; [key: string]: any; }
 export interface Poll { id: string; question: string; options: { id: string; text: string; votes: number }[]; [key: string]: any; }
 export interface ChatRoom { id: string; name: string; [key: string]: any; }
 export interface FeedPost { id: string; authorId: string; content: string; type: string; mediaUrls: string[]; likes: number; comments: number; shares: number; createdAt: Date; updatedAt: Date; likedBy: string[]; tags: string[]; visibility: string; eventId?: string; pollId?: string; location?: string; mentions: string[]; reposts: number; repostedBy: string[]; replies: number; [key: string]: any; }
@@ -946,6 +953,7 @@ export interface Badge { id: string; [key: string]: any; }
 export interface UserXP { userId: string; xp: number; [key: string]: any; }
 export interface EventReplay { id: string; [key: string]: any; }
 export interface AnonymousFeedback { id: string; [key: string]: any; }
+export interface AMASession { id: string; title: string; hostId: string; status: string; startTime: Date; endTime?: Date; questions: any[]; [key: string]: any; }
 
 // Enhanced Ticket Types
 export interface EventTicket {

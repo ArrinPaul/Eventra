@@ -30,11 +30,19 @@ import { functions, db } from '@/lib/firebase';
 import { collection, query, where, orderBy, getDocs, addDoc, updateDoc, doc, serverTimestamp } from 'firebase/firestore';
 import { useAuth } from '@/hooks/use-auth';
 import { getErrorMessage } from '@/lib/utils';
-import dynamic from 'next/dynamic';
 
-// Dynamically import ReactQuill to avoid SSR issues
-const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
-import 'react-quill/dist/quill.snow.css';
+// Simple rich text editor component since react-quill is not installed
+const SimpleEditor = ({ value, onChange, style }: { value: string; onChange: (val: string) => void; style?: React.CSSProperties }) => {
+  return (
+    <Textarea 
+      value={value} 
+      onChange={(e) => onChange(e.target.value)} 
+      style={style}
+      className="min-h-[300px] font-mono"
+      placeholder="Write your notes here..."
+    />
+  );
+};
 
 interface Notation {
   id: string;
@@ -496,11 +504,9 @@ const NotationClient: React.FC<NotationClientProps> = ({ eventId, sessionId, use
                 />
 
                 <div className="h-64">
-                  <ReactQuill
-                    theme="snow"
+                  <SimpleEditor
                     value={content}
                     onChange={setContent}
-                    modules={modules}
                     style={{ height: '200px' }}
                   />
                 </div>

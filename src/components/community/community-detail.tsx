@@ -351,7 +351,7 @@ export function CommunityDetailClient({ communityId }: CommunityDetailClientProp
             </div>
             <div className="flex items-center gap-1">
               <Calendar className="w-4 h-4" />
-              <span>Created {community.createdAt.toLocaleDateString()}</span>
+              <span>Created {community.createdAt?.toLocaleDateString() ?? 'N/A'}</span>
             </div>
           </div>
         </CardHeader>
@@ -573,7 +573,7 @@ export function CommunityDetailClient({ communityId }: CommunityDetailClientProp
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-600">Created</span>
-                    <span className="font-medium">{community.createdAt.toLocaleDateString()}</span>
+                    <span className="font-medium">{community.createdAt?.toLocaleDateString() ?? 'N/A'}</span>
                   </div>
                 </div>
               </CardContent>

@@ -92,6 +92,20 @@ export const FIRESTORE_COLLECTIONS = {
   MEDIA_FILES: 'media_files',
   TEMPLATES: 'templates',
   
+  // Community
+  COMMUNITIES: 'communities',
+  POSTS: 'posts',
+  COMMENTS: 'comments',
+  
+  // Feed
+  FEED_POSTS: 'feed_posts',
+  
+  // Tickets
+  TICKETS: 'tickets',
+  
+  // Groups
+  GROUPS: 'groups',
+  
   // System
   AUDIT_LOGS: 'audit_logs',
   FEATURE_FLAGS: 'feature_flags',

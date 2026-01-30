@@ -63,7 +63,7 @@ export function LoginForm() {
       }
     } catch (firebaseError: any) {
       // Fall back to legacy login for demo purposes
-      const user = login(values.email);
+      const user = await login(values.email);
       if (user) {
         toast({
           title: 'Login Successful',

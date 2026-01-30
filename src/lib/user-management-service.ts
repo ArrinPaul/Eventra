@@ -18,6 +18,8 @@ import {
   QueryConstraint,
   Timestamp,
   DocumentSnapshot,
+  UpdateData,
+  DocumentData,
 } from 'firebase/firestore';
 
 // Types
@@ -232,7 +234,7 @@ class UserManagementService {
         updateData.suspensionReason = reason;
       }
 
-      await updateDoc(doc(db, FIRESTORE_COLLECTIONS.USERS, userId), updateData);
+      await updateDoc(doc(db, FIRESTORE_COLLECTIONS.USERS, userId), updateData as UpdateData<DocumentData>);
       return true;
     } catch (error) {
       console.error('Error updating user status:', error);

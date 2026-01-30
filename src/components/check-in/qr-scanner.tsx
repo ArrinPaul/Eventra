@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
+// @ts-expect-error - react-qr-scanner lacks type definitions
 import QrScannerComponent from 'react-qr-scanner';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Video } from 'lucide-react';

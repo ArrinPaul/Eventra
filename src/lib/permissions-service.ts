@@ -149,7 +149,7 @@ class PermissionsService {
   canCreateDocument(
     user: User | null, 
     event: { organizerId?: string } | null,
-    documentType: 'event_planning' | 'agenda' | 'notes' | 'feedback' | 'custom'
+    documentType: 'event_planning' | 'agenda' | 'notes' | 'feedback' | 'custom' | 'event_summary' | 'meeting_notes' | 'planning' | 'template'
   ): boolean {
     if (!this.canAccessWorkspaceIntegration(user, event)) return false;
 
@@ -159,10 +159,12 @@ class PermissionsService {
     switch (documentType) {
       case 'event_planning':
       case 'agenda':
+      case 'planning':
         // Only organizers and professionals can create planning documents
         return workspacePermissions.canCreateDocuments && user?.role !== 'student';
       
       case 'notes':
+      case 'meeting_notes':
         // Anyone with document creation permissions can create notes
         return workspacePermissions.canCreateDocuments;
       
@@ -171,6 +173,11 @@ class PermissionsService {
         return workspacePermissions.canCreateDocuments && 
                this.getEventPermissions(user, event).isOwner;
       
+      case 'event_summary':
+        // Only organizers and professionals can create event summaries
+        return workspacePermissions.canCreateDocuments && user?.role !== 'student';
+      
+      case 'template':
       case 'custom':
         return workspacePermissions.canCreateDocuments;
       
@@ -220,7 +227,7 @@ class PermissionsService {
   canSyncData(
     user: User | null, 
     event: { organizerId?: string } | null,
-    syncType: 'registrations' | 'analytics' | 'documents'
+    syncType: 'registrations' | 'analytics' | 'documents' | 'feedback' | 'all'
   ): boolean {
     if (!this.canAccessWorkspaceIntegration(user, event)) return false;
 
@@ -230,7 +237,12 @@ class PermissionsService {
     switch (syncType) {
       case 'registrations':
       case 'analytics':
+      case 'feedback':
         // Only event owners can sync sensitive data
+        return workspacePermissions.canSyncData && eventPermissions.isOwner;
+      
+      case 'all':
+        // Only event owners can sync all data
         return workspacePermissions.canSyncData && eventPermissions.isOwner;
       
       case 'documents':

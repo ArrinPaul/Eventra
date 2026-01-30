@@ -737,7 +737,7 @@ export default function N8nAutomation({ eventId, eventTitle, userRole }: N8nAuto
               
               <div>
                 <Label htmlFor="trigger-type">Trigger</Label>
-                <Select value={triggerType} onValueChange={setTriggerType}>
+                <Select value={triggerType} onValueChange={(v) => setTriggerType(v as typeof triggerType)}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>

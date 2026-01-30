@@ -115,11 +115,13 @@ import {
   Lock,
   Unlock,
   Key,
-  Fingerprint
+  Fingerprint,
+  Play
 } from 'lucide-react';
 import { EVENTOS_CONFIG } from '@/lib/eventos-config';
-import type { Event, User, Organization } from '@/types/eventos';
+import type { Event, User, Organization } from '@/types';
 import { addDays, subDays, format } from 'date-fns';
+import type { DateRange } from 'react-day-picker';
 
 // Analytics Types
 interface AnalyticsMetrics {
@@ -175,7 +177,7 @@ interface CustomReport {
     dayOfMonth?: number;
   };
   filters: {
-    dateRange: { start: Date; end: Date };
+    dateRange?: { start: Date; end: Date };
     eventTypes: string[];
     organizations: string[];
     metrics: string[];
@@ -263,7 +265,7 @@ const widgetSchema = z.object({
 
 export function AnalyticsReportingDashboard() {
   const [activeTab, setActiveTab] = useState('overview');
-  const [dateRange, setDateRange] = useState({
+  const [dateRange, setDateRange] = useState<DateRange>({
     from: subDays(new Date(), 30),
     to: new Date(),
   });
@@ -451,7 +453,7 @@ export function AnalyticsReportingDashboard() {
           time: '09:00',
         } : undefined,
         filters: {
-          dateRange: dateRange,
+          dateRange: (dateRange?.from && dateRange?.to) ? { start: dateRange.from, end: dateRange.to } : undefined,
           eventTypes: [],
           organizations: [],
           metrics: ['revenue', 'registrations'],
@@ -933,7 +935,7 @@ export function AnalyticsReportingDashboard() {
         <div className="flex items-center space-x-4">
           <DatePickerWithRange
             date={dateRange}
-            onDateChange={setDateRange}
+            onDateChange={(newRange) => setDateRange(newRange ?? { from: undefined, to: undefined })}
           />
           <Button variant="outline" size="sm">
             <RefreshCw className="w-4 h-4 mr-1" />

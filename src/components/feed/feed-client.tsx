@@ -217,15 +217,19 @@ export default function FeedClient() {
     }
 
     try {
+      const userId = user.uid;
+      if (!userId) return;
+
       // Optimistic update
       setPosts(prev => prev.map(post => {
         if (post.id !== postId) return post;
         
-        const hasLiked = post.likedBy?.includes(user.uid);
+        const likedByList = (post.likedBy || []).filter((id): id is string => id !== undefined);
+        const hasLiked = likedByList.includes(userId);
         const newLikes = hasLiked ? Math.max(0, post.likes - 1) : post.likes + 1;
         const newLikedBy = hasLiked 
-          ? (post.likedBy || []).filter(id => id !== user.uid)
-          : [...(post.likedBy || []), user.uid];
+          ? likedByList.filter(id => id !== userId)
+          : [...likedByList, userId];
 
         return {
           ...post,
@@ -234,7 +238,7 @@ export default function FeedClient() {
         };
       }));
 
-      await feedService.likePost(postId, user.uid);
+      await feedService.likePost(postId, userId);
     } catch (error) {
       console.error('Error liking post:', error);
       // Revert on error (could implement more robust rollback)
@@ -276,7 +280,7 @@ export default function FeedClient() {
   };
 
   const handleCreatePost = async () => {
-    if (!user || !newPost.content.trim()) return;
+    if (!user || !user.uid || !newPost.content.trim()) return;
 
     setLoading(true);
     try {
@@ -302,10 +306,10 @@ export default function FeedClient() {
 
       const newPostId = await feedService.createFeedPost(postData);
       
-      const createdPost: FeedPost = {
+      const createdPost = {
+        ...postData,
         id: newPostId,
-        ...postData
-      };
+      } as FeedPost;
 
       setPosts(prev => [createdPost, ...prev]);
       setShowCreatePost(false);
@@ -335,7 +339,7 @@ export default function FeedClient() {
   };
 
   const handleAddComment = async (postId: string) => {
-    if (!user || !newComment.trim()) return;
+    if (!user || !user.uid || !newComment.trim()) return;
 
     try {
       // Save comment to Firestore
@@ -461,8 +465,8 @@ export default function FeedClient() {
             {filteredPosts.map((post) => {
               const author = getUser(post.authorId);
               const postComments = comments[post.id] || [];
-              const hasLiked = user ? post.likedBy.includes(user.uid) : false;
-              const hasReposted = user ? post.repostedBy.includes(user.uid) : false;
+              const hasLiked = user?.uid ? post.likedBy.includes(user.uid) : false;
+              const hasReposted = user?.uid ? post.repostedBy.includes(user.uid) : false;
 
               return (
                 <Card key={post.id} className="overflow-hidden">

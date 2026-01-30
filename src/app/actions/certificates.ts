@@ -361,7 +361,7 @@ function generateVerificationCode(): string {
 /**
  * Render certificate HTML with data
  */
-export function renderCertificateHTML(template: CertificateTemplate, data: Record<string, string>): string {
+export async function renderCertificateHTML(template: CertificateTemplate, data: Record<string, string>): Promise<string> {
   let html = template.htmlTemplate;
   
   // Replace design variables

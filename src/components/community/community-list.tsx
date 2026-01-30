@@ -99,7 +99,7 @@ export function CommunityListClient() {
   
   const filteredCommunities = communities.filter(community => {
     const matchesSearch = community.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         community.description.toLowerCase().includes(searchTerm.toLowerCase());
+                         (community.description ?? '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === 'all' || community.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });

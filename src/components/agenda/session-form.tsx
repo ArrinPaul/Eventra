@@ -7,7 +7,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import type { Session } from '@/types';
+import type { LegacySession } from '@/types';
 import { useEffect } from 'react';
 
 const timeSlots = [
@@ -30,8 +30,8 @@ const formSchema = z.object({
 type SessionFormValues = z.infer<typeof formSchema>;
 
 type SessionFormProps = {
-  onSave: (session: Omit<Session, 'id'> | Session) => void;
-  session: Session | null;
+  onSave: (session: Omit<LegacySession, 'id'> | LegacySession) => void;
+  session: LegacySession | null;
   onClose: () => void;
 };
 

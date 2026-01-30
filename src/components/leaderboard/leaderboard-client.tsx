@@ -56,10 +56,11 @@ export default function LeaderboardClient() {
     };
 
     const rankedUsers = users
-        .filter(u => u.role !== 'organizer')
-        .map(u => ({
+        .filter((u): u is User & { points?: number } => u.role !== 'organizer')
+        .map((u) => ({
             ...u,
             displayPoints: getFilteredPoints(u.points || 0, timeFilter),
+            photoURL: u.photoURL || (u as any).avatar || undefined,
             // Mock category - in real app, would come from user profile
             category: ['tech', 'business', 'design', 'marketing'][Math.floor(Math.random() * 4)] as CategoryFilter
         }))

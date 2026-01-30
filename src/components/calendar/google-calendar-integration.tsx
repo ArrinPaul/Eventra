@@ -71,7 +71,7 @@ export default function GoogleCalendarIntegration() {
   }, [isConnected]);
 
   const checkConnectionStatus = async () => {
-    if (!user) return;
+    if (!user?.uid) return;
 
     try {
       const userDoc = await getDoc(doc(db, 'users', user.uid));
@@ -93,7 +93,7 @@ export default function GoogleCalendarIntegration() {
   };
 
   const loadSyncedEvents = async () => {
-    if (!user) return;
+    if (!user?.uid) return;
 
     try {
       // Get user's registered events
@@ -255,7 +255,7 @@ export default function GoogleCalendarIntegration() {
   };
 
   const updateSettings = async (newSettings: Partial<CalendarSettings>) => {
-    if (!user) return;
+    if (!user?.uid) return;
 
     try {
       const updatedSettings = { ...calendarSettings, ...newSettings };

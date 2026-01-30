@@ -76,7 +76,8 @@ export function TicketingClient() {
     try {
       const { ticketingServiceReal } = await import('@/lib/ticketing-service');
       const ticketableEvents = await ticketingServiceReal.getTicketableEvents();
-      setEvents(ticketableEvents);
+      // Cast local event type to EventTicketing - structures are compatible
+      setEvents(ticketableEvents as unknown as EventTicketing[]);
     } catch (error) {
       console.error('Error loading events:', error);
     } finally {
@@ -140,7 +141,7 @@ export function TicketingClient() {
     if (!selectedEvent || !discountCode) return;
     
     const discount = selectedEvent.discountCodes.find(
-      d => d.code.toLowerCase() === discountCode.toLowerCase() && d.isActive
+      (d: DiscountCode) => d.code.toLowerCase() === discountCode.toLowerCase() && d.isActive
     );
     
     if (discount && discount.currentUses < discount.maxUses) {
@@ -156,6 +157,7 @@ export function TicketingClient() {
     setIsBooking(true);
     try {
       const bookingRequest: BookingRequest = {
+        id: crypto.randomUUID(),
         eventId: selectedEvent.id,
         userId: user.id,
         tickets: selectedTickets,
@@ -245,7 +247,7 @@ export function TicketingClient() {
         </div>
         
         <div className="flex gap-2 flex-wrap">
-          {event.tags.slice(0, 3).map(tag => (
+          {event.tags.slice(0, 3).map((tag: string) => (
             <Badge key={tag} variant="outline" className="text-xs">
               {tag}
             </Badge>

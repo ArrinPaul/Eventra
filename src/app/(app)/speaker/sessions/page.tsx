@@ -183,12 +183,18 @@ export default function SpeakerSessionDashboard() {
     try {
       if (newSession) {
         // Create new session
+        const newId = `session_${Date.now()}`;
         const sessionData: SpeakerSession = {
-          id: `session_${Date.now()}`,
-          ...session as SpeakerSession,
+          id: newId,
+          title: session.title || '',
+          abstract: session.abstract || '',
+          track: session.track || '',
+          category: session.category || 'talk',
+          duration: session.duration || 60,
           status: 'draft',
           materials: [],
           feedback: [],
+          ...session,
         };
         setSessions(prev => [...prev, sessionData]);
         setNewSession(null);

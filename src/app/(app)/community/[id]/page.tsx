@@ -1,11 +1,12 @@
 import { CommunityDetailClient } from '@/components/community/community-detail';
 
 interface CommunityDetailPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
-export default function CommunityDetailPage({ params }: CommunityDetailPageProps) {
-  return <CommunityDetailClient communityId={params.id} />;
+export default async function CommunityDetailPage({ params }: CommunityDetailPageProps) {
+  const { id } = await params;
+  return <CommunityDetailClient communityId={id} />;
 }

@@ -147,7 +147,7 @@ export default function CommunityClient() {
 
   const filteredCommunities = communities.filter(community =>
     community.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    community.description.toLowerCase().includes(searchQuery.toLowerCase())
+    (community.description ?? '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const sortedPosts = [...posts].sort((a, b) => {

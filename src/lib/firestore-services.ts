@@ -18,7 +18,8 @@ import {
   serverTimestamp,
   onSnapshot,
   Unsubscribe,
-  Timestamp
+  Timestamp,
+  FieldValue
 } from 'firebase/firestore';
 import { emailService } from './email-service';
 import {
@@ -522,7 +523,7 @@ export const eventService = {
              updates['ticketing.soldTickets'] = ticketing?.soldTickets ? ticketing.soldTickets + 1 : 1;
           }
 
-          await updateDoc(eventRef, updates);
+          await updateDoc(eventRef, updates as Record<string, FieldValue | Partial<unknown> | undefined>);
         }
       }
     } catch (error) {
@@ -1029,4 +1030,29 @@ export const groupService = {
   async createDiscussion(discussion: any): Promise<string> { return 'disc1'; },
   async getGroupResources(groupId: string): Promise<GroupResource[]> { return []; },
   async uploadResource(resource: any): Promise<string> { return 'res1'; }
+};
+
+// User Service
+export const userService = {
+  async getUser(userId: string): Promise<UserProfile | null> { 
+    try {
+      const userDoc = await getDoc(doc(db, 'users', userId));
+      if (userDoc.exists()) {
+        return { id: userDoc.id, ...userDoc.data() } as UserProfile;
+      }
+      return null;
+    } catch (error) { return null; }
+  },
+  async updateUser(userId: string, data: Partial<UserProfile>): Promise<boolean> {
+    try {
+      await updateDoc(doc(db, 'users', userId), { ...data, updatedAt: serverTimestamp() });
+      return true;
+    } catch (error) { return false; }
+  },
+  async getAllUsers(): Promise<UserProfile[]> {
+    try {
+      const snapshot = await getDocs(collection(db, 'users'));
+      return snapshot.docs.map(d => ({ id: d.id, ...d.data() })) as UserProfile[];
+    } catch (error) { return []; }
+  }
 };

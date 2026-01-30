@@ -340,7 +340,7 @@ export default function MatchmakingClient() {
                 <div className="mb-4">
                   <h3 className="text-sm font-medium mb-2">Common Interests</h3>
                   <div className="flex flex-wrap gap-1">
-                    {currentMatch.commonInterests.map(interest => (
+                    {currentMatch.commonInterests.map((interest: string) => (
                       <Badge key={interest} variant="secondary" className="text-xs">
                         {interest}
                       </Badge>
@@ -356,11 +356,12 @@ export default function MatchmakingClient() {
                   <div className="flex flex-wrap gap-1">
                     {currentProfile.skills.slice(0, 6).map(skill => (
                       <Badge key={skill} variant="outline" className="text-xs">
-                      {skill}
-                    </Badge>
-                  ))}
+                        {skill}
+                      </Badge>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Why This Match */}
               <div className="mb-6">
@@ -372,7 +373,7 @@ export default function MatchmakingClient() {
               <div>
                 <h3 className="text-sm font-medium mb-2">Conversation Starters</h3>
                 <div className="space-y-2">
-                  {currentMatch.icebreakers.slice(0, 2).map((icebreaker, index) => (
+                  {currentMatch.icebreakers.slice(0, 2).map((icebreaker: string, index: number) => (
                     <div key={index} className="text-xs bg-muted/50 p-2 rounded">
                       💡 {icebreaker}
                     </div>

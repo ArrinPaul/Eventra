@@ -28,7 +28,7 @@ import {
   VideoOff,
   Loader2
 } from 'lucide-react';
-import { ChatRoom, ChatMessage, User } from '@/types';
+import { ChatRoom, ChatMessage, UserProfile } from '@/types';
 import { chatService, userService } from '@/lib/firestore-services';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
@@ -43,7 +43,7 @@ export default function EnhancedChatClient({ initialRoomId }: EnhancedChatClient
   const [chatRooms, setChatRooms] = useState<ChatRoom[]>([]);
   const [selectedRoom, setSelectedRoom] = useState<ChatRoom | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [participantUsers, setParticipantUsers] = useState<Record<string, User>>({});
+  const [participantUsers, setParticipantUsers] = useState<Record<string, UserProfile>>({});
   const [newMessage, setNewMessage] = useState('');
   const [isCreatingRoom, setIsCreatingRoom] = useState(false);
   const [isCallActive, setIsCallActive] = useState(false);
@@ -64,7 +64,7 @@ export default function EnhancedChatClient({ initialRoomId }: EnhancedChatClient
   // Load participant users for display
   const loadParticipantUsers = useCallback(async (participantIds: string[]) => {
     try {
-      const users: Record<string, User> = {};
+      const users: Record<string, UserProfile> = {};
       for (const id of participantIds) {
         const userData = await userService.getUser(id);
         if (userData) {
@@ -124,7 +124,9 @@ export default function EnhancedChatClient({ initialRoomId }: EnhancedChatClient
         setIsLoadingMessages(false);
         
         // Load any new participant users from messages
-        const senderIds = roomMessages.map(m => m.senderId).filter(id => !participantUsers[id]);
+        const senderIds = roomMessages
+          .map(m => m.senderId)
+          .filter((id): id is string => !!id && !participantUsers[id]);
         if (senderIds.length > 0) {
           loadParticipantUsers([...new Set(senderIds)]);
         }
@@ -158,9 +160,8 @@ export default function EnhancedChatClient({ initialRoomId }: EnhancedChatClient
       chatRoomId: selectedRoom.id,
       senderId: user.id,
       content: messageContent,
-      type: 'text',
+      timestamp: new Date(),
       createdAt: new Date(),
-      isDeleted: false,
       reactions: {}
     };
 
@@ -178,9 +179,8 @@ export default function EnhancedChatClient({ initialRoomId }: EnhancedChatClient
             chatRoomId: selectedRoom.id,
             senderId: 'ai-assistant',
             content: generateAIResponse(messageContent),
-            type: 'ai_response',
+            timestamp: new Date(),
             createdAt: new Date(),
-            isDeleted: false,
             reactions: {}
           };
           await chatService.sendMessage(aiMessageData);
@@ -234,7 +234,7 @@ export default function EnhancedChatClient({ initialRoomId }: EnhancedChatClient
       await chatService.createChatRoom(roomData);
       setIsCreatingRoom(false);
       setNewRoom({ name: '', description: '', type: 'group', isPrivate: false });
-      loadChatRooms();
+      // Room list will auto-update via real-time subscription
     } catch (error) {
       console.error('Error creating room:', error);
     }
@@ -410,9 +410,9 @@ export default function EnhancedChatClient({ initialRoomId }: EnhancedChatClient
             <ScrollArea className="flex-1 p-4">
               <div className="space-y-4">
                 {messages.map((message) => {
-                  const sender = participantUsers[message.senderId];
+                  const sender = message.senderId ? participantUsers[message.senderId] : undefined;
                   const isOwn = message.senderId === user?.id;
-                  const isAI = message.senderId === 'ai-assistant' || message.type === 'ai_response';
+                  const isAI = message.senderId === 'ai-assistant';
 
                   return (
                     <div
@@ -443,10 +443,10 @@ export default function EnhancedChatClient({ initialRoomId }: EnhancedChatClient
                               <Badge variant="secondary" className="text-xs">AI Assistant</Badge>
                             )}
                             <span className="text-xs text-muted-foreground">
-                              {formatTime(message.createdAt)}
+                              {formatTime(message.createdAt ?? new Date())}
                             </span>
                           </div>
-                        )}}
+                        )}
                         
                         <Card className={cn(
                           "p-3",
@@ -455,9 +455,9 @@ export default function EnhancedChatClient({ initialRoomId }: EnhancedChatClient
                         )}>
                           <p className="text-sm">{message.content}</p>
                           
-                          {Object.keys(message.reactions).length > 0 && (
+                          {Object.keys(message.reactions ?? {}).length > 0 && (
                             <div className="flex gap-1 mt-2">
-                              {Object.entries(message.reactions).map(([emoji, users]) => (
+                              {Object.entries(message.reactions ?? {}).map(([emoji, users]) => (
                                 <Badge key={emoji} variant="outline" className="text-xs">
                                   {emoji} {users.length}
                                 </Badge>
@@ -468,7 +468,7 @@ export default function EnhancedChatClient({ initialRoomId }: EnhancedChatClient
                         
                         {isOwn && (
                           <div className="text-xs text-muted-foreground text-right">
-                            {formatTime(message.createdAt)}
+                            {formatTime(message.createdAt ?? new Date())}
                           </div>
                         )}
                       </div>

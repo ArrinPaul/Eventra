@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Loader2, Sparkles, Plus, Minus, Calendar } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import type { Session } from '@/types';
+import type { LegacySession } from '@/types';
 
 type Recommendation = {
     id: string;
@@ -17,7 +17,7 @@ type Recommendation = {
 export default function RecommendedSessions() {
     const { user, addEventToUser, removeEventFromUser } = useAuth();
     const { toast } = useToast();
-    const [recommendations, setRecommendations] = useState<Session[]>([]);
+    const [recommendations, setRecommendations] = useState<LegacySession[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -25,16 +25,19 @@ export default function RecommendedSessions() {
             if (!user) return;
             setLoading(true);
             try {
+                const userRole = user.role || 'student';
+                const validRole = (['student', 'professional', 'organizer'].includes(userRole) ? userRole : 'student') as 'student' | 'professional' | 'organizer';
+                const userInterests = Array.isArray(user.interests) ? user.interests.join(', ') : (user.interests || '');
                 const result = await getRecommendedSessions({
-                    role: user.role,
-                    interests: user.interests,
+                    role: validRole,
+                    interests: userInterests,
                     agenda: AGENDA_STRING,
-                    myEvents: user.myEvents,
+                    myEvents: user.myEvents || [],
                 });
                 // Get top 3 recommendations and ensure they exist in SESSIONS
                 const validRecommendations = result.recommendations
                     .map(rec => SESSIONS.find(s => s.id === rec.id))
-                    .filter((session): session is Session => !!session)
+                    .filter((session): session is LegacySession => !!session)
                     .slice(0,3);
 
                 setRecommendations(validRecommendations);
@@ -83,10 +86,11 @@ export default function RecommendedSessions() {
         }
     };
     
-    const getGoogleCalendarUrl = (session: Session) => {
+    const getGoogleCalendarUrl = (session: LegacySession) => {
         const { title, description, time } = session;
-        const startTime = time.split(' - ')[0].replace(':', '');
-        const endTime = time.split(' - ')[1].replace(':', '').split(' ')[0];
+        const timeStr = time || '09:00 AM - 10:00 AM';
+        const startTime = timeStr.split(' - ')[0].replace(':', '');
+        const endTime = timeStr.split(' - ')[1]?.replace(':', '').split(' ')[0] || '';
         const date = `20241026T${startTime.padStart(4, '0')}00`;
         const endDate = `20241026T${endTime.padStart(4, '0')}00`;
 
@@ -104,7 +108,7 @@ export default function RecommendedSessions() {
             <CardContent>
                 <div className="space-y-3">
                     {recommendations.map(rec => {
-                        const isAdded = user?.myEvents.includes(rec.id);
+                        const isAdded = (user?.myEvents || []).includes(rec.id);
                         return (
                             <div key={rec.id} className="flex items-center justify-between p-4 bg-background rounded-lg shadow-sm">
                                 <div>

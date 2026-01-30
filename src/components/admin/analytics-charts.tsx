@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect, useMemo } from 'react';
 import { Bar, BarChart, CartesianGrid, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis, Cell } from 'recharts';
-import type { User, Session } from '@/types';
+import type { User, LegacySession } from '@/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/hooks/use-auth';
 import useLocalStorage from '@/hooks/use-local-storage';
@@ -79,7 +79,7 @@ function AiInsights({ popularityData }: { popularityData: { name: string, count:
 
 export default function AnalyticsCharts({ allUsers }: { allUsers: User[] }) {
     const attendees = useMemo(() => allUsers.filter(u => u.role !== 'organizer'), [allUsers]);
-    const [sessions] = useLocalStorage<Session[]>('ipx-sessions', initialSessions);
+    const [sessions] = useLocalStorage<LegacySession[]>('ipx-sessions', initialSessions);
 
     const registrationData = useMemo(() => {
         const studentCount = attendees.filter(u => u.role === 'student').length;
@@ -101,7 +101,7 @@ export default function AnalyticsCharts({ allUsers }: { allUsers: User[] }) {
     const sessionPopularityData = useMemo(() => {
         const popularityMap = new Map<string, number>();
         attendees.forEach(user => {
-            user.myEvents.forEach(sessionId => {
+            (user.myEvents || []).forEach(sessionId => {
                 popularityMap.set(sessionId, (popularityMap.get(sessionId) || 0) + 1);
             });
         });

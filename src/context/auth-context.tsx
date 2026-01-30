@@ -11,6 +11,7 @@ interface AuthContextType {
   user: User | null;
   firebaseUser: FirebaseUser | null;
   loading: boolean;
+  users: User[]; // All users for leaderboard
   login: (email: string) => Promise<User | null>;
   logout: () => Promise<void>;
   register: (userData: Omit<User, 'id' | 'registrationId' | 'checkedIn' | 'myEvents' | 'points'>) => Promise<User>;
@@ -25,29 +26,35 @@ interface AuthContextType {
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // Helper to convert Firebase/Firestore data to User type
-function mapFirestoreToUser(uid: string, data: any): User {
+function mapFirestoreToUser(uid: string, data: Record<string, unknown>): User {
   return {
     id: uid,
-    name: data.displayName || data.name || '',
-    email: data.email || '',
-    role: data.role || 'attendee',
-    department: data.department || '',
-    year: data.year || '',
-    avatar: data.photoURL || data.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${data.displayName || 'User'}`,
-    registrationId: data.registrationId || `REG-${uid.slice(0, 8).toUpperCase()}`,
-    checkedIn: data.checkedIn || false,
-    myEvents: data.myEvents || [],
-    points: data.points || 0,
-    interests: data.interests || [],
-    bio: data.bio || '',
-    phone: data.phone || '',
-    organization: data.organization || '',
-    onboardingCompleted: data.onboardingCompleted || false,
-  };
+    uid: uid,
+    name: (data.displayName as string) || (data.name as string) || '',
+    email: (data.email as string) || '',
+    role: (data.role as User['role']) || 'attendee',
+    avatar: (data.photoURL as string) || (data.avatar as string) || `https://api.dicebear.com/7.x/initials/svg?seed=${(data.displayName as string) || 'User'}`,
+    photoURL: (data.photoURL as string) || undefined,
+    registrationId: (data.registrationId as string) || `REG-${uid.slice(0, 8).toUpperCase()}`,
+    checkedIn: (data.checkedIn as boolean) || false,
+    myEvents: (data.myEvents as string[]) || [],
+    points: (data.points as number) || 0,
+    interests: (data.interests as string) || '',
+    bio: (data.bio as string) || '',
+    phone: (data.phone as string) || '',
+    onboardingCompleted: (data.onboardingCompleted as boolean) || false,
+    token: (data.token as string) || undefined,
+    organizationId: (data.organizationId as string) || 'default',
+    mobile: (data.mobile as string) || (data.phone as string) || '',
+    foodChoice: (data.foodChoice as 'veg' | 'non-veg' | 'vegan') || 'veg',
+    emergencyContact: (data.emergencyContact as { name: string; number: string }) || { name: '', number: '' },
+    displayName: (data.displayName as string) || (data.name as string) || '',
+  } as unknown as User;
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [users, setUsers] = useState<User[]>([]); // All users for leaderboard
   const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
@@ -179,7 +186,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     try {
-      const { id, ...dataToUpdate } = updatedData;
+      const { id, ...dataToUpdate } = updatedData as { id?: string; [key: string]: unknown };
       
       await updateDoc(doc(db, FIRESTORE_COLLECTIONS.USERS, firebaseUser.uid), {
         ...dataToUpdate,
@@ -188,7 +195,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         updatedAt: serverTimestamp(),
       });
 
-      setUser(prev => prev ? { ...prev, ...updatedData } : null);
+      setUser(prev => prev ? { ...prev, ...updatedData } as User : null);
     } catch (error) {
       console.error('Error updating user:', error);
       toast({
@@ -292,7 +299,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Add event to user's list
   const addEventToUser = async (sessionId: string, force = false): Promise<void> => {
     if (!user || !firebaseUser) return;
-    if (user.myEvents.includes(sessionId)) return;
+    if (user.myEvents?.includes(sessionId)) return;
 
     try {
       await updateDoc(doc(db, FIRESTORE_COLLECTIONS.USERS, firebaseUser.uid), {
@@ -300,7 +307,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         updatedAt: serverTimestamp(),
       });
 
-      setUser(prev => prev ? { ...prev, myEvents: [...prev.myEvents, sessionId] } : null);
+      setUser(prev => prev ? { ...prev, myEvents: [...(prev.myEvents || []), sessionId] } as User : null);
       
       if (!force) {
         await awardPoints(10, 'for registering for an event');
@@ -320,7 +327,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         updatedAt: serverTimestamp(),
       });
 
-      setUser(prev => prev ? { ...prev, myEvents: prev.myEvents.filter(id => id !== sessionId) } : null);
+      setUser(prev => prev ? { ...prev, myEvents: (prev.myEvents || []).filter(id => id !== sessionId) } as User : null);
     } catch (error) {
       console.error('Error removing event:', error);
     }
@@ -328,6 +335,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const value: AuthContextType = {
     user,
+    users,
     firebaseUser,
     loading,
     login,

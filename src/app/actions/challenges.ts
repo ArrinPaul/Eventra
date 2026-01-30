@@ -46,7 +46,7 @@ export interface UserChallenge {
 }
 
 // Default weekly challenges
-export function getDefaultWeeklyChallenges(): Omit<ChallengeDefinition, 'startDate' | 'endDate'>[] {
+export async function getDefaultWeeklyChallenges(): Promise<Omit<ChallengeDefinition, 'startDate' | 'endDate'>[]> {
   return [
     {
       id: 'weekly_explorer',
@@ -137,7 +137,7 @@ export function getDefaultWeeklyChallenges(): Omit<ChallengeDefinition, 'startDa
 }
 
 // Daily challenge templates
-export function getDailyChallengeTemplates(): Omit<ChallengeDefinition, 'id' | 'startDate' | 'endDate'>[] {
+export async function getDailyChallengeTemplates(): Promise<Omit<ChallengeDefinition, 'id' | 'startDate' | 'endDate'>[]> {
   return [
     {
       name: 'Daily Check-In',
@@ -210,7 +210,8 @@ export async function getActiveChallenges(): Promise<ChallengeDefinition[]> {
   const weekEnd = new Date(weekStart);
   weekEnd.setDate(weekStart.getDate() + 7);
 
-  const weeklyChallenges = getDefaultWeeklyChallenges().map(challenge => ({
+  const weeklyTemplates = await getDefaultWeeklyChallenges();
+  const weeklyChallenges = weeklyTemplates.map(challenge => ({
     ...challenge,
     startDate: weekStart,
     endDate: weekEnd
@@ -222,7 +223,7 @@ export async function getActiveChallenges(): Promise<ChallengeDefinition[]> {
   const dayEnd = new Date(dayStart);
   dayEnd.setDate(dayStart.getDate() + 1);
 
-  const dailyTemplates = getDailyChallengeTemplates();
+  const dailyTemplates = await getDailyChallengeTemplates();
   const dailyChallenges: ChallengeDefinition[] = dailyTemplates.map((template, index) => ({
     ...template,
     id: `daily_${dayStart.toISOString().split('T')[0]}_${index}`,

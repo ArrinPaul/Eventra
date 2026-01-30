@@ -20,16 +20,37 @@ const formSchema = z.object({
 });
 
 type EventFormProps = {
-  onSave: (event: Omit<Event, 'id'>) => void;
+  onSave: (event: Omit<Event, 'id'>) => Promise<void> | void;
   event: Event | null;
 };
+
+// Helper to extract date string from Event
+function getDateString(event: Event): string {
+  if (event.startDate) {
+    const date = event.startDate instanceof Date ? event.startDate : new Date(event.startDate);
+    return date.toISOString().split('T')[0];
+  }
+  return '';
+}
+
+// Helper to extract location string from Event
+function getLocationString(event: Event): string {
+  if (typeof event.location === 'string') return event.location;
+  if (event.location?.venue?.name) return event.location.venue.name;
+  return '';
+}
 
 export function EventForm({ onSave, event }: EventFormProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: event ? {
-        ...event,
-        date: event.date,
+        title: event.title,
+        date: getDateString(event),
+        time: event.time || '',
+        location: getLocationString(event),
+        category: (event.category as 'Workshop' | 'Talk' | 'Panel') || 'Workshop',
+        targetAudience: (event.targetAudience as 'Student' | 'Professional' | 'Both') || 'Both',
+        description: event.description,
     } : {
       title: '',
       date: '',
@@ -42,7 +63,46 @@ export function EventForm({ onSave, event }: EventFormProps) {
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    onSave(values);
+    // Convert form values to Event type with required defaults
+    const startDate = new Date(values.date + 'T' + values.time);
+    const eventData: Omit<Event, 'id'> = {
+      title: values.title,
+      description: values.description,
+      startDate,
+      endDate: startDate, // Default to same as start
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      location: {
+        type: 'physical',
+        venue: { name: values.location },
+      } as any,
+      type: 'workshop',
+      category: values.category,
+      tags: [],
+      capacity: 100,
+      waitlistEnabled: false,
+      pricing: { type: 'free' } as any,
+      status: 'draft',
+      visibility: 'public',
+      agenda: [],
+      speakers: [],
+      organizers: [],
+      moderators: [],
+      registeredUsers: [],
+      waitlistedUsers: [],
+      attendedUsers: [],
+      settings: {} as any,
+      integrations: {},
+      analytics: {} as any,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      createdBy: '',
+      organizationId: '',
+      // Legacy fields for compatibility
+      date: values.date,
+      time: values.time,
+      targetAudience: values.targetAudience,
+    };
+    onSave(eventData);
   }
 
   return (

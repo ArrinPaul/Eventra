@@ -173,7 +173,7 @@ export default function UserPreferencesPanel({ initialTab = 'notifications' }: U
   }, [user]);
 
   const loadUserPreferences = async () => {
-    if (!user) return;
+    if (!user?.uid) return;
 
     try {
       const userDoc = await getDoc(doc(db, 'users', user.uid));
@@ -201,7 +201,7 @@ export default function UserPreferencesPanel({ initialTab = 'notifications' }: U
   };
 
   const savePreferences = async () => {
-    if (!user) return;
+    if (!user?.uid) return;
 
     setSaving(true);
     try {

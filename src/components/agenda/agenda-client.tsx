@@ -93,11 +93,11 @@ function SessionCard({ session, allSessions }: { session: Session, allSessions: 
 
   if (!user) return null;
 
-  const isAdded = user.myEvents.includes(session.id);
+  const isAdded = (user.myEvents || []).includes(session.id);
   const timeString = formatSessionTime(session.startTime, session.endTime, session.time);
 
   const handleAddEvent = () => {
-    const conflictingSession = hasTimeConflict(session, user.myEvents, allSessions);
+    const conflictingSession = hasTimeConflict(session, user.myEvents || [], allSessions);
     if (conflictingSession) {
       setConflict(conflictingSession);
     } else {
@@ -195,8 +195,8 @@ export default function AgendaClient() {
         const allSessions = events.flatMap(event => 
           (event.agenda || []).map(session => ({
              ...session,
-             // Ensure legacy compatibility if needed
-             location: session.location || session.room,
+             // Ensure legacy compatibility if needed - AgendaItem uses 'room', Session uses 'location'
+             location: session.room,
              // If startTime/endTime are strings (from JSON), convert to Date
              startTime: session.startTime ? new Date(session.startTime) : undefined,
              endTime: session.endTime ? new Date(session.endTime) : undefined,
@@ -221,10 +221,10 @@ export default function AgendaClient() {
     setLoadingRecommendations(true);
     try {
       const result = await getRecommendedSessions({
-        role: user.role,
-        interests: user.interests,
+        role: user.role as 'student' | 'professional',
+        interests: user.interests || '',
         agenda: AGENDA_STRING,
-        myEvents: user.myEvents,
+        myEvents: user.myEvents || [],
       });
       const recommendedTitles = result.recommendations.map(s => s.title);
       setRecommendations(recommendedTitles);

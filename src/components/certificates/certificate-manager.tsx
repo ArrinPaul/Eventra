@@ -169,7 +169,7 @@ export function CertificateManager({
     }
   };
 
-  const handlePreviewTemplate = () => {
+  const handlePreviewTemplate = async () => {
     const template = templates.find(t => t.id === selectedTemplate);
     if (!template) return;
 
@@ -185,16 +185,16 @@ export function CertificateManager({
       sessionTitle: 'Sample Session',
     };
 
-    const html = renderCertificateHTML(template, sampleData);
+    const html = await renderCertificateHTML(template, sampleData);
     setPreviewHtml(html);
     setPreviewCertId('preview');
   };
 
-  const handleViewCertificate = (cert: Certificate) => {
+  const handleViewCertificate = async (cert: Certificate) => {
     const template = templates.find(t => t.id === cert.templateId);
     if (!template) return;
 
-    const html = renderCertificateHTML(template, cert.data);
+    const html = await renderCertificateHTML(template, cert.data);
     setPreviewHtml(html);
     setPreviewCertId(cert.id);
   };

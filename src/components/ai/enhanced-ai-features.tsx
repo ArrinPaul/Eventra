@@ -82,16 +82,17 @@ import {
   CheckCircle2,
   Info,
   Loader2,
-  Robot,
+  Bot,
   Wand2,
   Cpu,
   Network,
   CloudLightning,
   Fingerprint,
-  Lock
+  Lock,
+  DollarSign
 } from 'lucide-react';
 import { EVENTOS_CONFIG } from '@/lib/eventos-config';
-import type { Event, User, Organization } from '@/types/eventos';
+import type { Event, User, Organization } from '@/types';
 
 // AI Types
 interface AIProvider {

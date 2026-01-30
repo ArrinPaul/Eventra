@@ -1,6 +1,15 @@
 import { LoginForm } from '@/components/auth/login-form';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import Image from 'next/image';
+import { Suspense } from 'react';
+
+function LoginFormFallback() {
+  return (
+    <div className="flex items-center justify-center h-32">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+    </div>
+  );
+}
 
 export default function LoginPage() {
   return (
@@ -28,7 +37,9 @@ export default function LoginPage() {
               <CardDescription>Sign in to access your EventOS dashboard.</CardDescription>
             </CardHeader>
             <CardContent>
-              <LoginForm />
+              <Suspense fallback={<LoginFormFallback />}>
+                <LoginForm />
+              </Suspense>
             </CardContent>
           </Card>
         </div>

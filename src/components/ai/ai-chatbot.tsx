@@ -30,6 +30,54 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '../../hooks/use-toast';
+
+// Web Speech API types (not fully supported in all browsers)
+interface SpeechRecognitionResult {
+  readonly isFinal: boolean;
+  readonly length: number;
+  item(index: number): SpeechRecognitionAlternative;
+  [index: number]: SpeechRecognitionAlternative;
+}
+
+interface SpeechRecognitionAlternative {
+  readonly transcript: string;
+  readonly confidence: number;
+}
+
+interface SpeechRecognitionResultList {
+  readonly length: number;
+  item(index: number): SpeechRecognitionResult;
+  [index: number]: SpeechRecognitionResult;
+}
+
+interface SpeechRecognitionEventMap {
+  result: SpeechRecognitionEvent;
+  error: Event;
+  end: Event;
+}
+
+interface SpeechRecognitionEvent extends Event {
+  readonly results: SpeechRecognitionResultList;
+  readonly resultIndex: number;
+}
+
+interface WebkitSpeechRecognition extends EventTarget {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  onresult: ((event: SpeechRecognitionEvent) => void) | null;
+  onerror: ((event: Event) => void) | null;
+  onend: ((event: Event) => void) | null;
+  start(): void;
+  stop(): void;
+  abort(): void;
+}
+
+declare global {
+  interface Window {
+    webkitSpeechRecognition: new () => WebkitSpeechRecognition;
+  }
+}
 import { Input } from '../ui/input';
 import { Textarea } from '../ui/textarea';
 import { Switch } from '../ui/switch';
@@ -126,7 +174,7 @@ export default function AIChatbot({
       const response = await fetch('/api/ai-chatbot/sessions', {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${user?.token}`,
+          'Authorization': `Bearer ${(user as { token?: string } | null)?.token ?? ''}`,
         },
       });
       
@@ -142,8 +190,7 @@ export default function AIChatbot({
   const initializeSpeechRecognition = () => {
     if (typeof window !== 'undefined' && 'webkitSpeechRecognition' in window) {
       // webkitSpeechRecognition is Safari's implementation of the Speech Recognition API
-      const SpeechRecognition = (window as unknown as { webkitSpeechRecognition: new () => SpeechRecognition }).webkitSpeechRecognition;
-      const recognition = new SpeechRecognition();
+      const recognition = new window.webkitSpeechRecognition();
       
       recognition.continuous = false;
       recognition.interimResults = false;
@@ -213,7 +260,7 @@ ${eventTitle ? `I see you're working with "${eventTitle}". ` : ''}What would you
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${user?.token}`,
+          'Authorization': `Bearer ${(user as { token?: string } | null)?.token ?? ''}`,
         },
         body: JSON.stringify({
           message: content,
@@ -282,7 +329,7 @@ ${eventTitle ? `I see you're working with "${eventTitle}". ` : ''}What would you
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${user?.token}`,
+          'Authorization': `Bearer ${(user as { token?: string } | null)?.token ?? ''}`,
         },
         body: JSON.stringify({
           action,
