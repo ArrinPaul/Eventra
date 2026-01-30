@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -17,152 +17,140 @@ import {
   Zap,
   Award,
   MapPin,
-  Briefcase
+  Briefcase,
+  Loader2
 } from 'lucide-react';
 import { Match, UserProfile, MatchProfile } from '@/types';
-import { matchingService } from '@/lib/firestore-services';
+import { matchingService, userService } from '@/lib/firestore-services';
 import { cn } from '@/lib/utils';
+import { db, FIRESTORE_COLLECTIONS } from '@/lib/firebase';
+import { collection, query, where, getDocs, doc, getDoc, orderBy, limit } from 'firebase/firestore';
 
-// Mock data for potential matches
-const mockMatches: Match[] = [
-  {
-    id: 'match-1',
-    user1Id: 'current-user',
-    user2Id: 'profile-1',
-    compatibilityScore: 87,
-    matchType: 'teammate',
-    status: 'potential',
-    createdAt: new Date(),
-    icebreakers: [
-      "You both are passionate about AI ethics!",
-      "Ask about her experience with ML model deployment",
-      "Share your thoughts on responsible AI development"
-    ],
-    commonInterests: ['AI Ethics', 'Machine Learning', 'Python'],
-    reasonForMatch: 'High compatibility in technical skills and shared interest in ethical AI development'
-  },
-  {
-    id: 'match-2',
-    user1Id: 'current-user',
-    user2Id: 'profile-2',
-    compatibilityScore: 92,
-    matchType: 'cofounder',
-    status: 'potential',
-    createdAt: new Date(),
-    icebreakers: [
-      "You both are looking to start a fintech company!",
-      "Discuss your startup ideas and vision",
-      "Talk about your complementary skills in tech and business"
-    ],
-    commonInterests: ['Entrepreneurship', 'Fintech', 'Startups'],
-    reasonForMatch: 'Perfect co-founder match with complementary skills and shared startup vision'
-  },
-  {
-    id: 'match-3',
-    user1Id: 'current-user',
-    user2Id: 'profile-3',
-    compatibilityScore: 78,
-    matchType: 'mentor',
-    status: 'potential',
-    createdAt: new Date(),
-    icebreakers: [
-      "She's an expert in areas you want to learn!",
-      "Ask about her research methodology",
-      "Inquire about career advice in AI research"
-    ],
-    commonInterests: ['AI Research', 'Academic Career', 'Publications'],
-    reasonForMatch: 'Excellent mentor match based on your learning goals and her expertise'
-  }
-];
-
-const mockUserProfiles: { [key: string]: UserProfile } = {
-  'profile-1': {
-    id: 'profile-1',
-    name: 'Dr. Alice Johnson',
-    bio: 'Senior AI Engineer at TechCorp with 8+ years of experience in machine learning and data science. Passionate about ethical AI and mentoring junior developers.',
-    location: 'San Francisco, CA',
-    skills: ['Python', 'Machine Learning', 'Data Science', 'AI Ethics', 'Leadership'],
-    achievements: ['AI Innovation Award 2023', 'Top Speaker at TechConf', '50+ ML Models Deployed'],
-    isLookingForTeammate: true,
-    isLookingForMentor: false,
-    isLookingForCofounder: false,
-    mentorshipAreas: ['Machine Learning', 'Career Development', 'Technical Leadership'],
-    compatibility: {
-      personalityType: 'ENTJ',
-      workStyle: 'Collaborative',
-      goals: ['Build AI products', 'Mentor others', 'Ethical AI advocacy']
-    }
-  } as UserProfile,
-  'profile-2': {
-    id: 'profile-2',
-    name: 'Bob Martinez',
-    bio: 'MBA graduate with fintech startup experience. Looking for a technical co-founder to build the next generation of financial services.',
-    location: 'New York, NY',
-    skills: ['Business Development', 'Fintech', 'Strategy', 'Fundraising', 'Product Management'],
-    achievements: ['Ex-Goldman Sachs', 'Wharton MBA', 'Raised $2M seed funding'],
-    isLookingForTeammate: false,
-    isLookingForMentor: false,
-    isLookingForCofounder: true,
-    mentorshipAreas: [],
-    compatibility: {
-      personalityType: 'ENFJ',
-      workStyle: 'Results-driven',
-      goals: ['Launch fintech startup', 'Scale globally', 'Exit in 5 years']
-    }
-  } as UserProfile,
-  'profile-3': {
-    id: 'profile-3',
-    name: 'Prof. Sarah Chen',
-    bio: 'Leading AI researcher at MIT. Published 100+ papers on machine learning and neural networks. Available for mentoring promising researchers.',
-    location: 'Boston, MA',
-    skills: ['Deep Learning', 'Research', 'Neural Networks', 'Academic Writing', 'Grant Writing'],
-    achievements: ['MIT Professor', 'IEEE Fellow', '100+ Publications', 'NSF Grant Recipient'],
-    isLookingForTeammate: false,
-    isLookingForMentor: false,
-    isLookingForCofounder: false,
-    mentorshipAreas: ['AI Research', 'Academic Career', 'PhD Guidance', 'Publication Strategy'],
-    compatibility: {
-      personalityType: 'INTJ',
-      workStyle: 'Research-focused',
-      goals: ['Advance AI science', 'Mentor next generation', 'Publish groundbreaking research']
-    }
-  } as UserProfile,
-};
+// Local UserProfile type for component
+interface LocalUserProfile {
+  id: string;
+  name: string;
+  bio?: string;
+  location?: string;
+  skills?: string[];
+  achievements?: string[];
+  isLookingForTeammate?: boolean;
+  isLookingForMentor?: boolean;
+  isLookingForCofounder?: boolean;
+  mentorshipAreas?: string[];
+  compatibility?: {
+    personalityType?: string;
+    workStyle?: string;
+    goals?: string[];
+  };
+  [key: string]: unknown;
+}
 
 export default function MatchmakingClient() {
   const { user } = useAuth();
   const [currentMatch, setCurrentMatch] = useState<Match | null>(null);
-  const [matchQueue, setMatchQueue] = useState<Match[]>(mockMatches);
+  const [matchQueue, setMatchQueue] = useState<Match[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [swipeDirection, setSwipeDirection] = useState<'left' | 'right' | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
   const [matches, setMatches] = useState<Match[]>([]);
   const [showMatches, setShowMatches] = useState(false);
+  const [userProfiles, setUserProfiles] = useState<{ [key: string]: LocalUserProfile }>({});
+  const [loading, setLoading] = useState(true);
+
+  const loadUserProfile = useCallback(async (userId: string): Promise<LocalUserProfile | null> => {
+    // Check if already loaded
+    if (userProfiles[userId]) return userProfiles[userId];
+    
+    try {
+      const userDoc = await getDoc(doc(db, FIRESTORE_COLLECTIONS.USERS, userId));
+      if (userDoc.exists()) {
+        const data = userDoc.data();
+        const profile: LocalUserProfile = {
+          id: userId,
+          name: data.displayName || data.name || 'Unknown',
+          bio: data.bio || '',
+          location: data.location || '',
+          skills: data.skills || [],
+          achievements: data.achievements || [],
+          isLookingForTeammate: data.isLookingForTeammate || false,
+          isLookingForMentor: data.isLookingForMentor || false,
+          isLookingForCofounder: data.isLookingForCofounder || false,
+          mentorshipAreas: data.mentorshipAreas || [],
+          compatibility: data.compatibility || {}
+        };
+        
+        setUserProfiles(prev => ({ ...prev, [userId]: profile }));
+        return profile;
+      }
+    } catch (error) {
+      console.error('Error loading user profile:', error);
+    }
+    return null;
+  }, [userProfiles]);
+
+  const loadMatches = useCallback(async () => {
+    if (!user?.uid) return;
+    
+    setLoading(true);
+    try {
+      // Try to get matches from service
+      const userMatches = await matchingService.getUserMatches(user.uid);
+      
+      if (userMatches && userMatches.length > 0) {
+        setMatchQueue(userMatches);
+        
+        // Load user profiles for all matches
+        for (const match of userMatches) {
+          const profileId = match.user1Id === user.uid ? match.user2Id : match.user1Id;
+          await loadUserProfile(profileId);
+        }
+      } else {
+        // No matches found - try to generate potential matches
+        const potentialMatchesRef = collection(db, 'matches');
+        const q = query(
+          potentialMatchesRef,
+          where('user1Id', '==', user.uid),
+          where('status', '==', 'potential'),
+          orderBy('compatibilityScore', 'desc'),
+          limit(10)
+        );
+        
+        const snapshot = await getDocs(q);
+        const potentialMatches: Match[] = snapshot.docs.map(d => ({
+          id: d.id,
+          ...d.data(),
+          createdAt: d.data().createdAt?.toDate?.() || new Date(d.data().createdAt)
+        })) as Match[];
+        
+        if (potentialMatches.length > 0) {
+          setMatchQueue(potentialMatches);
+          
+          for (const match of potentialMatches) {
+            await loadUserProfile(match.user2Id);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error loading matches:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [user?.uid, loadUserProfile]);
 
   useEffect(() => {
-    if (matchQueue.length > 0) {
+    if (matchQueue.length > 0 && currentIndex < matchQueue.length) {
       setCurrentMatch(matchQueue[currentIndex]);
+    } else {
+      setCurrentMatch(null);
     }
   }, [currentIndex, matchQueue]);
 
   useEffect(() => {
-    if (user) {
+    if (user?.uid) {
       loadMatches();
     }
-  }, [user]);
-
-  const loadMatches = async () => {
-    if (!user) return;
-    
-    try {
-      const userMatches = await matchingService.getUserMatches(user.id);
-      if (userMatches.length > 0) {
-        setMatchQueue(userMatches);
-      }
-    } catch (error) {
-      console.error('Error loading matches:', error);
-    }
-  };
+  }, [user?.uid, loadMatches]);
 
   const handleSwipe = async (action: 'like' | 'pass') => {
     if (!currentMatch || isAnimating) return;
@@ -171,7 +159,7 @@ export default function MatchmakingClient() {
     setSwipeDirection(action === 'like' ? 'right' : 'left');
 
     try {
-      const isMatch = await matchingService.swipeUser(currentMatch.id, user?.id || '', action);
+      const isMatch = await matchingService.swipeUser(currentMatch.id, user?.uid || '', action);
       
       if (isMatch) {
         setMatches(prev => [...prev, currentMatch]);
@@ -198,6 +186,14 @@ export default function MatchmakingClient() {
     }
   };
 
+  // Get the current profile to display
+  const getCurrentProfile = (): LocalUserProfile | null => {
+    if (!currentMatch) return null;
+    const profileId = currentMatch.user1Id === user?.uid ? currentMatch.user2Id : currentMatch.user1Id;
+    return userProfiles[profileId] || null;
+  };
+
+  const currentProfile = getCurrentProfile();
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
   };
@@ -228,7 +224,18 @@ export default function MatchmakingClient() {
     }
   };
 
-  if (!currentMatch || currentIndex >= matchQueue.length) {
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 to-secondary/5">
+        <div className="text-center">
+          <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto mb-4" />
+          <p className="text-muted-foreground">Finding your matches...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!currentMatch || currentIndex >= matchQueue.length || !currentProfile) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 to-secondary/5">
         <div className="text-center">
@@ -251,12 +258,6 @@ export default function MatchmakingClient() {
         </div>
       </div>
     );
-  }
-
-  const profile = mockUserProfiles[currentMatch.user2Id];
-
-  if (!profile) {
-    return <div>Loading...</div>;
   }
 
   return (
@@ -307,7 +308,7 @@ export default function MatchmakingClient() {
             <div className="h-96 bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
               <Avatar className="h-32 w-32">
                 <AvatarFallback className="text-4xl">
-                  {getInitials(profile.name)}
+                  {getInitials(currentProfile.name)}
                 </AvatarFallback>
               </Avatar>
             </div>
@@ -315,12 +316,12 @@ export default function MatchmakingClient() {
             <CardContent className="p-6">
               {/* Profile Info */}
               <div className="mb-4">
-                <h2 className="text-2xl font-bold mb-1">{profile.name}</h2>
+                <h2 className="text-2xl font-bold mb-1">{currentProfile.name}</h2>
                 <div className="flex items-center text-muted-foreground text-sm mb-3">
                   <MapPin className="h-4 w-4 mr-1" />
-                  {profile.location}
+                  {currentProfile.location || 'Location not specified'}
                 </div>
-                <p className="text-sm line-clamp-3">{profile.bio}</p>
+                <p className="text-sm line-clamp-3">{currentProfile.bio || 'No bio provided'}</p>
               </div>
 
               {/* Compatibility Progress */}
@@ -335,23 +336,26 @@ export default function MatchmakingClient() {
               </div>
 
               {/* Common Interests */}
-              <div className="mb-4">
-                <h3 className="text-sm font-medium mb-2">Common Interests</h3>
-                <div className="flex flex-wrap gap-1">
-                  {currentMatch.commonInterests.map(interest => (
-                    <Badge key={interest} variant="secondary" className="text-xs">
-                      {interest}
-                    </Badge>
-                  ))}
+              {currentMatch.commonInterests && currentMatch.commonInterests.length > 0 && (
+                <div className="mb-4">
+                  <h3 className="text-sm font-medium mb-2">Common Interests</h3>
+                  <div className="flex flex-wrap gap-1">
+                    {currentMatch.commonInterests.map(interest => (
+                      <Badge key={interest} variant="secondary" className="text-xs">
+                        {interest}
+                      </Badge>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Skills */}
-              <div className="mb-4">
-                <h3 className="text-sm font-medium mb-2">Skills</h3>
-                <div className="flex flex-wrap gap-1">
-                  {profile.skills.slice(0, 6).map(skill => (
-                    <Badge key={skill} variant="outline" className="text-xs">
+              {currentProfile.skills && currentProfile.skills.length > 0 && (
+                <div className="mb-4">
+                  <h3 className="text-sm font-medium mb-2">Skills</h3>
+                  <div className="flex flex-wrap gap-1">
+                    {currentProfile.skills.slice(0, 6).map(skill => (
+                      <Badge key={skill} variant="outline" className="text-xs">
                       {skill}
                     </Badge>
                   ))}
@@ -460,7 +464,8 @@ export default function MatchmakingClient() {
               {matches.length > 0 ? (
                 <div className="space-y-3">
                   {matches.map(match => {
-                    const matchProfile = mockUserProfiles[match.user2Id];
+                    const matchProfile = userProfiles[match.user2Id];
+                    if (!matchProfile) return null;
                     return (
                       <div key={match.id} className="flex items-center gap-3 p-3 rounded-lg border">
                         <Avatar>

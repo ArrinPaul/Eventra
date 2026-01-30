@@ -33,13 +33,9 @@ interface EventCardProps {
   isWishlisted?: boolean;
 }
 
-// Mock attendee avatars for demo
-const mockAttendees = [
-  { id: '1', name: 'Alice Chen', photoUrl: 'https://i.pravatar.cc/150?img=1' },
-  { id: '2', name: 'Bob Smith', photoUrl: 'https://i.pravatar.cc/150?img=2' },
-  { id: '3', name: 'Carol Davis', photoUrl: 'https://i.pravatar.cc/150?img=3' },
-  { id: '4', name: 'David Lee', photoUrl: 'https://i.pravatar.cc/150?img=4' },
-  { id: '5', name: 'Eva Martinez', photoUrl: 'https://i.pravatar.cc/150?img=5' },
+// Default avatar colors for generating initials
+const avatarColors = [
+  'bg-blue-500', 'bg-green-500', 'bg-purple-500', 'bg-amber-500', 'bg-rose-500'
 ];
 
 export function EventCard({ 
@@ -167,20 +163,25 @@ export function EventCard({
 
   // Attendee avatar stack component
   const AttendeeAvatars = ({ count, max = 4 }: { count: number; max?: number }) => {
-    const displayAvatars = mockAttendees.slice(0, Math.min(count, max));
+    // registeredUsers is typically an array of user IDs (strings)
+    // For display, we just show colored initials
+    const displayCount = Math.min(count, max);
     const remaining = count - max;
     
     return (
       <div className="flex items-center">
         <div className="flex -space-x-2">
-          {displayAvatars.map((attendee, index) => (
-            <Avatar key={attendee.id} className="h-6 w-6 border-2 border-background">
-              <AvatarImage src={attendee.photoUrl} alt={attendee.name} />
-              <AvatarFallback className="text-[10px]">
-                {attendee.name.split(' ').map(n => n[0]).join('')}
-              </AvatarFallback>
-            </Avatar>
-          ))}
+          {Array.from({ length: displayCount }, (_, index) => {
+            const colorClass = avatarColors[index % avatarColors.length];
+            
+            return (
+              <Avatar key={index} className="h-6 w-6 border-2 border-background">
+                <AvatarFallback className={cn("text-[10px] text-white", colorClass)}>
+                  A{index + 1}
+                </AvatarFallback>
+              </Avatar>
+            );
+          })}
           {remaining > 0 && (
             <div className="h-6 w-6 rounded-full bg-primary/10 border-2 border-background flex items-center justify-center">
               <span className="text-[10px] font-medium text-primary">+{remaining}</span>

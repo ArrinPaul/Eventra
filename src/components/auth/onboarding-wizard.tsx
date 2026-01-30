@@ -27,7 +27,7 @@ import {
   Sparkles,
   X
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn, getErrorMessage } from '@/lib/utils';
 import { updateUserProfile } from '@/lib/auth-service';
 import { storage } from '@/lib/firebase';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
@@ -272,12 +272,12 @@ export function OnboardingWizard() {
 
       // Redirect based on user type
       router.push(userType === 'organizer' ? '/organizer' : '/explore');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Onboarding error:', error);
       toast({
         variant: 'destructive',
         title: 'Setup failed',
-        description: error.message || 'Could not complete setup. Please try again.',
+        description: getErrorMessage(error),
       });
     } finally {
       setIsSubmitting(false);

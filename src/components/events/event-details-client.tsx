@@ -51,7 +51,7 @@ import {
   ChevronDown,
   Bot
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn, getErrorMessage } from '@/lib/utils';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { eventService, ticketService, userProfileService } from '@/lib/firestore-services';
@@ -167,12 +167,12 @@ export default function EventDetailsClient({ eventId }: EventDetailsClientProps)
           >
             View Ticket
           </Button>
-        ) as any
+        ) as React.ReactNode
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({ 
         title: 'Registration Failed', 
-        description: error.message || 'Please try again.', 
+        description: getErrorMessage(error), 
         variant: 'destructive' 
       });
     } finally {

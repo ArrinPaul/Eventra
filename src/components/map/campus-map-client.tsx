@@ -6,7 +6,7 @@ import {
   MapPin, Navigation, Clock, Users, Calendar, ChevronRight, 
   Search, Filter, X, Compass, ZoomIn, ZoomOut, Locate,
   Building2, BookOpen, FlaskConical, Coffee, TreePine, 
-  GraduationCap, Dumbbell, Car, Info, Route, AlertCircle
+  GraduationCap, Dumbbell, Car, Info, Route, AlertCircle, Loader2
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -18,7 +18,9 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import InteractiveCampusMap from './interactive-campus-map';
-import { CampusZone, MapEvent, PathNode, CAMPUS_ZONES, SAMPLE_EVENTS, findPath } from './map-data';
+import { CampusZone, MapEvent, PathNode, CAMPUS_ZONES, findPath } from './map-data';
+import { db } from '@/lib/firebase';
+import { collection, query, where, getDocs, Timestamp } from 'firebase/firestore';
 
 export default function CampusMapClient() {
   const [selectedZone, setSelectedZone] = useState<CampusZone | null>(null);
@@ -32,6 +34,68 @@ export default function CampusMapClient() {
   const [zoom, setZoom] = useState(1);
   const [userLocation, setUserLocation] = useState<string | null>(null);
   const [isLocating, setIsLocating] = useState(false);
+  const [mapEvents, setMapEvents] = useState<MapEvent[]>([]);
+  const [isLoadingEvents, setIsLoadingEvents] = useState(true);
+
+  // Load events from Firestore
+  useEffect(() => {
+    const loadEvents = async () => {
+      try {
+        const eventsRef = collection(db, 'events');
+        const now = new Date();
+        const q = query(
+          eventsRef,
+          where('startTime', '>=', Timestamp.fromDate(new Date(now.getTime() - 24 * 60 * 60 * 1000))),
+          where('startTime', '<=', Timestamp.fromDate(new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)))
+        );
+        
+        const snapshot = await getDocs(q);
+        const events: MapEvent[] = snapshot.docs
+          .map(doc => {
+            const data = doc.data();
+            // Map venue/location to zone ID
+            const zoneId = mapVenueToZone(data.venue || data.location || '');
+            if (!zoneId) return null;
+            
+            return {
+              id: doc.id,
+              title: data.title,
+              zoneId,
+              startTime: data.startTime?.toDate?.()?.toISOString() || new Date().toISOString(),
+              endTime: data.endTime?.toDate?.()?.toISOString() || new Date().toISOString(),
+              category: data.category || 'Event',
+              attendees: data.registeredCount || 0,
+              description: data.description,
+            };
+          })
+          .filter((e): e is MapEvent => e !== null);
+        
+        setMapEvents(events);
+      } catch (error) {
+        console.error('Error loading map events:', error);
+      } finally {
+        setIsLoadingEvents(false);
+      }
+    };
+
+    loadEvents();
+  }, []);
+
+  // Helper to map venue names to zone IDs
+  const mapVenueToZone = (venue: string): string | null => {
+    const venueLower = venue.toLowerCase();
+    if (venueLower.includes('library')) return 'library';
+    if (venueLower.includes('lab') || venueLower.includes('computer')) return 'computer-lab';
+    if (venueLower.includes('chemistry')) return 'chemistry-lab';
+    if (venueLower.includes('hall') || venueLower.includes('auditorium')) return 'main-hall';
+    if (venueLower.includes('tech') || venueLower.includes('hub')) return 'tech-hub';
+    if (venueLower.includes('sport') || venueLower.includes('gym')) return 'sports-complex';
+    if (venueLower.includes('cafe') || venueLower.includes('dining')) return 'dining-hall';
+    if (venueLower.includes('plaza') || venueLower.includes('outdoor')) return 'central-plaza';
+    if (venueLower.includes('admin')) return 'admin-building';
+    // Default to main hall for events without clear venue mapping
+    return 'main-hall';
+  };
 
   // Filter zones based on search and category
   const filteredZones = useMemo(() => {
@@ -46,18 +110,18 @@ export default function CampusMapClient() {
   // Get events for selected zone
   const zoneEvents = useMemo(() => {
     if (!selectedZone) return [];
-    return SAMPLE_EVENTS.filter(event => event.zoneId === selectedZone.id);
-  }, [selectedZone]);
+    return mapEvents.filter(event => event.zoneId === selectedZone.id);
+  }, [selectedZone, mapEvents]);
 
   // Get all live events
   const liveEvents = useMemo(() => {
     const now = new Date();
-    return SAMPLE_EVENTS.filter(event => {
+    return mapEvents.filter(event => {
       const eventStart = new Date(event.startTime);
       const eventEnd = new Date(event.endTime);
       return now >= eventStart && now <= eventEnd;
     });
-  }, []);
+  }, [mapEvents]);
 
   // Calculate path when start and end locations change
   useEffect(() => {
@@ -279,7 +343,7 @@ export default function CampusMapClient() {
                 {/* Interactive SVG Map */}
                 <InteractiveCampusMap
                   zones={filteredZones}
-                  events={SAMPLE_EVENTS}
+                  events={mapEvents}
                   selectedZone={selectedZone}
                   selectedEvent={selectedEvent}
                   currentPath={currentPath}

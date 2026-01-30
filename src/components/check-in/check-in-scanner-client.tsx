@@ -38,7 +38,7 @@ import {
   VolumeX,
   Zap
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn, getErrorMessage } from '@/lib/utils';
 import { format } from 'date-fns';
 import { Html5Qrcode, Html5QrcodeScanner } from 'html5-qrcode';
 import { useToast } from '@/hooks/use-toast';
@@ -271,10 +271,10 @@ export default function CheckInScannerClient() {
       setStats(prev => ({ ...prev, checkedIn: prev.checkedIn + 1 }));
       playSound(true);
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       const result: ScanResult = {
         success: false,
-        message: error.message || 'Check-in failed',
+        message: getErrorMessage(error),
         timestamp: new Date()
       };
       setScanResult(result);
@@ -345,10 +345,10 @@ export default function CheckInScannerClient() {
         title: 'Check-in successful',
         description: `${ticket.attendeeName} has been checked in.`
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: 'Check-in failed',
-        description: error.message,
+        description: getErrorMessage(error),
         variant: 'destructive'
       });
     }

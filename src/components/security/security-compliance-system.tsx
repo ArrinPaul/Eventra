@@ -5,7 +5,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -24,6 +24,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
+import { db } from '@/lib/firebase';
+import { collection, query, orderBy, getDocs, addDoc, updateDoc, deleteDoc, doc, where, serverTimestamp, limit as firestoreLimit, getDoc, setDoc } from 'firebase/firestore';
 import {
   Shield,
   Lock,
@@ -418,109 +420,97 @@ export function SecurityComplianceSystem() {
     loadSecurityData();
   }, []);
 
-  const loadSecurityData = async () => {
-    setIsLoading(true);
+  // Load audit logs from Firestore
+  const loadAuditLogs = useCallback(async () => {
     try {
-      // Mock data - replace with actual API calls
-      const mockAuditLogs: AuditLog[] = Array.from({ length: 50 }, (_, i) => ({
-        id: `audit_${i + 1}`,
-        timestamp: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000),
-        userId: `user_${Math.floor(Math.random() * 10) + 1}`,
-        userName: ['John Doe', 'Jane Smith', 'Admin User', 'Event Manager'][Math.floor(Math.random() * 4)],
-        organizationId: 'org1',
-        action: ['LOGIN', 'LOGOUT', 'CREATE_EVENT', 'DELETE_USER', 'UPDATE_SETTINGS'][Math.floor(Math.random() * 5)],
-        resource: ['user', 'event', 'organization', 'payment'][Math.floor(Math.random() * 4)],
-        resourceId: `resource_${i + 1}`,
-        details: { metadata: 'sample data' },
-        ipAddress: `192.168.1.${Math.floor(Math.random() * 255)}`,
-        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-        location: {
-          country: ['US', 'UK', 'DE', 'CA'][Math.floor(Math.random() * 4)],
-          city: ['New York', 'London', 'Berlin', 'Toronto'][Math.floor(Math.random() * 4)],
-        },
-        riskLevel: ['low', 'medium', 'high', 'critical'][Math.floor(Math.random() * 4)] as any,
-        status: ['success', 'failure', 'blocked'][Math.floor(Math.random() * 3)] as any,
-      }));
+      const logsQuery = query(
+        collection(db, 'audit_logs'),
+        orderBy('timestamp', 'desc'),
+        firestoreLimit(50)
+      );
+      const snapshot = await getDocs(logsQuery);
+      return snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        timestamp: doc.data().timestamp?.toDate ? doc.data().timestamp.toDate() : new Date(doc.data().timestamp)
+      })) as AuditLog[];
+    } catch (error) {
+      console.error('Error loading audit logs:', error);
+      return [];
+    }
+  }, []);
 
-      const mockComplianceReports: ComplianceReport[] = [
-        {
-          id: 'compliance_1',
-          type: 'gdpr',
-          name: 'GDPR Compliance Assessment',
-          description: 'General Data Protection Regulation compliance evaluation',
-          status: 'compliant',
-          score: 92,
-          lastAssessment: new Date('2024-12-01'),
-          nextAssessment: new Date('2025-06-01'),
-          findings: [
-            {
-              id: 'finding_1',
-              severity: 'medium',
-              category: 'Data Processing',
-              description: 'Missing consent documentation for newsletter subscriptions',
-              recommendation: 'Implement explicit consent tracking for all email communications',
-              status: 'in_progress',
-              assignee: 'compliance@company.com',
-              dueDate: new Date('2024-12-31'),
-            },
-          ],
-          requirements: [
-            {
-              id: 'req_1',
-              name: 'Data Processing Lawfulness',
-              description: 'Ensure lawful basis for all personal data processing',
-              status: 'met',
-              evidence: ['privacy-policy.pdf', 'consent-forms.zip'],
-              lastVerified: new Date('2024-12-01'),
-            },
-          ],
-        },
-      ];
+  // Load compliance reports from Firestore
+  const loadComplianceReports = useCallback(async () => {
+    try {
+      const reportsQuery = query(collection(db, 'compliance_reports'));
+      const snapshot = await getDocs(reportsQuery);
+      return snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          ...data,
+          lastAssessment: data.lastAssessment?.toDate ? data.lastAssessment.toDate() : new Date(data.lastAssessment || Date.now()),
+          nextAssessment: data.nextAssessment?.toDate ? data.nextAssessment.toDate() : new Date(data.nextAssessment || Date.now()),
+          findings: (data.findings || []).map((f: any) => ({
+            ...f,
+            dueDate: f.dueDate?.toDate ? f.dueDate.toDate() : new Date(f.dueDate || Date.now())
+          })),
+          requirements: (data.requirements || []).map((r: any) => ({
+            ...r,
+            lastVerified: r.lastVerified?.toDate ? r.lastVerified.toDate() : new Date(r.lastVerified || Date.now())
+          }))
+        };
+      }) as ComplianceReport[];
+    } catch (error) {
+      console.error('Error loading compliance reports:', error);
+      return [];
+    }
+  }, []);
 
-      const mockSecurityAlerts: SecurityAlert[] = [
-        {
-          id: 'alert_1',
-          type: 'suspicious_activity',
-          severity: 'warning',
-          title: 'Multiple Failed Login Attempts',
-          description: 'User account has 5 failed login attempts in the last 10 minutes',
-          timestamp: new Date(Date.now() - 30 * 60 * 1000),
-          userId: 'user_123',
-          organizationId: 'org1',
-          details: {
-            attempts: 5,
-            ipAddress: '192.168.1.100',
-            timeWindow: '10 minutes',
+  // Load security alerts from Firestore
+  const loadSecurityAlerts = useCallback(async () => {
+    try {
+      const alertsQuery = query(
+        collection(db, 'security_alerts'),
+        where('status', 'in', ['open', 'investigating']),
+        orderBy('timestamp', 'desc')
+      );
+      const snapshot = await getDocs(alertsQuery);
+      return snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        timestamp: doc.data().timestamp?.toDate ? doc.data().timestamp.toDate() : new Date(doc.data().timestamp)
+      })) as SecurityAlert[];
+    } catch (error) {
+      console.error('Error loading security alerts:', error);
+      return [];
+    }
+  }, []);
+
+  // Load encryption settings from Firestore
+  const loadEncryptionSettings = useCallback(async () => {
+    try {
+      const settingsDoc = await getDoc(doc(db, 'security_settings', 'encryption'));
+      if (settingsDoc.exists()) {
+        const data = settingsDoc.data();
+        return {
+          dataAtRest: {
+            ...data.dataAtRest,
+            lastRotation: data.dataAtRest?.lastRotation?.toDate ? data.dataAtRest.lastRotation.toDate() : new Date()
           },
-          status: 'open',
-          actions: ['Block IP', 'Notify User', 'Require MFA Reset'],
-        },
-        {
-          id: 'alert_2',
-          type: 'policy_violation',
-          severity: 'error',
-          title: 'Unauthorized Data Access Attempt',
-          description: 'User attempted to access data outside their organization',
-          timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
-          userId: 'user_456',
-          organizationId: 'org2',
-          details: {
-            requestedResource: '/api/org1/events',
-            userOrganization: 'org2',
-            blocked: true,
-          },
-          status: 'investigating',
-          assignee: 'security@company.com',
-          actions: ['Review Permissions', 'Audit Access Log', 'Contact User'],
-        },
-      ];
-
-      const mockEncryption: EncryptionSettings = {
+          dataInTransit: data.dataInTransit,
+          applicationLevel: data.applicationLevel
+        } as EncryptionSettings;
+      }
+      
+      // Return default settings if none exist
+      return {
         dataAtRest: {
           enabled: true,
           algorithm: 'AES-256-GCM',
           keyRotationInterval: 90,
-          lastRotation: new Date('2024-11-15'),
+          lastRotation: new Date(),
         },
         dataInTransit: {
           enabled: true,
@@ -532,12 +522,28 @@ export function SecurityComplianceSystem() {
           encryptionMethod: 'AES-256-CBC',
           keyManagement: 'aws_kms',
         },
-      };
+      } as EncryptionSettings;
+    } catch (error) {
+      console.error('Error loading encryption settings:', error);
+      return null;
+    }
+  }, []);
 
-      setAuditLogs(mockAuditLogs.slice(0, 20)); // Show only recent logs
-      setComplianceReports(mockComplianceReports);
-      setSecurityAlerts(mockSecurityAlerts);
-      setEncryptionSettings(mockEncryption);
+  const loadSecurityData = async () => {
+    setIsLoading(true);
+    try {
+      // Load all security data from Firestore
+      const [logs, reports, alerts, encryption] = await Promise.all([
+        loadAuditLogs(),
+        loadComplianceReports(),
+        loadSecurityAlerts(),
+        loadEncryptionSettings()
+      ]);
+      
+      setAuditLogs(logs.slice(0, 20)); // Show only recent logs
+      setComplianceReports(reports);
+      setSecurityAlerts(alerts);
+      setEncryptionSettings(encryption);
     } catch (error) {
       console.error('Failed to load security data:', error);
       toast({

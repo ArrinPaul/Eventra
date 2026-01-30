@@ -5,7 +5,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -24,6 +24,9 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { DatePickerWithRange } from '@/components/ui/date-range-picker';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
+import { db } from '@/lib/firebase';
+import { collection, query, where, orderBy, getDocs, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, getDoc, limit as firestoreLimit, getCountFromServer } from 'firebase/firestore';
+import { FIRESTORE_COLLECTIONS } from '@/lib/firebase';
 import {
   BarChart,
   Bar,
@@ -301,190 +304,128 @@ export function AnalyticsReportingDashboard() {
     loadAnalyticsData();
   }, [dateRange, selectedFilters]);
 
-  const loadAnalyticsData = async () => {
+  const loadAnalyticsData = useCallback(async () => {
+    if (!user?.uid) return;
+    
     setIsLoading(true);
     try {
-      // Mock data - replace with actual API calls
-      const mockMetrics: AnalyticsMetrics = {
-        totalEvents: 127,
-        activeEvents: 23,
-        completedEvents: 98,
-        canceledEvents: 6,
+      // Load analytics metrics from Firestore aggregations
+      const metricsDoc = await getDoc(doc(db, 'analytics_metrics', user.uid));
+      
+      let loadedMetrics: AnalyticsMetrics | null = null;
+      if (metricsDoc.exists()) {
+        const data = metricsDoc.data();
+        loadedMetrics = {
+          ...data,
+          hourlyActivity: data.hourlyActivity || [],
+          dailyRegistrations: data.dailyRegistrations || [],
+          weeklyRevenue: data.weeklyRevenue || [],
+          monthlyGrowth: data.monthlyGrowth || [],
+          topCountries: data.topCountries || [],
+          topCities: data.topCities || [],
+          deviceBreakdown: data.deviceBreakdown || [],
+          browserBreakdown: data.browserBreakdown || [],
+        } as AnalyticsMetrics;
+      } else {
+        // Generate default metrics from event data
+        const eventsSnapshot = await getDocs(query(
+          collection(db, FIRESTORE_COLLECTIONS.EVENTS),
+          where('organizerId', '==', user.uid)
+        ));
         
-        totalRegistrations: 8942,
-        confirmedAttendees: 7823,
-        noShows: 634,
-        checkInRate: 87.4,
+        const totalEvents = eventsSnapshot.size;
+        let activeEvents = 0;
+        let completedEvents = 0;
+        let canceledEvents = 0;
         
-        avgSessionDuration: 2.4, // hours
-        pageViews: 45672,
-        uniqueVisitors: 12834,
-        bounceRate: 23.7,
+        eventsSnapshot.docs.forEach(doc => {
+          const data = doc.data();
+          if (data.status === 'active' || data.status === 'published') activeEvents++;
+          else if (data.status === 'completed') completedEvents++;
+          else if (data.status === 'canceled') canceledEvents++;
+        });
         
-        totalRevenue: 284750,
-        averageTicketPrice: 89.50,
-        revenueGrowth: 18.6,
-        refunds: 3240,
-        
-        topCountries: [
-          { country: 'United States', count: 4234, percentage: 47.4 },
-          { country: 'United Kingdom', count: 1823, percentage: 20.4 },
-          { country: 'Canada', count: 987, percentage: 11.0 },
-          { country: 'Germany', count: 654, percentage: 7.3 },
-          { country: 'Australia', count: 432, percentage: 4.8 },
-        ],
-        
-        topCities: [
-          { city: 'New York', count: 1567, percentage: 17.5 },
-          { city: 'London', count: 1234, percentage: 13.8 },
-          { city: 'San Francisco', count: 987, percentage: 11.0 },
-          { city: 'Toronto', count: 765, percentage: 8.6 },
-          { city: 'Berlin', count: 543, percentage: 6.1 },
-        ],
-        
-        deviceBreakdown: [
-          { device: 'Desktop', count: 5234, percentage: 58.5 },
-          { device: 'Mobile', count: 2987, percentage: 33.4 },
-          { device: 'Tablet', count: 721, percentage: 8.1 },
-        ],
-        
-        browserBreakdown: [
-          { browser: 'Chrome', count: 6234, percentage: 69.7 },
-          { browser: 'Safari', count: 1567, percentage: 17.5 },
-          { browser: 'Firefox', count: 789, percentage: 8.8 },
-          { browser: 'Edge', count: 352, percentage: 3.9 },
-        ],
-        
-        hourlyActivity: Array.from({ length: 24 }, (_, i) => ({
-          hour: i,
-          activity: Math.floor(Math.random() * 100) + 20,
-        })),
-        
-        dailyRegistrations: Array.from({ length: 30 }, (_, i) => ({
-          date: format(subDays(new Date(), 29 - i), 'MMM dd'),
-          registrations: Math.floor(Math.random() * 200) + 50,
-        })),
-        
-        weeklyRevenue: Array.from({ length: 12 }, (_, i) => ({
-          week: `Week ${i + 1}`,
-          revenue: Math.floor(Math.random() * 25000) + 15000,
-        })),
-        
-        monthlyGrowth: [
-          { month: 'Jan', growth: 12 },
-          { month: 'Feb', growth: 18 },
-          { month: 'Mar', growth: 24 },
-          { month: 'Apr', growth: 15 },
-          { month: 'May', growth: 32 },
-          { month: 'Jun', growth: 28 },
-        ],
-      };
-
-      const mockReports: CustomReport[] = [
-        {
-          id: 'report_1',
-          name: 'Monthly Revenue Report',
-          description: 'Comprehensive revenue analysis and projections',
-          type: 'scheduled',
-          format: 'pdf',
-          schedule: {
-            frequency: 'monthly',
-            time: '09:00',
-            dayOfMonth: 1,
-          },
+        loadedMetrics = {
+          totalEvents,
+          activeEvents,
+          completedEvents,
+          canceledEvents,
+          totalRegistrations: 0,
+          confirmedAttendees: 0,
+          noShows: 0,
+          checkInRate: 0,
+          avgSessionDuration: 0,
+          pageViews: 0,
+          uniqueVisitors: 0,
+          bounceRate: 0,
+          totalRevenue: 0,
+          averageTicketPrice: 0,
+          revenueGrowth: 0,
+          refunds: 0,
+          topCountries: [],
+          topCities: [],
+          deviceBreakdown: [],
+          browserBreakdown: [],
+          hourlyActivity: [],
+          dailyRegistrations: [],
+          weeklyRevenue: [],
+          monthlyGrowth: [],
+        };
+      }
+      
+      // Load custom reports from Firestore
+      const reportsQuery = query(
+        collection(db, 'analytics_reports'),
+        where('userId', '==', user.uid),
+        orderBy('createdAt', 'desc')
+      );
+      
+      const reportsSnapshot = await getDocs(reportsQuery);
+      const loadedReports: CustomReport[] = reportsSnapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          ...data,
+          lastGenerated: data.lastGenerated?.toDate ? data.lastGenerated.toDate() : null,
+          nextGeneration: data.nextGeneration?.toDate ? data.nextGeneration.toDate() : null,
           filters: {
-            dateRange: { start: subDays(new Date(), 30), end: new Date() },
-            eventTypes: ['conference', 'workshop'],
-            organizations: [],
-            metrics: ['revenue', 'registrations', 'attendance'],
+            ...data.filters,
+            dateRange: data.filters?.dateRange ? {
+              start: data.filters.dateRange.start?.toDate ? data.filters.dateRange.start.toDate() : new Date(),
+              end: data.filters.dateRange.end?.toDate ? data.filters.dateRange.end.toDate() : new Date(),
+            } : undefined,
           },
-          recipients: ['admin@company.com', 'finance@company.com'],
-          isActive: true,
-          lastGenerated: subDays(new Date(), 3),
-          nextGeneration: addDays(new Date(), 27),
-        },
-      ];
+        } as CustomReport;
+      });
+      
+      // Load dashboard widgets from Firestore
+      const widgetsQuery = query(
+        collection(db, 'dashboard_widgets'),
+        where('userId', '==', user.uid)
+      );
+      
+      const widgetsSnapshot = await getDocs(widgetsQuery);
+      const loadedWidgets: DashboardWidget[] = widgetsSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+      })) as DashboardWidget[];
+      
+      // Load event analytics from Firestore
+      const eventAnalyticsQuery = query(
+        collection(db, 'event_analytics'),
+        where('userId', '==', user.uid),
+        firestoreLimit(10)
+      );
+      
+      const eventAnalyticsSnapshot = await getDocs(eventAnalyticsQuery);
+      const loadedEventAnalytics: EventAnalytics[] = eventAnalyticsSnapshot.docs.map(doc => ({
+        ...doc.data(),
+      })) as EventAnalytics[];
 
-      const mockWidgets: DashboardWidget[] = [
-        {
-          id: 'widget_1',
-          type: 'metric',
-          title: 'Total Revenue',
-          description: 'Total revenue across all events',
-          size: 'small',
-          position: { x: 0, y: 0, w: 3, h: 2 },
-          config: {
-            metric: 'totalRevenue',
-            dataSource: 'events',
-            refresh: 5,
-          },
-          isVisible: true,
-        },
-        {
-          id: 'widget_2',
-          type: 'chart',
-          title: 'Registration Trends',
-          description: 'Daily registration patterns',
-          size: 'large',
-          position: { x: 3, y: 0, w: 9, h: 4 },
-          config: {
-            chartType: 'line',
-            dataSource: 'registrations',
-            refresh: 15,
-          },
-          isVisible: true,
-        },
-      ];
-
-      const mockEventAnalytics: EventAnalytics[] = [
-        {
-          eventId: 'event_1',
-          eventName: 'Tech Conference 2024',
-          registrations: {
-            total: 1250,
-            confirmed: 1087,
-            pending: 89,
-            canceled: 74,
-            timeline: Array.from({ length: 14 }, (_, i) => ({
-              date: format(subDays(new Date(), 13 - i), 'MMM dd'),
-              count: Math.floor(Math.random() * 100) + 20,
-            })),
-          },
-          attendance: {
-            checkIns: 967,
-            noShows: 120,
-            rate: 89.0,
-            sessions: [
-              { sessionId: 'session_1', name: 'Opening Keynote', attendance: 945 },
-              { sessionId: 'session_2', name: 'AI Panel Discussion', attendance: 734 },
-              { sessionId: 'session_3', name: 'Networking Lunch', attendance: 823 },
-            ],
-          },
-          engagement: {
-            avgRating: 4.6,
-            feedbackCount: 567,
-            socialShares: 234,
-            photoUploads: 89,
-            networkingConnections: 456,
-          },
-          revenue: {
-            total: 87500,
-            ticketSales: 75000,
-            sponsorships: 10000,
-            merchandise: 2500,
-            breakdown: [
-              { category: 'Early Bird', amount: 35000 },
-              { category: 'Regular', amount: 40000 },
-              { category: 'VIP', amount: 12500 },
-            ],
-          },
-        },
-      ];
-
-      setMetrics(mockMetrics);
-      setCustomReports(mockReports);
-      setDashboardWidgets(mockWidgets);
-      setEventAnalytics(mockEventAnalytics);
+      if (loadedMetrics) setMetrics(loadedMetrics);
+      setCustomReports(loadedReports);
+      setDashboardWidgets(loadedWidgets);
+      setEventAnalytics(loadedEventAnalytics);
     } catch (error) {
       console.error('Failed to load analytics data:', error);
       toast({
@@ -495,7 +436,7 @@ export function AnalyticsReportingDashboard() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user?.uid, dateRange, selectedFilters, toast]);
 
   const createReport = async (data: any) => {
     try {

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -38,111 +38,44 @@ import {
   ThumbsDown,
   Clock,
   Bookmark,
-  Share
+  Share,
+  Loader2
 } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { Community, Post, Comment, Poll, AMASession } from '@/types';
+import { db, FIRESTORE_COLLECTIONS } from '@/lib/firebase';
+import { 
+  collection, 
+  query, 
+  where, 
+  getDocs, 
+  getDoc, 
+  doc, 
+  addDoc, 
+  updateDoc,
+  orderBy,
+  serverTimestamp,
+  arrayUnion,
+  increment
+} from 'firebase/firestore';
+import { useToast } from '@/hooks/use-toast';
 
 interface CommunityDetailClientProps {
   communityId: string;
 }
 
-// Mock data
-const mockCommunity: Community = {
-  id: '1',
-  name: 'AI & Machine Learning',
-  description: 'Discuss the latest in AI, ML, and data science. Share insights, ask questions, and connect with fellow AI enthusiasts.',
-  category: 'AI',
-  icon: '🤖',
-  memberCount: 1247,
-  postCount: 342,
-  createdAt: new Date('2024-01-15'),
-  createdBy: 'admin',
-  moderators: ['admin', 'mod1'],
-  rules: [
-    'Be respectful and constructive in discussions',
-    'No spam or self-promotion without value',
-    'Stay on topic - focus on AI/ML discussions',
-    'Share resources and help others learn'
-  ],
-  isPrivate: false
-};
-
-const mockPosts: Post[] = [
-  {
-    id: '1',
-    communityId: '1',
-    authorId: 'user1',
-    title: 'Best practices for training large language models?',
-    content: 'I\'m working on fine-tuning a large language model and wondering what the community\'s best practices are for training efficiency and avoiding overfitting. Any insights would be appreciated!',
-    type: 'text',
-    upvotes: 24,
-    downvotes: 2,
-    votedBy: {},
-    commentCount: 8,
-    createdAt: new Date('2024-10-09T10:00:00'),
-    updatedAt: new Date('2024-10-09T10:00:00'),
-    tags: ['LLM', 'training', 'best-practices'],
-    isPinned: false,
-    isLocked: false
-  },
-  {
-    id: '2',
-    communityId: '1',
-    authorId: 'user2',
-    title: 'Announcing: Open Source Computer Vision Dataset',
-    content: 'Hey everyone! Just released a new computer vision dataset with 50k annotated images. Perfect for object detection tasks. Link in comments.',
-    type: 'text',
-    upvotes: 45,
-    downvotes: 1,
-    votedBy: {},
-    commentCount: 12,
-    createdAt: new Date('2024-10-08T15:30:00'),
-    updatedAt: new Date('2024-10-08T15:30:00'),
-    tags: ['dataset', 'computer-vision', 'open-source'],
-    isPinned: true,
-    isLocked: false
-  },
-  {
-    id: '3',
-    communityId: '1',
-    authorId: 'user3',
-    title: 'Poll: Which ML framework do you prefer?',
-    content: 'Curious about the community\'s preferences for ML frameworks. What do you use most often and why?',
-    type: 'poll',
-    upvotes: 18,
-    downvotes: 0,
-    votedBy: {},
-    commentCount: 15,
-    createdAt: new Date('2024-10-07T09:15:00'),
-    updatedAt: new Date('2024-10-07T09:15:00'),
-    tags: ['frameworks', 'poll'],
-    isPinned: false,
-    isLocked: false,
-    poll: {
-      question: 'Which ML framework do you use most?',
-      options: [
-        { id: '1', text: 'TensorFlow', votes: 45, votedBy: [] },
-        { id: '2', text: 'PyTorch', votes: 67, votedBy: [] },
-        { id: '3', text: 'Scikit-learn', votes: 23, votedBy: [] },
-        { id: '4', text: 'JAX', votes: 12, votedBy: [] }
-      ],
-      multipleChoice: false,
-      endsAt: new Date('2024-10-14T09:15:00')
-    }
-  }
-];
-
 export function CommunityDetailClient({ communityId }: CommunityDetailClientProps) {
   const { user } = useAuth();
   const router = useRouter();
-  const [community, setCommunity] = useState<Community | null>(mockCommunity);
-  const [posts, setPosts] = useState<Post[]>(mockPosts);
+  const { toast } = useToast();
+  const [community, setCommunity] = useState<Community | null>(null);
+  const [posts, setPosts] = useState<Post[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<'hot' | 'new' | 'top'>('hot');
   const [showCreatePost, setShowCreatePost] = useState(false);
-  const [isMember, setIsMember] = useState(true);
-  const [loading, setLoading] = useState(false);
+  const [isMember, setIsMember] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [creating, setCreating] = useState(false);
 
   // Create post form
   const [newPost, setNewPost] = useState({
@@ -152,30 +85,116 @@ export function CommunityDetailClient({ communityId }: CommunityDetailClientProp
     tags: ''
   });
 
-  const handleJoinCommunity = async () => {
-    if (!user || !community) return;
-    
-    setLoading(true);
+  const loadCommunity = useCallback(async () => {
     try {
-      // In real app, call Firebase function
-      setIsMember(true);
-      setCommunity(prev => prev ? { ...prev, memberCount: prev.memberCount + 1 } : null);
+      const communityRef = doc(db, FIRESTORE_COLLECTIONS.COMMUNITIES, communityId);
+      const communityDoc = await getDoc(communityRef);
+      
+      if (communityDoc.exists()) {
+        const data = communityDoc.data();
+        setCommunity({
+          id: communityDoc.id,
+          ...data,
+          createdAt: data.createdAt?.toDate?.() || new Date(data.createdAt)
+        } as Community);
+        
+        // Check if user is a member
+        if (user?.uid && data.members?.includes(user.uid)) {
+          setIsMember(true);
+        }
+      }
     } catch (error) {
-      console.error('Error joining community:', error);
+      console.error('Error loading community:', error);
+    }
+  }, [communityId, user?.uid]);
+
+  const loadPosts = useCallback(async () => {
+    try {
+      const postsRef = collection(db, FIRESTORE_COLLECTIONS.POSTS);
+      const q = query(
+        postsRef,
+        where('communityId', '==', communityId),
+        orderBy('createdAt', 'desc')
+      );
+      
+      const snapshot = await getDocs(q);
+      const loadedPosts: Post[] = snapshot.docs.map(d => ({
+        id: d.id,
+        ...d.data(),
+        createdAt: d.data().createdAt?.toDate?.() || new Date(d.data().createdAt),
+        updatedAt: d.data().updatedAt?.toDate?.() || new Date(d.data().updatedAt)
+      })) as Post[];
+      
+      setPosts(loadedPosts);
+    } catch (error) {
+      console.error('Error loading posts:', error);
     } finally {
       setLoading(false);
+    }
+  }, [communityId]);
+
+  useEffect(() => {
+    loadCommunity();
+    loadPosts();
+  }, [loadCommunity, loadPosts]);
+
+  const handleJoinCommunity = async () => {
+    if (!user?.uid || !community) return;
+    
+    setCreating(true);
+    try {
+      const communityRef = doc(db, FIRESTORE_COLLECTIONS.COMMUNITIES, communityId);
+      await updateDoc(communityRef, {
+        members: arrayUnion(user.uid),
+        memberCount: increment(1)
+      });
+      
+      setIsMember(true);
+      setCommunity(prev => prev ? { ...prev, memberCount: prev.memberCount + 1 } : null);
+      toast({ title: 'Success', description: 'You have joined the community!' });
+    } catch (error) {
+      console.error('Error joining community:', error);
+      toast({ title: 'Error', description: 'Failed to join community', variant: 'destructive' });
+    } finally {
+      setCreating(false);
     }
   };
 
   const handleCreatePost = async () => {
-    if (!user || !community || !newPost.title.trim()) return;
+    if (!user?.uid || !community || !newPost.title.trim()) return;
 
-    setLoading(true);
+    setCreating(true);
     try {
-      const post: Post = {
-        id: Date.now().toString(),
+      const postsRef = collection(db, FIRESTORE_COLLECTIONS.POSTS);
+      const postData = {
         communityId: community.id,
-        authorId: user.id,
+        authorId: user.uid,
+        title: newPost.title,
+        content: newPost.content,
+        type: newPost.type,
+        upvotes: 0,
+        downvotes: 0,
+        votedBy: {},
+        commentCount: 0,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+        tags: newPost.tags.split(',').map(tag => tag.trim()).filter(Boolean),
+        isPinned: false,
+        isLocked: false
+      };
+      
+      const docRef = await addDoc(postsRef, postData);
+      
+      // Update community post count
+      const communityRef = doc(db, FIRESTORE_COLLECTIONS.COMMUNITIES, communityId);
+      await updateDoc(communityRef, {
+        postCount: increment(1)
+      });
+
+      const post: Post = {
+        id: docRef.id,
+        communityId: community.id,
+        authorId: user.uid,
         title: newPost.title,
         content: newPost.content,
         type: newPost.type,
@@ -193,10 +212,13 @@ export function CommunityDetailClient({ communityId }: CommunityDetailClientProp
       setPosts(prev => [post, ...prev]);
       setShowCreatePost(false);
       setNewPost({ title: '', content: '', type: 'text', tags: '' });
+      
+      toast({ title: 'Success', description: 'Post created successfully!' });
     } catch (error) {
       console.error('Error creating post:', error);
+      toast({ title: 'Error', description: 'Failed to create post', variant: 'destructive' });
     } finally {
-      setLoading(false);
+      setCreating(false);
     }
   };
 

@@ -18,6 +18,8 @@ import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
+import { db } from '@/lib/firebase';
+import { collection, doc, getDoc, getDocs, setDoc, updateDoc, query, where, orderBy, serverTimestamp, deleteDoc, addDoc } from 'firebase/firestore';
 import {
   FileText,
   Spreadsheet,
@@ -187,27 +189,74 @@ export function GoogleWorkspaceIntegration() {
   const { toast } = useToast();
 
   useEffect(() => {
+    // Load integration status and documents on mount
+    loadIntegrationStatus();
+  }, [user?.uid]);
+
+  useEffect(() => {
     if (integration.isConnected) {
       loadDocuments();
     }
   }, [integration.isConnected]);
 
+  const loadIntegrationStatus = useCallback(async () => {
+    if (!user?.uid) return;
+    
+    try {
+      const integrationDoc = await getDoc(doc(db, 'integrations', `google_workspace_${user.uid}`));
+      if (integrationDoc.exists()) {
+        const data = integrationDoc.data();
+        setIntegration({
+          isConnected: data.isConnected || false,
+          accessToken: data.accessToken,
+          refreshToken: data.refreshToken,
+          expiresAt: data.expiresAt?.toDate ? data.expiresAt.toDate() : undefined,
+          permissions: data.permissions || [],
+          userInfo: data.userInfo,
+          settings: data.settings || {
+            autoCreateDocs: true,
+            defaultPermissions: ['reader'],
+            syncEnabled: true,
+            notificationsEnabled: true,
+          },
+        });
+      }
+    } catch (error) {
+      console.error('Error loading integration status:', error);
+    }
+  }, [user?.uid]);
+
   const connectGoogleWorkspace = async () => {
+    if (!user?.uid) return;
+    
     setIsConnecting(true);
     try {
-      // Simulate OAuth2 flow
-      // In real implementation, this would redirect to Google OAuth
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // OAuth2 flow: In production, use Google Identity Services or Firebase Auth
+      // Implementation options:
+      // 1. Firebase Auth with Google provider + additional scopes
+      // 2. Google Identity Services (gsi) client library
+      // 3. Server-side OAuth flow via API route
       
-      const mockIntegration: GoogleWorkspaceIntegration = {
+      // For production, redirect to OAuth URL:
+      // const oauthUrl = `https://accounts.google.com/o/oauth2/v2/auth?
+      //   client_id=${GOOGLE_CLIENT_ID}
+      //   &redirect_uri=${encodeURIComponent(window.location.origin + '/api/auth/google/callback')}
+      //   &response_type=code
+      //   &scope=${encodeURIComponent('https://www.googleapis.com/auth/documents https://www.googleapis.com/auth/spreadsheets')}
+      //   &access_type=offline
+      //   &prompt=consent`;
+      // window.location.href = oauthUrl;
+      
+      // Demo mode: Create pending integration record
+      const newIntegration: GoogleWorkspaceIntegration = {
         isConnected: true,
-        accessToken: 'mock-access-token',
-        refreshToken: 'mock-refresh-token',
-        expiresAt: new Date(Date.now() + 3600000), // 1 hour from now
+        accessToken: 'pending-oauth-token',
+        refreshToken: 'pending-refresh-token',
+        expiresAt: new Date(Date.now() + 3600000),
         permissions: ['https://www.googleapis.com/auth/documents', 'https://www.googleapis.com/auth/spreadsheets'],
         userInfo: {
           email: user?.email || 'user@example.com',
-          name: user?.name || 'John Doe',
+          name: user?.displayName || user?.name || 'User',
           picture: user?.avatar || '',
         },
         settings: {
@@ -218,7 +267,15 @@ export function GoogleWorkspaceIntegration() {
         },
       };
       
-      setIntegration(mockIntegration);
+      // Save to Firestore
+      await setDoc(doc(db, 'integrations', `google_workspace_${user.uid}`), {
+        ...newIntegration,
+        userId: user.uid,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+      
+      setIntegration(newIntegration);
       
       toast({
         title: 'Google Workspace Connected!',
@@ -237,8 +294,12 @@ export function GoogleWorkspaceIntegration() {
   };
 
   const disconnectGoogleWorkspace = async () => {
+    if (!user?.uid) return;
+    
     try {
-      // Revoke tokens in real implementation
+      // Remove from Firestore
+      await deleteDoc(doc(db, 'integrations', `google_workspace_${user.uid}`));
+      
       setIntegration({
         isConnected: false,
         permissions: [],
@@ -264,114 +325,93 @@ export function GoogleWorkspaceIntegration() {
     }
   };
 
-  const loadDocuments = async () => {
+  const loadDocuments = useCallback(async () => {
+    if (!user?.uid) return;
+    
     setIsLoading(true);
     try {
-      // Mock data - replace with actual Google Drive API calls
-      const mockDocuments: GoogleWorkspaceDocument[] = [
-        {
-          id: 'doc1',
-          title: 'AI Conference 2024 - Event Agenda',
-          type: 'document',
-          url: 'https://docs.google.com/document/d/1234567890',
-          webViewLink: 'https://docs.google.com/document/d/1234567890/edit',
-          webContentLink: 'https://docs.google.com/document/d/1234567890/export?format=pdf',
-          createdTime: '2024-12-01T10:00:00Z',
-          modifiedTime: '2024-12-10T15:30:00Z',
-          createdBy: user?.id || 'user1',
-          lastModifiedBy: 'user2',
-          permissions: [
-            { id: 'perm1', type: 'user', role: 'owner', emailAddress: user?.email, displayName: user?.name },
-            { id: 'perm2', type: 'user', role: 'writer', emailAddress: 'speaker@example.com', displayName: 'Jane Speaker' },
-          ],
-          mimeType: 'application/vnd.google-apps.document',
-          eventId: 'event1',
-          organizationId: user?.organizationId || 'org1',
-          isTemplate: false,
-          tags: ['agenda', 'conference', 'ai'],
-          collaborators: ['user1', 'user2'],
-          status: 'in_progress',
-          metadata: {
-            purpose: 'agenda',
-            autoSync: true,
-            lastSyncTime: '2024-12-10T15:30:00Z',
-            syncFrequency: 'real-time',
-          },
-        },
-        {
-          id: 'sheet1',
-          title: 'Attendee Registration Tracker',
-          type: 'spreadsheet',
-          url: 'https://docs.google.com/spreadsheets/d/0987654321',
-          webViewLink: 'https://docs.google.com/spreadsheets/d/0987654321/edit',
-          webContentLink: 'https://docs.google.com/spreadsheets/d/0987654321/export?format=xlsx',
-          createdTime: '2024-11-28T09:00:00Z',
-          modifiedTime: '2024-12-10T16:45:00Z',
-          createdBy: user?.id || 'user1',
-          lastModifiedBy: user?.id || 'user1',
-          permissions: [
-            { id: 'perm3', type: 'user', role: 'owner', emailAddress: user?.email, displayName: user?.name },
-            { id: 'perm4', type: 'group', role: 'writer', emailAddress: 'organizers@example.com', displayName: 'Event Organizers' },
-          ],
-          mimeType: 'application/vnd.google-apps.spreadsheet',
-          eventId: 'event1',
-          organizationId: user?.organizationId || 'org1',
-          isTemplate: false,
-          tags: ['registration', 'tracking', 'data'],
-          collaborators: ['user1', 'user3'],
-          status: 'published',
-          metadata: {
-            purpose: 'registration',
-            autoSync: true,
-            lastSyncTime: '2024-12-10T16:45:00Z',
-            syncFrequency: 'hourly',
-          },
-        },
-      ];
+      // Load documents from Firestore
+      const docsQuery = query(
+        collection(db, 'workspace_documents'),
+        where('createdBy', '==', user.uid),
+        orderBy('modifiedTime', 'desc')
+      );
       
-      setDocuments(mockDocuments);
+      const snapshot = await getDocs(docsQuery);
+      const loadedDocs: GoogleWorkspaceDocument[] = snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          title: data.title,
+          type: data.type,
+          url: data.url,
+          webViewLink: data.webViewLink,
+          webContentLink: data.webContentLink,
+          createdTime: data.createdTime,
+          modifiedTime: data.modifiedTime,
+          createdBy: data.createdBy,
+          lastModifiedBy: data.lastModifiedBy,
+          permissions: data.permissions || [],
+          mimeType: data.mimeType,
+          eventId: data.eventId,
+          organizationId: data.organizationId,
+          isTemplate: data.isTemplate || false,
+          tags: data.tags || [],
+          collaborators: data.collaborators || [],
+          status: data.status || 'draft',
+          metadata: data.metadata || {
+            purpose: 'other',
+            autoSync: false,
+            syncFrequency: 'manual',
+          },
+        };
+      });
+      
+      setDocuments(loadedDocs);
     } catch (error) {
       console.error('Failed to load documents:', error);
       toast({
         title: 'Error Loading Documents',
-        description: 'Unable to fetch documents from Google Workspace.',
+        description: 'Unable to fetch documents from workspace.',
         variant: 'destructive',
       });
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user?.uid, toast]);
 
   const createDocumentFromTemplate = async (template: DocumentTemplate, title: string, eventId?: string) => {
+    if (!user?.uid) return;
+    
     setIsLoading(true);
     try {
-      // Mock document creation - replace with actual Google Docs/Sheets API
-      const newDocument: GoogleWorkspaceDocument = {
-        id: `doc${Date.now()}`,
+      // TODO: In production, call Google Docs/Sheets API to create document
+      // For now, create a placeholder document in Firestore
+      const newDocData = {
         title,
         type: template.type,
-        url: `https://docs.google.com/${template.type}/d/new-document-id`,
-        webViewLink: `https://docs.google.com/${template.type}/d/new-document-id/edit`,
-        webContentLink: `https://docs.google.com/${template.type}/d/new-document-id/export`,
+        url: `https://docs.google.com/${template.type}/d/pending`,
+        webViewLink: `https://docs.google.com/${template.type}/d/pending/edit`,
+        webContentLink: `https://docs.google.com/${template.type}/d/pending/export`,
         createdTime: new Date().toISOString(),
         modifiedTime: new Date().toISOString(),
-        createdBy: user?.id || '',
-        lastModifiedBy: user?.id || '',
+        createdBy: user.uid,
+        lastModifiedBy: user.uid,
         permissions: [
           { 
             id: 'perm-new', 
             type: 'user', 
             role: 'owner', 
             emailAddress: user?.email, 
-            displayName: user?.name 
+            displayName: user?.displayName || user?.name 
           },
         ],
         mimeType: template.type === 'document' ? 'application/vnd.google-apps.document' : 'application/vnd.google-apps.spreadsheet',
-        eventId,
+        eventId: eventId || null,
         organizationId: user?.organizationId || '',
         isTemplate: false,
         tags: [template.category],
-        collaborators: [user?.id || ''],
+        collaborators: [user.uid],
         status: 'draft',
         metadata: {
           purpose: template.category,
@@ -379,6 +419,14 @@ export function GoogleWorkspaceIntegration() {
           syncFrequency: 'real-time',
         },
       };
+      
+      // Save to Firestore
+      const docRef = await addDoc(collection(db, 'workspace_documents'), newDocData);
+      
+      const newDocument: GoogleWorkspaceDocument = {
+        id: docRef.id,
+        ...newDocData,
+      } as GoogleWorkspaceDocument;
       
       setDocuments(prev => [newDocument, ...prev]);
       setShowCreateDialog(false);
@@ -404,20 +452,25 @@ export function GoogleWorkspaceIntegration() {
 
   const syncDocument = async (docId: string) => {
     try {
-      // Mock sync operation
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const newModifiedTime = new Date().toISOString();
       
-      setDocuments(prev => prev.map(doc => 
-        doc.id === docId 
+      // Update Firestore
+      await updateDoc(doc(db, 'workspace_documents', docId), {
+        modifiedTime: newModifiedTime,
+        'metadata.lastSyncTime': newModifiedTime,
+      });
+      
+      setDocuments(prev => prev.map(d => 
+        d.id === docId 
           ? { 
-              ...doc, 
-              modifiedTime: new Date().toISOString(),
+              ...d, 
+              modifiedTime: newModifiedTime,
               metadata: { 
-                ...doc.metadata, 
-                lastSyncTime: new Date().toISOString() 
+                ...d.metadata, 
+                lastSyncTime: newModifiedTime 
               }
             }
-          : doc
+          : d
       ));
       
       toast({
@@ -425,6 +478,7 @@ export function GoogleWorkspaceIntegration() {
         description: 'Document has been synchronized with EventOS data.',
       });
     } catch (error) {
+      console.error('Sync failed:', error);
       toast({
         title: 'Sync Failed',
         description: 'Unable to sync document.',

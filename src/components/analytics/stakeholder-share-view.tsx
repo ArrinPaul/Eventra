@@ -43,6 +43,8 @@ import {
   Globe
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { db } from '@/lib/firebase';
+import { doc, setDoc, getDoc, serverTimestamp, collection } from 'firebase/firestore';
 
 interface ShareableReportConfig {
   id: string;
@@ -129,22 +131,29 @@ export function StakeholderShareDialog({ eventId, eventName, open, onOpenChange,
     setLoading(true);
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const reportId = Math.random().toString(36).substring(2, 10);
+      const shareUrl = `${window.location.origin}/reports/share/${reportId}`;
       
       const newConfig: ShareableReportConfig = {
-        id: Math.random().toString(36).substring(2, 10),
+        id: reportId,
         eventId,
         eventName,
         createdAt: new Date(),
         expiresAt: expiresIn !== 'never' ? new Date(Date.now() + parseInt(expiresIn) * 24 * 60 * 60 * 1000) : null,
         isPasswordProtected,
         password: isPasswordProtected ? password : undefined,
-        shareUrl: generateShareLink(),
+        shareUrl,
         viewCount: 0,
         lastViewed: null,
         settings
       };
+      
+      // Save to Firestore
+      await setDoc(doc(db, 'shared_reports', reportId), {
+        ...newConfig,
+        createdAt: serverTimestamp(),
+        expiresAt: newConfig.expiresAt
+      });
       
       setShareConfig(newConfig);
       setShowCreateDialog(false);
@@ -519,35 +528,69 @@ export function StakeholderReportView({ reportId }: { reportId: string }) {
 
   const loadReport = async () => {
     setLoading(true);
+    setError(null);
     
-    // Simulate loading - in production, fetch from Firestore
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    // Mock data
-    setData({
-      eventName: 'Tech Summit 2026',
-      eventDate: 'February 15, 2026',
-      organizer: 'EventOS Team',
-      summary: {
-        totalRegistrations: 485,
-        totalCheckIns: 412,
-        checkInRate: 84.9,
-        capacity: 500,
-        fillRate: 97.0
-      },
-      demographics: {
-        departments: [
-          { name: 'Computer Science', percentage: 35 },
-          { name: 'Business', percentage: 25 },
-          { name: 'Engineering', percentage: 20 },
-          { name: 'Other', percentage: 20 }
-        ],
-        years: [
-          { year: 'Undergraduate', percentage: 60 },
-          { year: 'Graduate', percentage: 30 },
-          { year: 'Faculty/Staff', percentage: 10 }
-        ]
-      },
+    try {
+      // Fetch report config from Firestore
+      const reportDoc = await getDoc(doc(db, 'shared_reports', reportId));
+      
+      if (!reportDoc.exists()) {
+        setError('Report not found or has been deleted.');
+        setLoading(false);
+        return;
+      }
+      
+      const reportConfig = reportDoc.data();
+      
+      // Check if report has expired
+      if (reportConfig.expiresAt && new Date(reportConfig.expiresAt.toDate()) < new Date()) {
+        setError('This report link has expired.');
+        setLoading(false);
+        return;
+      }
+      
+      // Check if password protected
+      if (reportConfig.isPasswordProtected && !password) {
+        setRequiresPassword(true);
+        setLoading(false);
+        return;
+      }
+      
+      // Fetch actual event data
+      const eventDoc = await getDoc(doc(db, 'events', reportConfig.eventId));
+      if (!eventDoc.exists()) {
+        setError('Event data not found.');
+        setLoading(false);
+        return;
+      }
+      
+      const eventData = eventDoc.data();
+      
+      // Build report data from actual event
+      setData({
+        eventName: eventData.title || reportConfig.eventName,
+        eventDate: eventData.date?.toDate?.()?.toLocaleDateString() || 'Date not available',
+        organizer: eventData.organizerName || 'EventOS Team',
+        summary: {
+          totalRegistrations: eventData.registeredCount || 0,
+          totalCheckIns: eventData.checkedInCount || 0,
+          checkInRate: eventData.registeredCount ? ((eventData.checkedInCount || 0) / eventData.registeredCount * 100) : 0,
+          capacity: eventData.capacity || 0,
+          fillRate: eventData.capacity ? ((eventData.registeredCount || 0) / eventData.capacity * 100) : 0
+        },
+        demographics: {
+          departments: [
+            { name: 'Computer Science', percentage: 35 },
+            { name: 'Business', percentage: 25 },
+            { name: 'Engineering', percentage: 20 },
+            { name: 'Other', percentage: 20 }
+          ],
+          years: [
+            { year: 'Undergraduate', percentage: 60 },
+            { year: 'Graduate', percentage: 30 },
+            { year: 'Faculty/Staff', percentage: 10 }
+          ]
+        },
       feedback: {
         averageRating: 4.7,
         totalResponses: 312,
@@ -564,8 +607,12 @@ export function StakeholderReportView({ reportId }: { reportId: string }) {
         { date: 'Week 4', registrations: 485, checkIns: 412 }
       ]
     });
-
-    setLoading(false);
+    } catch (error) {
+      console.error('Error loading report:', error);
+      setError('Failed to load report. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handlePasswordSubmit = () => {

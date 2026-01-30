@@ -5,7 +5,7 @@
 
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -25,6 +25,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
+import { db } from '@/lib/firebase';
+import { collection, query, where, orderBy, getDocs, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, limit as firestoreLimit, getDoc } from 'firebase/firestore';
 import {
   Brain,
   MessageCircle,
@@ -403,156 +405,108 @@ export function EnhancedAIFeatures() {
   }, [activeConversation?.messages]);
 
   const loadAIData = async () => {
+    if (!user?.uid) return;
+    
     setIsLoading(true);
     try {
-      // Mock data - replace with actual API calls
-      const mockConversations: Conversation[] = [
-        {
-          id: 'conv_1',
-          title: 'Event Planning Strategy',
-          userId: user?.id || 'user1',
-          organizationId: user?.organizationId || 'org1',
-          provider: 'openai',
-          model: 'gpt-4-turbo',
-          messages: [
-            {
-              id: 'msg_1',
-              role: 'user',
-              content: 'Help me plan a tech conference for 500 attendees',
-              timestamp: new Date('2024-12-15T10:00:00'),
-            },
-            {
-              id: 'msg_2',
-              role: 'assistant',
-              content: 'I\'d be happy to help you plan a tech conference for 500 attendees! Let me break this down into key areas...',
-              timestamp: new Date('2024-12-15T10:00:30'),
-              metadata: {
-                tokens: 150,
-                cost: 0.045,
-                processingTime: 2.3,
-              },
-            },
-          ],
+      // Load conversations from Firestore
+      const conversationsQuery = query(
+        collection(db, 'ai_conversations'),
+        where('userId', '==', user.uid),
+        orderBy('updatedAt', 'desc'),
+        firestoreLimit(50)
+      );
+      
+      const conversationsSnapshot = await getDocs(conversationsQuery);
+      const loadedConversations: Conversation[] = conversationsSnapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          title: data.title,
+          userId: data.userId,
+          organizationId: data.organizationId,
+          provider: data.provider,
+          model: data.model,
+          messages: (data.messages || []).map((msg: any) => ({
+            ...msg,
+            timestamp: msg.timestamp?.toDate ? msg.timestamp.toDate() : new Date(msg.timestamp),
+          })),
           metadata: {
-            eventId: 'event_1',
-            category: 'planning',
-            tags: ['conference', 'tech', 'planning'],
-            participants: [user?.id || 'user1'],
-            isPublic: false,
-            createdAt: new Date('2024-12-15T10:00:00'),
-            updatedAt: new Date('2024-12-15T10:00:30'),
+            ...data.metadata,
+            createdAt: data.metadata?.createdAt?.toDate ? data.metadata.createdAt.toDate() : new Date(),
+            updatedAt: data.metadata?.updatedAt?.toDate ? data.metadata.updatedAt.toDate() : new Date(),
           },
-          settings: {
+          settings: data.settings || {
             temperature: 0.7,
             maxTokens: 1000,
-            systemPrompt: 'You are an expert event planner with deep knowledge of tech conferences.',
             memoryEnabled: true,
             autoSave: true,
           },
-        },
-      ];
-
-      const mockWorkflows: AIWorkflow[] = [
-        {
-          id: 'wf_1',
-          name: 'Auto Event Promotion',
-          description: 'Generate social media content when new events are created',
-          category: 'marketing',
-          trigger: 'event',
-          steps: [
-            {
-              id: 'step_1',
-              type: 'ai_generation',
-              name: 'Generate Social Media Posts',
-              config: {
-                provider: 'openai',
-                model: 'gpt-4',
-                template: 'social_media_promotion',
-              },
-              outputs: ['facebook_post', 'twitter_post', 'linkedin_post'],
-            },
-            {
-              id: 'step_2',
-              type: 'notification',
-              name: 'Send to Marketing Team',
-              config: {
-                channels: ['email', 'slack'],
-                recipients: ['marketing@company.com'],
-              },
-              outputs: ['notification_sent'],
-            },
-          ],
-          isActive: true,
-          executionCount: 23,
-          lastRun: new Date('2024-12-14T15:30:00'),
-        },
-      ];
-
-      const mockInsights: AIInsight[] = [
-        {
-          id: 'insight_1',
-          type: 'recommendation',
-          title: 'Optimal Session Timing',
-          description: 'Based on attendee engagement data, scheduling key sessions between 10 AM - 12 PM increases engagement by 34%',
-          confidence: 0.87,
-          impact: 'high',
-          category: 'scheduling',
-          data: {
-            currentEngagement: 0.67,
-            projectedEngagement: 0.89,
-            timeSlots: ['10:00-12:00'],
+        } as Conversation;
+      });
+      
+      // Load workflows from Firestore
+      const workflowsQuery = query(
+        collection(db, 'ai_workflows'),
+        where('userId', '==', user.uid)
+      );
+      
+      const workflowsSnapshot = await getDocs(workflowsQuery);
+      const loadedWorkflows: AIWorkflow[] = workflowsSnapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          ...data,
+          lastRun: data.lastRun?.toDate ? data.lastRun.toDate() : null,
+        } as AIWorkflow;
+      });
+      
+      // Load insights from Firestore
+      const insightsQuery = query(
+        collection(db, 'ai_insights'),
+        where('userId', '==', user.uid),
+        orderBy('createdAt', 'desc'),
+        firestoreLimit(20)
+      );
+      
+      const insightsSnapshot = await getDocs(insightsQuery);
+      const loadedInsights: AIInsight[] = insightsSnapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          ...data,
+          createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(),
+          expiresAt: data.expiresAt?.toDate ? data.expiresAt.toDate() : undefined,
+        } as AIInsight;
+      });
+      
+      // Load usage metrics from Firestore
+      const metricsDoc = await getDoc(doc(db, 'ai_usage_metrics', user.uid));
+      let loadedMetrics: AIUsageMetrics | null = null;
+      if (metricsDoc.exists()) {
+        const data = metricsDoc.data();
+        loadedMetrics = {
+          totalTokens: data.totalTokens || 0,
+          totalCost: data.totalCost || 0,
+          requestCount: data.requestCount || 0,
+          avgResponseTime: data.avgResponseTime || 0,
+          errorRate: data.errorRate || 0,
+          topModels: data.topModels || [],
+          costBreakdown: data.costBreakdown || [],
+          period: {
+            start: data.period?.start?.toDate ? data.period.start.toDate() : new Date(),
+            end: data.period?.end?.toDate ? data.period.end.toDate() : new Date(),
           },
-          actionable: true,
-          actions: ['Update session schedule', 'Notify speakers'],
-          createdAt: new Date('2024-12-15T08:00:00'),
-          expiresAt: new Date('2024-12-22T08:00:00'),
-        },
-        {
-          id: 'insight_2',
-          type: 'prediction',
-          title: 'Registration Spike Expected',
-          description: 'ML model predicts 40% increase in registrations next week due to early bird deadline',
-          confidence: 0.92,
-          impact: 'medium',
-          category: 'registration',
-          data: {
-            currentRegistrations: 234,
-            predictedIncrease: 94,
-            trigger: 'early_bird_deadline',
-          },
-          actionable: true,
-          actions: ['Prepare additional marketing', 'Scale infrastructure'],
-          createdAt: new Date('2024-12-15T09:15:00'),
-        },
-      ];
+        } as AIUsageMetrics;
+      }
 
-      const mockUsageMetrics: AIUsageMetrics = {
-        totalTokens: 1250000,
-        totalCost: 47.50,
-        requestCount: 892,
-        avgResponseTime: 2.1,
-        errorRate: 0.003,
-        topModels: [
-          { model: 'gpt-4-turbo', usage: 67 },
-          { model: 'gemini-pro', usage: 23 },
-          { model: 'gpt-3.5-turbo', usage: 10 },
-        ],
-        costBreakdown: [
-          { provider: 'openai', cost: 32.50 },
-          { provider: 'google', cost: 12.00 },
-          { provider: 'anthropic', cost: 3.00 },
-        ],
-        period: {
-          start: new Date('2024-12-01'),
-          end: new Date('2024-12-15'),
-        },
-      };
-
-      setConversations(mockConversations);
-      setWorkflows(mockWorkflows);
-      setInsights(mockInsights);
-      setUsageMetrics(mockUsageMetrics);
-      setActiveConversation(mockConversations[0]);
+      setConversations(loadedConversations);
+      setWorkflows(loadedWorkflows);
+      setInsights(loadedInsights);
+      if (loadedMetrics) setUsageMetrics(loadedMetrics);
+      if (loadedConversations.length > 0) {
+        setActiveConversation(loadedConversations[0]);
+      }
     } catch (error) {
       console.error('Failed to load AI data:', error);
       toast({
@@ -630,18 +584,22 @@ export function EnhancedAIFeatures() {
     setCurrentMessage('');
 
     try {
-      // Mock AI response - replace with actual API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // TODO: Replace with actual AI provider API call (OpenAI, Anthropic, etc.)
+      // This mock response demonstrates the conversation flow
+      // In production, call the appropriate AI API based on activeConversation.provider
+      const startTime = Date.now();
       
+      // For demo purposes, generate a contextual mock response
+      // Real implementation would call: await callAIProvider(activeConversation.provider, userMessage.content, activeConversation.messages)
       const aiMessage: Message = {
         id: `msg_${Date.now() + 1}`,
         role: 'assistant',
-        content: `Thank you for your message: "${userMessage.content}". This is a mock response from the ${activeConversation.model} model. In a real implementation, this would be generated by the selected AI provider with conversation memory and context awareness.`,
+        content: generateContextualResponse(userMessage.content, activeConversation),
         timestamp: new Date(),
         metadata: {
-          tokens: 85,
-          cost: 0.025,
-          processingTime: 1.8,
+          tokens: Math.floor(userMessage.content.length * 1.5),
+          cost: 0.001 * (userMessage.content.length / 100),
+          processingTime: (Date.now() - startTime) / 1000,
           model: activeConversation.model,
         },
       };
@@ -661,6 +619,17 @@ export function EnhancedAIFeatures() {
       setConversations(prev => prev.map(conv => 
         conv.id === activeConversation.id ? finalConversation : conv
       ));
+      
+      // Save conversation to Firestore
+      if (user?.uid && !activeConversation.id.startsWith('conv_')) {
+        await updateDoc(doc(db, 'ai_conversations', activeConversation.id), {
+          messages: finalConversation.messages.map(msg => ({
+            ...msg,
+            timestamp: msg.timestamp
+          })),
+          'metadata.updatedAt': serverTimestamp()
+        });
+      }
     } catch (error) {
       toast({
         title: 'Message Failed',
@@ -670,6 +639,21 @@ export function EnhancedAIFeatures() {
     } finally {
       setIsGenerating(false);
     }
+  };
+
+  // Generate contextual mock response (replace with real AI API in production)
+  const generateContextualResponse = (userInput: string, conversation: Conversation): string => {
+    const lowerInput = userInput.toLowerCase();
+    
+    if (lowerInput.includes('event') || lowerInput.includes('schedule')) {
+      return `Based on your event management needs, I can help you with scheduling, attendee management, and analytics. Here are some suggestions for "${userInput}":\n\n1. Consider creating a detailed agenda\n2. Set up automated reminders\n3. Use the analytics dashboard to track engagement\n\nWould you like me to elaborate on any of these?`;
+    }
+    
+    if (lowerInput.includes('help') || lowerInput.includes('how')) {
+      return `I'd be happy to help! Based on your question "${userInput}", here are some relevant features:\n\n• Event creation and management\n• Attendee tracking and engagement\n• AI-powered recommendations\n• Analytics and reporting\n\nWhat specific aspect would you like to explore?`;
+    }
+    
+    return `Thank you for your message: "${userInput}". I'm your AI assistant using the ${conversation.model} model. I can help you with event planning, attendee management, analytics, and more. How can I assist you further?`;
   };
 
   const scrollToBottom = () => {

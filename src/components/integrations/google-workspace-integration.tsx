@@ -33,6 +33,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Textarea } from '../ui/textarea';
+import { db } from '@/lib/firebase';
+import { doc, getDoc, setDoc, collection, query, where, getDocs, serverTimestamp } from 'firebase/firestore';
 
 interface GoogleWorkspaceIntegrationProps {
   eventId: string;
@@ -174,10 +176,16 @@ export default function GoogleWorkspaceIntegration({ eventId, eventTitle }: Goog
 
   const checkConnectionStatus = async () => {
     try {
-      // This would typically check the user's Google Workspace connection status
-      // For now, we'll simulate this based on local storage or user data
-      const connectionStatus = localStorage.getItem('googleWorkspaceConnected');
-      setIsConnected(connectionStatus === 'true');
+      if (!user?.uid) return;
+      
+      // Check user's Google Workspace connection status from Firestore
+      const userIntegrationDoc = await getDoc(doc(db, 'user_integrations', user.uid));
+      if (userIntegrationDoc.exists()) {
+        const data = userIntegrationDoc.data();
+        setIsConnected(data.googleWorkspaceConnected === true);
+      } else {
+        setIsConnected(false);
+      }
     } catch (error) {
       console.error('Error checking connection status:', error);
     }
@@ -238,7 +246,13 @@ export default function GoogleWorkspaceIntegration({ eventId, eventTitle }: Goog
 
       if (response.ok) {
         setIsConnected(false);
-        localStorage.setItem('googleWorkspaceConnected', 'false');
+        // Update connection status in Firestore
+        if (user?.uid) {
+          await setDoc(doc(db, 'user_integrations', user.uid), {
+            googleWorkspaceConnected: false,
+            disconnectedAt: serverTimestamp()
+          }, { merge: true });
+        }
         toast({
           title: "Disconnected",
           description: "Google Workspace has been disconnected successfully.",

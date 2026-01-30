@@ -6,7 +6,7 @@ import {
   MessageCircle, Send, Search, Phone, Video, MoreVertical,
   Smile, Paperclip, Image as ImageIcon, Mic, X, Check, CheckCheck,
   Clock, Calendar, Star, Pin, Archive, Trash2, Bell, BellOff,
-  User, Users, ChevronLeft, Settings, Filter, Plus
+  User, Users, ChevronLeft, Settings, Filter, Plus, Loader2
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -31,6 +31,21 @@ import {
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
+import { db } from '@/lib/firebase';
+import { 
+  collection, 
+  query, 
+  where, 
+  orderBy, 
+  onSnapshot, 
+  addDoc, 
+  updateDoc, 
+  doc, 
+  serverTimestamp,
+  Timestamp,
+  getDocs,
+  limit
+} from 'firebase/firestore';
 
 // Types
 export interface DirectMessage {
@@ -92,141 +107,12 @@ interface ConnectionMessagingProps {
   isFullPage?: boolean;
 }
 
-// Mock data for conversations
-const MOCK_CONVERSATIONS: Conversation[] = [
-  {
-    id: 'conv-1',
-    participants: [
-      { userId: 'user-1', name: 'Sarah Chen', isOnline: true, role: 'Product Manager', company: 'TechCorp' },
-    ],
-    lastMessage: {
-      id: 'msg-1',
-      conversationId: 'conv-1',
-      senderId: 'user-1',
-      content: 'That sounds great! Let me check my calendar.',
-      type: 'text',
-      timestamp: new Date(Date.now() - 5 * 60 * 1000),
-      status: 'read',
-    },
-    unreadCount: 0,
-    isPinned: true,
-    isMuted: false,
-    isArchived: false,
-    createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-    updatedAt: new Date(Date.now() - 5 * 60 * 1000),
-  },
-  {
-    id: 'conv-2',
-    participants: [
-      { userId: 'user-2', name: 'Michael Rodriguez', isOnline: false, lastSeen: new Date(Date.now() - 30 * 60 * 1000), role: 'Software Engineer', company: 'StartupXYZ' },
-    ],
-    lastMessage: {
-      id: 'msg-2',
-      conversationId: 'conv-2',
-      senderId: 'current-user',
-      content: 'Looking forward to our meeting tomorrow!',
-      type: 'text',
-      timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
-      status: 'delivered',
-    },
-    unreadCount: 2,
-    isPinned: false,
-    isMuted: false,
-    isArchived: false,
-    createdAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000),
-    updatedAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
-  },
-  {
-    id: 'conv-3',
-    participants: [
-      { userId: 'user-3', name: 'Emily Watson', isOnline: true, role: 'UX Designer', company: 'DesignStudio' },
-    ],
-    lastMessage: {
-      id: 'msg-3',
-      conversationId: 'conv-3',
-      senderId: 'user-3',
-      content: 'Thanks for connecting! Would love to chat about the project.',
-      type: 'text',
-      timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000),
-      status: 'read',
-    },
-    unreadCount: 0,
-    isPinned: false,
-    isMuted: false,
-    isArchived: false,
-    createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
-    updatedAt: new Date(Date.now() - 24 * 60 * 60 * 1000),
-  },
-  {
-    id: 'conv-4',
-    participants: [
-      { userId: 'user-4', name: 'David Kim', isOnline: false, lastSeen: new Date(Date.now() - 3 * 60 * 60 * 1000), role: 'Founder', company: 'InnovateTech' },
-    ],
-    lastMessage: {
-      id: 'msg-4',
-      conversationId: 'conv-4',
-      senderId: 'user-4',
-      content: "I've sent you the meeting invite. See you there!",
-      type: 'meeting-invite',
-      timestamp: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
-      status: 'read',
-      meetingInvite: {
-        id: 'meet-1',
-        title: 'Coffee Chat',
-        dateTime: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
-        duration: 30,
-        type: 'video',
-        status: 'accepted',
-      },
-    },
-    unreadCount: 0,
-    isPinned: false,
-    isMuted: true,
-    isArchived: false,
-    createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
-    updatedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
-  },
-];
-
-// Mock messages for a conversation
-const MOCK_MESSAGES: DirectMessage[] = [
-  {
-    id: 'msg-1-1',
-    conversationId: 'conv-1',
-    senderId: 'current-user',
-    content: 'Hi Sarah! Great connecting with you at the conference.',
-    type: 'text',
-    timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-    status: 'read',
-  },
-  {
-    id: 'msg-1-2',
-    conversationId: 'conv-1',
-    senderId: 'user-1',
-    content: 'Hey! Yes, it was great meeting you too! Your talk on AI was really insightful.',
-    type: 'text',
-    timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000 + 30 * 60 * 1000),
-    status: 'read',
-  },
-  {
-    id: 'msg-1-3',
-    conversationId: 'conv-1',
-    senderId: 'current-user',
-    content: 'Thanks! Would you be interested in grabbing a virtual coffee sometime? Would love to hear more about your product roadmap.',
-    type: 'text',
-    timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
-    status: 'read',
-  },
-  {
-    id: 'msg-1-4',
-    conversationId: 'conv-1',
-    senderId: 'user-1',
-    content: 'That sounds great! Let me check my calendar.',
-    type: 'text',
-    timestamp: new Date(Date.now() - 5 * 60 * 1000),
-    status: 'read',
-  },
-];
+// Helper to convert Firestore timestamp to Date
+const toDate = (timestamp: Timestamp | Date | undefined): Date => {
+  if (!timestamp) return new Date();
+  if (timestamp instanceof Timestamp) return timestamp.toDate();
+  return timestamp;
+};
 
 export default function ConnectionMessaging({
   selectedConversationId,
@@ -238,7 +124,7 @@ export default function ConnectionMessaging({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
-  const [conversations, setConversations] = useState<Conversation[]>(MOCK_CONVERSATIONS);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
   const [activeConversation, setActiveConversation] = useState<Conversation | null>(null);
   const [messages, setMessages] = useState<DirectMessage[]>([]);
   const [newMessage, setNewMessage] = useState('');
@@ -246,10 +132,58 @@ export default function ConnectionMessaging({
   const [isTyping, setIsTyping] = useState(false);
   const [showMobileChat, setShowMobileChat] = useState(false);
   const [filter, setFilter] = useState<'all' | 'unread' | 'pinned'>('all');
+  const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMessages, setIsLoadingMessages] = useState(false);
+
+  // Load conversations from Firestore
+  useEffect(() => {
+    if (!user?.id) {
+      setIsLoading(false);
+      return;
+    }
+
+    const conversationsRef = collection(db, 'direct_conversations');
+    const q = query(
+      conversationsRef,
+      where('participantIds', 'array-contains', user.id),
+      orderBy('updatedAt', 'desc'),
+      limit(50)
+    );
+
+    const unsubscribe = onSnapshot(q, 
+      (snapshot) => {
+        const convs: Conversation[] = snapshot.docs.map(doc => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            participants: data.participants || [],
+            lastMessage: data.lastMessage ? {
+              ...data.lastMessage,
+              timestamp: toDate(data.lastMessage.timestamp)
+            } : undefined,
+            unreadCount: data.unreadCounts?.[user.id] || 0,
+            isPinned: data.pinnedBy?.includes(user.id) || false,
+            isMuted: data.mutedBy?.includes(user.id) || false,
+            isArchived: data.archivedBy?.includes(user.id) || false,
+            createdAt: toDate(data.createdAt),
+            updatedAt: toDate(data.updatedAt),
+          };
+        });
+        setConversations(convs);
+        setIsLoading(false);
+      },
+      (error) => {
+        console.error('Error loading conversations:', error);
+        setIsLoading(false);
+      }
+    );
+
+    return () => unsubscribe();
+  }, [user?.id]);
 
   // Initialize with selected conversation
   useEffect(() => {
-    if (selectedConversationId) {
+    if (selectedConversationId && conversations.length > 0) {
       const conv = conversations.find(c => c.id === selectedConversationId);
       if (conv) {
         setActiveConversation(conv);
@@ -258,13 +192,53 @@ export default function ConnectionMessaging({
     }
   }, [selectedConversationId, conversations]);
 
-  // Load messages when conversation changes
+  // Load messages from Firestore when conversation changes
   useEffect(() => {
-    if (activeConversation) {
-      // In real app, fetch messages from API
-      setMessages(MOCK_MESSAGES.filter(m => m.conversationId === activeConversation.id));
+    if (!activeConversation) {
+      setMessages([]);
+      return;
     }
-  }, [activeConversation]);
+
+    setIsLoadingMessages(true);
+    const messagesRef = collection(db, 'direct_messages');
+    const q = query(
+      messagesRef,
+      where('conversationId', '==', activeConversation.id),
+      orderBy('timestamp', 'asc'),
+      limit(100)
+    );
+
+    const unsubscribe = onSnapshot(q,
+      (snapshot) => {
+        const msgs: DirectMessage[] = snapshot.docs.map(doc => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            conversationId: data.conversationId,
+            senderId: data.senderId,
+            content: data.content,
+            type: data.type || 'text',
+            timestamp: toDate(data.timestamp),
+            status: data.status || 'sent',
+            replyTo: data.replyTo,
+            attachments: data.attachments,
+            meetingInvite: data.meetingInvite ? {
+              ...data.meetingInvite,
+              dateTime: toDate(data.meetingInvite.dateTime)
+            } : undefined,
+          };
+        });
+        setMessages(msgs);
+        setIsLoadingMessages(false);
+      },
+      (error) => {
+        console.error('Error loading messages:', error);
+        setIsLoadingMessages(false);
+      }
+    );
+
+    return () => unsubscribe();
+  }, [activeConversation?.id]);
 
   // Scroll to bottom when messages change
   useEffect(() => {
@@ -290,45 +264,69 @@ export default function ConnectionMessaging({
     return b.updatedAt.getTime() - a.updatedAt.getTime();
   });
 
-  const handleSendMessage = useCallback(() => {
-    if (!newMessage.trim() || !activeConversation) return;
+  const handleSendMessage = useCallback(async () => {
+    if (!newMessage.trim() || !activeConversation || !user?.id) return;
 
-    const message: DirectMessage = {
-      id: `msg-${Date.now()}`,
+    const tempId = `temp-${Date.now()}`;
+    const messageContent = newMessage.trim();
+    
+    // Optimistically add message to UI
+    const optimisticMessage: DirectMessage = {
+      id: tempId,
       conversationId: activeConversation.id,
-      senderId: 'current-user',
-      content: newMessage.trim(),
+      senderId: user.id,
+      content: messageContent,
       type: 'text',
       timestamp: new Date(),
       status: 'sending',
     };
 
-    setMessages(prev => [...prev, message]);
+    setMessages(prev => [...prev, optimisticMessage]);
     setNewMessage('');
 
-    // Simulate message being sent
-    setTimeout(() => {
-      setMessages(prev =>
-        prev.map(m => m.id === message.id ? { ...m, status: 'sent' } : m)
-      );
-    }, 500);
+    try {
+      // Add message to Firestore
+      const messagesRef = collection(db, 'direct_messages');
+      const docRef = await addDoc(messagesRef, {
+        conversationId: activeConversation.id,
+        senderId: user.id,
+        content: messageContent,
+        type: 'text',
+        timestamp: serverTimestamp(),
+        status: 'sent',
+      });
 
-    // Simulate delivery
-    setTimeout(() => {
-      setMessages(prev =>
-        prev.map(m => m.id === message.id ? { ...m, status: 'delivered' } : m)
-      );
-    }, 1500);
+      // Update the conversation's lastMessage
+      const convRef = doc(db, 'direct_conversations', activeConversation.id);
+      await updateDoc(convRef, {
+        lastMessage: {
+          id: docRef.id,
+          senderId: user.id,
+          content: messageContent,
+          type: 'text',
+          timestamp: serverTimestamp(),
+          status: 'sent',
+        },
+        updatedAt: serverTimestamp(),
+      });
 
-    // Update conversation's last message
-    setConversations(prev =>
-      prev.map(c =>
-        c.id === activeConversation.id
-          ? { ...c, lastMessage: message, updatedAt: new Date() }
-          : c
-      )
-    );
-  }, [newMessage, activeConversation]);
+      // Update optimistic message with real ID
+      setMessages(prev =>
+        prev.map(m => m.id === tempId ? { ...m, id: docRef.id, status: 'sent' } : m)
+      );
+    } catch (error) {
+      console.error('Error sending message:', error);
+      // Mark message as failed
+      setMessages(prev =>
+        prev.map(m => m.id === tempId ? { ...m, status: 'sending' } : m)
+      );
+      toast({
+        variant: 'destructive',
+        title: 'Failed to send message',
+        description: 'Please try again.',
+      });
+    }
+  }, [newMessage, activeConversation, user?.id, toast]);
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -337,29 +335,96 @@ export default function ConnectionMessaging({
     }
   };
 
-  const togglePin = (convId: string) => {
+  const togglePin = async (convId: string) => {
+    if (!user?.id) return;
+    
+    const conv = conversations.find(c => c.id === convId);
+    if (!conv) return;
+    
+    // Optimistic update
     setConversations(prev =>
       prev.map(c => c.id === convId ? { ...c, isPinned: !c.isPinned } : c)
     );
+
+    try {
+      const convRef = doc(db, 'direct_conversations', convId);
+      const newPinnedBy = conv.isPinned 
+        ? (conv as any).pinnedBy?.filter((id: string) => id !== user.id) || []
+        : [...((conv as any).pinnedBy || []), user.id];
+      
+      await updateDoc(convRef, { pinnedBy: newPinnedBy });
+    } catch (error) {
+      console.error('Error toggling pin:', error);
+      // Revert on error
+      setConversations(prev =>
+        prev.map(c => c.id === convId ? { ...c, isPinned: conv.isPinned } : c)
+      );
+    }
   };
 
-  const toggleMute = (convId: string) => {
+  const toggleMute = async (convId: string) => {
+    if (!user?.id) return;
+    
+    const conv = conversations.find(c => c.id === convId);
+    if (!conv) return;
+    
+    // Optimistic update
     setConversations(prev =>
       prev.map(c => c.id === convId ? { ...c, isMuted: !c.isMuted } : c)
     );
+
+    try {
+      const convRef = doc(db, 'direct_conversations', convId);
+      const newMutedBy = conv.isMuted 
+        ? (conv as any).mutedBy?.filter((id: string) => id !== user.id) || []
+        : [...((conv as any).mutedBy || []), user.id];
+      
+      await updateDoc(convRef, { mutedBy: newMutedBy });
+    } catch (error) {
+      console.error('Error toggling mute:', error);
+      // Revert on error
+      setConversations(prev =>
+        prev.map(c => c.id === convId ? { ...c, isMuted: conv.isMuted } : c)
+      );
+    }
   };
 
-  const archiveConversation = (convId: string) => {
+  const archiveConversation = async (convId: string) => {
+    if (!user?.id) return;
+    
+    const conv = conversations.find(c => c.id === convId);
+    if (!conv) return;
+    
+    // Optimistic update
     setConversations(prev =>
       prev.map(c => c.id === convId ? { ...c, isArchived: true } : c)
     );
     if (activeConversation?.id === convId) {
       setActiveConversation(null);
     }
-    toast({
-      title: 'Conversation archived',
-      description: 'You can find it in your archived messages.',
-    });
+
+    try {
+      const convRef = doc(db, 'direct_conversations', convId);
+      const newArchivedBy = [...((conv as any).archivedBy || []), user.id];
+      
+      await updateDoc(convRef, { archivedBy: newArchivedBy });
+      
+      toast({
+        title: 'Conversation archived',
+        description: 'You can find it in your archived messages.',
+      });
+    } catch (error) {
+      console.error('Error archiving conversation:', error);
+      // Revert on error
+      setConversations(prev =>
+        prev.map(c => c.id === convId ? { ...c, isArchived: false } : c)
+      );
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to archive conversation.',
+      });
+    }
   };
 
   const getInitials = (name: string) =>

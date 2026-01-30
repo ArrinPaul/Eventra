@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { cn } from '@/lib/utils';
-import { feedService } from '@/lib/firestore-services';
+import { feedService, userProfileService } from '@/lib/firestore-services';
 import { FeedPost } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -28,6 +28,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { db } from '@/lib/firebase';
+import { collection, query, where, orderBy, getDocs, addDoc, serverTimestamp } from 'firebase/firestore';
 
 // Types
 interface Comment {
@@ -50,31 +52,6 @@ interface User {
   lastSeen?: Date;
 }
 
-// Mock Data (Keep for user profiles and comments for now, or fetch them too later)
-const mockUsers: Record<string, User> = {
-  '1': { id: '1', name: 'Sarah Johnson', email: 'sarah@example.com', avatar: '', isOnline: true, lastSeen: new Date() },
-  '2': { id: '2', name: 'Mike Chen', email: 'mike@example.com', avatar: '', isOnline: false, lastSeen: new Date(Date.now() - 1000 * 60 * 30) },
-  '3': { id: '3', name: 'Emily Davis', email: 'emily@example.com', avatar: '', isOnline: true, lastSeen: new Date() },
-  '4': { id: '4', name: 'Alex Rivera', email: 'alex@example.com', avatar: '', isOnline: true, lastSeen: new Date() },
-  'user-4': { id: 'user-4', name: 'David Wilson', email: 'david@example.com', isOnline: false },
-  'organizer-1': { id: 'organizer-1', name: 'Event Organizer', email: 'organizer@eventos.com', isOnline: true },
-  'sarah_chen': { id: 'sarah_chen', name: 'Dr. Sarah Chen', email: 'sarah@example.com', isOnline: true },
-};
-
-const mockComments: { [postId: string]: Comment[] } = {
-  '1': [
-    {
-      id: '1',
-      postId: '1',
-      authorId: '2',
-      content: 'Congratulations! This is huge news. Looking forward to seeing what you build next.',
-      likes: 3,
-      createdAt: new Date('2024-10-09T15:00:00'),
-      likedBy: ['1', '3']
-    }
-  ]
-};
-
 const trendingTopics = [
   { tag: 'AIEthics', posts: 45 },
   { tag: 'Startup', posts: 32 },
@@ -87,7 +64,8 @@ export default function FeedClient() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [posts, setPosts] = useState<FeedPost[]>([]);
-  const [comments, setComments] = useState<{ [postId: string]: Comment[] }>(mockComments);
+  const [comments, setComments] = useState<{ [postId: string]: Comment[] }>({});
+  const [userProfiles, setUserProfiles] = useState<Record<string, User>>({});
   const [selectedFilter, setSelectedFilter] = useState<'all' | 'following' | 'trending'>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [showCreatePost, setShowCreatePost] = useState(false);
@@ -107,9 +85,69 @@ export default function FeedClient() {
     mediaUrls: [] as string[]
   });
 
-  const getUser = (userId: string) => {
-    // In a real app, we would fetch user profile from Firestore or a users cache
-    // For now, fallback to current user if it matches, or mockUsers
+  // Load user profile from Firestore
+  const loadUserProfile = useCallback(async (userId: string) => {
+    if (userProfiles[userId]) return userProfiles[userId];
+    
+    try {
+      const profile = await userProfileService.getUserProfile(userId);
+      if (profile) {
+        const userData: User = {
+          id: userId,
+          name: profile.displayName || profile.name || 'Unknown User',
+          email: profile.email || '',
+          avatar: profile.avatar || '',
+          isOnline: false
+        };
+        setUserProfiles(prev => ({ ...prev, [userId]: userData }));
+        return userData;
+      }
+    } catch (error) {
+      console.error('Error loading user profile:', error);
+    }
+    
+    // Return fallback user
+    const fallbackUser: User = { id: userId, name: 'Unknown User', email: '', isOnline: false };
+    setUserProfiles(prev => ({ ...prev, [userId]: fallbackUser }));
+    return fallbackUser;
+  }, [userProfiles]);
+
+  // Load comments for a post
+  const loadComments = useCallback(async (postId: string) => {
+    try {
+      const commentsRef = collection(db, 'feedPosts', postId, 'comments');
+      const q = query(commentsRef, orderBy('createdAt', 'asc'));
+      const snapshot = await getDocs(q);
+      
+      const loadedComments: Comment[] = snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          postId,
+          authorId: data.authorId,
+          content: data.content,
+          parentId: data.parentId,
+          likes: data.likes || 0,
+          createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(),
+          likedBy: data.likedBy || []
+        };
+      });
+      
+      // Load user profiles for commenters
+      for (const comment of loadedComments) {
+        if (!userProfiles[comment.authorId]) {
+          loadUserProfile(comment.authorId);
+        }
+      }
+      
+      setComments(prev => ({ ...prev, [postId]: loadedComments }));
+    } catch (error) {
+      console.error('Error loading comments:', error);
+    }
+  }, [loadUserProfile, userProfiles]);
+
+  const getUser = useCallback((userId: string): User => {
+    // Return cached user or current user
     if (user && userId === user.uid) {
       return { 
         id: user.uid, 
@@ -119,10 +157,25 @@ export default function FeedClient() {
         isOnline: true 
       };
     }
-    return mockUsers[userId] || { id: userId, name: 'Unknown User', email: '', isOnline: false };
-  };
+    
+    // Return from cache or fetch
+    if (userProfiles[userId]) {
+      return userProfiles[userId];
+    }
+    
+    // Trigger async load
+    loadUserProfile(userId);
+    return { id: userId, name: 'Loading...', email: '', isOnline: false };
+  }, [user, userProfiles, loadUserProfile]);
   
   const getInitials = (name: string) => name ? name.split(' ').map(n => n[0]).join('').toUpperCase() : '?';
+
+  // Load comments when user clicks to show them
+  useEffect(() => {
+    if (showComments && !comments[showComments]) {
+      loadComments(showComments);
+    }
+  }, [showComments, comments, loadComments]);
 
   // Fetch posts on mount
   useEffect(() => {
@@ -131,6 +184,13 @@ export default function FeedClient() {
       try {
         const fetchedPosts = await feedService.getFeedPosts();
         setPosts(fetchedPosts);
+        
+        // Load user profiles for all post authors
+        for (const post of fetchedPosts) {
+          if (post.authorId && !userProfiles[post.authorId]) {
+            loadUserProfile(post.authorId);
+          }
+        }
       } catch (error) {
         console.error('Error fetching posts:', error);
         toast({
@@ -144,7 +204,7 @@ export default function FeedClient() {
     };
 
     fetchPosts();
-  }, [toast]);
+  }, [toast, loadUserProfile, userProfiles]);
 
   const handleLikePost = async (postId: string) => {
     if (!user) {
@@ -277,26 +337,46 @@ export default function FeedClient() {
   const handleAddComment = async (postId: string) => {
     if (!user || !newComment.trim()) return;
 
-    const comment: Comment = {
-      id: Date.now().toString(),
-      postId,
-      authorId: user.uid,
-      content: newComment.trim(),
-      likes: 0,
-      createdAt: new Date(),
-      likedBy: []
-    };
+    try {
+      // Save comment to Firestore
+      const commentsRef = collection(db, 'feedPosts', postId, 'comments');
+      const commentDoc = await addDoc(commentsRef, {
+        postId,
+        authorId: user.uid,
+        content: newComment.trim(),
+        likes: 0,
+        createdAt: serverTimestamp(),
+        likedBy: []
+      });
 
-    setComments(prev => ({
-      ...prev,
-      [postId]: [...(prev[postId] || []), comment]
-    }));
+      const comment: Comment = {
+        id: commentDoc.id,
+        postId,
+        authorId: user.uid,
+        content: newComment.trim(),
+        likes: 0,
+        createdAt: new Date(),
+        likedBy: []
+      };
 
-    setPosts(prev => prev.map(post => 
-      post.id === postId ? { ...post, comments: post.comments + 1 } : post
-    ));
+      setComments(prev => ({
+        ...prev,
+        [postId]: [...(prev[postId] || []), comment]
+      }));
 
-    setNewComment('');
+      setPosts(prev => prev.map(post => 
+        post.id === postId ? { ...post, comments: post.comments + 1 } : post
+      ));
+
+      setNewComment('');
+    } catch (error) {
+      console.error('Error adding comment:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to add comment.',
+        variant: 'destructive',
+      });
+    }
   };
 
   const filteredPosts = posts.filter(post => {

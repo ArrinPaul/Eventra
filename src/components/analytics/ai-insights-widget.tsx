@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -18,6 +18,8 @@ import {
   Zap
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { db } from '@/lib/firebase';
+import { doc, getDoc, setDoc, serverTimestamp, Timestamp } from 'firebase/firestore';
 
 interface EventData {
   totalRegistrations: number;
@@ -159,23 +161,72 @@ export function AIInsightsWidget({
     return generatedInsights.sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
   };
 
-  useEffect(() => {
-    // Simulate AI processing
+  // Load cached insights from Firestore or generate new ones
+  const loadOrGenerateInsights = useCallback(async () => {
     setLoading(true);
-    const timer = setTimeout(() => {
+    try {
+      // Check for cached insights if eventId is provided
+      if (eventId) {
+        const cachedDoc = await getDoc(doc(db, 'ai_insights_cache', eventId));
+        if (cachedDoc.exists()) {
+          const cached = cachedDoc.data();
+          const cacheTime = cached.generatedAt instanceof Timestamp 
+            ? cached.generatedAt.toDate() 
+            : new Date(cached.generatedAt);
+          
+          // Use cache if it's less than 1 hour old
+          if (Date.now() - cacheTime.getTime() < 3600000) {
+            setInsights(cached.insights);
+            setLoading(false);
+            return;
+          }
+        }
+      }
+      
+      // Generate new insights
+      const newInsights = generateInsights(eventData);
+      setInsights(newInsights);
+      
+      // Cache insights if eventId is provided
+      if (eventId) {
+        await setDoc(doc(db, 'ai_insights_cache', eventId), {
+          insights: newInsights,
+          eventData,
+          generatedAt: serverTimestamp()
+        });
+      }
+    } catch (error) {
+      console.error('Error loading insights:', error);
+      // Fall back to local generation
       setInsights(generateInsights(eventData));
+    } finally {
       setLoading(false);
-    }, 800);
+    }
+  }, [eventData, eventId]);
 
-    return () => clearTimeout(timer);
-  }, [eventData]);
+  useEffect(() => {
+    loadOrGenerateInsights();
+  }, [loadOrGenerateInsights]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
-    // Simulate refresh
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    setInsights(generateInsights(eventData));
-    setRefreshing(false);
+    try {
+      const newInsights = generateInsights(eventData);
+      setInsights(newInsights);
+      
+      // Update cache
+      if (eventId) {
+        await setDoc(doc(db, 'ai_insights_cache', eventId), {
+          insights: newInsights,
+          eventData,
+          generatedAt: serverTimestamp()
+        });
+      }
+    } catch (error) {
+      console.error('Error refreshing insights:', error);
+    } finally {
+      setRefreshing(false);
+    }
   };
 
   const getInsightIcon = (type: AIInsight['type']) => {

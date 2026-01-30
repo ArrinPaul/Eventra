@@ -14,6 +14,7 @@ import { Loader2, Mail, ArrowLeft, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { getFirebaseErrorMessage } from '@/lib/utils';
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email address.' }),
@@ -42,23 +43,13 @@ export function ForgotPasswordForm() {
         title: 'Reset email sent',
         description: 'Check your inbox for password reset instructions.',
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Password reset error:', error);
-      
-      let errorMessage = 'Failed to send reset email. Please try again.';
-      
-      if (error.code === 'auth/user-not-found') {
-        errorMessage = 'No account found with this email address.';
-      } else if (error.code === 'auth/invalid-email') {
-        errorMessage = 'Invalid email address.';
-      } else if (error.code === 'auth/too-many-requests') {
-        errorMessage = 'Too many attempts. Please try again later.';
-      }
       
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: errorMessage,
+        description: getFirebaseErrorMessage(error),
       });
     } finally {
       setIsLoading(false);

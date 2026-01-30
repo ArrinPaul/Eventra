@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
@@ -27,6 +27,9 @@ import {
   RefreshCw
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { db } from '@/lib/firebase';
+import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { useAuth } from '@/hooks/use-auth';
 
 interface NotificationPreferences {
   // Delivery Methods
@@ -68,7 +71,9 @@ interface NotificationPreferences {
 
 export function NotificationPreferences() {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [preferences, setPreferences] = useState<NotificationPreferences>({
     inApp: true,
     email: true,
@@ -100,6 +105,30 @@ export function NotificationPreferences() {
     reminderTiming: 'both'
   });
 
+  // Load preferences from Firestore on mount
+  useEffect(() => {
+    const loadPreferences = async () => {
+      if (!user?.uid) {
+        setLoading(false);
+        return;
+      }
+      try {
+        const prefsDoc = await getDoc(doc(db, 'user_preferences', user.uid));
+        if (prefsDoc.exists()) {
+          const data = prefsDoc.data();
+          if (data.notificationPreferences) {
+            setPreferences(prev => ({ ...prev, ...data.notificationPreferences }));
+          }
+        }
+      } catch (error) {
+        console.error('Error loading notification preferences:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadPreferences();
+  }, [user?.uid]);
+
   const handleToggle = (key: keyof NotificationPreferences) => {
     setPreferences(prev => ({
       ...prev,
@@ -108,17 +137,37 @@ export function NotificationPreferences() {
   };
 
   const handleSave = async () => {
+    if (!user?.uid) {
+      toast({
+        title: 'Error',
+        description: 'You must be logged in to save preferences.',
+        variant: 'destructive'
+      });
+      return;
+    }
+    
     setSaving(true);
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    toast({
-      title: 'Preferences Saved',
-      description: 'Your notification preferences have been updated.'
-    });
-    
-    setSaving(false);
+    try {
+      await setDoc(doc(db, 'user_preferences', user.uid), {
+        notificationPreferences: preferences,
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+      
+      toast({
+        title: 'Preferences Saved',
+        description: 'Your notification preferences have been updated.'
+      });
+    } catch (error) {
+      console.error('Error saving notification preferences:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to save preferences. Please try again.',
+        variant: 'destructive'
+      });
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleEnablePush = async () => {

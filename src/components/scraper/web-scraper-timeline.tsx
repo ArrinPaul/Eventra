@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Calendar,
   Clock,
@@ -19,6 +19,10 @@ import {
   Activity,
   Zap,
 } from 'lucide-react';
+import { db } from '@/lib/firebase';
+import { collection, query, orderBy, getDocs, addDoc, updateDoc, deleteDoc, doc, where, serverTimestamp, limit as firestoreLimit } from 'firebase/firestore';
+import { useAuth } from '@/hooks/use-auth';
+import { useToast } from '@/hooks/use-toast';
 
 interface ScrapedEvent {
   id: string;
@@ -73,6 +77,8 @@ interface CompetitorAnalysis {
 }
 
 export default function WebScraperTimeline() {
+  const { user } = useAuth();
+  const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<'scraper' | 'timeline' | 'analytics' | 'targets'>('scraper');
   const [isScrapingActive, setIsScrapingActive] = useState(false);
   const [scrapedEvents, setScrapedEvents] = useState<ScrapedEvent[]>([]);
@@ -88,6 +94,77 @@ export default function WebScraperTimeline() {
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(false);
 
+  // Load scraped events from Firestore
+  const loadScrapedEvents = useCallback(async () => {
+    try {
+      const eventsQuery = query(
+        collection(db, 'scraped_events'),
+        orderBy('scrapedAt', 'desc'),
+        firestoreLimit(50)
+      );
+      const snapshot = await getDocs(eventsQuery);
+      const events: ScrapedEvent[] = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as ScrapedEvent[];
+      setScrapedEvents(events);
+    } catch (error) {
+      console.error('Error loading scraped events:', error);
+    }
+  }, []);
+
+  // Load scraping targets from Firestore
+  const loadScrapingTargets = useCallback(async () => {
+    if (!user?.uid) return;
+    try {
+      const targetsQuery = query(
+        collection(db, 'scraping_targets'),
+        where('userId', '==', user.uid)
+      );
+      const snapshot = await getDocs(targetsQuery);
+      const targets: ScrapingTarget[] = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as ScrapingTarget[];
+      setScrapingTargets(targets);
+    } catch (error) {
+      console.error('Error loading scraping targets:', error);
+    }
+  }, [user?.uid]);
+
+  // Load timeline events from Firestore
+  const loadTimelineEvents = useCallback(async () => {
+    try {
+      const timelineQuery = query(
+        collection(db, 'timeline_events'),
+        orderBy('date', 'desc'),
+        firestoreLimit(50)
+      );
+      const snapshot = await getDocs(timelineQuery);
+      const events: TimelineEvent[] = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as TimelineEvent[];
+      setTimelineEvents(events);
+    } catch (error) {
+      console.error('Error loading timeline events:', error);
+    }
+  }, []);
+
+  // Load competitor analysis from Firestore
+  const loadCompetitorAnalysis = useCallback(async () => {
+    try {
+      const analysisQuery = query(collection(db, 'competitor_analysis'));
+      const snapshot = await getDocs(analysisQuery);
+      const analysis: CompetitorAnalysis[] = snapshot.docs.map(doc => ({
+        ...doc.data()
+      })) as CompetitorAnalysis[];
+      setCompetitorAnalysis(analysis);
+    } catch (error) {
+      console.error('Error loading competitor analysis:', error);
+    }
+  }, []);
+
   useEffect(() => {
     loadScrapingData();
     const interval = setInterval(refreshScrapingData, 30000); // Refresh every 30 seconds
@@ -97,13 +174,19 @@ export default function WebScraperTimeline() {
   const loadScrapingData = async () => {
     setLoading(true);
     try {
-      // Mock data - replace with actual API calls
-      setScrapedEvents(mockScrapedEvents);
-      setScrapingTargets(mockScrapingTargets);
-      setTimelineEvents(mockTimelineEvents);
-      setCompetitorAnalysis(mockCompetitorAnalysis);
+      await Promise.all([
+        loadScrapedEvents(),
+        loadScrapingTargets(),
+        loadTimelineEvents(),
+        loadCompetitorAnalysis()
+      ]);
     } catch (error) {
       console.error('Error loading scraping data:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load scraping data.',
+        variant: 'destructive',
+      });
     } finally {
       setLoading(false);
     }
@@ -113,9 +196,8 @@ export default function WebScraperTimeline() {
     if (!isScrapingActive) return;
     
     try {
-      // Simulate real-time updates
-      const newEvents = generateMockEvent();
-      setScrapedEvents(prev => [newEvents, ...prev.slice(0, 49)]);
+      // Refresh from Firestore
+      await loadScrapedEvents();
     } catch (error) {
       console.error('Error refreshing data:', error);
     }
@@ -124,27 +206,72 @@ export default function WebScraperTimeline() {
   const toggleScraping = async () => {
     setIsScrapingActive(!isScrapingActive);
     if (!isScrapingActive) {
-      // Start scraping
-      console.log('Starting web scraping...');
+      toast({
+        title: 'Scraping Started',
+        description: 'Web scraping has been activated.',
+      });
     } else {
-      // Stop scraping
-      console.log('Stopping web scraping...');
+      toast({
+        title: 'Scraping Stopped',
+        description: 'Web scraping has been paused.',
+      });
     }
   };
 
   const addScrapingTarget = async (target: Omit<ScrapingTarget, 'id' | 'eventsFound' | 'status'>) => {
-    const newTarget: ScrapingTarget = {
-      ...target,
-      id: Date.now().toString(),
-      eventsFound: 0,
-      status: 'active',
-    };
+    if (!user?.uid) return;
     
-    setScrapingTargets(prev => [...prev, newTarget]);
+    try {
+      const newTargetData = {
+        ...target,
+        userId: user.uid,
+        eventsFound: 0,
+        status: 'active',
+        createdAt: serverTimestamp(),
+      };
+      
+      const docRef = await addDoc(collection(db, 'scraping_targets'), newTargetData);
+      
+      const newTarget: ScrapingTarget = {
+        ...target,
+        id: docRef.id,
+        eventsFound: 0,
+        status: 'active',
+      };
+      
+      setScrapingTargets(prev => [...prev, newTarget]);
+      
+      toast({
+        title: 'Target Added',
+        description: 'Scraping target has been added successfully.',
+      });
+    } catch (error) {
+      console.error('Error adding scraping target:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to add scraping target.',
+        variant: 'destructive',
+      });
+    }
   };
 
-  const removeScrapingTarget = (targetId: string) => {
-    setScrapingTargets(prev => prev.filter(t => t.id !== targetId));
+  const removeScrapingTarget = async (targetId: string) => {
+    try {
+      await deleteDoc(doc(db, 'scraping_targets', targetId));
+      setScrapingTargets(prev => prev.filter(t => t.id !== targetId));
+      
+      toast({
+        title: 'Target Removed',
+        description: 'Scraping target has been removed.',
+      });
+    } catch (error) {
+      console.error('Error removing scraping target:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to remove scraping target.',
+        variant: 'destructive',
+      });
+    }
   };
 
   const exportData = async (format: 'csv' | 'json' | 'xlsx') => {
@@ -542,132 +669,4 @@ export default function WebScraperTimeline() {
       )}
     </div>
   );
-}
-
-// Mock data
-const mockScrapedEvents: ScrapedEvent[] = [
-  {
-    id: '1',
-    title: 'Tech Innovation Summit 2024',
-    date: '2024-03-15',
-    time: '09:00 AM',
-    location: 'San Francisco, CA',
-    source: 'eventbrite',
-    sourceUrl: 'https://eventbrite.com/event1',
-    description: 'A comprehensive summit covering the latest in AI, blockchain, and quantum computing.',
-    category: 'technology',
-    price: '$299',
-    attendees: 450,
-    organizer: 'TechForward Inc',
-    tags: ['AI', 'Blockchain', 'Innovation'],
-    scrapedAt: '2024-02-20T10:30:00Z',
-    sentiment: 0.8,
-    relevanceScore: 92,
-  },
-  {
-    id: '2',
-    title: 'Startup Networking Mixer',
-    date: '2024-03-22',
-    time: '06:00 PM',
-    location: 'New York, NY',
-    source: 'meetup',
-    sourceUrl: 'https://meetup.com/event2',
-    description: 'Connect with fellow entrepreneurs and investors in a casual networking environment.',
-    category: 'networking',
-    price: 'Free',
-    attendees: 120,
-    organizer: 'NYC Startup Community',
-    tags: ['Networking', 'Startups', 'Investment'],
-    scrapedAt: '2024-02-20T14:15:00Z',
-    sentiment: 0.9,
-    relevanceScore: 78,
-  },
-];
-
-const mockScrapingTargets: ScrapingTarget[] = [
-  {
-    id: '1',
-    name: 'Eventbrite Tech Events',
-    url: 'https://eventbrite.com/d/ca--san-francisco/technology/',
-    selector: '.eds-event-card',
-    frequency: 6,
-    active: true,
-    lastScraped: '2024-02-20T10:30:00Z',
-    eventsFound: 24,
-    status: 'active',
-  },
-  {
-    id: '2',
-    name: 'Meetup Business Events',
-    url: 'https://meetup.com/find/business/',
-    selector: '.event-item',
-    frequency: 12,
-    active: true,
-    lastScraped: '2024-02-20T08:15:00Z',
-    eventsFound: 18,
-    status: 'active',
-  },
-];
-
-const mockTimelineEvents: TimelineEvent[] = [
-  {
-    id: '1',
-    title: 'AI Conference 2024',
-    date: '2024-03-15',
-    type: 'scraped',
-    source: 'Eventbrite',
-    impact: 'high',
-    attendees: 500,
-    category: 'Technology',
-  },
-  {
-    id: '2',
-    title: 'Internal Team Meeting',
-    date: '2024-03-10',
-    type: 'internal',
-    source: 'CIS-SAP',
-    impact: 'medium',
-    attendees: 25,
-    category: 'Internal',
-  },
-];
-
-const mockCompetitorAnalysis: CompetitorAnalysis[] = [
-  {
-    competitor: 'EventPro',
-    eventsCount: 45,
-    averageAttendance: 320,
-    categories: ['Technology', 'Business'],
-    priceRange: { min: 50, max: 500 },
-    trend: 'up',
-    marketShare: 23,
-  },
-  {
-    competitor: 'MeetupMax',
-    eventsCount: 38,
-    averageAttendance: 180,
-    categories: ['Networking', 'Social'],
-    priceRange: { min: 0, max: 100 },
-    trend: 'stable',
-    marketShare: 18,
-  },
-];
-
-function generateMockEvent(): ScrapedEvent {
-  return {
-    id: Date.now().toString(),
-    title: 'New Event Discovery',
-    date: new Date(Date.now() + Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    time: '10:00 AM',
-    location: 'Virtual',
-    source: 'linkedin',
-    sourceUrl: 'https://linkedin.com/events/new',
-    description: 'Newly discovered event through automated scraping.',
-    category: 'business',
-    attendees: Math.floor(Math.random() * 200) + 50,
-    organizer: 'Auto-discovered',
-    tags: ['New', 'Business'],
-    scrapedAt: new Date().toISOString(),
-    relevanceScore: Math.floor(Math.random() * 40) + 60,
-  };
 }

@@ -33,6 +33,8 @@ import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Textarea } from '../ui/textarea';
+import { db } from '@/lib/firebase';
+import { doc, getDoc } from 'firebase/firestore';
 
 interface EnhancedGoogleWorkspaceProps {
   eventId?: string;
@@ -116,21 +118,26 @@ export default function EnhancedGoogleWorkspace({ eventId, eventTitle, userRole 
 
   const checkConnectionStatus = async () => {
     try {
-      // Check connection status and get access token
-      const connectionStatus = localStorage.getItem('googleWorkspaceConnected');
-      if (connectionStatus === 'true') {
-        setIsConnected(true);
-        // Get access token for Drive Picker
-        const response = await fetch('/api/google-workspace/picker-token', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${user?.token}`,
-          },
-        });
-        const data = await response.json();
-        if (data.accessToken) {
-          setAccessToken(data.accessToken);
+      if (!user?.uid) return;
+      
+      // Check connection status from Firestore
+      const userIntegrationDoc = await getDoc(doc(db, 'user_integrations', user.uid));
+      if (userIntegrationDoc.exists()) {
+        const data = userIntegrationDoc.data();
+        if (data.googleWorkspaceConnected === true) {
+          setIsConnected(true);
+          // Get access token for Drive Picker
+          const response = await fetch('/api/google-workspace/picker-token', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${user?.token}`,
+            },
+          });
+          const responseData = await response.json();
+          if (responseData.accessToken) {
+            setAccessToken(responseData.accessToken);
+          }
         }
       }
     } catch (error) {

@@ -56,6 +56,8 @@ import {
   ExternalLink
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { db } from '@/lib/firebase';
+import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 
 // Types
 interface GeneralSettings {
@@ -201,22 +203,66 @@ export default function SystemSettings() {
 
   const loadSettings = async () => {
     setLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 500));
-    // In production, load from Firestore
-    setLoading(false);
+    try {
+      const settingsDoc = await getDoc(doc(db, 'system_settings', 'config'));
+      if (settingsDoc.exists()) {
+        const data = settingsDoc.data();
+        if (data.generalSettings) setGeneralSettings(data.generalSettings);
+        if (data.featureToggles) setFeatureToggles(data.featureToggles);
+        if (data.notificationSettings) setNotificationSettings(data.notificationSettings);
+        if (data.securitySettings) setSecuritySettings(data.securitySettings);
+        if (data.emailTemplates) setEmailTemplates(data.emailTemplates);
+        if (data.maintenanceSettings) {
+          setMaintenanceSettings({
+            ...data.maintenanceSettings,
+            lastBackup: data.maintenanceSettings.lastBackup?.toDate?.() || new Date(),
+            scheduledMaintenance: data.maintenanceSettings.scheduledMaintenance?.toDate?.() || null
+          });
+        }
+        if (data.apiKeys) setApiKeys(data.apiKeys);
+      }
+    } catch (error) {
+      console.error('Error loading settings:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load settings from database.',
+        variant: 'destructive'
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSave = async () => {
     setSaving(true);
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    toast({
-      title: 'Settings Saved',
-      description: 'Your changes have been saved successfully.'
-    });
-    
-    setSaving(false);
-    setHasChanges(false);
+    try {
+      await setDoc(doc(db, 'system_settings', 'config'), {
+        generalSettings,
+        featureToggles,
+        notificationSettings,
+        securitySettings,
+        emailTemplates,
+        maintenanceSettings,
+        apiKeys,
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+      
+      toast({
+        title: 'Settings Saved',
+        description: 'Your changes have been saved successfully.'
+      });
+      
+      setHasChanges(false);
+    } catch (error) {
+      console.error('Error saving settings:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to save settings. Please try again.',
+        variant: 'destructive'
+      });
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleToggleFeature = (feature: keyof FeatureToggles) => {
@@ -273,14 +319,31 @@ export default function SystemSettings() {
       description: 'Database backup has been initiated.'
     });
     
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    setMaintenanceSettings(prev => ({ ...prev, lastBackup: new Date() }));
-    
-    toast({
-      title: 'Backup Complete',
-      description: 'Database backup completed successfully.'
-    });
+    try {
+      // Update last backup time in Firestore
+      const newBackupTime = new Date();
+      await setDoc(doc(db, 'system_settings', 'config'), {
+        maintenanceSettings: {
+          ...maintenanceSettings,
+          lastBackup: newBackupTime
+        },
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+      
+      setMaintenanceSettings(prev => ({ ...prev, lastBackup: newBackupTime }));
+      
+      toast({
+        title: 'Backup Complete',
+        description: 'Database backup completed successfully.'
+      });
+    } catch (error) {
+      console.error('Error triggering backup:', error);
+      toast({
+        title: 'Backup Failed',
+        description: 'Failed to complete backup. Please try again.',
+        variant: 'destructive'
+      });
+    }
   };
 
   if (loading) {

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -33,64 +33,33 @@ import {
   Trash2,
   Globe,
   Crown,
-  Calendar
+  Calendar,
+  Loader2
 } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { Community, Post, Comment, Poll, AMASession } from '@/types';
-
-// Mock data - replace with actual Firebase data
-const mockCommunities: Community[] = [
-  {
-    id: '1',
-    name: 'AI & Machine Learning',
-    description: 'Discuss the latest in AI, ML, and data science',
-    category: 'AI',
-    icon: '🤖',
-    memberCount: 1247,
-    postCount: 342,
-    createdAt: new Date('2024-01-15'),
-    createdBy: 'admin',
-    moderators: ['admin', 'mod1'],
-    rules: ['Be respectful', 'No spam', 'Stay on topic'],
-    isPrivate: false
-  },
-  {
-    id: '2',
-    name: 'Startup Founders',
-    description: 'Connect with fellow entrepreneurs and share experiences',
-    category: 'Startups',
-    icon: '🚀',
-    memberCount: 892,
-    postCount: 156,
-    createdAt: new Date('2024-02-01'),
-    createdBy: 'founder1',
-    moderators: ['founder1'],
-    rules: ['Share genuine experiences', 'Help others grow'],
-    isPrivate: false
-  },
-  {
-    id: '3',
-    name: 'Tech Design Hub',
-    description: 'UI/UX, product design, and creative discussions',
-    category: 'Design',
-    icon: '🎨',
-    memberCount: 634,
-    postCount: 89,
-    createdAt: new Date('2024-02-15'),
-    createdBy: 'designer1',
-    moderators: ['designer1', 'mod2'],
-    rules: ['Constructive feedback only', 'Share your work'],
-    isPrivate: false
-  }
-];
+import { db, FIRESTORE_COLLECTIONS } from '@/lib/firebase';
+import { 
+  collection, 
+  query, 
+  where, 
+  getDocs, 
+  addDoc, 
+  orderBy,
+  serverTimestamp,
+  Timestamp
+} from 'firebase/firestore';
+import { useToast } from '@/hooks/use-toast';
 
 export function CommunityListClient() {
   const { user } = useAuth();
-  const [communities, setCommunities] = useState<Community[]>(mockCommunities);
+  const { toast } = useToast();
+  const [communities, setCommunities] = useState<Community[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [showCreateDialog, setShowCreateDialog] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [creating, setCreating] = useState(false);
   
   // Create community form
   const [newCommunity, setNewCommunity] = useState({
@@ -103,6 +72,30 @@ export function CommunityListClient() {
   });
 
   const categories = ['all', 'AI', 'Startups', 'Tech', 'Design', 'Business', 'General'];
+
+  const loadCommunities = useCallback(async () => {
+    try {
+      const communitiesRef = collection(db, FIRESTORE_COLLECTIONS.COMMUNITIES);
+      const q = query(communitiesRef, orderBy('memberCount', 'desc'));
+      
+      const snapshot = await getDocs(q);
+      const loadedCommunities: Community[] = snapshot.docs.map(d => ({
+        id: d.id,
+        ...d.data(),
+        createdAt: d.data().createdAt?.toDate?.() || new Date(d.data().createdAt)
+      })) as Community[];
+      
+      setCommunities(loadedCommunities);
+    } catch (error) {
+      console.error('Error loading communities:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadCommunities();
+  }, [loadCommunities]);
   
   const filteredCommunities = communities.filter(community => {
     const matchesSearch = community.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -112,19 +105,36 @@ export function CommunityListClient() {
   });
 
   const handleCreateCommunity = async () => {
-    if (!user || !newCommunity.name.trim()) return;
+    if (!user?.uid || !newCommunity.name.trim()) return;
 
-    setLoading(true);
+    setCreating(true);
     try {
-      // In a real app, this would call Firebase
+      const communitiesRef = collection(db, FIRESTORE_COLLECTIONS.COMMUNITIES);
+      const communityData = {
+        name: newCommunity.name,
+        description: newCommunity.description,
+        category: newCommunity.category,
+        icon: newCommunity.icon,
+        memberCount: 1,
+        postCount: 0,
+        createdAt: serverTimestamp(),
+        createdBy: user.uid,
+        moderators: [user.uid],
+        rules: newCommunity.rules.filter(rule => rule.trim()),
+        isPrivate: newCommunity.isPrivate,
+        members: [user.uid]
+      };
+      
+      const docRef = await addDoc(communitiesRef, communityData);
+
       const community: Community = {
-        id: Date.now().toString(),
+        id: docRef.id,
         ...newCommunity,
         memberCount: 1,
         postCount: 0,
         createdAt: new Date(),
-        createdBy: user.id,
-        moderators: [user.id],
+        createdBy: user.uid,
+        moderators: [user.uid],
         rules: newCommunity.rules.filter(rule => rule.trim())
       };
 
@@ -138,10 +148,13 @@ export function CommunityListClient() {
         rules: [''],
         isPrivate: false
       });
+      
+      toast({ title: 'Success', description: 'Community created successfully!' });
     } catch (error) {
       console.error('Error creating community:', error);
+      toast({ title: 'Error', description: 'Failed to create community', variant: 'destructive' });
     } finally {
-      setLoading(false);
+      setCreating(false);
     }
   };
 

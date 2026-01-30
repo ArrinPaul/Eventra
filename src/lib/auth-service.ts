@@ -18,6 +18,7 @@ import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from './firebase';
 import { FIRESTORE_COLLECTIONS } from './firebase';
 import { EventOSRole } from './eventos-config';
+import { getFirebaseErrorMessage, isFirebaseError } from './utils';
 
 // Google Auth Provider
 const googleProvider = new GoogleAuthProvider();
@@ -99,9 +100,9 @@ export async function signInWithGoogle(): Promise<AuthUser | null> {
       onboardingCompleted: userData.onboardingCompleted ?? false,
       organizationId: userData.organizationId,
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Google sign-in error:', error);
-    throw new Error(error.message || 'Failed to sign in with Google');
+    throw new Error(getFirebaseErrorMessage(error));
   }
 }
 
@@ -139,15 +140,9 @@ export async function signInWithEmail(email: string, password: string): Promise<
       onboardingCompleted: userData.onboardingCompleted ?? false,
       organizationId: userData.organizationId,
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Email sign-in error:', error);
-    if (error.code === 'auth/user-not-found') {
-      throw new Error('No account found with this email. Please register first.');
-    }
-    if (error.code === 'auth/wrong-password') {
-      throw new Error('Incorrect password. Please try again.');
-    }
-    throw new Error(error.message || 'Failed to sign in');
+    throw new Error(getFirebaseErrorMessage(error));
   }
 }
 
@@ -194,15 +189,9 @@ export async function signUpWithEmail(data: SignupData): Promise<AuthUser | null
       role: data.role,
       onboardingCompleted: false,
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Email sign-up error:', error);
-    if (error.code === 'auth/email-already-in-use') {
-      throw new Error('An account with this email already exists.');
-    }
-    if (error.code === 'auth/weak-password') {
-      throw new Error('Password is too weak. Please use at least 6 characters.');
-    }
-    throw new Error(error.message || 'Failed to create account');
+    throw new Error(getFirebaseErrorMessage(error));
   }
 }
 
@@ -213,9 +202,9 @@ export async function signOutUser(): Promise<void> {
   try {
     await signOut(auth);
     clearAuthCookies();
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Sign out error:', error);
-    throw new Error(error.message || 'Failed to sign out');
+    throw new Error(getFirebaseErrorMessage(error));
   }
 }
 
@@ -225,12 +214,9 @@ export async function signOutUser(): Promise<void> {
 export async function resetPassword(email: string): Promise<void> {
   try {
     await sendPasswordResetEmail(auth, email);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Password reset error:', error);
-    if (error.code === 'auth/user-not-found') {
-      throw new Error('No account found with this email.');
-    }
-    throw new Error(error.message || 'Failed to send reset email');
+    throw new Error(getFirebaseErrorMessage(error));
   }
 }
 
@@ -287,9 +273,9 @@ export async function updateUserProfile(
     if (data.role) {
       setAuthCookies(uid, data.role);
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error updating user profile:', error);
-    throw new Error(error.message || 'Failed to update profile');
+    throw new Error(getFirebaseErrorMessage(error));
   }
 }
 

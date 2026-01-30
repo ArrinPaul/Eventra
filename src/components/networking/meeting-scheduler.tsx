@@ -1,11 +1,11 @@
 'use client';
 
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Calendar, Clock, Video, Phone, MapPin, Users, Plus, Check,
   ChevronLeft, ChevronRight, X, Edit, Trash2, Bell, Link,
-  ExternalLink, Copy, CalendarPlus, RefreshCw, Filter, Search
+  ExternalLink, Copy, CalendarPlus, RefreshCw, Filter, Search, Loader2
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -46,6 +46,21 @@ import {
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
+import { db } from '@/lib/firebase';
+import { 
+  collection, 
+  query, 
+  where, 
+  orderBy, 
+  onSnapshot, 
+  addDoc, 
+  updateDoc, 
+  deleteDoc,
+  doc, 
+  serverTimestamp,
+  Timestamp,
+  limit
+} from 'firebase/firestore';
 
 // Types
 export interface ScheduledMeeting {
@@ -98,97 +113,12 @@ interface MeetingSchedulerProps {
   defaultMeetingType?: 'video' | 'phone' | 'in-person' | 'coffee-chat';
 }
 
-// Mock data
-const MOCK_MEETINGS: ScheduledMeeting[] = [
-  {
-    id: 'meet-1',
-    title: 'Coffee Chat with Sarah',
-    description: 'Discussing product roadmap and collaboration opportunities',
-    type: 'video',
-    startTime: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000 + 10 * 60 * 60 * 1000),
-    endTime: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000 + 10.5 * 60 * 60 * 1000),
-    duration: 30,
-    timezone: 'America/New_York',
-    meetingLink: 'https://meet.google.com/abc-defg-hij',
-    organizer: {
-      userId: 'current-user',
-      name: 'You',
-      email: 'you@example.com',
-      status: 'accepted',
-      isOrganizer: true,
-    },
-    participants: [
-      {
-        userId: 'user-1',
-        name: 'Sarah Chen',
-        email: 'sarah@techcorp.com',
-        status: 'accepted',
-      },
-    ],
-    status: 'confirmed',
-    reminder: 15,
-    createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000),
-  },
-  {
-    id: 'meet-2',
-    title: 'Mentorship Session',
-    description: 'Weekly mentorship call',
-    type: 'video',
-    startTime: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000 + 14 * 60 * 60 * 1000),
-    endTime: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000 + 15 * 60 * 60 * 1000),
-    duration: 60,
-    timezone: 'America/New_York',
-    meetingLink: 'https://zoom.us/j/123456789',
-    organizer: {
-      userId: 'user-4',
-      name: 'David Kim',
-      email: 'david@innovatetech.com',
-      status: 'accepted',
-      isOrganizer: true,
-    },
-    participants: [
-      {
-        userId: 'current-user',
-        name: 'You',
-        email: 'you@example.com',
-        status: 'accepted',
-      },
-    ],
-    status: 'confirmed',
-    reminder: 30,
-    isRecurring: true,
-    recurringPattern: 'weekly',
-    createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-  },
-  {
-    id: 'meet-3',
-    title: 'Networking Lunch',
-    type: 'in-person',
-    startTime: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000 + 12 * 60 * 60 * 1000),
-    endTime: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000 + 13 * 60 * 60 * 1000),
-    duration: 60,
-    timezone: 'America/New_York',
-    location: 'Blue Bottle Coffee, Downtown',
-    organizer: {
-      userId: 'current-user',
-      name: 'You',
-      email: 'you@example.com',
-      status: 'accepted',
-      isOrganizer: true,
-    },
-    participants: [
-      {
-        userId: 'user-3',
-        name: 'Emily Watson',
-        email: 'emily@designstudio.com',
-        status: 'pending',
-      },
-    ],
-    status: 'pending',
-    reminder: 60,
-    createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-  },
-];
+// Helper to convert Firestore timestamp to Date
+const toDate = (timestamp: Timestamp | Date | undefined): Date => {
+  if (!timestamp) return new Date();
+  if (timestamp instanceof Timestamp) return timestamp.toDate();
+  return timestamp;
+};
 
 const MEETING_TYPES = [
   { value: 'video', label: 'Video Call', icon: Video, color: 'text-blue-500' },
@@ -225,13 +155,67 @@ export default function MeetingScheduler({
   const { toast } = useToast();
 
   // State
-  const [meetings, setMeetings] = useState<ScheduledMeeting[]>(MOCK_MEETINGS);
+  const [meetings, setMeetings] = useState<ScheduledMeeting[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
   const [showNewMeetingDialog, setShowNewMeetingDialog] = useState(!!connectionId);
   const [selectedMeeting, setSelectedMeeting] = useState<ScheduledMeeting | null>(null);
   const [activeTab, setActiveTab] = useState<'upcoming' | 'past' | 'pending'>('upcoming');
   const [searchQuery, setSearchQuery] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Load meetings from Firestore
+  useEffect(() => {
+    if (!user?.id) {
+      setIsLoading(false);
+      return;
+    }
+
+    const meetingsRef = collection(db, 'scheduled_meetings');
+    const q = query(
+      meetingsRef,
+      where('participantIds', 'array-contains', user.id),
+      orderBy('startTime', 'asc'),
+      limit(100)
+    );
+
+    const unsubscribe = onSnapshot(q,
+      (snapshot) => {
+        const loadedMeetings: ScheduledMeeting[] = snapshot.docs.map(doc => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            title: data.title,
+            description: data.description,
+            type: data.type,
+            startTime: toDate(data.startTime),
+            endTime: toDate(data.endTime),
+            duration: data.duration,
+            timezone: data.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone,
+            location: data.location,
+            meetingLink: data.meetingLink,
+            organizer: data.organizer,
+            participants: data.participants || [],
+            status: data.status,
+            reminder: data.reminder || 15,
+            notes: data.notes,
+            createdAt: toDate(data.createdAt),
+            isRecurring: data.isRecurring,
+            recurringPattern: data.recurringPattern,
+          };
+        });
+        setMeetings(loadedMeetings);
+        setIsLoading(false);
+      },
+      (error) => {
+        console.error('Error loading meetings:', error);
+        setIsLoading(false);
+      }
+    );
+
+    return () => unsubscribe();
+  }, [user?.id]);
 
   // New meeting form state
   const [newMeeting, setNewMeeting] = useState({

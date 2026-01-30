@@ -26,8 +26,10 @@ import {
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { httpsCallable } from 'firebase/functions';
-import { functions } from '@/lib/firebase';
+import { functions, db } from '@/lib/firebase';
+import { collection, query, where, orderBy, getDocs, addDoc, updateDoc, doc, serverTimestamp } from 'firebase/firestore';
 import { useAuth } from '@/hooks/use-auth';
+import { getErrorMessage } from '@/lib/utils';
 import dynamic from 'next/dynamic';
 
 // Dynamically import ReactQuill to avoid SSR issues
@@ -91,27 +93,35 @@ const NotationClient: React.FC<NotationClientProps> = ({ eventId, sessionId, use
 
     setLoading(true);
     try {
-      // In a real implementation, you'd call a Firebase function to get notations
-      // For now, we'll simulate with local data
-      const mockNotations: Notation[] = [
-        {
-          id: '1',
-          title: 'AI Conference Session Notes',
-          content: '<h2>Machine Learning Trends</h2><p>Key insights from the session...</p>',
-          eventId: eventId || 'event1',
-          sessionId: sessionId || 'session1',
-          tags: ['AI', 'machine-learning', 'trends'],
-          isPublic: false,
-          collaborators: [user.uid],
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          version: 1,
-          lastEditBy: user.uid,
-          aiSummary: 'Discussion on latest ML trends and applications in industry'
-        }
-      ];
+      // Query notations from Firestore
+      const notationsQuery = query(
+        collection(db, 'notations'),
+        where('collaborators', 'array-contains', user.uid),
+        orderBy('updatedAt', 'desc')
+      );
       
-      setNotations(mockNotations);
+      const snapshot = await getDocs(notationsQuery);
+      const loadedNotations: Notation[] = snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          title: data.title,
+          content: data.content,
+          eventId: data.eventId,
+          sessionId: data.sessionId,
+          tags: data.tags || [],
+          isPublic: data.isPublic || false,
+          collaborators: data.collaborators || [],
+          createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : new Date().toISOString(),
+          updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate().toISOString() : new Date().toISOString(),
+          version: data.version || 1,
+          lastEditBy: data.lastEditBy || user.uid,
+          aiSummary: data.aiSummary,
+          aiTags: data.aiTags
+        };
+      });
+      
+      setNotations(loadedNotations);
     } catch (error) {
       console.error('Error loading notations:', error);
       toast({
@@ -178,11 +188,11 @@ const NotationClient: React.FC<NotationClientProps> = ({ eventId, sessionId, use
       
       setIsCreating(false);
       resetForm();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error creating notation:', error);
       toast({
         title: "Error",
-        description: error.message || 'Failed to create notation',
+        description: getErrorMessage(error),
         variant: "destructive"
       });
     } finally {
@@ -215,11 +225,11 @@ const NotationClient: React.FC<NotationClientProps> = ({ eventId, sessionId, use
         description: "Notation updated successfully"
       });
       setIsEditing(false);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error updating notation:', error);
       toast({
         title: "Error",
-        description: error.message || 'Failed to update notation',
+        description: getErrorMessage(error),
         variant: "destructive"
       });
     } finally {
@@ -242,11 +252,11 @@ const NotationClient: React.FC<NotationClientProps> = ({ eventId, sessionId, use
       });
       setShareDialogOpen(false);
       setCollaboratorEmails('');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error sharing notation:', error);
       toast({
         title: "Error",
-        description: error.message || 'Failed to share notation',
+        description: getErrorMessage(error),
         variant: "destructive"
       });
     } finally {
@@ -263,11 +273,11 @@ const NotationClient: React.FC<NotationClientProps> = ({ eventId, sessionId, use
         description: "AI summary generated"
       });
       // In real app, reload notations to get the new summary
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error generating AI summary:', error);
       toast({
         title: "Error",
-        description: error.message || 'Failed to generate AI summary',
+        description: getErrorMessage(error),
         variant: "destructive"
       });
     } finally {
@@ -287,11 +297,11 @@ const NotationClient: React.FC<NotationClientProps> = ({ eventId, sessionId, use
         title: "Success",
         description: "PDF export started"
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error exporting PDF:', error);
       toast({
         title: "Error",
-        description: error.message || 'Failed to export PDF',
+        description: getErrorMessage(error),
         variant: "destructive"
       });
     } finally {

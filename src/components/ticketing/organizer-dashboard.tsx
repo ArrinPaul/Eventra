@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -38,20 +38,86 @@ import {
   BarChart3,
   PieChart,
   Filter,
-  Search
+  Search,
+  Loader2
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useAuth } from '@/hooks/use-auth';
+import { db, FIRESTORE_COLLECTIONS } from '@/lib/firebase';
+import { 
+  collection, 
+  query, 
+  where, 
+  getDocs, 
+  getDoc,
+  doc, 
+  addDoc, 
+  updateDoc, 
+  deleteDoc,
+  orderBy,
+  Timestamp,
+  serverTimestamp
+} from 'firebase/firestore';
 import { EventTicketing, TicketType, EventTicket, WaitlistEntry } from '@/types';
+import { useToast } from '@/hooks/use-toast';
+
+interface LocalEventTicketing {
+  id: string;
+  title: string;
+  description?: string;
+  startDate: Date;
+  endDate?: Date;
+  location?: string;
+  type?: string;
+  organizerId?: string;
+  timezone?: string;
+  venue?: { name?: string; address?: string; capacity?: number };
+  ticketTypes: TicketType[];
+  totalCapacity: number;
+  currentAttendees: number;
+  waitlistEntries: WaitlistEntry[];
+  ticketingAnalytics: {
+    totalRevenue: number;
+    ticketsSold: number;
+    conversionRate: number;
+    refundRequests: number;
+    checkInRate: number;
+    popularTicketTypes: { typeId: string; sold: number }[];
+    salesOverTime: unknown[];
+    demographics: { ageGroups: unknown[]; roles: unknown[]; companies: unknown[] };
+  };
+  discountCodes: unknown[];
+  checkInSettings: unknown;
+  refundPolicy: unknown;
+  eventOrganizer: { id: string; name: string; email: string; verificationStatus: string };
+  attendees: string[];
+  tags: string[];
+  category?: string;
+  isPublic: boolean;
+  isPublished: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+interface LocalAttendee {
+  id: string;
+  name: string;
+  email: string;
+  ticketType: string;
+  status: string;
+  checkedIn: boolean;
+  userId?: string;
+}
 
 export function OrganizerDashboard() {
   const { user } = useAuth();
-  const [events, setEvents] = useState<EventTicketing[]>([]);
-  const [selectedEvent, setSelectedEvent] = useState<EventTicketing | null>(null);
+  const { toast } = useToast();
+  const [events, setEvents] = useState<LocalEventTicketing[]>([]);
+  const [selectedEvent, setSelectedEvent] = useState<LocalEventTicketing | null>(null);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showTicketTypeDialog, setShowTicketTypeDialog] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
   
   // Event form state
@@ -82,152 +148,226 @@ export function OrganizerDashboard() {
 
   const [attendeesSearch, setAttendeesSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [attendees, setAttendees] = useState<LocalAttendee[]>([]);
+  const [loadingAttendees, setLoadingAttendees] = useState(false);
 
-  useEffect(() => {
-    loadEvents();
-  }, [user]);
-
-  const loadEvents = async () => {
+  const loadEvents = useCallback(async () => {
+    if (!user?.uid) return;
+    
     setLoading(true);
     try {
-      // Mock data for organizer events
-      const mockEvents: EventTicketing[] = [
-        {
-          id: 'event1',
-          title: 'Tech Summit 2024',
-          description: 'Annual technology conference featuring industry leaders and innovations',
-          startDate: new Date('2024-03-15T09:00:00'),
-          endDate: new Date('2024-03-15T18:00:00'),
-          location: 'Convention Center, Tech City',
-          type: 'conference',
-          organizerId: user?.id || 'org1',
-          timezone: 'UTC+5:30',
-          venue: {
-            name: 'Convention Center',
-            address: 'Tech City, India',
-            capacity: 500
-          },
-          ticketTypes: [
-            {
-              id: '1',
-              name: 'Early Bird',
-              description: 'Limited time special pricing',
-              price: 1999,
-              totalAvailable: 50,
-              sold: 45,
-              maxPerPerson: 2,
-              saleStartDate: new Date('2024-02-01'),
-              saleEndDate: new Date('2024-02-29'),
-              benefits: ['Event access', 'Welcome kit', 'Networking lunch'],
-              color: '#10B981'
-            },
-            {
-              id: '2',
-              name: 'General Admission',
-              description: 'Standard event access',
-              price: 2999,
-              totalAvailable: 300,
-              sold: 120,
-              maxPerPerson: 4,
-              saleStartDate: new Date('2024-02-15'),
-              saleEndDate: new Date('2024-03-14'),
-              benefits: ['Event access', 'Welcome kit'],
-              color: '#3B82F6'
-            }
-          ],
-          totalCapacity: 350,
-          currentAttendees: 165,
-          waitlistEntries: [
-            {
-              id: 'w1',
-              userId: 'user1',
-              eventId: 'event1',
-              position: 1,
-              joinedAt: new Date(),
-              notified: false
-            }
-          ],
+      const eventsRef = collection(db, FIRESTORE_COLLECTIONS.EVENTS);
+      const q = query(
+        eventsRef,
+        where('organizerId', '==', user.uid),
+        orderBy('startDate', 'desc')
+      );
+      
+      const snapshot = await getDocs(q);
+      const loadedEvents: LocalEventTicketing[] = [];
+      
+      for (const eventDoc of snapshot.docs) {
+        const data = eventDoc.data();
+        
+        // Get ticket types from subcollection
+        const ticketTypesRef = collection(db, FIRESTORE_COLLECTIONS.EVENTS, eventDoc.id, 'ticketTypes');
+        const ticketTypesSnapshot = await getDocs(ticketTypesRef);
+        const ticketTypes: TicketType[] = ticketTypesSnapshot.docs.map(d => ({
+          id: d.id,
+          ...d.data()
+        } as TicketType));
+        
+        // Get sold tickets count
+        const ticketsRef = collection(db, 'tickets');
+        const soldQuery = query(
+          ticketsRef,
+          where('eventId', '==', eventDoc.id),
+          where('status', '==', 'confirmed')
+        );
+        const soldSnapshot = await getDocs(soldQuery);
+        const soldTickets = soldSnapshot.docs.length;
+        
+        // Get checked in count
+        const checkedInQuery = query(
+          ticketsRef,
+          where('eventId', '==', eventDoc.id),
+          where('checkInStatus', '==', 'checked_in')
+        );
+        const checkedInSnapshot = await getDocs(checkedInQuery);
+        const checkedIn = checkedInSnapshot.docs.length;
+        
+        loadedEvents.push({
+          id: eventDoc.id,
+          title: data.title || 'Untitled',
+          description: data.description,
+          startDate: data.startDate?.toDate?.() || new Date(data.startDate),
+          endDate: data.endDate?.toDate?.() || new Date(data.endDate),
+          location: data.location,
+          type: data.type || 'event',
+          organizerId: data.organizerId,
+          timezone: data.timezone || 'UTC',
+          venue: data.venue || { name: data.location, address: data.location, capacity: data.capacity },
+          ticketTypes,
+          totalCapacity: data.capacity || 100,
+          currentAttendees: soldTickets,
+          waitlistEntries: [],
           ticketingAnalytics: {
-            totalRevenue: 420000,
-            ticketsSold: 165,
-            conversionRate: 0.68,
-            refundRequests: 3,
-            checkInRate: 0.92,
-            popularTicketTypes: [
-              { typeId: '2', sold: 120 },
-              { typeId: '1', sold: 45 }
-            ],
+            totalRevenue: data.totalRevenue || 0,
+            ticketsSold: soldTickets,
+            conversionRate: data.viewCount > 0 ? (soldTickets / data.viewCount) : 0,
+            refundRequests: data.refundRequests || 0,
+            checkInRate: soldTickets > 0 ? (checkedIn / soldTickets) : 0,
+            popularTicketTypes: [],
             salesOverTime: [],
-            demographics: {
-              ageGroups: [
-                { range: '18-25', count: 45 },
-                { range: '26-35', count: 78 },
-                { range: '36-45', count: 32 },
-                { range: '46+', count: 10 }
-              ],
-              roles: [
-                { role: 'student', count: 55 },
-                { role: 'professional', count: 100 },
-                { role: 'organizer', count: 10 }
-              ],
-              companies: [
-                { company: 'TechCorp', count: 15 },
-                { company: 'StartupXYZ', count: 12 },
-                { company: 'BigTech Inc', count: 8 }
-              ]
-            }
+            demographics: { ageGroups: [], roles: [], companies: [] }
           },
           discountCodes: [],
-          checkInSettings: {
+          checkInSettings: data.checkInSettings || {
             enableQrCode: true,
             enableManualCheckIn: true,
             checkInWindow: { startMinutes: 60, endMinutes: 180 },
             requireConfirmation: true,
             sendConfirmationEmail: true
           },
-          refundPolicy: {
+          refundPolicy: data.refundPolicy || {
             allowRefunds: true,
-            refundDeadline: new Date('2024-03-10'),
+            refundDeadline: new Date(),
             refundPercentage: 85,
             processingFee: 50,
-            refundableTicketTypes: ['1', '2']
+            refundableTicketTypes: []
           },
           eventOrganizer: {
-            id: user?.id || 'org1',
-            name: user?.name || 'Event Organizer',
-            email: user?.email || 'organizer@example.com',
+            id: user.uid,
+            name: user.displayName || user.name || 'Organizer',
+            email: user.email || '',
             verificationStatus: 'verified'
           },
-          attendees: [],
-          tags: ['technology', 'networking', 'innovation'],
-          category: 'Technology',
-          isPublic: true,
-          isPublished: true,
-          createdAt: new Date('2024-01-15'),
-          updatedAt: new Date('2024-02-20')
-        }
-      ];
-      setEvents(mockEvents);
-      if (mockEvents.length > 0) {
-        setSelectedEvent(mockEvents[0]);
+          attendees: data.attendees || [],
+          tags: data.tags || [],
+          category: data.category,
+          isPublic: data.isPublic ?? true,
+          isPublished: data.status === 'published',
+          createdAt: data.createdAt?.toDate?.() || new Date(data.createdAt),
+          updatedAt: data.updatedAt?.toDate?.() || new Date()
+        });
+      }
+      
+      setEvents(loadedEvents);
+      if (loadedEvents.length > 0 && !selectedEvent) {
+        setSelectedEvent(loadedEvents[0]);
       }
     } catch (error) {
       console.error('Error loading events:', error);
+      toast({ title: 'Error', description: 'Failed to load events', variant: 'destructive' });
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.uid, selectedEvent, toast]);
+
+  const loadAttendees = useCallback(async (eventId: string) => {
+    setLoadingAttendees(true);
+    try {
+      const ticketsRef = collection(db, 'tickets');
+      const q = query(ticketsRef, where('eventId', '==', eventId));
+      const snapshot = await getDocs(q);
+      
+      const loadedAttendees: LocalAttendee[] = [];
+      
+      for (const ticketDoc of snapshot.docs) {
+        const ticketData = ticketDoc.data();
+        
+        // Get user info
+        let userName = 'Unknown';
+        let userEmail = '';
+        
+        try {
+          const userDoc = await getDoc(doc(db, FIRESTORE_COLLECTIONS.USERS, ticketData.userId));
+          if (userDoc.exists()) {
+            const userData = userDoc.data();
+            userName = userData.displayName || userData.name || 'Unknown';
+            userEmail = userData.email || '';
+          }
+        } catch (e) {
+          console.error('Error loading user:', e);
+        }
+        
+        loadedAttendees.push({
+          id: ticketDoc.id,
+          name: userName,
+          email: userEmail,
+          ticketType: ticketData.ticketTypeName || 'General',
+          status: ticketData.status || 'pending',
+          checkedIn: ticketData.checkInStatus === 'checked_in',
+          userId: ticketData.userId
+        });
+      }
+      
+      setAttendees(loadedAttendees);
+    } catch (error) {
+      console.error('Error loading attendees:', error);
+    } finally {
+      setLoadingAttendees(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (user?.uid) {
+      loadEvents();
+    }
+  }, [user?.uid, loadEvents]);
+
+  useEffect(() => {
+    if (selectedEvent?.id) {
+      loadAttendees(selectedEvent.id);
+    }
+  }, [selectedEvent?.id, loadAttendees]);
 
   const handleCreateEvent = async () => {
+    if (!user?.uid) return;
+    
     setLoading(true);
     try {
-      // Mock implementation - would create event in Firebase
-      const newEvent: EventTicketing = {
-        id: `event_${Date.now()}`,
-        ...eventForm,
-        type: 'conference',
-        organizerId: user?.id || 'org1',
-        timezone: 'UTC+5:30',
+      const eventsRef = collection(db, FIRESTORE_COLLECTIONS.EVENTS);
+      const newEventData = {
+        title: eventForm.title,
+        description: eventForm.description,
+        startDate: Timestamp.fromDate(eventForm.startDate),
+        endDate: Timestamp.fromDate(eventForm.endDate),
+        location: eventForm.location,
+        category: eventForm.category,
+        capacity: eventForm.capacity,
+        isPublic: eventForm.isPublic,
+        tags: eventForm.tags.split(',').map(tag => tag.trim()).filter(Boolean),
+        organizerId: user.uid,
+        status: 'draft',
+        type: 'event',
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        venue: {
+          name: eventForm.location,
+          address: eventForm.location,
+          capacity: eventForm.capacity
+        },
+        soldTickets: 0,
+        totalRevenue: 0,
+        viewCount: 0,
+        refundRequests: 0,
+        checkIns: 0,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      };
+      
+      const docRef = await addDoc(eventsRef, newEventData);
+      
+      const newEvent: LocalEventTicketing = {
+        id: docRef.id,
+        title: eventForm.title,
+        description: eventForm.description,
+        startDate: eventForm.startDate,
+        endDate: eventForm.endDate,
+        location: eventForm.location,
+        type: 'event',
+        organizerId: user.uid,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         venue: {
           name: eventForm.location,
           address: eventForm.location,
@@ -245,11 +385,7 @@ export function OrganizerDashboard() {
           checkInRate: 0,
           popularTicketTypes: [],
           salesOverTime: [],
-          demographics: {
-            ageGroups: [],
-            roles: [],
-            companies: []
-          }
+          demographics: { ageGroups: [], roles: [], companies: [] }
         },
         discountCodes: [],
         checkInSettings: {
@@ -261,19 +397,21 @@ export function OrganizerDashboard() {
         },
         refundPolicy: {
           allowRefunds: true,
-          refundDeadline: new Date(eventForm.startDate.getTime() - 5 * 24 * 60 * 60 * 1000), // 5 days before
+          refundDeadline: new Date(eventForm.startDate.getTime() - 5 * 24 * 60 * 60 * 1000),
           refundPercentage: 85,
           processingFee: 50,
           refundableTicketTypes: []
         },
         eventOrganizer: {
-          id: user?.id || 'org1',
-          name: user?.name || 'Event Organizer',
-          email: user?.email || 'organizer@example.com',
+          id: user.uid,
+          name: user.displayName || user.name || 'Organizer',
+          email: user.email || '',
           verificationStatus: 'verified'
         },
         attendees: [],
         tags: eventForm.tags.split(',').map(tag => tag.trim()).filter(Boolean),
+        category: eventForm.category,
+        isPublic: eventForm.isPublic,
         isPublished: false,
         createdAt: new Date(),
         updatedAt: new Date()
@@ -292,60 +430,88 @@ export function OrganizerDashboard() {
         isPublic: true,
         tags: ''
       });
+      
+      toast({ title: 'Success', description: 'Event created successfully' });
     } catch (error) {
       console.error('Error creating event:', error);
+      toast({ title: 'Error', description: 'Failed to create event', variant: 'destructive' });
     } finally {
       setLoading(false);
     }
   };
 
-  const handleAddTicketType = () => {
+  const handleAddTicketType = async () => {
     if (!selectedEvent) return;
 
-    const newTicketType: TicketType = {
-      id: `ticket_${Date.now()}`,
-      name: ticketTypeForm.name,
-      description: ticketTypeForm.description,
-      price: ticketTypeForm.price,
-      totalAvailable: ticketTypeForm.totalAvailable,
-      sold: 0,
-      maxPerPerson: ticketTypeForm.maxPerPerson,
-      saleStartDate: ticketTypeForm.saleStartDate,
-      saleEndDate: ticketTypeForm.saleEndDate,
-      benefits: ticketTypeForm.benefits.split(',').map(b => b.trim()).filter(Boolean),
-      color: ticketTypeForm.color
-    };
+    try {
+      const ticketTypesRef = collection(db, FIRESTORE_COLLECTIONS.EVENTS, selectedEvent.id, 'ticketTypes');
+      
+      const newTicketTypeData = {
+        name: ticketTypeForm.name,
+        description: ticketTypeForm.description,
+        price: ticketTypeForm.price,
+        totalAvailable: ticketTypeForm.totalAvailable,
+        sold: 0,
+        maxPerPerson: ticketTypeForm.maxPerPerson,
+        saleStartDate: Timestamp.fromDate(ticketTypeForm.saleStartDate),
+        saleEndDate: Timestamp.fromDate(ticketTypeForm.saleEndDate),
+        benefits: ticketTypeForm.benefits.split(',').map(b => b.trim()).filter(Boolean),
+        color: ticketTypeForm.color,
+        createdAt: serverTimestamp()
+      };
+      
+      const docRef = await addDoc(ticketTypesRef, newTicketTypeData);
 
-    const updatedEvent = {
-      ...selectedEvent,
-      ticketTypes: [...selectedEvent.ticketTypes, newTicketType],
-      totalCapacity: selectedEvent.totalCapacity + ticketTypeForm.totalAvailable
-    };
+      const newTicketType: TicketType = {
+        id: docRef.id,
+        name: ticketTypeForm.name,
+        description: ticketTypeForm.description,
+        price: ticketTypeForm.price,
+        totalAvailable: ticketTypeForm.totalAvailable,
+        sold: 0,
+        maxPerPerson: ticketTypeForm.maxPerPerson,
+        saleStartDate: ticketTypeForm.saleStartDate,
+        saleEndDate: ticketTypeForm.saleEndDate,
+        benefits: ticketTypeForm.benefits.split(',').map(b => b.trim()).filter(Boolean),
+        color: ticketTypeForm.color
+      };
 
-    setSelectedEvent(updatedEvent);
-    setEvents(prev => prev.map(e => e.id === selectedEvent.id ? updatedEvent : e));
-    setShowTicketTypeDialog(false);
-    setTicketTypeForm({
-      name: '',
-      description: '',
-      price: 0,
-      totalAvailable: 50,
-      maxPerPerson: 4,
-      saleStartDate: new Date(),
-      saleEndDate: new Date(),
-      benefits: '',
-      color: '#3B82F6'
-    });
+      // Update event capacity
+      const eventRef = doc(db, FIRESTORE_COLLECTIONS.EVENTS, selectedEvent.id);
+      await updateDoc(eventRef, {
+        capacity: selectedEvent.totalCapacity + ticketTypeForm.totalAvailable,
+        updatedAt: serverTimestamp()
+      });
+
+      const updatedEvent = {
+        ...selectedEvent,
+        ticketTypes: [...selectedEvent.ticketTypes, newTicketType],
+        totalCapacity: selectedEvent.totalCapacity + ticketTypeForm.totalAvailable
+      };
+
+      setSelectedEvent(updatedEvent);
+      setEvents(prev => prev.map(e => e.id === selectedEvent.id ? updatedEvent : e));
+      setShowTicketTypeDialog(false);
+      setTicketTypeForm({
+        name: '',
+        description: '',
+        price: 0,
+        totalAvailable: 50,
+        maxPerPerson: 4,
+        saleStartDate: new Date(),
+        saleEndDate: new Date(),
+        benefits: '',
+        color: '#3B82F6'
+      });
+      
+      toast({ title: 'Success', description: 'Ticket type added successfully' });
+    } catch (error) {
+      console.error('Error adding ticket type:', error);
+      toast({ title: 'Error', description: 'Failed to add ticket type', variant: 'destructive' });
+    }
   };
 
-  const mockAttendees = [
-    { id: '1', name: 'Alice Johnson', email: 'alice@example.com', ticketType: 'General Admission', status: 'confirmed', checkedIn: true },
-    { id: '2', name: 'Bob Smith', email: 'bob@example.com', ticketType: 'VIP Pass', status: 'confirmed', checkedIn: false },
-    { id: '3', name: 'Carol Davis', email: 'carol@example.com', ticketType: 'Early Bird', status: 'pending', checkedIn: false },
-    { id: '4', name: 'David Wilson', email: 'david@example.com', ticketType: 'General Admission', status: 'confirmed', checkedIn: true },
-  ];
-
-  const filteredAttendees = mockAttendees.filter(attendee => {
+  const filteredAttendees = attendees.filter(attendee => {
     const matchesSearch = attendee.name.toLowerCase().includes(attendeesSearch.toLowerCase()) ||
                          attendee.email.toLowerCase().includes(attendeesSearch.toLowerCase());
     const matchesStatus = statusFilter === 'all' || attendee.status === statusFilter;
