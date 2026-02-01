@@ -134,9 +134,9 @@ export default function NetworkingClient() {
                 </Avatar>
                 <div className="flex-1">
                     <h3 className="font-semibold text-lg">{profile.name}</h3>
-                    <p className="text-sm text-gray-600 mb-1">{profile.jobTitle || 'Member'}</p>
-                    <p className="text-sm text-gray-500">{profile.company || ''}</p>
-                    <div className="flex items-center gap-1 text-xs text-gray-500 mt-1">
+                    <p className="text-sm text-muted-foreground mb-1">{profile.jobTitle || 'Member'}</p>
+                    <p className="text-sm text-muted-foreground/80">{profile.company || ''}</p>
+                    <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
                         <MapPin className="w-3 h-3" />
                         <span>{profile.location || 'Remote'}</span>
                     </div>
@@ -144,7 +144,7 @@ export default function NetworkingClient() {
             </div>
         </CardHeader>
         <CardContent className="pt-0">
-            <p className="text-sm text-gray-700 mb-4 line-clamp-2">{profile.bio || 'No bio available'}</p>
+            <p className="text-sm text-muted-foreground mb-4 line-clamp-2">{profile.bio || 'No bio available'}</p>
             <div className="mb-4">
                 <div className="flex flex-wrap gap-1">
                     {(profile.skills || []).slice(0, 3).map((skill: string) => (
@@ -212,17 +212,17 @@ export default function NetworkingClient() {
         </div>
         <div className="flex gap-4">
             <Card className="p-4 flex items-center gap-3">
-                <div className="p-2 bg-blue-100 rounded-lg"><Users className="w-5 h-5 text-blue-600" /></div>
+                <div className="p-2 bg-secondary/10 rounded-lg"><Users className="w-5 h-5 text-secondary" /></div>
                 <div>
                     <p className="text-xl font-bold">12</p>
-                    <p className="text-xs text-gray-500">Connections</p>
+                    <p className="text-xs text-muted-foreground">Connections</p>
                 </div>
             </Card>
             <Card className="p-4 flex items-center gap-3">
-                <div className="p-2 bg-green-100 rounded-lg"><Zap className="w-5 h-5 text-green-600" /></div>
+                <div className="p-2 bg-green-500/10 rounded-lg"><Zap className="w-5 h-5 text-green-600" /></div>
                 <div>
                     <p className="text-xl font-bold">5</p>
-                    <p className="text-xs text-gray-500">New Matches</p>
+                    <p className="text-xs text-muted-foreground">New Matches</p>
                 </div>
             </Card>
         </div>
@@ -232,7 +232,7 @@ export default function NetworkingClient() {
         <div className="lg:col-span-3">
             <div className="mb-6 flex gap-4">
                 <div className="flex-1 relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                     <Input 
                         placeholder="Search by name, skills, company..." 
                         value={searchQuery}
@@ -269,27 +269,27 @@ export default function NetworkingClient() {
                         const profile = profiles.find(p => p.id === match.userId);
                         if (!profile) return null;
                         return (
-                            <Card key={match.id} className="border-blue-200 bg-blue-50/20">
+                            <Card key={match.id} className="border-secondary/20 bg-secondary/5">
                                 <CardContent className="p-6">
                                     <div className="flex gap-6">
                                         <div className="flex-1">
                                             <div className="flex items-center gap-2 mb-2">
                                                 <h3 className="font-bold text-lg">{profile.name}</h3>
-                                                <Badge className="bg-gradient-to-r from-blue-500 to-purple-600 border-0">
+                                                <Badge className="bg-gradient-to-r from-secondary to-purple-600 border-0">
                                                     {match.matchScore}% Match
                                                 </Badge>
                                             </div>
-                                            <p className="text-sm text-gray-600 mb-4">{profile.bio}</p>
+                                            <p className="text-sm text-muted-foreground mb-4">{profile.bio}</p>
                                             <div className="grid grid-cols-2 gap-4 text-sm">
                                                 <div>
-                                                    <span className="font-medium text-gray-900">Looking for:</span>
-                                                    <ul className="list-disc list-inside text-gray-600 mt-1">
+                                                    <span className="font-medium text-foreground">Looking for:</span>
+                                                    <ul className="list-disc list-inside text-muted-foreground mt-1">
                                                         {match.lookingFor.map(item => <li key={item}>{item}</li>)}
                                                     </ul>
                                                 </div>
                                                 <div>
-                                                    <span className="font-medium text-gray-900">Goals:</span>
-                                                    <ul className="list-disc list-inside text-gray-600 mt-1">
+                                                    <span className="font-medium text-foreground">Goals:</span>
+                                                    <ul className="list-disc list-inside text-muted-foreground mt-1">
                                                         {match.careerGoals.map(goal => <li key={goal}>{goal}</li>)}
                                                     </ul>
                                                 </div>
@@ -324,7 +324,7 @@ export default function NetworkingClient() {
                                             </Avatar>
                                             <div className="flex-1">
                                                 <h4 className="font-medium">{sender.name}</h4>
-                                                <p className="text-sm text-gray-600">{req.message}</p>
+                                                <p className="text-sm text-muted-foreground">{req.message}</p>
                                             </div>
                                             <div className="flex gap-2">
                                                 <Button size="sm">Accept</Button>

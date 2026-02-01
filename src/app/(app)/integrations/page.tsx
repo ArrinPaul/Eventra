@@ -22,7 +22,7 @@ import GoogleWorkspaceIntegration from '@/components/integrations/google-workspa
 import NotationClient from '@/components/notation/notation-client';
 import N8nAutomation from '@/components/integrations/n8n-automation';
 import AIChatbot from '@/components/ai/ai-chatbot';
-import AIInsightsDashboard from '@/components/ai/ai-insights-dashboard';
+import AnalyticsDashboard from '@/components/analytics/comprehensive-analytics-dashboard';
 import WebScraperTimeline from '@/components/scraper/web-scraper-timeline';
 
 interface IntegrationModule {
@@ -87,8 +87,8 @@ const integrationModules: IntegrationModule[] = [
     title: 'AI Insights Dashboard',
     description: 'Advanced analytics with predictive insights and recommendations',
     icon: Brain,
-    color: 'text-indigo-600',
-    bgColor: 'bg-indigo-50',
+    color: 'text-secondary',
+    bgColor: 'bg-secondary/10',
     category: 'analytics',
     features: ['Predictive Analytics', 'Data Visualization', 'AI Recommendations', 'Export Reports'],
     status: 'active',
@@ -134,7 +134,7 @@ export default function IntegrationsHub() {
       case 'ai-chatbot':
         return <AIChatbot />;
       case 'ai-insights':
-        return <AIInsightsDashboard />;
+        return <AnalyticsDashboard />;
       case 'web-scraper':
         return <WebScraperTimeline />;
       default:

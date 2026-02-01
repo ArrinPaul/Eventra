@@ -164,12 +164,12 @@ export function GamificationClient() {
 
   const getRarityColor = (rarity: string) => {
     switch (rarity) {
-      case 'common': return 'text-gray-600 bg-gray-100';
+      case 'common': return 'text-muted-foreground bg-muted';
       case 'uncommon': return 'text-green-600 bg-green-100';
-      case 'rare': return 'text-blue-600 bg-blue-100';
+      case 'rare': return 'text-secondary bg-secondary/10';
       case 'epic': return 'text-purple-600 bg-purple-100';
       case 'legendary': return 'text-orange-600 bg-orange-100';
-      default: return 'text-gray-600 bg-gray-100';
+      default: return 'text-muted-foreground bg-muted';
     }
   };
 
@@ -231,20 +231,20 @@ export function GamificationClient() {
                   <span>{Math.round(getProgressToNextLevel())}%</span>
                 </div>
                 <Progress value={getProgressToNextLevel()} className="h-3" />
-                <div className="flex justify-between text-xs text-gray-500">
+                <div className="flex justify-between text-xs text-muted-foreground">
                   <span>{userXP.totalXP} XP</span>
                   <span>{getNextLevel()?.requiredXP || userXP.totalXP} XP</span>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4 text-center">
-                <div className="p-3 bg-blue-50 rounded-lg">
-                  <div className="text-2xl font-bold text-blue-600">{earnedAchievements.length}</div>
-                  <div className="text-sm text-gray-600">Achievements</div>
+                <div className="p-3 bg-secondary/10 rounded-lg">
+                  <div className="text-2xl font-bold text-secondary">{earnedAchievements.length}</div>
+                  <div className="text-sm text-muted-foreground">Achievements</div>
                 </div>
-                <div className="p-3 bg-green-50 rounded-lg">
+                <div className="p-3 bg-green-500/10 rounded-lg">
                   <div className="text-2xl font-bold text-green-600">{userTitles.length}</div>
-                  <div className="text-sm text-gray-600">Titles</div>
+                  <div className="text-sm text-muted-foreground">Titles</div>
                 </div>
               </div>
             </div>
@@ -323,7 +323,7 @@ export function GamificationClient() {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle className="flex items-center gap-2">
-                    <Target className="h-5 w-5 text-blue-500" />
+                    <Target className="h-5 w-5 text-secondary" />
                     Active Challenges
                   </CardTitle>
                   <Button variant="outline" size="sm" onClick={() => setActiveTab('challenges')}>
@@ -341,7 +341,7 @@ export function GamificationClient() {
                           {challenge.type}
                         </Badge>
                       </div>
-                      <p className="text-sm text-gray-600 mb-3">{challenge.description}</p>
+                      <p className="text-sm text-muted-foreground mb-3">{challenge.description}</p>
                       
                       <div className="space-y-2">
                         {challenge.tasks.slice(0, 2).map((task) => (
@@ -408,7 +408,7 @@ export function GamificationClient() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Target className="h-5 w-5 text-blue-500" />
+                  <Target className="h-5 w-5 text-secondary" />
                   Available Achievements
                 </CardTitle>
               </CardHeader>
@@ -419,15 +419,15 @@ export function GamificationClient() {
                       <div className="text-2xl grayscale">{achievement.icon}</div>
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
-                          <h4 className="font-medium text-gray-700">{achievement.name}</h4>
+                          <h4 className="font-medium text-muted-foreground">{achievement.name}</h4>
                           <Badge className={getRarityColor(achievement.rarity)} variant="outline">
                             {achievement.rarity}
                           </Badge>
                         </div>
-                        <p className="text-sm text-gray-600">{achievement.description}</p>
+                        <p className="text-sm text-muted-foreground">{achievement.description}</p>
                         <div className="flex items-center gap-4 mt-1">
-                          <p className="text-xs text-blue-600 font-medium">+{achievement.reward.xp} XP</p>
-                          <p className="text-xs text-gray-500">
+                          <p className="text-xs text-secondary font-medium">+{achievement.reward.xp} XP</p>
+                          <p className="text-xs text-muted-foreground">
                             {achievement.earnedBy.length} people earned this
                           </p>
                         </div>
@@ -464,12 +464,12 @@ export function GamificationClient() {
             <Card>
               <CardContent className="p-6">
                 <div className="flex items-center gap-4">
-                  <div className="p-3 bg-blue-100 rounded-full">
-                    <Calendar className="h-6 w-6 text-blue-600" />
+                  <div className="p-3 bg-secondary/10 rounded-full">
+                    <Calendar className="h-6 w-6 text-secondary" />
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">This Month</p>
-                    <p className="text-2xl font-bold text-blue-600">
+                    <p className="text-2xl font-bold text-secondary">
                       +{userXP?.xpHistory?.filter((t: any) => {
                         const date = t.createdAt instanceof Date ? t.createdAt : new Date(t.createdAt);
                         const now = new Date();
@@ -518,7 +518,7 @@ export function GamificationClient() {
                     const getActivityStyle = (reason: string) => {
                       const lowerReason = reason?.toLowerCase() || '';
                       if (lowerReason.includes('event') || lowerReason.includes('attend')) {
-                        return { icon: <Calendar className="h-4 w-4" />, color: 'bg-blue-100 text-blue-600' };
+                        return { icon: <Calendar className="h-4 w-4" />, color: 'bg-secondary/10 text-secondary' };
                       }
                       if (lowerReason.includes('achievement') || lowerReason.includes('badge')) {
                         return { icon: <Trophy className="h-4 w-4" />, color: 'bg-yellow-100 text-yellow-600' };
@@ -657,7 +657,7 @@ export function GamificationClient() {
                       </div>
                       <div className="text-right">
                         <div className="text-xl font-bold">{entry.points}</div>
-                        <div className="text-sm text-gray-600">XP</div>
+                        <div className="text-sm text-muted-foreground">XP</div>
                       </div>
                     </div>
                   ))}
@@ -671,7 +671,7 @@ export function GamificationClient() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <MessageSquare className="h-5 w-5 text-blue-500" />
+                <MessageSquare className="h-5 w-5 text-secondary" />
                 Share Your Feedback
               </CardTitle>
               <CardDescription>

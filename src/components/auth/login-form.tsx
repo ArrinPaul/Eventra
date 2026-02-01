@@ -1,8 +1,9 @@
 'use client';
+
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
+import { loginSchema, type LoginFormData } from '@/core/utils/validation/auth';
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -11,16 +12,9 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { Separator } from '@/components/ui/separator';
-import { Loader2, User, Briefcase } from 'lucide-react';
+import { Loader2, ArrowRight } from 'lucide-react';
 import { signInWithGoogle, signInWithEmail } from '@/features/auth/services/auth-service';
 import { cn, getErrorMessage } from '@/core/utils/utils';
-
-const formSchema = z.object({
-  email: z.string().email({ message: 'Invalid email address.' }),
-  password: z.string().min(1, { message: 'Password is required.' }),
-});
-
-type LoginMode = 'student' | 'organizer';
 
 export function LoginForm() {
   const { login } = useAuth();
@@ -29,19 +23,19 @@ export function LoginForm() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-  const [loginMode, setLoginMode] = useState<LoginMode>('student');
 
-  const callbackUrl = searchParams.get('callbackUrl') || (loginMode === 'organizer' ? '/organizer' : '/explore');
+  // Default redirect path
+  const callbackUrl = searchParams.get('callbackUrl') || '/explore';
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
     defaultValues: {
       email: '',
       password: '',
     },
   });
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: LoginFormData) {
     setIsLoading(true);
     try {
       // Try Firebase Auth first
@@ -49,11 +43,11 @@ export function LoginForm() {
       
       if (authUser) {
         toast({
-          title: 'Login Successful',
-          description: `Welcome back, ${authUser.displayName || 'User'}!`,
+          title: 'Welcome back!',
+          description: `Successfully signed in as ${authUser.displayName || 'User'}.`,
         });
         
-        // Redirect based on onboarding status
+        // Intelligent redirect based on user state
         if (!authUser.onboardingCompleted) {
           router.push('/onboarding');
         } else {
@@ -62,21 +56,29 @@ export function LoginForm() {
         return;
       }
     } catch (firebaseError: any) {
-      // Fall back to legacy login for demo purposes
+      // Fallback for demo/dev purposes if Firebase isn't fully configured
+      console.warn('Firebase login failed, attempting legacy login:', firebaseError);
+      
       const user = await login(values.email);
       if (user) {
         toast({
-          title: 'Login Successful',
-          description: `Welcome back, ${user.name}!`,
+          title: 'Welcome back!',
+          description: `Successfully signed in as ${user.name}.`,
         });
-        router.push(callbackUrl);
+        
+        // Redirect organizers to their specific dashboard
+        if (user.role === 'organizer') {
+           router.push('/organizer');
+        } else {
+           router.push('/explore');
+        }
         return;
       }
       
       toast({
         variant: 'destructive',
         title: 'Login Failed',
-        description: firebaseError.message || 'Invalid credentials. Please try again.',
+        description: 'Invalid email or password. Please try again.',
       });
     } finally {
       setIsLoading(false);
@@ -90,11 +92,10 @@ export function LoginForm() {
       
       if (authUser) {
         toast({
-          title: 'Login Successful',
-          description: `Welcome, ${authUser.displayName || 'User'}!`,
+          title: 'Welcome!',
+          description: `Successfully signed in with Google.`,
         });
         
-        // Redirect based on onboarding status
         if (!authUser.onboardingCompleted) {
           router.push('/onboarding');
         } else {
@@ -114,41 +115,88 @@ export function LoginForm() {
 
   return (
     <div className="space-y-6">
-      {/* Login Mode Toggle */}
-      <div className="flex rounded-lg bg-muted p-1">
-        <button
-          type="button"
-          onClick={() => setLoginMode('student')}
-          className={cn(
-            'flex-1 flex items-center justify-center gap-2 rounded-md py-2.5 text-sm font-medium transition-all',
-            loginMode === 'student'
-              ? 'bg-background text-foreground shadow-sm'
-              : 'text-muted-foreground hover:text-foreground'
-          )}
-        >
-          <User className="h-4 w-4" />
-          Student / Attendee
-        </button>
-        <button
-          type="button"
-          onClick={() => setLoginMode('organizer')}
-          className={cn(
-            'flex-1 flex items-center justify-center gap-2 rounded-md py-2.5 text-sm font-medium transition-all',
-            loginMode === 'organizer'
-              ? 'bg-background text-foreground shadow-sm'
-              : 'text-muted-foreground hover:text-foreground'
-          )}
-        >
-          <Briefcase className="h-4 w-4" />
-          Organizer
-        </button>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Email</FormLabel>
+                <FormControl>
+                  <Input 
+                    placeholder="name@example.com" 
+                    type="email"
+                    autoComplete="email"
+                    className="h-11 bg-background/50"
+                    {...field} 
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="password"
+            render={({ field }) => (
+              <FormItem>
+                <div className="flex items-center justify-between">
+                  <FormLabel>Password</FormLabel>
+                  <Link 
+                    href="/forgot-password" 
+                    className="text-sm font-medium text-primary hover:text-primary/80 hover:underline transition-colors"
+                  >
+                    Forgot password?
+                  </Link>
+                </div>
+                <FormControl>
+                  <Input 
+                    placeholder="Enter your password" 
+                    type="password"
+                    autoComplete="current-password"
+                    className="h-11 bg-background/50"
+                    {...field} 
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          <Button 
+            type="submit" 
+            className="w-full h-11 text-base font-medium shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all duration-300"
+            disabled={isLoading || isGoogleLoading}
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                Signing in...
+              </>
+            ) : (
+              <>
+                Sign In
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </>
+            )}
+          </Button>
+        </form>
+      </Form>
+
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center">
+          <Separator className="w-full" />
+        </div>
+        <div className="relative flex justify-center text-xs uppercase">
+          <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
+        </div>
       </div>
 
-      {/* Google Sign In */}
       <Button
         type="button"
         variant="outline"
-        className="w-full h-12 text-base"
+        className="w-full h-11 bg-background/50 hover:bg-background/80"
         onClick={handleGoogleSignIn}
         disabled={isGoogleLoading || isLoading}
       >
@@ -174,87 +222,15 @@ export function LoginForm() {
             />
           </svg>
         )}
-        Continue with Google
+        Google
       </Button>
 
-      <div className="relative">
-        <div className="absolute inset-0 flex items-center">
-          <Separator className="w-full" />
-        </div>
-        <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-card px-2 text-muted-foreground">Or continue with email</span>
-        </div>
+      <div className="text-center text-sm text-muted-foreground">
+        Don&apos;t have an account?{' '}
+        <Link href="/register" className="text-primary font-semibold hover:underline">
+          Create account
+        </Link>
       </div>
-
-      {/* Email/Password Form */}
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-          <FormField
-            control={form.control}
-            name="email"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Email</FormLabel>
-                <FormControl>
-                  <Input 
-                    placeholder="name@example.com" 
-                    type="email"
-                    autoComplete="email"
-                    {...field} 
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="password"
-            render={({ field }) => (
-              <FormItem>
-                <div className="flex items-center justify-between">
-                  <FormLabel>Password</FormLabel>
-                  <Link 
-                    href="/forgot-password" 
-                    className="text-sm text-primary hover:underline"
-                  >
-                    Forgot password?
-                  </Link>
-                </div>
-                <FormControl>
-                  <Input 
-                    placeholder="Enter your password" 
-                    type="password"
-                    autoComplete="current-password"
-                    {...field} 
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <Button 
-            type="submit" 
-            className="w-full h-12 text-base interactive-element"
-            disabled={isLoading || isGoogleLoading}
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                Signing in...
-              </>
-            ) : (
-              'Sign In'
-            )}
-          </Button>
-          <div className="text-center text-sm text-muted-foreground">
-            Don&apos;t have an account?{' '}
-            <Link href="/register" className="text-primary font-medium hover:underline">
-              Register here
-            </Link>
-          </div>
-        </form>
-      </Form>
     </div>
   );
 }

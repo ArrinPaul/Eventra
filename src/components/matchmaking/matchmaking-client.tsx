@@ -218,9 +218,9 @@ export default function MatchmakingClient() {
       case 'cofounder':
         return 'text-green-600 bg-green-100';
       case 'teammate':
-        return 'text-blue-600 bg-blue-100';
+        return 'text-secondary bg-secondary/10';
       default:
-        return 'text-pink-600 bg-pink-100';
+        return 'text-primary bg-primary/10';
     }
   };
 

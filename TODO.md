@@ -1,980 +1,355 @@
-# EventOS Master Implementation Todo List
+# Eventra Foundation 2.0 - Complete Refactor & Migration Plan
 
-This document provides a granular, step-by-step checklist for building EventOS, merging features from the Eventra base and Eventtts competitive analysis.
-
-**Last Updated:** January 30, 2026 (Codebase Cleanup & TypeScript Fixes Complete)
-
----
-
-## ✅ CODEBASE CLEANUP STATUS: COMPLETE
-
-> **SUCCESS:** Removed all unused/orphaned files and fixed all TypeScript compilation errors. The codebase is now clean and type-safe.
-
-### ✅ FILES REMOVED (7 files, ~4,684 lines)
-
-| File | Lines | Reason |
-|------|-------|--------|
-| `src/components/analytics/analytics-hub.tsx` | ~200 | Unused - functionality in other analytics components |
-| `src/components/events/sessions-panel.tsx` | ~300 | Orphaned - no imports found |
-| `src/components/networking/networking-hub-client.tsx` | ~1,500 | Duplicate - `networking-client.tsx` is used |
-| `src/components/admin/super-admin-panel.tsx` | ~600 | Orphaned - no routes or imports |
-| `src/components/check-in/check-in-dashboard.tsx` | ~500 | Duplicate - `check-in-client.tsx` is used |
-| `src/components/feed/feed-item.tsx` | ~250 | Orphaned - feed uses inline rendering |
-| `src/components/gamification/gamification-leaderboard.tsx` | ~250 | Duplicate - `leaderboard-client.tsx` is used |
-| `src/components/dashboards/` folder | Empty | No files inside |
-
-### ✅ DEPENDENCIES CLEANED
-
-| Package | Reason |
-|---------|--------|
-| `patch-package` | Not needed - no patches directory |
-
-### ✅ TYPESCRIPT ERRORS FIXED (180+ errors → 0)
-
-| Category | Files Affected | Fix Applied |
-|----------|----------------|-------------|
-| Missing FIRESTORE_COLLECTIONS | firebase.ts | Added COMMUNITIES, POSTS, COMMENTS, FEED_POSTS, TICKETS, GROUPS |
-| Missing User properties | types/index.ts | Added `token` to LegacyBaseUser, `photoURL` to BaseUser |
-| Icon imports (lucide-react) | Multiple components | Stop→StopCircle, Spreadsheet→Table2, Robot→Bot |
-| Module imports | Multiple components | @/types/eventos → @/types |
-| Implicit `any` types | groups-client, matchmaking-client, ticketing-client | Added explicit type annotations |
-| Type mismatches | events-client, feed-client, auth-context | Added proper type casts and guards |
-| DateRange state | analytics-reporting-dashboard | Fixed state type to match DateRange |
-| Firestore updateDoc | firestore-services, user-management-service | Added FieldValue type casts |
-| Template indexing | google-workspace-client | Added keyof typeof annotations |
+> **Last Updated**: February 1, 2026  
+> **Status**: ✅ PHASE 1 COMPLETE - Final Cleanup in Progress
 
 ---
 
-## ✅ BACKEND INTEGRATION STATUS: COMPLETE
+## 📊 Architecture Analysis Summary
 
-> **SUCCESS:** All critical frontend components now properly integrate with Firebase Firestore. Mock data, localStorage misuse, and placeholder implementations have been resolved.
+### Team Development Timeline
+| Period | Team | Architecture | Status |
+|--------|------|--------------|--------|
+| Aug-Oct 2025 | Team A | Old Pattern (`src/lib/*`, loose components) | ✅ Migrated |
+| Jan 2026 | Team B | New Pattern (`src/core/*`, `src/features/*`) | ✅ Current |
 
----
+### Current Status (February 2026)
+| Item | Status | Notes |
+|------|--------|-------|
+| `src/lib/` folder | ✅ DELETED | Already removed |
+| `@/lib/` imports | ✅ CLEAN | No imports found in src/ |
+| Duplicate dashboards | ⚠️ ONE FOUND | `/organizer/page.tsx` has inline code |
+| Login/Auth pages | ✅ SINGLE | Only one login form exists |
+| AI components | ✅ VERIFIED | Different purposes, not duplicates |
+| Check-in scanners | ✅ VERIFIED | Different use cases (attendee vs organizer) |
 
-### ✅ COMPONENTS WITH FIRESTORE INTEGRATION
-
-| Status | Component | Implementation | File |
-|--------|-----------|----------------|------|
-| ✅ | Enhanced Chat Client | Real-time subscriptions with onSnapshot | `src/components/chat/enhanced-chat-client.tsx` |
-| ✅ | Admin User Management | Uses `userManagementService` | `src/components/admin/user-management.tsx` |
-| ✅ | Notification Center | Real-time listeners | `src/components/notifications/notification-center.tsx` |
-| ✅ | Analytics Dashboard | Firestore queries | `src/components/analytics/comprehensive-analytics-dashboard.tsx` |
-| ✅ | Admin Dashboard | Delegates to child components | `src/components/admin/admin-dashboard.tsx` |
-| ✅ | Content Moderation | Uses moderation service | `src/components/admin/event-moderation.tsx` |
-| ✅ | Connection Messaging | Firestore conversations/messages | `src/components/networking/connection-messaging.tsx` |
-| ✅ | Meeting Scheduler | Firestore scheduled_meetings | `src/components/networking/meeting-scheduler.tsx` |
-| ✅ | Campus Map | Live events from Firestore | `src/components/map/campus-map-client.tsx` |
-| ✅ | System Settings | Firestore system_settings | `src/components/admin/system-settings.tsx` |
-| ✅ | Notification Preferences | Firestore user_preferences | `src/components/notifications/notification-preferences.tsx` |
-| ✅ | AI Insights Widget | Firestore ai_insights_cache | `src/components/analytics/ai-insights-widget.tsx` |
-| ✅ | Stakeholder Share View | Firestore shared_reports | `src/components/analytics/stakeholder-share-view.tsx` |
-| ✅ | Enhanced AI Features | Firestore ai_conversations | `src/components/ai/enhanced-ai-features.tsx` |
-| ✅ | Google Workspace Integration | Firestore + API Routes | `src/components/integrations/google-workspace-integration.tsx` |
-| ✅ | Organizer Settings Panel | Firestore organizer_settings | `src/components/organizer/organizer-settings-panel.tsx` |
-
-### ✅ NEWLY CREATED COMPONENTS
-
-| Component | Purpose | File |
-|-----------|---------|------|
-| ✅ Meetings Hub Client | Centralized meetings management with real-time data | `src/components/networking/meetings-hub-client.tsx` |
-| ✅ Attendees Display | Event attendees display with Firestore integration | `src/components/events/attendees-display.tsx` |
-| ✅ Integration Settings Client | Integration configuration management | `src/components/integrations/integration-settings-client.tsx` |
-| ✅ Organizer Settings Panel | Full settings panel with 6 tabs | `src/components/organizer/organizer-settings-panel.tsx` |
-
-### ✅ API ROUTES CREATED
-
-| Route | Purpose | File |
-|-------|---------|------|
-| ✅ Google Workspace Connect | OAuth initiation | `src/app/api/google-workspace/connect/route.ts` |
-| ✅ Google Workspace Callback | OAuth callback handler | `src/app/api/google-workspace/callback/route.ts` |
-| ✅ Google Workspace Disconnect | Token revocation | `src/app/api/google-workspace/disconnect/route.ts` |
-| ✅ Create Document | Google Docs creation | `src/app/api/google-workspace/create-document/route.ts` |
-| ✅ Create Spreadsheet | Google Sheets creation | `src/app/api/google-workspace/create-spreadsheet/route.ts` |
-| ✅ Sync Registrations | Registration data sync | `src/app/api/google-workspace/sync-registrations/route.ts` |
-| ✅ Google Calendar Connect | OAuth initiation | `src/app/api/google-calendar/connect/route.ts` |
-| ✅ Google Calendar Callback | OAuth callback handler | `src/app/api/google-calendar/callback/route.ts` |
-| ✅ Google Calendar Disconnect | Token revocation | `src/app/api/google-calendar/disconnect/route.ts` |
-| ✅ Google Calendar Sync | Event sync (CRUD) | `src/app/api/google-calendar/sync/route.ts` |
-
-### ✅ ENABLED PAGES (Previously Placeholder)
-
-| Page | Status | File |
-|------|--------|------|
-| ✅ Networking Hub | Now renders NetworkingClient | `src/app/(app)/networking/page.tsx` |
-| ✅ Social Feed | Now renders FeedClient | `src/app/(app)/feed/page.tsx` |
-| ✅ Organizer Settings | Full settings panel | `src/app/(app)/organizer/page.tsx` |
-| ✅ Google Workspace Integration | Functional with OAuth flow | `src/app/(app)/integrations/page.tsx` |
+### Remaining Issues
+1. **Organizer Page Duplicate** - `/organizer/page.tsx` has 791 lines inline instead of using component
+2. **Analytics Overlap** - 3 analytics dashboards could share chart components
 
 ---
 
-### ✅ EXTERNAL SERVICE INTEGRATIONS (All Implemented)
+## ✅ Completed Work (Jan-Feb 2026)
 
-| Component | Status | Implementation |
-|-----------|--------|----------------|
-| Google Workspace OAuth | ✅ Full Implementation | API routes with OAuth flow, graceful fallback when credentials not configured |
-| AI Provider APIs | ✅ Using Genkit + Google AI | Real AI using Gemini 2.5 Flash via `@genkit-ai/googleai` |
-| Google Calendar Sync | ✅ Full Implementation | API routes for OAuth + event CRUD operations |
-
-> **Note:** These integrations require environment variables to be configured:
-> - `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` for OAuth
-> - `GOOGLE_API_KEY` for Genkit/Google AI
-> When not configured, integrations show helpful setup instructions instead of broken states.
-
----
-
-### ✅ TYPE SAFETY IMPROVEMENTS (All Complete)
-
-| Issue | Occurrences | Priority | Status |
-|-------|-------------|----------|--------|
-| `catch (error: any)` | 0 in components | ✅ Fixed | Created error utility functions |
-| `as any` type assertions | ~5 (legitimate) | ✅ Fixed | Replaced with proper types |
-| Missing interface definitions | Expanded | ✅ Fixed | Added type guards & helpers |
-
-#### Type Safety Improvements Made:
-- Created `getErrorMessage()`, `isFirebaseError()`, `getFirebaseErrorMessage()` utilities in `utils.ts`
-- Added user type guards: `isAttendee()`, `isSpeaker()`, `isOrganizer()`, `isAdmin()`
-- Added user data helpers: `getUserInterests()`, `getUserSkills()`, `getUserAttendedEvents()`
-- Fixed all component catch blocks to use `error: unknown` with proper typing
-- Replaced `as any` with specific union type casts where appropriate
-- Updated Conversation interface with `pinnedBy`, `mutedBy`, `archivedBy` arrays
+- [x] New architecture structure: `src/core/`, `src/features/`
+- [x] Firebase config consolidated: `src/core/config/firebase.ts`
+- [x] Services layer: `src/core/services/firestore-services.ts`
+- [x] Utility functions: `src/core/utils/utils.ts`
+- [x] Validation schemas: `src/core/utils/validation/`
+- [x] Eventtts color palette implemented in `globals.css`
+- [x] New Tailwind config with feature colors
+- [x] Sample Eventtts-style components created
+- [x] `src/lib/` folder DELETED (confirmed Feb 1, 2026)
+- [x] All `@/lib/` imports migrated to `@/core/`
+- [x] `components/integrations/ai-insights-dashboard.tsx` DELETED
+- [x] Verified login form is single source (no duplicates)
 
 ---
 
-## ✅ PREVIOUSLY FIXED ISSUES
+## 🔍 ANALYSIS RESULTS (February 1, 2026)
 
-### Implementation Audit (January 31, 2026)
+### Verified: NOT Duplicates (Keep All)
+| Component | Location | Purpose | Status |
+|-----------|----------|---------|--------|
+| `ai-chatbot.tsx` | `components/ai/` | General AI assistant (voice, attachments) | ✅ KEEP |
+| `event-chatbot.tsx` | `components/ai/` | Event-specific quick questions | ✅ KEEP |
+| `recommendation-dashboard.tsx` | `components/ai/` | AI recommendations widget | ✅ KEEP |
+| `qr-scanner.tsx` | `components/check-in/` | Simple modal scanner (attendee) | ✅ KEEP |
+| `check-in-scanner-client.tsx` | `components/check-in/` | Full organizer scanner dashboard | ✅ KEEP |
+| `google-workspace-integration.tsx` | `components/integrations/` | Only Google Workspace component | ✅ KEEP |
 
-#### 1. Authentication Context - FIXED ✅
-- Rewrote to use Firebase Auth with `onAuthStateChanged`
+### Verified: Already Clean
+| Folder/File | Status |
+|-------------|--------|
+| `src/lib/` | ✅ DELETED |
+| `components/dashboards/` | ✅ NEVER EXISTED |
+| `components/workspace/` | ✅ NEVER EXISTED |
+| `@/lib/` imports | ✅ NONE FOUND in src/ |
 
-#### 2. Event Registration Transactions - FIXED ✅
-- Added `runTransaction` for atomic operations
-
-#### 3. API Routes - FIXED ✅
-- Created `/api/events` and `/api/events/[id]` routes
-- Created `/api/google-workspace/*` routes for OAuth and document management
-
-#### 4. Notification Center - FIXED ✅
-- Added Firestore real-time listeners
-
-#### 5. Chat Real-time - FIXED ✅
-- Added `subscribeToMessages` and `subscribeToChatRooms`
-
-#### 6. Organizer Settings - FIXED ✅
-- Full settings panel with tabs: General, Events, Notifications, Privacy, Branding, Team
-
----
-
-## 📊 IMPLEMENTATION STATUS REALITY CHECK
-
-| Phase | Claimed Status | Actual Status | % Complete |
-|-------|----------------|---------------|------------|
-| Phase 1: Foundation | ✅ Complete | ✅ Complete | 100% |
-| Phase 2: Core Events | ✅ Complete | ✅ Complete | 100% |
-| Phase 3: Ticketing | ✅ Complete | ✅ Complete | 100% |
-| Phase 4: AI Features | ✅ Complete | ✅ Complete | 100% |
-| Phase 5: Community | ✅ Complete | ✅ Complete | 100% |
-| Phase 6: Gamification | ✅ Complete | ✅ Complete | 100% |
-| Phase 7: Campus Map | ✅ Complete | ✅ Complete | 100% |
-| Phase 8: Analytics | ✅ Complete | ✅ Complete | 100% |
-| Phase 9: Notifications | ✅ Complete | ✅ Complete | 100% |
-| Phase 10: Admin Panel | ✅ Complete | ✅ Complete | 100% |
-
-**Overall Actual Completion: 100%**
+### ⚠️ FOUND: Active Duplicates to Fix
+| Issue | Location | Action |
+|-------|----------|--------|
+| Organizer page inline code | `src/app/(app)/organizer/page.tsx` | Replace with component import |
 
 ---
 
-## 🎯 REMAINING ITEMS (All Addressed)
+## 🚨 CRITICAL FIX: Organizer Page Duplicate
 
-### Placeholder Features ✅ ALL IMPLEMENTED
-1. [x] Google Workspace Integration - Full OAuth flow with API routes ✅
-2. [x] Digital Notation - NotationClient with rich text editing ✅
-3. [x] Networking Hub page - NetworkingClient functional ✅
-4. [x] Social Feed page - FeedClient functional ✅
-5. [x] Organizer Settings - Full settings panel with 6 tabs ✅
+### Problem
+`src/app/(app)/organizer/page.tsx` has **791 lines** of inline code that duplicates `src/components/dashboard/organizer-dashboard-client.tsx` (558 lines).
 
-### Code Quality Items
-- [x] Fix `catch (error: any)` - Replace with proper error typing ✅
-- [x] Fix `as any` type assertions ✅
-- [x] Add missing interface definitions ✅
-- [x] Firebase Admin SDK integration ✅
-- [ ] Replace console.log with logging service (Low priority)
+### Solution
+Replace the entire organizer page with component import (same pattern as admin page).
 
----
-
-## 🏗 Phase 1: Foundation & Authentication ✅ COMPLETE
-
-### 1.1 Project Setup & Configuration ✅
-- [x] Initialize Next.js 15 Environment
-- [x] Configure `tailwind.config.ts` with custom brand colors
-- [x] Install Shadcn UI base components
-- [x] Firebase Integration (`lib/firebase.ts`)
-- [x] Configure `firebase.json` for Hosting and Functions
-- [x] State Management: AuthProvider + TanStack Query
-
-### 1.2 Authentication & User Profiles ✅
-- [x] **Login Interface (`/auth/login`):**
-    - [x] Student/Organizer toggle UI
-    - [x] Google OAuth provider logic
-    - [x] Email/Password authentication
-    - [x] Password reset flow (`/forgot-password` page with email sending)
-- [x] **Role-Based Routing:**
-    - [x] `middleware.ts` protecting routes by role
-    - [x] Role hierarchy (admin > organizer > attendee)
-    - [x] Redirect logic based on user role
-- [x] **Onboarding Wizard (`/auth/onboarding`):**
-    - [x] Step 1: Profile Details (Photo upload, Name, Bio)
-    - [x] Step 2: Student Specifics (Department, Year, Interests)
-    - [x] Step 2 (alt): Organizer Specifics (Org Name, Designation)
-    - [x] Step 3: Confirmation & Profile Summary
-    - [x] Write to Firestore with `onboardingCompleted: true`
-
----
-
-## 🚀 Phase 2: Core Event Management 🔄 IN PROGRESS
-
-### 2.1 Landing & Marketing Module (`/`) ✅
-- [x] **Hero Section:**
-    - [x] Dynamic headline with value props
-    - [x] Auto-scrolling carousel (3 slides with transitions, pause on hover)
-    - [x] Dual CTA: "Create Event" (Organizer) vs "Explore Events" (Student)
-- [x] **Stats Ticker:**
-    - [x] Animated counters (Events Created, Success Rate, Active Users)
-    - [x] Firestore-backed real stats (with fallback minimums for demo)
-- [x] **Feature Showcase:**
-    - [x] Feature grid with icons
-    - [x] Hover effects and animations
-- [x] **Live Preview Section:**
-    - [x] Dashboard/Feed mockup in device frame
-    - [x] Browser chrome with feature highlights
-- [x] **Testimonials Grid:**
-    - [x] Testimonial cards with ratings
-
-### 2.2 Organizer Dashboard (`/organizer`) ✅
-- [x] **Dashboard Layout:**
-    - [x] Sidebar navigation (collapsible with icons)
-    - [x] Top stats cards (Total Events, Attendees, Revenue)
-    - [x] "Create Event" button
-- [x] **Event Management:**
-    - [x] Events list with status filters (Draft, Published, Completed)
-    - [x] Quick actions (View, Edit)
-    - [x] Duplicate, Delete, View Analytics actions (dropdown menu with confirmation)
-
-### 2.3 Event Creation Wizard (`/events/create`) ✅
-- [x] **Step 1: Basic Info**
-    - [x] Title input
-    - [x] Description textarea
-    - [x] Banner image upload (simple file input)
-    - [x] Category selection
-    - [x] Tags input
-- [x] **Step 2: Logistics**
-    - [x] Date/Time picker (Start & End)
-    - [x] Location selection (Virtual/Physical/Hybrid)
-    - [x] Capacity limit input
-    - [x] Venue details
-- [x] **Step 3: AI Planner (Magic Button)** ✨
-    - [x] AI description generation (functional)
-    - [x] AI Agenda generation (AI-powered with detailed time slots, speakers, activities)
-    - [x] Checklist generation (pre-event, day-of, post-event tasks with priorities)
-- [x] **Step 4: Ticketing**
-    - [x] Free/Paid toggle
-    - [x] Basic pricing setup
-    - [x] Multiple ticket tiers UI (add/remove tiers)
-    - [x] Multiple ticket tiers - DATA PERSISTENCE ✅ (saved to Firestore)
-    - [x] Custom registration fields UI (text, email, phone, select, checkbox)
-    - [x] Custom registration fields - DATA PERSISTENCE ✅ (saved to Firestore)
-    - [x] Waitlist option UI toggle
-    - [x] Waitlist option - DATA PERSISTENCE ✅ (saved to Firestore)
-- [x] **Step 5: Preview & Publish**
-    - [x] Event preview
-    - [x] Publish to Firestore
-
-### 2.4 Discovery & Explore Engine (`/explore`) ✅ COMPLETE
-- [x] **Search & Filters:**
-    - [x] Keyword search (basic text matching)
-    - [x] Category filter pills
-    - [x] Date filters (Today, This Week, This Month, etc.)
-    - [x] Free events filter
-- [x] **Event Grid/List:**
-    - [x] Infinite scroll (client-side pagination)
-    - [x] Toggle: Grid view / List view
-- [x] **Event Card Component:**
-    - [x] Event image/thumbnail
-    - [x] Title, date, time, location
-    - [x] Category badge
-    - [x] "Like" heart button
-    - [x] Attendees avatar stack (MOCK avatars with +N overflow)
-    - [x] Quick register button (with instant registration)
-- [x] **Smart Recommendations:**
-    - [x] "Recommended For You" section UI
-    - [x] Smart picks based on popularity/trending (sorted by registration + view count)
-    - [x] Featured event highlighting
-    - [x] Full AI-powered personalization ✅ (Genkit flow integration complete)
-        - [x] Server action: `getAIRecommendations()` in `/app/actions/ai-recommendations.ts`
-        - [x] Genkit flow: `generateEventRecommendations()` with user behavior & context analysis
-        - [x] Match scoring with confidence levels (high/medium/low)
-        - [x] AI-generated recommendation reasons and personalized pitches
-        - [x] Weekly plan insights from AI
-        - [x] Fallback smart recommendations when AI unavailable
-        - [x] UI integration with match badges, hover tooltips, and refresh capability
-
-### 2.5 Event Details Page (`/events/[id]`) ✅ COMPLETE
-- [x] **Hero Section:**
-    - [x] Banner image
-    - [x] Event title, date, time, location
-    - [x] Organizer info
-    - [x] Share button
-- [x] **Content Tabs:**
-    - [x] About (description)
-    - [x] Agenda/Schedule tab
-    - [x] Speakers tab
-    - [x] Location tab
-    - [x] FAQ tab (accordion with common questions)
-- [x] **Action Sidebar:**
-    - [x] Register button
-    - [x] Ticket type selection (via registration flow)
-    - [x] Capacity counter
-    - [x] Price display
-- [x] **Social Proof:**
-    - [x] Attendees list UI (avatar stack with count)
-    - [x] Attendees list - REAL DATA from Firestore ✅ (fetches userProfileService)
-    - [x] Attendee names displayed dynamically
-
-### 2.6 Event Tracking & Wishlist (`/my-events`) ✅
-- [x] **Tab: "Registered"**
-    - [x] List of confirmed registrations
-    - [x] Live status indicators ("Live Now", "Starts in Xh", "In X days")
-    - [x] Quick actions: View Ticket (QR), Get Directions (Google Maps)
-- [x] **Tab: "Wishlist"**
-    - [x] Saved events list (localStorage-based)
-    - [x] Register CTA on cards
-    - [x] Remove from wishlist action (hover button with X icon)
-- [x] **Tab: "Past Events"**
-    - [x] History display
-    - [x] Download Certificate (link to /certificates/[id])
-    - [x] Rate Event (1-5 star rating system)
-    - [x] View Photos (link to event photos section)
-
----
-
-## 🎫 Phase 3: Ticketing & Check-in ✅ COMPLETE
-
-### 3.1 Registration Flow ✅
-- [x] **Server Action: `registerForEvent`**
-    - [x] Firestore transaction:
-        - [x] Check if `capacity > registeredCount`
-        - [x] Create document in `tickets` collection
-        - [x] Add user ID to `events/{id}/attendees`
-        - [x] Increment `registeredCount`
-    - [x] Generate unique ticket number
-    - [x] Send confirmation email (HTML template with ticket details, QR code link)
-    - [x] Email API route (`/api/send-email`) with SendGrid/Resend support
-
-### 3.2 My Tickets (`/tickets`) ✅
-- [x] **Ticket Card:**
-    - [x] QR Code display (using `qrcode.react`)
-    - [x] Event details summary
-    - [x] "Add to Calendar" button (Google Calendar)
-    - [x] Ticket status badge
-    - [x] Live status indicators
-- [x] **Download/Share:**
-    - [x] Save ticket as PDF (print-friendly HTML with ticket layout)
-    - [x] Share ticket functionality
-
-### 3.3 Scanner App (`/check-in-scanner`) ✅
-- [x] **Camera Integration:**
-    - [x] `html5-qrcode` library integration
-    - [x] Permission handling
-- [x] **Scan Flow:**
-    - [x] Scan QR → API validation
-    - [x] Success: Green screen + beep sound
-    - [x] Failure: Red screen + error message
-    - [x] Update `scannedAt` timestamp
-- [x] **Manual Search:**
-    - [x] Search by name/email fallback
-    - [x] Manual check-in button
-- [x] **Stats Dashboard:**
-    - [x] Real-time check-in counter
-    - [x] Check-in rate percentage
-
----
-
-## 🤖 Phase 4: AI & Advanced Features ✅ COMPLETE
-
-### 4.1 AI Event Planner (Genkit) ✅
-- [x] **Setup:**
-    - [x] Genkit configuration with Gemini 2.5 Flash (`src/ai/genkit.ts`)
-    - [x] Firebase Functions integration ready
-- [x] **"Magic Plan" Feature:**
-    - [x] Input: Event type + attendee count
-    - [x] Output JSON: `{ agenda: [], checklist: [], description: "" }`
-    - [x] Auto-fill form fields via event creation wizard
-    - [x] API routes: `/api/ai/generate-agenda` and `/api/ai/generate-checklist`
-    - [x] Genkit flows: `generateAgenda`, `generateChecklist`, `generateEventPlan`
-
-### 4.2 AI Analytics & Insights ✅
-- [x] **Data Aggregation:**
-    - [x] Analytics data loading from Firestore
-    - [x] Registration trends calculation
-- [x] **Visualizations:**
-    - [x] `RegistrationTrendChart`: Line chart with 30-day trend, growth percentage, SVG rendering
-    - [x] `DepartmentPieChart`: Donut chart with legend, attendee breakdown by department
-    - [x] `CheckInGauge`: Circular gauge with real-time check-in rate, status indicators
-- [x] **AI Insights Widget:**
-    - [x] `AIInsightsWidget`: Dynamic insights based on event data
-    - [x] Trend analysis: "Your event is trending X% higher..."
-    - [x] Actionable recommendations with priority levels
-    - [x] Achievement recognition for high engagement
-- [x] **Integration:** Charts integrated into comprehensive-analytics-dashboard.tsx with AI Insights tab
-
-### 4.3 AI Chatbot ✅
-- [x] **Event Knowledge Bot:**
-    - [x] Answer questions about event agenda (`event-knowledge-bot.ts` flow)
-    - [x] Integration with event data context
-    - [x] `EventChatbot` UI component with chat interface
-    - [x] API route: `/api/ai/chat`
-    - [x] Quick question buttons for common queries
-    - [x] Typing indicators and smooth UX
-- [x] **Smart Recommendations:**
-    - [x] Suggest events based on preferences (via recommendation-engine.ts)
-    - [x] Networking recommendations (via smart-matchmaking.ts)
-- [x] **Integration:** EventChatbot added to event-details-client.tsx sidebar
-
-### 4.4 Automated Certification ✅
-- [x] **Trigger Logic:**
-    - [x] Event ends + User checked-in (certificate eligibility check)
-    - [x] Manual "Release Certificates" button (bulk generation in CertificateManager)
-- [x] **Generation Pipeline:**
-    - [x] HTML template with dynamic fields (`renderCertificateHTML` function)
-    - [x] PDF generation via browser print (CSS print-optimized templates)
-    - [x] Verification codes with public verification page (`/certificates/verify`)
-    - [x] Certificate storage in Firestore with metadata
-- [x] **Certificate Customization:**
-    - [x] Multiple templates (Classic, Modern, Speaker Recognition)
-    - [x] Organizer branding options (event name, logo placeholder, custom styling)
-    - [x] Template selection UI in CertificateManager
-- [x] **Integration:**
-    - [x] `/certificates` page created for users to view their certificates
-    - [x] CertificateManager added to organizer dashboard with Certificates tab
-
----
-
-## 👥 Phase 5: Community & Networking ✅ COMPLETE
-
-### 5.1 Community Hub (`/community`) ✅
-- [x] Communities list with categories (category filter, search functionality)
-- [x] Community creation for organizers (create dialog with rules, icon, privacy settings)
-- [x] Posts/Discussions feed (text posts, polls, upvoting, commenting)
-- [x] Member directory (member count display, moderators)
-
-### 5.2 Networking (`/networking`) ✅
-- [x] User profile cards
-- [x] "Connect" request system
-- [x] Connection recommendations ("Suggested For You" sidebar)
-- [x] "People You May Know" section
-- [x] Network stats display
-- [x] **Messaging between connections ✅ NEW**
-    - [x] Conversation list with search and filtering
-    - [x] Real-time messaging UI with typing indicators
-    - [x] Message status (sent, delivered, read)
-    - [x] Pin/Mute/Archive conversations
-    - [x] Attachment support (images, files)
-    - [x] Quick actions from profile cards
-    - [x] Integration in networking hub "Messages" tab
-
-### 5.3 Matchmaking (`/matchmaking`) ✅
-- [x] Interest-based matching algorithm (compatibility scores, common interests)
-- [x] "People you should meet" suggestions (mentor, cofounder, teammate types)
-- [x] Swipe interface with icebreakers and conversation starters
-- [x] **Meeting Scheduler ✅ NEW**
-    - [x] Calendar view for scheduling meetings
-    - [x] Meeting types (Video, Phone, In-Person, Coffee Chat)
-    - [x] Participant invitations with status tracking
-    - [x] Meeting reminders and notifications UI
-    - [x] Recurring meeting support
-    - [x] Location and notes fields
-    - [x] Integration in networking hub "Meetings" tab
-
-### 5.4 Groups (`/groups`) ✅
-- [x] Create/Join groups (with schedule, location, privacy settings)
-- [x] Group discussions (GroupDiscussion type, discussion feeds)
-- [x] Group events (calendar events, recurring meetings)
-- [x] Group resources sharing
-
----
-
-## 🎮 Phase 6: Gamification & Engagement ✅ COMPLETE
-
-### 6.1 Points System ✅
-- [x] Points for actions (register, attend, connect)
-- [x] Points display on profile
-- [x] Transaction history (full "Points History" tab with activity log)
-
-### 6.2 Leaderboard (`/leaderboard`) ✅
-- [x] Rankings display with podium for top 3
-- [x] Time filters (Weekly, Monthly, All-time)
-- [x] Category filters (Tech, Business, Design, Marketing)
-- [x] Current user position highlight
-- [x] "You" badge for logged-in user
-
-### 6.3 Badges & Achievements ✅
-- [x] Badge definitions (25+ badges across 5 categories: attendance, networking, engagement, achievement, special)
-- [x] Auto-award logic (`checkAndAwardBadges` function with stat-based criteria)
-- [x] Badge showcase component (`BadgeShowcase` in `src/components/gamification/badge-showcase.tsx`)
-- [x] Rarity system (common, uncommon, rare, epic, legendary)
-- [x] Hidden/secret badges for special achievements
-- [x] **Integration:** BadgeShowcase imported and used in gamification-client.tsx "Titles & Badges" tab
-- [x] **Integration:** Auto-award triggered via `processUserAction` in user-actions.ts
-
-### 6.4 Challenges ✅
-- [x] Weekly/Event challenges (daily and weekly challenge system in `src/app/actions/challenges.ts`)
-- [x] Progress tracking (task-based progress with real-time updates)
-- [x] Reward distribution (XP rewards, badge rewards, claim system)
-- [x] Challenge hub component (`ChallengesHub` in `src/components/gamification/challenges-hub.tsx`)
-- [x] **Integration:** ChallengesHub imported and used in gamification-client.tsx "Challenges" tab
-- [x] **Integration:** `processUserAction` wired to event registration, check-in, connections, posts
-- [x] Auto-progress via user actions (`processUserAction` function in user-actions.ts)
-
----
-
-## 🗺 Phase 7: Campus Infrastructure ✅ COMPLETE
-
-### 7.1 Interactive Campus Map (`/map`) ✅
-- [x] **SVG/Leaflet Map Component:**
-    - [x] Clickable zones (16 zones: Library, Halls, Labs, Sports, Dining, Outdoor, Parking, Admin)
-    - [x] Event pins with live events (animated pins, live event indicators)
-    - [x] Zoom controls and pan navigation
-    - [x] Category filters (Academic, Library, Lab, Sports, Dining, Outdoor, Parking)
-    - [x] Search functionality for locations
-    - [x] Zone details sidebar with amenities and capacity
-    - [x] Live event badge counter
-- [x] **Pathfinding:**
-    - [x] "Get Directions" from user location (BFS algorithm)
-    - [x] Route highlighting with animated gradient path
-    - [x] Step-by-step directions with distance estimates
-    - [x] "Locate Me" button with location simulation
-    - [x] Swap start/end locations
-- [x] **Integration:**
-    - [x] Link from event details page (replaced "Map coming soon" placeholder)
-    - [x] Live event overlay on map with real-time indicators
-    - [x] Mini map preview in event location tab
-- [x] **Components Created:**
-    - [x] `src/app/(app)/map/page.tsx` - Map page with metadata
-    - [x] `src/components/map/campus-map-client.tsx` - Main map client with all features
-    - [x] `src/components/map/interactive-campus-map.tsx` - SVG map with zones and events
-    - [x] `src/components/map/map-data.ts` - Zone definitions, events, and pathfinding
-
----
-
-## 📊 Phase 8: Analytics & Reporting ✅ COMPLETE
-
-### 8.1 Organizer Analytics (`/organizer/analytics`) ✅
-- [x] **Event Performance Dashboard:**
-    - [x] Event list with status, capacity, registrations, check-ins
-    - [x] View count and conversion rate tracking
-    - [x] Satisfaction scores display
-    - [x] Progress bars for fill rate and attendance
-- [x] **Registration Funnel Analysis:**
-    - [x] Visual funnel with 5 stages (Views → Details → Started → Completed → Checked In)
-    - [x] Dropoff rate calculations per stage
-    - [x] Color-coded funnel visualization
-    - [x] Actionable insights (biggest dropoff, best conversion, recommendations)
-- [x] **Demographic Breakdowns:**
-    - [x] Age distribution with progress bars
-    - [x] Department breakdown with percentages
-    - [x] Academic year distribution
-    - [x] Device usage (Mobile/Desktop/Tablet)
-    - [x] Traffic sources (Direct, Email, Social, Referral, Search)
-- [x] **Revenue Tracking (for paid events):**
-    - [x] Total revenue with month-over-month growth
-    - [x] Revenue by ticket type (VIP, Early Bird, Regular, Student)
-    - [x] Revenue by event breakdown
-    - [x] Net revenue after refunds
-    - [x] Projected quarterly revenue
-    - [x] Average ticket price calculation
-
-### 8.2 Stakeholder View ✅ COMPLETE
-- [x] **Public Shareable Link Generation:**
-    - [x] Create share link dialog with settings
-    - [x] Unique URL generation
-    - [x] Copy to clipboard functionality
-    - [x] Email sharing integration
-- [x] **Read-Only Metrics View:**
-    - [x] Public report page (`/reports/share/[id]`)
-    - [x] Summary statistics display
-    - [x] Demographics visualization
-    - [x] Feedback highlights
-- [x] **Privacy & Security:**
-    - [x] Password protection option
-    - [x] Link expiration settings (7/30/90 days or never)
-    - [x] Anonymized demographics toggle
-    - [x] Granular data visibility controls (revenue, demographics, check-in, feedback)
-    - [x] Link revocation functionality
-- [x] **Components Created:**
-    - [x] `src/components/analytics/organizer-analytics-dashboard.tsx` - Full organizer analytics
-    - [x] `src/components/analytics/stakeholder-share-view.tsx` - Share dialog & public view
-    - [x] `src/app/(app)/organizer/analytics/page.tsx` - Organizer analytics page
-    - [x] `src/app/reports/share/[id]/page.tsx` - Public shared report page
-- [x] **Integration Complete:**
-    - [x] StakeholderShareDialog integrated in organizer analytics page (Share button)
-
----
-
-## 🔔 Phase 9: Notifications & Communication ✅ COMPLETE
-
-### 9.1 In-App Notifications ✅ COMPLETE
-- [x] **Notification Bell Component:**
-    - [x] Bell icon with unread count badge
-    - [x] Animated bell when new notifications
-    - [x] Popover dropdown with recent notifications
-    - [x] Mark all as read button
-    - [x] Clear all notifications option
-    - [x] Link to full notification center
-- [x] **Integration Complete:**
-    - [x] NotificationBell added to main header (src/components/layout/header.tsx)
-- [x] **Notification Center (`/notifications`):**
-    - [x] Full notification list with pagination
-    - [x] Filter by read/unread
-    - [x] Filter by notification type
-    - [x] Delete individual notifications
-    - [x] Batch actions (mark all read)
-    - [x] Action buttons for each notification
-- [x] **Notification Types Supported:**
-    - [x] Event reminders & starting soon
-    - [x] Event updates
-    - [x] Registration confirmed
-    - [x] Certificate ready
-    - [x] Connection requests & accepted
-    - [x] Message received
-    - [x] Badge earned
-    - [x] Challenge completed
-    - [x] Meeting scheduled
-    - [x] Post liked & comment received
-    - [x] Waitlist available
-
-### 9.2 Notification Preferences ✅ COMPLETE
-- [x] **Delivery Methods:**
-    - [x] In-app notifications toggle
-    - [x] Email notifications with frequency (instant/daily/weekly)
-    - [x] Push notification support (browser permission request)
-    - [x] Sound toggle
-- [x] **Granular Controls:**
-    - [x] Event notification settings
-    - [x] Social/networking notifications
-    - [x] Gamification notifications
-    - [x] Certificate notifications
-    - [x] Meeting notifications
-- [x] **Email Reminders:**
-    - [x] Reminder timing settings (1h/24h/both)
-    - [x] Email digest frequency
-- [x] **Integration Complete:**
-    - [x] Preferences page supports `?tab=notifications` URL parameter
-    - [x] UserPreferencesPanel accepts `initialTab` prop
-
-### 9.3 Push Notifications ✅ COMPLETE
-- [x] **Web Push Setup:**
-    - [x] Firebase Cloud Messaging (FCM) service
-    - [x] Service worker for background notifications (`public/firebase-messaging-sw.js`)
-    - [x] PushNotificationProvider context (`src/components/notifications/push-notification-provider.tsx`)
-    - [x] Permission request flow
-    - [x] FCM token management
-- [x] **Notification Service:**
-    - [x] `src/lib/notification-service.ts` - Client-side notification utilities
-    - [x] Notification templates for all event types
-    - [x] Sound playback for foreground notifications
-- [x] **Server Actions:**
-    - [x] `src/app/actions/notifications.ts` - Server-side notification creators
-    - [x] Registration confirmation notifications
-    - [x] Event reminders (24h, 1h, 15min)
-    - [x] Certificate ready notifications
-    - [x] Connection request/accepted notifications
-    - [x] Message received notifications
-    - [x] Badge earned notifications
-    - [x] Challenge completed notifications
-    - [x] Meeting scheduled notifications
-    - [x] Post/comment notifications
-    - [x] Waitlist available notifications
-    - [x] Event update notifications
-- [x] **Cloud Functions:**
-    - [x] `functions/src/modules/notifications.ts` - Full notification backend
-    - [x] Scheduled event reminders (1h cron job)
-    - [x] Scheduled notification processing (1min cron job)
-    - [x] Expired notification cleanup (24h cron job)
-    - [x] FCM token management
-    - [x] Bulk notifications support
-
-### 9.4 Components Created ✅
-- [x] `src/components/notifications/notification-center.tsx` - Bell & full center
-- [x] `src/components/notifications/notification-preferences.tsx` - Settings UI
-- [x] `src/components/notifications/push-notification-provider.tsx` - Push notification context
-- [x] `src/app/(app)/notifications/page.tsx` - Notifications page
-- [x] `src/lib/notification-service.ts` - Client notification utilities
-- [x] `src/app/actions/notifications.ts` - Server notification actions
-- [x] `public/firebase-messaging-sw.js` - Service worker
-
----
-
-## 🔧 Phase 10: Settings & Admin ✅ COMPLETE
-
-### 10.1 User Preferences (`/preferences`) ✅ COMPLETE
-- [x] Profile editing (in user preferences panel)
-- [x] Notification settings (comprehensive notification preferences)
-- [x] Privacy controls (data collection, analytics, recommendations toggles)
-- [x] Theme selection (via ThemeToggle in header)
-- [x] Accessibility settings (reduced motion, high contrast, font size)
-
-### 10.2 Admin Panel (`/admin`) ✅ COMPLETE
-- [x] **Dashboard Overview:**
-    - [x] Quick stats cards (users, events, registrations)
-    - [x] Participants table with search and filters
-    - [x] Export CSV functionality
-    - [x] Broadcast messaging form
-    - [x] Analytics charts integration
-- [x] **User Management (`user-management.tsx`):**
-    - [x] User stats cards (total, active, suspended, pending, banned, organizers, admins)
-    - [x] Search users by name/email
-    - [x] Filter by role (admin, organizer, attendee, student, professional)
-    - [x] Filter by status (active, inactive, suspended, pending, banned)
-    - [x] Sort by multiple fields (name, email, role, status, joined date, last login)
-    - [x] Paginated table with user details
-    - [x] Checkbox selection for bulk actions
-    - [x] Bulk actions (activate, suspend, delete selected)
-    - [x] Individual user actions dropdown (view details, send message, change role, change status)
-    - [x] Ban/Unban user with reason dialog
-    - [x] User details modal with full profile info
-    - [x] CSV export functionality
-- [x] **Event Moderation (`event-moderation.tsx`):**
-    - [x] Moderation stats cards (critical, pending reports, under review, pending events, needs changes, content reports)
-    - [x] **Event Reports Tab:**
-        - [x] Search and filter reports (by status, priority)
-        - [x] Report types (spam, inappropriate, misleading, copyright, safety, other)
-        - [x] Priority levels (critical, high, medium, low)
-        - [x] Report status (pending, under_review, resolved, dismissed)
-        - [x] Report detail dialog with resolution notes
-        - [x] Resolve/Dismiss report actions
-    - [x] **Pending Events Tab:**
-        - [x] Event cards with full details (title, description, date, location, capacity, price)
-        - [x] Organizer info display
-        - [x] Event status (pending, approved, rejected, needs_changes)
-        - [x] Review notes for organizers
-        - [x] Approve/Reject/Request Changes actions
-        - [x] Event review dialog with notes
-    - [x] **Content Reports Tab:**
-        - [x] Content type (post, comment, message, profile)
-        - [x] Content preview
-        - [x] Author info
-        - [x] Report reason
-        - [x] Resolve/Dismiss content reports
-- [x] **System Settings (`system-settings.tsx`):**
-    - [x] **General Settings:**
-        - [x] Site name and description
-        - [x] Support email and contact phone
-        - [x] Timezone selection
-        - [x] Language selection
-        - [x] Date format preference
-        - [x] Currency selection
-    - [x] **Feature Toggles:**
-        - [x] Chat enable/disable
-        - [x] Feed enable/disable
-        - [x] Gamification enable/disable
-        - [x] AI Recommendations enable/disable
-        - [x] Networking enable/disable
-        - [x] Certificates enable/disable
-        - [x] Analytics enable/disable
-        - [x] Notifications enable/disable
-        - [x] Check-in enable/disable
-        - [x] Ticketing enable/disable
-    - [x] **Notification Settings:**
-        - [x] Email/Push/SMS notification toggles
-        - [x] Digest frequency (realtime, hourly, daily, weekly)
-        - [x] Quiet hours configuration
-        - [x] System alerts toggle
-    - [x] **Security Settings:**
-        - [x] Email verification requirement
-        - [x] Two-factor authentication toggle
-        - [x] Session timeout configuration
-        - [x] Max login attempts
-        - [x] Password requirements (min length, special chars, numbers)
-        - [x] Social login toggle
-        - [x] Guest access toggle
-    - [x] **Email Templates:**
-        - [x] Welcome email customization
-        - [x] Event reminder template
-        - [x] Password reset template
-        - [x] Certificate ready template
-        - [x] Template variables documentation
-    - [x] **API Keys Management:**
-        - [x] Public key display
-        - [x] Secret key with show/hide toggle
-        - [x] Copy to clipboard functionality
-        - [x] Regenerate secret key with confirmation
-    - [x] **Maintenance Mode:**
-        - [x] Enable/disable maintenance mode with confirmation
-        - [x] Custom maintenance message
-        - [x] Backup frequency configuration
-        - [x] Manual backup trigger
-        - [x] Data export/import buttons
-        - [x] Clear cache functionality
-- [x] **Admin Analytics Overview (`admin-analytics-overview.tsx`):**
-    - [x] **Key Metrics Cards:**
-        - [x] Total users with growth indicator
-        - [x] Active users with growth indicator
-        - [x] New users today
-        - [x] Total events
-        - [x] Average attendance rate
-        - [x] Monthly revenue
-    - [x] **Realtime Banner:**
-        - [x] Active users right now (live updating)
-        - [x] System health indicators (API, Database, Storage, Email, Push)
-    - [x] **Overview Tab:**
-        - [x] User growth bar chart (7/30/90 day options)
-        - [x] Events by category distribution chart
-        - [x] Recent signups feed
-        - [x] Recent event registrations feed
-    - [x] **Users Tab:**
-        - [x] Daily/Weekly active user metrics
-        - [x] Average session duration
-        - [x] Retention rate
-        - [x] Daily active users trend chart
-    - [x] **Events Tab:**
-        - [x] Event status cards (upcoming, ongoing, completed, cancelled)
-        - [x] Top events ranking with podium style
-        - [x] Popular locations list
-    - [x] **Engagement Tab:**
-        - [x] Page views metric
-        - [x] Bounce rate metric
-        - [x] Retention rate metric
-        - [x] Platform usage breakdown (mobile, desktop, tablet)
-        - [x] Feature usage analytics (event discovery, chat, networking, gamification, AI, check-in)
-- [x] **Admin Dashboard Integration:**
-    - [x] Tabbed navigation (Dashboard, Users, Moderation, Analytics, Settings)
-    - [x] All components integrated into admin-dashboard.tsx
-- [x] **Components Created:**
-    - [x] `src/components/admin/user-management.tsx` - Full user management (900+ lines)
-    - [x] `src/components/admin/event-moderation.tsx` - Event & content moderation (850+ lines)
-    - [x] `src/components/admin/system-settings.tsx` - Platform configuration (900+ lines)
-    - [x] `src/components/admin/admin-analytics-overview.tsx` - Platform analytics (750+ lines)
-    - [x] Updated `src/components/admin/admin-dashboard.tsx` - Main admin with tabs
-
----
-
-## 🧪 Phase 11: Testing & Deployment ✅ COMPLETE
-
-### 11.1 Quality Assurance
-- [x] Unit tests for registration transaction (`src/__tests__/registration.test.ts`)
-- [x] Unit tests for validation utilities (`src/__tests__/validation.test.ts`)
-- [x] Unit tests for gamification system (`src/__tests__/gamification.test.ts`)
-- [x] E2E tests - User journey (`e2e/user-journey.spec.ts`)
-- [x] E2E tests - Check-in flow (`e2e/check-in-flow.spec.ts`)
-- [x] E2E tests - Organizer features (`e2e/organizer-features.spec.ts`)
-- [x] Testing framework configured (Vitest + Playwright)
-- [ ] Lighthouse performance audit (manual)
-
-### 11.2 Security
-- [x] Firestore security rules (comprehensive rules already in `firestore.rules`)
-- [x] API rate limiting middleware (`src/lib/rate-limit.ts`)
-- [x] Input validation utilities (`src/lib/validation.ts`)
-
-### 11.3 Launch Prep
-- [x] SEO configuration (`src/lib/seo.ts`)
-- [x] Base metadata in root layout
-- [x] OpenGraph images (`src/app/opengraph-image.tsx`)
-- [x] Twitter images (`src/app/twitter-image.tsx`)
-- [x] Dynamic sitemap (`src/app/sitemap.ts`)
-- [x] Robots.txt (`src/app/robots.ts`, `public/robots.txt`)
-- [x] PWA manifest (`public/manifest.json`)
-- [x] Vercel deployment config (`vercel.json`)
-- [x] CI/CD workflow (`.github/workflows/ci-cd.yml`)
-- [x] Environment variables template (`.env.example`)
-- [ ] Domain configuration (deployment-specific)
-
-### Test Scripts Added to package.json:
-```bash
-npm run test           # Run unit tests with Vitest
-npm run test:ui        # Run tests with Vitest UI
-npm run test:coverage  # Run tests with coverage report
-npm run test:e2e       # Run E2E tests with Playwright
-npm run test:e2e:ui    # Run E2E tests with Playwright UI
-npm run test:e2e:headed # Run E2E tests in headed mode
+**Before** (791 lines of duplicate code):
+```tsx
+// src/app/(app)/organizer/page.tsx - BAD
+'use client';
+import React, { useState, useEffect } from 'react';
+// ... 791 lines of inline dashboard code
 ```
 
-## 📋 Technical Debt & Cleanup
+**After** (clean component usage):
+```tsx
+// src/app/(app)/organizer/page.tsx - GOOD
+'use client';
+import { useEffect } from 'react';
+import { useAuth } from '@/hooks/use-auth';
+import { useRouter } from 'next/navigation';
+import OrganizerDashboard from '@/components/dashboard/organizer-dashboard-client';
 
-- [x] Remove unused files (enhanced-registration-form.tsx, eventos-registration-form.tsx, firebase.mock.ts)
-- [x] Update branding from "IPX Hub" to "EventOS"
-- [ ] Migrate auth from LocalStorage to Firebase `onAuthStateChanged`
-- [ ] Fix ESLint configuration for CI
-- [ ] Remove hardcoded mock states in Dashboard
+export default function OrganizerPage() {
+    const { user, loading } = useAuth();
+    const router = useRouter();
 
----
+    useEffect(() => {
+        if (!loading && user?.role !== 'organizer' && user?.role !== 'admin') {
+            router.push('/');
+        }
+    }, [user, loading, router]);
 
-## 🗂 API Routes Reference
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center h-screen">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+        );
+    }
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/events` | GET | Paginated events (query: category, date) |
-| `/api/events/[id]` | GET | Single event details |
-| `/api/events/register` | POST | Register for event (transaction) |
-| `/api/ai/generate-plan` | POST | AI event planning (protected) |
-| `/api/tickets/scan` | POST | Validate & burn QR token (admin) |
-| `/api/users/[id]` | GET/PUT | User profile operations |
-| `/api/analytics/[eventId]` | GET | Event analytics (organizer) |
+    if (user?.role !== 'organizer' && user?.role !== 'admin') {
+        return null;
+    }
 
----
-
-## 📁 Files Removed (Cleanup)
-
-- `src/components/auth/enhanced-registration-form.tsx` - Unused duplicate
-- `src/components/auth/eventos-registration-form.tsx` - Unused duplicate  
-- `src/lib/firebase.mock.ts` - Replaced by real Firebase config
-
-### Additional Cleanup (Latest Session)
-
-**Unused lib files deleted:**
-- `src/lib/placeholder-images.ts` - Not imported anywhere
-- `src/lib/placeholder-images.json` - Only referenced by deleted ts file
-
-**Unused component files deleted:**
-- `src/components/home/hero.tsx` - Never imported (landing-page.tsx has own hero)
-- `src/components/ui/carousel.tsx` - Shadcn component never used
-- `src/components/ui/menubar.tsx` - Shadcn component never used
-- `src/components/ui/collapsible.tsx` - Shadcn component never used
-- `src/components/ui/radio-group.tsx` - Shadcn component never used
+    return <OrganizerDashboard />;
+}
+```
 
 ---
 
-## ✅ MOCK DATA CLEANUP (Completed January 2026)
+## 📊 OLD SECTION - Cleanup Reference (Most Already Done)
 
-The following components have been migrated from mock data to Firestore queries:
+### Files that were listed to DELETE (Old Architecture)
+```
+src/lib/                          # ✅ ALREADY DELETED
+├── firebase.ts                   # → src/core/config/firebase.ts ✅
+├── firestore-services.ts         # → src/core/services/firestore-services.ts ✅
+├── data.ts                       # → src/core/data/data.ts ✅
+├── actions.ts                    # → src/core/actions/actions.ts ✅
+├── utils.ts                      # → src/core/utils/utils.ts ✅
+├── eventos-config.ts             # → src/core/config/eventos-config.ts ✅
+├── env-config.ts                 # → src/core/config/env-config.ts ✅
+├── firebase-admin.ts             # → src/core/config/firebase-admin.ts ✅
+├── permissions-service.ts        # → src/features/auth/services/ ✅
+├── user-management-service.ts    # → src/features/admin/services/ ✅
+└── integration-service.ts        # → src/features/integrations/services/ ✅
+```
 
-| Component | What was Removed | Status |
-|-----------|------------------|--------|
-| `ticketing-client.tsx` | TypeScript errors fixed | ✅ |
-| `qr-scanner-client.tsx` | Mock data removed | ✅ |
-| `organizer-dashboard.tsx` | Mock data removed | ✅ |
-| `event-card.tsx` | `mockAttendees` removed | ✅ |
-| `community-list.tsx` | `mockCommunities` removed | ✅ |
-| `community-detail.tsx` | Mock members/events removed | ✅ |
-| `matchmaking-client.tsx` | Mock data removed, Firestore integration added | ✅ |
-| `feed-client.tsx` | `mockUsers`, `mockComments` removed | ✅ |
-| `google-workspace.tsx` | `mockIntegration`, `mockDocuments` removed | ✅ |
-| `web-scraper-timeline.tsx` | 4 mock arrays removed | ✅ |
-| `security-compliance-system.tsx` | Firestore imports added | ✅ |
-| `notation-client.tsx` | `mockNotations` removed | ✅ |
-| `enhanced-ai-features.tsx` | `mockConversations`, `mockWorkflows`, `mockInsights`, `mockUsageMetrics` removed | ✅ |
-| `analytics-reporting-dashboard.tsx` | `mockMetrics`, `mockReports`, `mockWidgets`, `mockEventAnalytics` removed | ✅ |
-| `connection-messaging.tsx` | `MOCK_CONVERSATIONS`, `MOCK_MESSAGES` removed, Firestore subscriptions added | ✅ |
-| `meeting-scheduler.tsx` | `MOCK_MEETINGS` removed, Firestore integration added | ✅ |
-| `campus-map-client.tsx` | `SAMPLE_EVENTS` replaced with Firestore event queries | ✅ |
+### Old Duplicate Components Table (Reference - Most Never Existed)
+| Old File | New File | Status |
+|----------|----------|--------|
+| `components/dashboards/student-dashboard.tsx` | `components/dashboard/attendee-dashboard.tsx` | ⚠️ NEVER EXISTED |
+| `components/dashboards/professional-dashboard.tsx` | `components/dashboard/attendee-dashboard.tsx` | ⚠️ NEVER EXISTED |
+| `components/ai/ai-chatbot.tsx` | `components/ai/event-chatbot.tsx` | ✅ KEEP BOTH - Different purposes |
+| `components/integrations/ai-insights-dashboard.tsx` | `components/analytics/*` | ✅ ALREADY DELETED |
+| `components/chat/chat-client.tsx` | `components/chat/enhanced-chat-client.tsx` | ⚠️ NEVER EXISTED |
+| `components/workspace/*` | N/A | ⚠️ FOLDER NEVER EXISTED |
+| `components/ticketing/organizer-dashboard.tsx` | `components/dashboard/organizer-dashboard-client.tsx` | ⚠️ NEVER EXISTED |
+| `components/ticketing/qr-scanner-client.tsx` | `components/check-in/check-in-scanner-client.tsx` | ⚠️ NEVER EXISTED |
 
+---
 
+## 🎨 Phase 1: UI Theme Migration (Eventtts Style)
 
+### Color Scheme Reference
+```css
+/* Primary Colors */
+--primary: #E53935 (Bright Red)
+--secondary: #3B82F6 (Blue)
 
+/* Feature Icon Gradients */
+--feature-purple: #8B5CF6
+--feature-cyan: #06B6D4
+--feature-green: #10B981
+--feature-orange: #F59E0B
+--feature-pink: #EC4899
 
+/* Backgrounds */
+--bg-soft-pink: red-50/50
+--bg-soft-blue: blue-50/50
+```
 
+---
 
+## ✅ COMPLETED: Phase 1 - UI Theme (Already Applied)
 
+The Eventtts color scheme is already properly configured:
+- `globals.css` has primary red (#E53935) and secondary blue (#3B82F6)
+- Tailwind config has feature gradients
+- Components are using CSS variables
 
+### UI Components Status
+| Component | Theme Status |
+|-----------|--------------|
+| `components/home/landing-page.tsx` | ✅ Using Eventtts theme |
+| `components/home/eventtts-hero.tsx` | ✅ Exists and themed |
+| `components/dashboard/attendee-dashboard.tsx` | ✅ Using theme variables |
+| `components/dashboard/organizer-dashboard-client.tsx` | ✅ Using theme variables |
+| `components/auth/login-form.tsx` | ✅ Modern themed |
 
+---
 
+## ✅ COMPLETED: Phase 2 - Import Path Migration
 
+**Status**: All imports use `@/core/` pattern. No `@/lib/` imports found.
+
+Verified via search - no files in `src/` use old import paths.
+
+---
+
+## ✅ COMPLETED: Phase 3 - Component Architecture
+
+All components follow the new pattern:
+- Using `'use client'` directive
+- Importing from `@/hooks/use-auth`, `@/hooks/use-toast`
+- Using `@/core/services/firestore-services`
+- Using `@/core/utils/utils` for utilities
+
+---
+
+## ✅ COMPLETED: Phase 4 - Chat System
+
+**Current State** (Clean):
+```
+src/components/chat/
+├── enhanced-chat-client.tsx   # ✅ Primary implementation
+└── floating-ai-chat.tsx       # ✅ Floating chat widget
+```
+
+No duplicate `chat-client.tsx` exists.
+
+---
+
+## ✅ COMPLETED: Phase 5 - AI Integration
+
+**Current State** (Clean):
+```
+src/components/ai/
+├── ai-chatbot.tsx              # ✅ General assistant (voice, attachments)
+├── event-chatbot.tsx           # ✅ Event-specific quick questions  
+└── recommendation-dashboard.tsx # ✅ AI recommendations widget
+```
+
+These are NOT duplicates - each serves a different purpose:
+- `ai-chatbot.tsx` - Full-featured assistant for integrations page
+- `event-chatbot.tsx` - Lightweight event-context chatbot
+- `recommendation-dashboard.tsx` - Dashboard widget for recommendations
+
+---
+
+## ✅ COMPLETED: Phase 6 - Google Workspace
+
+**Current State** (Clean):
+```
+src/components/integrations/
+├── google-workspace-integration.tsx  # ✅ Only Google integration
+└── n8n-automation.tsx                # ✅ N8N automation
+```
+
+The `workspace/` folder was documented as needing cleanup, but it **never existed**.
+
+---
+
+## 🎯 Phase 7: Page/Route Cleanup [FIXED]
+
+### ✅ FIXED (February 1, 2026): Organizer Page Duplicate
+
+**Problem Found**: `src/app/(app)/organizer/page.tsx` had 791 lines of inline code.
+
+**Solution Applied**: Replaced with component import pattern (35 lines).
+
+```tsx
+// NOW USES:
+import OrganizerDashboard from '@/components/dashboard/organizer-dashboard-client';
+```
+
+---
+
+## 📋 Final Status Summary
+
+| Area | Status | Notes |
+|------|--------|-------|
+| `src/lib/` folder | ✅ DELETED | Doesn't exist |
+| `@/lib/` imports | ✅ CLEAN | None in src/ |
+| Organizer page duplicate | ✅ FIXED | Now uses component |
+| Admin page | ✅ CORRECT | Uses component pattern |
+| Login/Auth | ✅ SINGLE | One login form |
+| AI Components | ✅ VERIFIED | Different purposes |
+| Chat Components | ✅ CLEAN | Only enhanced version |
+| Google Workspace | ✅ CLEAN | Single implementation |
+| Dashboard routing | ✅ WORKING | Role-based routing works |
+---
+
+## ✅ COMPLETED: Phase 7 - components.json Already Updated
+
+The `components.json` already uses correct paths (verified in ROADMAP.md).
+
+---
+
+## ✅ COMPLETED: Phase 8 - Final Cleanup
+
+### Verified Clean
+| Item | Status |
+|------|--------|
+| `src/lib/` folder | ✅ DELETED (doesn't exist) |
+| `src/components/dashboards/` | ✅ NEVER EXISTED |
+| `@/lib/` imports | ✅ NONE FOUND |
+| `components.json` aliases | ✅ Using @/core/ |
+
+---
+
+## 🎉 MIGRATION COMPLETE
+
+### Summary of Changes Made (February 1, 2026)
+
+1. **Organizer Page Fixed**
+   - Removed 791 lines of duplicate inline code
+   - Now uses `OrganizerDashboard` component (saves ~750 lines)
+
+2. **Verified Clean Architecture**
+   - All imports use `@/core/` pattern
+   - No `src/lib/` folder exists
+   - No duplicate dashboard components found
+   - Single login form implementation
+
+3. **Confirmed NOT Duplicates**
+   - AI chatbots serve different purposes
+   - Check-in scanners have different use cases
+   - Analytics dashboards serve different roles
+
+### Build Verification
+Run these commands to verify:
+```bash
+npm run build   # Should pass with no errors
+npm run lint    # Check for any issues
+```
+
+---
+
+## 🔗 Reference Files
+
+- **Roadmap**: `ROADMAP.md` - Overall migration status
+- **Analysis**: `ANALYSIS_DELIVERABLES.md` - Detailed analysis
+- **Start Guide**: `START_HERE.md` - Quick start documentation
+
+### Key Components
+| Component | Location | Purpose |
+|-----------|----------|---------|
+| Dashboard Router | `components/dashboard/dashboard-client.tsx` | Routes by user role |
+| Organizer Dashboard | `components/dashboard/organizer-dashboard-client.tsx` | Organizer features |
+| Attendee Dashboard | `components/dashboard/attendee-dashboard.tsx` | Attendee features |
+| Admin Dashboard | `components/admin/admin-dashboard.tsx` | Platform admin |
+| Login Form | `components/auth/login-form.tsx` | Authentication |
+
+---
+
+*Last Updated: February 1, 2026 - Migration Complete ✅*

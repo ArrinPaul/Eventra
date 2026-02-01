@@ -306,14 +306,14 @@ export default function WebScraperTimeline() {
   const ScrapingOverview = () => (
     <div className="space-y-6">
       {/* Control Panel */}
-      <div className="bg-white rounded-lg shadow-md p-6">
+      <div className="bg-card rounded-lg shadow-md p-6">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-gray-800">Web Scraping Control</h2>
+          <h2 className="text-2xl font-bold">Web Scraping Control</h2>
           <button
             onClick={toggleScraping}
             className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
               isScrapingActive
-                ? 'bg-red-500 hover:bg-red-600 text-white'
+                ? 'bg-destructive hover:bg-destructive/90 text-white'
                 : 'bg-green-500 hover:bg-green-600 text-white'
             }`}
           >
@@ -323,43 +323,43 @@ export default function WebScraperTimeline() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-blue-50 p-4 rounded-lg">
+          <div className="bg-secondary/10 p-4 rounded-lg">
             <div className="flex items-center space-x-3">
-              <Activity className="text-blue-500" size={24} />
+              <Activity className="text-secondary" size={24} />
               <div>
-                <p className="text-sm text-gray-600">Active Targets</p>
-                <p className="text-2xl font-bold text-blue-600">
+                <p className="text-sm text-muted-foreground">Active Targets</p>
+                <p className="text-2xl font-bold text-secondary">
                   {scrapingTargets.filter(t => t.active).length}
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="bg-green-50 p-4 rounded-lg">
+          <div className="bg-green-500/10 p-4 rounded-lg">
             <div className="flex items-center space-x-3">
               <Globe className="text-green-500" size={24} />
               <div>
-                <p className="text-sm text-gray-600">Events Found</p>
+                <p className="text-sm text-muted-foreground">Events Found</p>
                 <p className="text-2xl font-bold text-green-600">{scrapedEvents.length}</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-purple-50 p-4 rounded-lg">
+          <div className="bg-purple-500/10 p-4 rounded-lg">
             <div className="flex items-center space-x-3">
               <TrendingUp className="text-purple-500" size={24} />
               <div>
-                <p className="text-sm text-gray-600">Success Rate</p>
+                <p className="text-sm text-muted-foreground">Success Rate</p>
                 <p className="text-2xl font-bold text-purple-600">94%</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-orange-50 p-4 rounded-lg">
+          <div className="bg-orange-500/10 p-4 rounded-lg">
             <div className="flex items-center space-x-3">
               <Zap className="text-orange-500" size={24} />
               <div>
-                <p className="text-sm text-gray-600">Last Update</p>
+                <p className="text-sm text-muted-foreground">Last Update</p>
                 <p className="text-sm font-medium text-orange-600">2 mins ago</p>
               </div>
             </div>
@@ -572,7 +572,7 @@ export default function WebScraperTimeline() {
               // Open add target modal
               console.log('Opening add target modal');
             }}
-            className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors"
+            className="px-4 py-2 bg-primary hover:bg-primary/90 text-white rounded-lg transition-colors"
           >
             Add Target
           </button>
@@ -624,8 +624,8 @@ export default function WebScraperTimeline() {
   return (
     <div className="max-w-7xl mx-auto p-6">
       <div className="flex items-center space-x-3 mb-8">
-        <BarChart3 className="text-blue-500" size={32} />
-        <h1 className="text-3xl font-bold text-gray-800">Web Scraper & Timeline Analytics</h1>
+        <BarChart3 className="text-secondary" size={32} />
+        <h1 className="text-3xl font-bold">Web Scraper & Timeline Analytics</h1>
       </div>
 
       {/* Tab Navigation */}
@@ -642,8 +642,8 @@ export default function WebScraperTimeline() {
               onClick={() => setActiveTab(tab.id as 'scraper' | 'timeline' | 'analytics' | 'targets')}
               className={`flex items-center space-x-2 px-6 py-4 border-b-2 transition-colors ${
                 activeTab === tab.id
-                  ? 'border-blue-500 text-blue-600 bg-blue-50'
-                  : 'border-transparent text-gray-600 hover:text-gray-800 hover:bg-gray-50'
+                  ? 'border-primary text-primary bg-primary/5'
+                  : 'border-transparent text-muted-foreground hover:text-foreground hover:bg-muted'
               }`}
             >
               <tab.icon size={20} />
@@ -655,9 +655,9 @@ export default function WebScraperTimeline() {
 
       {/* Tab Content */}
       {loading ? (
-        <div className="bg-white rounded-lg shadow-md p-12 text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading scraping data...</p>
+        <div className="bg-card rounded-lg shadow-md p-12 text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading scraping data...</p>
         </div>
       ) : (
         <>

@@ -1,30 +1,26 @@
 'use client';
-import { useState, useEffect } from 'react';
-import { RegisterForm } from '@/components/auth/register-form';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
-function RegisterFormClient() {
-  return <RegisterForm />;
-}
+import { RegisterWizard } from '@/components/auth/register-wizard';
 
 export default function RegisterPage() {
-  const [isClient, setIsClient] = useState(false);
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
-
   return (
-    <div className="flex items-center justify-center p-4 py-12">
-      <Card className="w-full max-w-2xl mx-auto shadow-2xl glass-effect">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-headline">Join EventOS</CardTitle>
-          <CardDescription>Create an account to get started.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {isClient ? <RegisterFormClient /> : <div>Loading form...</div>}
-        </CardContent>
-      </Card>
+    <div className="relative min-h-[calc(100vh-4rem)] flex items-center justify-center overflow-hidden bg-background py-12 px-4">
+      {/* Animated Background Elements */}
+      <div className="absolute inset-0 z-0 pointer-events-none">
+        <div className="absolute top-[10%] right-[10%] w-[30%] h-[30%] rounded-full bg-blue-500/20 blur-[100px] animate-pulse" />
+        <div className="absolute bottom-[10%] left-[10%] w-[30%] h-[30%] rounded-full bg-purple-500/20 blur-[100px] animate-pulse delay-1000" />
+        {/* Grid Pattern */}
+        <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center opacity-30" />
+      </div>
+
+      <div className="w-full relative z-10">
+        <div className="text-center mb-8 space-y-2">
+          <h1 className="text-4xl font-extrabold tracking-tight font-headline">Join EventOS</h1>
+          <p className="text-muted-foreground text-lg">Start your journey with intelligent event management.</p>
+        </div>
+        
+        <RegisterWizard />
+      </div>
     </div>
   );
 }

@@ -365,7 +365,7 @@ export function TicketingClient() {
             variant={ticket.ticketStatus === 'confirmed' ? 'default' : 'secondary'}
             className={cn(
               ticket.ticketStatus === 'confirmed' && "bg-green-500",
-              ticket.ticketStatus === 'used' && "bg-blue-500"
+              ticket.ticketStatus === 'used' && "bg-secondary"
             )}
           >
             {ticket.ticketStatus}
@@ -613,7 +613,7 @@ export function TicketingClient() {
                               </DialogHeader>
                               
                               <div className="space-y-4">
-                                <div className="bg-gray-50 p-4 rounded-lg space-y-2">
+                                <div className="bg-muted p-4 rounded-lg space-y-2">
                                   {selectedTickets.map(selection => {
                                     const ticketType = selectedEvent.ticketTypes.find(t => t.id === selection.ticketTypeId)!;
                                     return (
