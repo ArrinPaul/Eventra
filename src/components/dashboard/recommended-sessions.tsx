@@ -103,7 +103,7 @@ export default function RecommendedSessions() {
                 <CardTitle className="flex items-center gap-3">
                     <Sparkles className="text-primary w-5 h-5" /> Recommended For You
                 </CardTitle>
-                <CardDescription>Based on your profile, we think you'll like these sessions.</CardDescription>
+                <CardDescription>Based on your profile, we think you&apos;ll like these sessions.</CardDescription>
             </CardHeader>
             <CardContent>
                 <div className="space-y-3">

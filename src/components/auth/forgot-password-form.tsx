@@ -65,7 +65,7 @@ export function ForgotPasswordForm() {
           </div>
           <h2 className="text-2xl font-bold mb-2">Check your email</h2>
           <p className="text-muted-foreground mb-6">
-            We've sent password reset instructions to:
+            We&apos;ve sent password reset instructions to:
           </p>
           <p className="font-medium text-lg mb-6">{sentEmail}</p>
         </div>
@@ -73,7 +73,7 @@ export function ForgotPasswordForm() {
         <Alert>
           <Mail className="h-4 w-4" />
           <AlertDescription>
-            If you don't see the email, check your spam folder. The link will expire in 1 hour.
+            If you don&apos;t see the email, check your spam folder. The link will expire in 1 hour.
           </AlertDescription>
         </Alert>
 
@@ -104,7 +104,7 @@ export function ForgotPasswordForm() {
       <div className="text-center">
         <h2 className="text-2xl font-bold mb-2">Reset your password</h2>
         <p className="text-muted-foreground">
-          Enter your email address and we'll send you instructions to reset your password.
+          Enter your email address and we&apos;ll send you instructions to reset your password.
         </p>
       </div>
 

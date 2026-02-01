@@ -389,7 +389,7 @@ export function TicketingClient() {
           <Alert>
             <Gift className="h-4 w-4" />
             <AlertDescription>
-              You saved Ã¢â€šÂ¹{ticket.discount.amount} with code "{ticket.discount.code}"
+              You saved Ã¢â€šÂ¹{ticket.discount.amount} with code &quot;{ticket.discount.code}&quot;
             </AlertDescription>
           </Alert>
         )}
@@ -574,7 +574,7 @@ export function TicketingClient() {
                               <Alert className="bg-green-50 border-green-200">
                                 <CheckCircle2 className="h-4 w-4 text-green-600" />
                                 <AlertDescription className="text-green-800">
-                                  Discount "{appliedDiscount.code}" applied!
+                                  Discount &quot;{appliedDiscount.code}&quot; applied!
                                 </AlertDescription>
                               </Alert>
                             )}
@@ -608,7 +608,7 @@ export function TicketingClient() {
                               <DialogHeader>
                                 <DialogTitle>Confirm Booking</DialogTitle>
                                 <DialogDescription>
-                                  You're about to book {getTotalTickets()} tickets for {selectedEvent.title}
+                                  You&apos;re about to book {getTotalTickets()} tickets for {selectedEvent.title}
                                 </DialogDescription>
                               </DialogHeader>
                               
@@ -632,7 +632,7 @@ export function TicketingClient() {
                                 <Alert>
                                   <Info className="h-4 w-4" />
                                   <AlertDescription className="text-sm">
-                                    You'll receive booking confirmation and tickets via email.
+                                    You&apos;ll receive booking confirmation and tickets via email.
                                   </AlertDescription>
                                 </Alert>
                               </div>

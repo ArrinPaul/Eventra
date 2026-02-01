@@ -334,7 +334,7 @@ export default function IntegrationsHub() {
             Our advanced integrations provide a comprehensive suite of tools for event management,
             from collaborative documentation and workflow automation to AI-powered insights and
             competitive intelligence. All modules are designed to work seamlessly together while
-            maintaining the existing platform's design language and functionality.
+            maintaining the existing platform&apos;s design language and functionality.
           </p>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">

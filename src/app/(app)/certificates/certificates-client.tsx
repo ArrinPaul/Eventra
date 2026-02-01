@@ -129,7 +129,7 @@ export function CertificatesClient() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">My Certificates</h1>
           <p className="text-muted-foreground">
-            View and download your earned certificates from events you've attended.
+            View and download your earned certificates from events you&apos;ve attended.
           </p>
         </div>
         <div className="flex items-center gap-2">

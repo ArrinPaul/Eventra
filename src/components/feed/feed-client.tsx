@@ -433,7 +433,7 @@ export default function FeedClient() {
                     className="w-full justify-start text-muted-foreground"
                     onClick={() => setShowCreatePost(true)}
                   >
-                    What's happening?
+                    What&apos;s happening?
                   </Button>
                 </div>
               </div>
@@ -714,7 +714,7 @@ export default function FeedClient() {
           
           <div className="space-y-4">
             <Textarea
-                placeholder="What's happening?"
+                placeholder="What&apos;s happening?"
                 value={newPost.content}
                 onChange={(e) => setNewPost(prev => ({ ...prev, content: e.target.value }))}
                 rows={4}

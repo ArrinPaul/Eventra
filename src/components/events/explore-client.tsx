@@ -666,7 +666,7 @@ export default function ExploreClient() {
                 {/* End of results */}
                 {displayedEvents.length >= filteredEvents.length && filteredEvents.length > ITEMS_PER_PAGE && (
                   <p className="text-center text-muted-foreground py-8">
-                    You've reached the end! {filteredEvents.length} events shown.
+                    You&apos;ve reached the end! {filteredEvents.length} events shown.
                   </p>
                 )}
               </>

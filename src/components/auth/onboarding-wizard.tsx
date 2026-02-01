@@ -292,7 +292,7 @@ export function OnboardingWizard() {
           <CardTitle className="text-2xl">Complete Your Profile</CardTitle>
         </div>
         <CardDescription>
-          Let's personalize your EventOS experience
+          Let&apos;s personalize your EventOS experience
         </CardDescription>
         <Progress value={progress} className="mt-4 h-2" />
         <p className="text-sm text-muted-foreground mt-2">
@@ -599,7 +599,7 @@ export function OnboardingWizard() {
             </div>
             
             <div>
-              <h3 className="text-xl font-semibold">You're all set!</h3>
+              <h3 className="text-xl font-semibold">You&apos;re all set!</h3>
               <p className="text-muted-foreground mt-2">
                 {userType === 'organizer' 
                   ? "Your organizer profile is ready. Start creating amazing events!"

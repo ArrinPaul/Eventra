@@ -175,7 +175,7 @@ export function RegisterWizard() {
     <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
       <div className="text-center space-y-2">
         <h2 className="text-2xl font-bold">Choose your role</h2>
-        <p className="text-muted-foreground">Select how you'll use EventOS</p>
+        <p className="text-muted-foreground">Select how you&apos;ll use EventOS</p>
       </div>
       
       <div className="grid gap-4">

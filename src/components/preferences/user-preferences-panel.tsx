@@ -411,7 +411,7 @@ export default function UserPreferencesPanel({ initialTab = 'notifications' }: U
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="font-medium">Quiet Hours</p>
-                      <p className="text-sm text-muted-foreground">Don't send notifications during these hours</p>
+                      <p className="text-sm text-muted-foreground">Don&apos;t send notifications during these hours</p>
                     </div>
                     <Switch
                       checked={notificationPrefs.schedule.quietHours.enabled}

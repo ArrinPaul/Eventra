@@ -328,7 +328,7 @@ export default function AiRecommendationDashboard({ className }: RecommendationD
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         <div>
-                          <p className="text-sm font-medium mb-2">What You'll Gain:</p>
+                          <p className="text-sm font-medium mb-2">What You&apos;ll Gain:</p>
                           <ul className="text-sm text-muted-foreground space-y-1">
                             {event.expectedValue.map((value, idx) => (
                               <li key={idx} className="flex items-center gap-2">
@@ -499,7 +499,7 @@ export default function AiRecommendationDashboard({ className }: RecommendationD
                         <div className="space-y-2">
                           {connection.conversationStarters.map((starter, idx) => (
                             <div key={idx} className="bg-gray-50 p-2 rounded text-sm">
-                              "{starter}"
+                              &quot;{starter}&quot;
                             </div>
                           ))}
                         </div>

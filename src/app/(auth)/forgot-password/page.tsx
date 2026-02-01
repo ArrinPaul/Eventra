@@ -24,7 +24,7 @@ export default function ForgotPasswordPage() {
             </div>
             <h2 className="text-4xl font-bold font-headline">Secure Your Account</h2>
             <p className="text-lg mt-2 max-w-md">
-              We'll help you reset your password and get back to managing amazing events.
+              We&apos;ll help you reset your password and get back to managing amazing events.
             </p>
           </div>
         </div>

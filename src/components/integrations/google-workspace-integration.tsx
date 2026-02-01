@@ -457,7 +457,7 @@ export default function GoogleWorkspaceIntegration({ eventId, eventTitle }: Goog
             <AlertCircle className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
             <h3 className="text-lg font-semibold mb-2">Access Not Permitted</h3>
             <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-              You don't have permission to access Google Workspace integration for this event. 
+              You don&apos;t have permission to access Google Workspace integration for this event. 
               Contact the event organizer or upgrade your account permissions.
             </p>
             <div className="bg-muted p-4 rounded-lg">

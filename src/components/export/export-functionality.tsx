@@ -392,21 +392,21 @@ export default function ExportFunctionality() {
     {
       type: 'events',
       label: 'My Events',
-      description: 'Events you\'ve created and organized',
+      description: 'Events you&apos;ve created and organized',
       count: dataStats.events,
       icon: Calendar
     },
     {
       type: 'registrations',
       label: 'Event Registrations',
-      description: 'Events you\'ve registered for',
+      description: 'Events you&apos;ve registered for',
       count: dataStats.registrations,
       icon: FileText
     },
     {
       type: 'communities',
       label: 'Communities',
-      description: 'Communities you\'ve joined',
+      description: 'Communities you&apos;ve joined',
       count: dataStats.communities,
       icon: Users
     },
@@ -543,7 +543,7 @@ export default function ExportFunctionality() {
             <ul className="text-sm space-y-1 text-muted-foreground">
               <li>â€¢ Your created events and their details</li>
               <li>â€¢ Event registrations and attendance history</li>
-              <li>â€¢ Communities you've joined and participation data</li>
+              <li>â€¢ Communities you&apos;ve joined and participation data</li>
               <li>â€¢ Professional connections and networking activity</li>
               {exportOptions.includePrivate && (
                 <li>â€¢ Private messages and chat history (if enabled)</li>

@@ -451,7 +451,7 @@ export default function CheckInScannerClient() {
                 <Camera className="h-5 w-5" />
                 QR Scanner
               </CardTitle>
-              <CardDescription>Point camera at attendee's QR code</CardDescription>
+              <CardDescription>Point camera at attendee&apos;s QR code</CardDescription>
             </CardHeader>
             <CardContent>
               <div 

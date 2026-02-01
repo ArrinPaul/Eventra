@@ -89,7 +89,7 @@ function TestimonialCard({ quote, author, role, avatar }: {
             <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
           ))}
         </div>
-        <p className="text-foreground mb-4 italic">"{quote}"</p>
+        <p className="text-foreground mb-4 italic">&quot;{quote}&quot;</p>
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full gradient-primary flex items-center justify-center text-white font-semibold">
             {avatar}
@@ -210,7 +210,7 @@ export default function LandingPage() {
       avatar: "MR",
     },
     {
-      quote: "Best event platform we've used. The analytics alone are worth it.",
+      quote: "Best event platform we&apos;ve used. The analytics alone are worth it.",
       author: "Emily Watson",
       role: "Club Lead",
       avatar: "EW",
@@ -249,7 +249,7 @@ export default function LandingPage() {
             </p>
             <p className="text-lg text-muted-foreground/80 max-w-2xl mx-auto mb-10">
               Create, manage, and scale events effortlessly. From registration to certificates, 
-              we've got everything covered with AI-powered automation.
+              we&apos;ve got everything covered with AI-powered automation.
             </p>
 
             {/* CTA Buttons */}
@@ -487,7 +487,7 @@ export default function LandingPage() {
                 </h2>
                 <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
                   Join thousands of organizers who trust EventOS for their events. 
-                  Start free, upgrade when you're ready.
+                  Start free, upgrade when you&apos;re ready.
                 </p>
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                   <Button asChild size="lg" className="h-14 px-8 text-lg">

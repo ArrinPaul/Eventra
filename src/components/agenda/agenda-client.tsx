@@ -164,7 +164,7 @@ function SessionCard({ session, allSessions }: { session: Session, allSessions: 
               <AlertTriangle className="text-amber-500"/> Time Conflict Detected
             </AlertDialogTitle>
             <AlertDialogDescription>
-              This session conflicts with <span className="font-bold">"{conflict?.title}"</span> which is already in your schedule. Are you sure you want to add it?
+              This session conflicts with <span className="font-bold">&quot;{conflict?.title}&quot;</span> which is already in your schedule. Are you sure you want to add it?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -277,7 +277,7 @@ export default function AgendaClient() {
               <Sparkles className="text-primary"/> AI Recommended Sessions
             </AlertDialogTitle>
             <AlertDialogDescription>
-              Based on your profile and schedule, we think you'll enjoy these sessions:
+              Based on your profile and schedule, we think you&apos;ll enjoy these sessions:
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="py-4 space-y-2">

@@ -341,7 +341,7 @@ export function NotificationPreferences() {
           <div className="flex items-center justify-between">
             <div>
               <Label className="font-medium">Event Reminders</Label>
-              <p className="text-sm text-muted-foreground">Reminders before events you're attending</p>
+              <p className="text-sm text-muted-foreground">Reminders before events you&apos;re attending</p>
             </div>
             <Switch 
               checked={preferences.eventReminders}
@@ -380,7 +380,7 @@ export function NotificationPreferences() {
           <div className="flex items-center justify-between">
             <div>
               <Label className="font-medium">Event Updates</Label>
-              <p className="text-sm text-muted-foreground">Changes to events you're registered for</p>
+              <p className="text-sm text-muted-foreground">Changes to events you&apos;re registered for</p>
             </div>
             <Switch 
               checked={preferences.eventUpdates}

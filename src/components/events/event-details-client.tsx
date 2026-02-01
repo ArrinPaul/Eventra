@@ -240,7 +240,7 @@ export default function EventDetailsClient({ eventId }: EventDetailsClientProps)
     return (
       <div className="container py-12 text-center">
         <h1 className="text-2xl font-bold mb-4">Event Not Found</h1>
-        <p className="text-muted-foreground mb-6">The event you're looking for doesn't exist or has been removed.</p>
+        <p className="text-muted-foreground mb-6">The event you&apos;re looking for doesn&apos;t exist or has been removed.</p>
         <Button asChild>
           <Link href="/explore">Browse Events</Link>
         </Button>
@@ -545,8 +545,8 @@ export default function EventDetailsClient({ eventId }: EventDetailsClientProps)
                       <AccordionItem value="registration">
                         <AccordionTrigger>How do I register for this event?</AccordionTrigger>
                         <AccordionContent>
-                          Click the "Register Now" button on this page. If the event is free, you'll be registered immediately. 
-                          For paid events, you'll be redirected to complete payment. You'll receive a confirmation email with 
+                          Click the &quot;Register Now&quot; button on this page. If the event is free, you&apos;ll be registered immediately. 
+                          For paid events, you&apos;ll be redirected to complete payment. You&apos;ll receive a confirmation email with 
                           your ticket and QR code.
                         </AccordionContent>
                       </AccordionItem>
@@ -554,23 +554,23 @@ export default function EventDetailsClient({ eventId }: EventDetailsClientProps)
                         <AccordionTrigger>Can I cancel my registration?</AccordionTrigger>
                         <AccordionContent>
                           Yes, you can cancel your registration up to 24 hours before the event starts. 
-                          Go to "My Events" in your profile, find this event, and click "Cancel Registration". 
+                          Go to &quot;My Events&quot; in your profile, find this event, and click &quot;Cancel Registration&quot;. 
                           Refunds for paid events are processed within 5-7 business days.
                         </AccordionContent>
                       </AccordionItem>
                       <AccordionItem value="checkin">
                         <AccordionTrigger>How do I check in at the event?</AccordionTrigger>
                         <AccordionContent>
-                          When you arrive, show your QR code ticket (found in "My Tickets" or your confirmation email) 
-                          to the event staff. They'll scan it to confirm your registration. Make sure you have your 
+                          When you arrive, show your QR code ticket (found in &quot;My Tickets&quot; or your confirmation email) 
+                          to the event staff. They&apos;ll scan it to confirm your registration. Make sure you have your 
                           phone charged or bring a printed copy.
                         </AccordionContent>
                       </AccordionItem>
                       <AccordionItem value="certificate">
                         <AccordionTrigger>Will I receive a certificate?</AccordionTrigger>
                         <AccordionContent>
-                          Yes! After the event ends and you've checked in, you'll be eligible to receive a certificate 
-                          of participation. You can download it from the "Past Events" section in "My Events".
+                          Yes! After the event ends and you&apos;ve checked in, you&apos;ll be eligible to receive a certificate 
+                          of participation. You can download it from the &quot;Past Events&quot; section in &quot;My Events&quot;.
                         </AccordionContent>
                       </AccordionItem>
                       <AccordionItem value="contact">
@@ -595,7 +595,7 @@ export default function EventDetailsClient({ eventId }: EventDetailsClientProps)
               <CardHeader className="pb-3">
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Users className="h-5 w-5 text-primary" />
-                  Who's Attending
+                  Who&apos;s Attending
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -701,7 +701,7 @@ export default function EventDetailsClient({ eventId }: EventDetailsClientProps)
                   <div className="space-y-3">
                     <Button disabled className="w-full" size="lg">
                       <CheckCircle className="h-4 w-4 mr-2" />
-                      You're Registered!
+                      You&apos;re Registered!
                     </Button>
                     <Button 
                       variant="outline" 

@@ -82,7 +82,7 @@ export default function LeaderboardClient() {
                         <Trophy className="h-10 w-10 text-primary" />
                         Leaderboard
                     </h1>
-                    <p className="text-muted-foreground mt-2">See who's making the biggest impact at EventOS!</p>
+                    <p className="text-muted-foreground mt-2">See who&apos;s making the biggest impact at EventOS!</p>
                 </div>
                 
                 {/* Filters */}
@@ -180,7 +180,7 @@ export default function LeaderboardClient() {
                                         {user.name}
                                         <Badge variant="outline" className="text-xs">You</Badge>
                                     </p>
-                                    <p className="text-sm text-muted-foreground">Keep going! You're doing great!</p>
+                                    <p className="text-sm text-muted-foreground">Keep going! You&apos;re doing great!</p>
                                 </div>
                             </div>
                             <div className="text-right">
