@@ -44,13 +44,13 @@ import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion'
 function AnimatedBackground() {
   return (
     <div className="absolute inset-0 overflow-hidden">
-      {/* Gradient Background - Maroon to Dark Red */}
-      <div className="absolute inset-0 bg-gradient-to-b from-[#3D1515] via-[#5D2020] to-[#4A1818]" />
+      {/* Gradient Background - Pure Black */}
+      <div className="absolute inset-0 bg-black" />
       
       {/* Subtle Gradient Orbs */}
-      <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-red-500/10 rounded-full blur-[120px]" />
-      <div className="absolute top-1/3 right-1/4 w-[500px] h-[500px] bg-red-400/10 rounded-full blur-[100px]" />
-      <div className="absolute bottom-0 left-1/3 w-[700px] h-[700px] bg-red-600/10 rounded-full blur-[140px]" />
+      <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-purple-500/5 rounded-full blur-[120px]" />
+      <div className="absolute top-1/3 right-1/4 w-[500px] h-[500px] bg-violet-500/5 rounded-full blur-[100px]" />
+      <div className="absolute bottom-0 left-1/3 w-[700px] h-[700px] bg-purple-600/5 rounded-full blur-[140px]" />
     </div>
   );
 }
@@ -83,13 +83,7 @@ function Navbar() {
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-3">
-            <div className="relative">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center">
-                <Sparkles className="w-5 h-5 text-white" />
-              </div>
-              <div className="absolute -inset-1 bg-gradient-to-br from-red-500 to-red-600 rounded-xl blur opacity-40" />
-            </div>
-            <span className="text-2xl font-bold text-red-400">
+            <span className="text-2xl font-bold text-purple-400">
               Eventra
             </span>
           </Link>
@@ -112,11 +106,11 @@ function Navbar() {
 
           {/* Auth Buttons */}
           <div className="hidden md:flex items-center gap-4">
-            <Button asChild variant="ghost" className="text-gray-300 hover:text-white hover:bg-white/10">
+            <Button asChild variant="outline" className="text-gray-300 hover:text-white hover:bg-white/10 border-white/20 rounded-full">
               <Link href="/login">Sign In</Link>
             </Button>
-            <Button asChild className="bg-red-500 hover:bg-red-400 text-white font-semibold border-0 rounded-full">
-              <Link href="/register">Sign In</Link>
+            <Button asChild className="bg-purple-500 hover:bg-purple-400 text-white font-semibold border-0 rounded-full">
+              <Link href="/register">Sign Up</Link>
             </Button>
           </div>
 
@@ -152,8 +146,8 @@ function Navbar() {
                 <Button asChild variant="outline" className="w-full border-white/20 text-white">
                   <Link href="/login">Sign In</Link>
                 </Button>
-                <Button asChild className="w-full bg-red-500 hover:bg-red-400 text-white font-semibold rounded-full">
-                  <Link href="/register">Sign In</Link>
+                <Button asChild className="w-full bg-purple-500 hover:bg-purple-400 text-white font-semibold rounded-full">
+                  <Link href="/register">Sign Up</Link>
                 </Button>
               </div>
             </div>
@@ -198,7 +192,7 @@ function HeroSection() {
         >
           <span className="text-white">Organize & Manage</span>
           <br />
-          <span className="text-red-300">
+          <span className="bg-gradient-to-r from-purple-400 via-violet-400 to-purple-400 bg-clip-text text-transparent">
             Your Events
           </span>
         </motion.h1>
@@ -221,7 +215,7 @@ function HeroSection() {
           transition={{ delay: 0.5 }}
           className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16"
         >
-          <Button asChild size="lg" className="h-14 px-10 bg-red-500 hover:bg-red-400 text-white rounded-full text-lg font-semibold">
+          <Button asChild size="lg" className="h-14 px-10 bg-purple-500 hover:bg-purple-400 text-white rounded-full text-lg font-semibold">
             <Link href="/create">
               Create New Event
               <ArrowRight className="ml-2 w-5 h-5" />
@@ -246,8 +240,8 @@ function HeroSection() {
             { value: '95%', label: 'Success Rate', icon: TrendingUp },
             { value: '10K+', label: 'Total Attendees', icon: Users },
           ].map((stat, i) => (
-            <div key={i} className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
-              <stat.icon className="w-8 h-8 text-red-400 mb-4 mx-auto" />
+            <div key={i} className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
+              <stat.icon className="w-8 h-8 text-purple-400 mb-4 mx-auto" />
               <div className="text-3xl md:text-4xl font-bold text-white mb-1">{stat.value}</div>
               <div className="text-sm text-white/60">{stat.label}</div>
             </div>
@@ -322,7 +316,7 @@ function EventCard({ title, date, time, location, image, category, price, attend
 
       {/* Content */}
       <div className="p-6">
-        <h3 className={cn("font-bold text-white mb-3 line-clamp-2 group-hover:text-red-300 transition-colors", featured ? "text-2xl" : "text-lg")}>
+        <h3 className={cn("font-bold text-white mb-3 line-clamp-2 group-hover:text-purple-400 transition-colors", featured ? "text-2xl" : "text-lg")}>
           {title}
         </h3>
         
@@ -341,7 +335,7 @@ function EventCard({ title, date, time, location, image, category, price, attend
           <div className="flex items-center gap-2">
             <div className="flex -space-x-2">
               {[...Array(3)].map((_, i) => (
-                <div key={i} className="w-7 h-7 rounded-full bg-gradient-to-br from-red-400 to-red-500 border-2 border-[#3D1515]" />
+                <div key={i} className="w-7 h-7 rounded-full bg-gradient-to-br from-purple-400 to-violet-500 border-2 border-black" />
               ))}
             </div>
             <span className="text-white/60 text-sm">+{attendees} going</span>
@@ -358,7 +352,7 @@ function EventCard({ title, date, time, location, image, category, price, attend
 
       {/* Hover Glow Effect */}
       <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-        <div className="absolute inset-0 bg-gradient-to-t from-red-500/10 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-purple-500/10 to-transparent" />
       </div>
     </motion.div>
   );
@@ -423,12 +417,12 @@ function FeaturedEventsSection() {
   ];
 
   return (
-    <section className="relative py-32 bg-gradient-to-b from-[#4A1818] to-[#3D1515]">
+    <section className="relative py-32 bg-black">
       <div className="max-w-7xl mx-auto px-6">
         {/* Section Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-12">
           <div>
-            <Badge className="mb-4 bg-red-500/20 text-red-300 border-red-500/30">
+            <Badge className="mb-4 bg-purple-500/10 text-purple-400 border-purple-500/20">
               <TrendingUp className="w-3 h-3 mr-2" />
               Trending Now
             </Badge>
@@ -472,7 +466,7 @@ function CategoriesSection() {
   ];
 
   return (
-    <section className="relative py-32 bg-gradient-to-b from-[#3D1515] via-[#4A1818] to-[#3D1515]">
+    <section className="relative py-32 bg-black">
       <div className="max-w-7xl mx-auto px-6">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
@@ -549,10 +543,10 @@ function FeaturesSection() {
   ];
 
   return (
-    <section className="relative py-32 bg-[#3D1515] overflow-hidden">
+    <section className="relative py-32 bg-black overflow-hidden">
       {/* Background Elements */}
-      <div className="absolute top-1/2 left-0 w-[500px] h-[500px] bg-red-500/10 rounded-full blur-[150px] -translate-y-1/2" />
-      <div className="absolute top-1/2 right-0 w-[500px] h-[500px] bg-red-400/10 rounded-full blur-[150px] -translate-y-1/2" />
+      <div className="absolute top-1/2 left-0 w-[500px] h-[500px] bg-purple-500/5 rounded-full blur-[150px] -translate-y-1/2" />
+      <div className="absolute top-1/2 right-0 w-[500px] h-[500px] bg-violet-500/5 rounded-full blur-[150px] -translate-y-1/2" />
 
       <div className="relative max-w-7xl mx-auto px-6">
         <div className="text-center mb-16">
@@ -602,7 +596,7 @@ function FeaturesSection() {
 // Main CTA
 function CTASection() {
   return (
-    <section className="relative py-32 bg-[#2A0F0F] overflow-hidden">
+    <section className="relative py-32 bg-black overflow-hidden">
       <div className="max-w-5xl mx-auto px-6">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
@@ -610,8 +604,8 @@ function CTASection() {
           viewport={{ once: true }}
           className="relative rounded-[3rem] overflow-hidden"
         >
-          {/* Background Gradient - Red/Coral */}
-          <div className="absolute inset-0 bg-gradient-to-r from-red-600 via-red-500 to-red-600" />
+          {/* Background Gradient - Purple/Violet */}
+          <div className="absolute inset-0 bg-gradient-to-r from-purple-600 via-violet-600 to-purple-600" />
           <div className={"absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width=\"30\" height=\"30\" viewBox=\"0 0 30 30\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cpath d=\"M1.22676 0C1.91374 0 2.45351 0.539773 2.45351 1.22676C2.45351 1.91374 1.91374 2.45351 1.22676 2.45351C0.539773 2.45351 0 1.91374 0 1.22676C0 0.539773 0.539773 0 1.22676 0Z\" fill=\"rgba(255,255,255,0.07)\"%3E%3C/path%3E%3C/svg%3E')] opacity-50"} />
           
           <div className="relative z-10 p-12 md:p-20 text-center">
@@ -622,7 +616,7 @@ function CTASection() {
               Join thousands of organizers who are already creating amazing events on Eventra.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Button asChild size="lg" className="h-14 px-10 bg-white text-red-600 hover:bg-gray-100 rounded-full text-lg font-semibold">
+              <Button asChild size="lg" className="h-14 px-10 bg-white text-purple-600 hover:bg-gray-100 rounded-full text-lg font-semibold">
                 <Link href="/register">
                   Start Free Trial
                   <ArrowRight className="ml-2 w-5 h-5" />
@@ -653,16 +647,13 @@ function Footer() {
   };
 
   return (
-    <footer className="relative bg-[#2A0F0F] border-t border-white/10">
+    <footer className="relative bg-black border-t border-white/10">
       <div className="max-w-7xl mx-auto px-6 py-20">
         <div className="grid grid-cols-2 md:grid-cols-6 gap-8 mb-16">
           {/* Logo & Description */}
           <div className="col-span-2">
             <Link href="/" className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center">
-                <Sparkles className="w-5 h-5 text-white" />
-              </div>
-              <span className="text-2xl font-bold text-red-400">Eventra</span>
+              <span className="text-2xl font-bold text-purple-400">Eventra</span>
             </Link>
             <p className="text-gray-400 mb-6">
               The modern event platform for creating, discovering, and managing unforgettable experiences.
@@ -721,7 +712,7 @@ function Footer() {
 // ============================================
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-[#3D1515] text-white">
+    <div className="min-h-screen bg-black text-white">
       <Navbar />
       <HeroSection />
       <FeaturedEventsSection />

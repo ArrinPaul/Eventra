@@ -84,13 +84,7 @@ export default function Header() {
           
           {/* Logo */}
           <Link href="/" className="flex items-center gap-3">
-            <div className="relative">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center">
-                <Sparkles className="w-5 h-5 text-white" />
-              </div>
-              <div className="absolute -inset-1 bg-gradient-to-br from-red-500 to-red-600 rounded-xl blur opacity-40" />
-            </div>
-            <span className="text-2xl font-bold text-red-400">
+            <span className="text-2xl font-bold text-purple-400">
               Eventra
             </span>
           </Link>
@@ -114,7 +108,7 @@ export default function Header() {
                   {isActive && (
                     <motion.div
                       layoutId="nav-indicator"
-                      className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-red-500"
+                      className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-purple-500"
                       transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                     />
                   )}
@@ -146,7 +140,7 @@ export default function Header() {
                     <Button variant="ghost" className="relative h-10 w-10 rounded-full border border-white/20 hover:border-white/40">
                       <Avatar className="h-9 w-9">
                         <AvatarImage src={user.photoURL || ''} alt={user.displayName || 'User'} />
-                        <AvatarFallback className="bg-gradient-to-br from-red-500 to-red-600 text-white">
+                        <AvatarFallback className="bg-gradient-to-br from-purple-500 to-violet-600 text-white">
                           {user.displayName?.charAt(0) || user.email?.charAt(0) || 'U'}
                         </AvatarFallback>
                       </Avatar>
@@ -156,7 +150,7 @@ export default function Header() {
                     <div className="flex items-center gap-3 p-3">
                       <Avatar className="h-10 w-10">
                         <AvatarImage src={user.photoURL || ''} />
-                        <AvatarFallback className="bg-gradient-to-br from-red-500 to-red-600 text-white">
+                        <AvatarFallback className="bg-gradient-to-br from-purple-500 to-violet-600 text-white">
                           {user.displayName?.charAt(0) || 'U'}
                         </AvatarFallback>
                       </Avatar>
@@ -198,8 +192,8 @@ export default function Header() {
                 <Button asChild variant="ghost" className="text-gray-300 hover:text-white hover:bg-white/10 rounded-full">
                   <Link href="/login">Sign In</Link>
                 </Button>
-                <Button asChild className="bg-red-500 hover:bg-red-400 text-white font-semibold border-0 rounded-full">
-                  <Link href="/register">Get Started</Link>
+                <Button asChild className="bg-purple-500 hover:bg-purple-400 text-white font-semibold border-0 rounded-full">
+                  <Link href="/register">Sign Up</Link>
                 </Button>
               </div>
             )}
@@ -250,8 +244,8 @@ export default function Header() {
                   <Button asChild variant="outline" className="w-full border-white/20 text-white hover:bg-white/10 rounded-full">
                     <Link href="/login">Sign In</Link>
                   </Button>
-                  <Button asChild className="w-full bg-red-500 hover:bg-red-400 text-white font-semibold rounded-full">
-                    <Link href="/register">Get Started</Link>
+                  <Button asChild className="w-full bg-purple-500 hover:bg-purple-400 text-white font-semibold rounded-full">
+                    <Link href="/register">Sign Up</Link>
                   </Button>
                 </div>
               )}
