@@ -81,153 +81,154 @@ export function AttendeeDashboard() {
   if (!user) return null;
 
   return (
-    <div className="container py-8 space-y-8 animate-in fade-in duration-500">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-red-500/10 via-blue-500/5 to-purple-500/10 border border-border/50 p-8 md:p-12 shadow-premium">
-        <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-          <div className="space-y-5 max-w-2xl">
-            <div className="inline-flex items-center rounded-full bg-gradient-to-r from-red-500 to-red-600 px-4 py-1.5 text-sm font-semibold text-white shadow-lg">
-              <Sparkles className="mr-2 h-4 w-4" />
-              <span>AI-Curated Experience</span>
-            </div>
-            <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight font-headline">
-              Hello, <span className="text-gradient bg-gradient-to-r from-red-500 to-red-600 bg-clip-text text-transparent">{user.name.split(' ')[0]}</span>!
-            </h1>
-            <p className="text-lg text-muted-foreground">
-              You have <span className="font-bold text-primary">{MY_UPCOMING.length} events</span> coming up this week.
-              Your personalized recommendations are ready.
-            </p>
-            <div className="flex flex-wrap gap-3 pt-2">
-              <Button asChild size="lg" variant="gradient" className="rounded-full shadow-glow-red btn-glow">
-                <Link href="/explore">
-                  Explore Events <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
-              <Button asChild variant="outline" size="lg" className="rounded-full border-2 hover:bg-muted">
-                <Link href="/my-events">View Schedule</Link>
-              </Button>
-            </div>
-          </div>
-
-          {/* Quick Stats Widget */}
-          <div className="hidden md:grid grid-cols-2 gap-4">
-            <Card variant="glass" className="shadow-xl">
-              <CardContent className="p-5 flex flex-col items-center justify-center text-center">
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-lg mb-3">
-                  <Trophy className="h-6 w-6 text-white" />
-                </div>
-                <span className="text-3xl font-bold">{user.points || 0}</span>
-                <span className="text-xs text-muted-foreground uppercase tracking-wider font-medium">Points</span>
-              </CardContent>
-            </Card>
-            <Card variant="glass" className="shadow-xl">
-              <CardContent className="p-5 flex flex-col items-center justify-center text-center">
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center shadow-lg mb-3">
-                  <Ticket className="h-6 w-6 text-white" />
-                </div>
-                <span className="text-3xl font-bold">{MY_UPCOMING.length}</span>
-                <span className="text-xs text-muted-foreground uppercase tracking-wider font-medium">Tickets</span>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-
-        {/* Background Decor */}
-        <div className="absolute top-0 right-0 -mt-20 -mr-20 w-96 h-96 bg-red-500/15 rounded-full blur-3xl opacity-50" />
-        <div className="absolute bottom-0 left-0 -mb-20 -ml-20 w-72 h-72 bg-blue-500/15 rounded-full blur-3xl opacity-50" />
-      </section>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Main Content Area */}
-        <div className="lg:col-span-2 space-y-8">
-
-          {/* AI Recommendations */}
-          <section>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-bold flex items-center gap-2">
-                <Zap className="h-6 w-6 text-yellow-500 fill-yellow-500" />
-                Top Picks for You
-              </h2>
-              <Link href="/ai-recommendations" className="text-sm font-medium text-primary hover:underline">
-                View all
-              </Link>
-            </div>
-
-            <ScrollArea className="w-full whitespace-nowrap rounded-xl">
-              <div className="flex w-max space-x-4 pb-4">
-                {FEATURED_EVENTS.map((event) => (
-                  <Link key={event.id} href={`/events/${event.id}`} className="group relative block w-[320px] overflow-hidden rounded-2xl border bg-card transition-all duration-300 hover:shadow-xl hover:-translate-y-2">
-                    <div className="aspect-video w-full overflow-hidden">
-                      <img
-                        src={event.image}
-                        alt={event.title}
-                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
-                      />
-                      <div className="absolute top-3 right-3 rounded-full bg-black/70 backdrop-blur-sm px-3 py-1.5 text-xs font-bold text-white flex items-center gap-1.5 shadow-lg">
-                        <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-                        {event.matchScore}% Match
-                      </div>
-                    </div>
-                    <div className="p-5">
-                      <div className="mb-3 flex items-center justify-between">
-                        <Badge variant="red" className="text-xs font-semibold">{event.category}</Badge>
-                        <span className="text-xs text-muted-foreground flex items-center gap-1.5 font-medium">
-                          <Users className="h-3.5 w-3.5" /> {event.attendees}
-                        </span>
-                      </div>
-                      <h3 className="font-bold text-lg leading-tight mb-2 truncate group-hover:text-primary transition-colors" title={event.title}>
-                        {event.title}
-                      </h3>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Calendar className="h-3.5 w-3.5" />
-                        {format(event.date, 'MMM d, h:mm a')}
-                      </div>
-                    </div>
-                  </Link>
-                ))}
+    <div className="min-h-screen bg-[#0a0b14]">
+      <div className="container py-8 space-y-8 animate-in fade-in duration-500">
+        {/* Hero Section */}
+        <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-cyan-900/20 via-[#0a0b14] to-blue-900/20 border border-white/10 p-8 md:p-12">
+          <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+            <div className="space-y-5 max-w-2xl">
+              <div className="inline-flex items-center rounded-full bg-gradient-to-r from-cyan-500 to-blue-500 px-4 py-1.5 text-sm font-semibold text-white shadow-lg">
+                <Sparkles className="mr-2 h-4 w-4" />
+                <span>AI-Curated Experience</span>
               </div>
-              <ScrollBar orientation="horizontal" />
-            </ScrollArea>
-          </section>
-
-          {/* Upcoming Schedule */}
-          <section>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-bold">Your Agenda</h2>
-              <Button variant="ghost" size="sm" asChild>
-                <Link href="/agenda">Full Schedule</Link>
-              </Button>
+              <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-white">
+                Hello, <span className="bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">{user.name.split(' ')[0]}</span>!
+              </h1>
+              <p className="text-lg text-gray-400">
+                You have <span className="font-bold text-cyan-400">{MY_UPCOMING.length} events</span> coming up this week.
+                Your personalized recommendations are ready.
+              </p>
+              <div className="flex flex-wrap gap-3 pt-2">
+                <Button asChild size="lg" className="rounded-full bg-gradient-to-r from-cyan-500 to-cyan-400 hover:from-cyan-400 hover:to-cyan-300 text-gray-900 font-semibold border-0">
+                  <Link href="/explore">
+                    Explore Events <ArrowRight className="ml-2 h-4 w-4" />
+                  </Link>
+                </Button>
+                <Button asChild variant="outline" size="lg" className="rounded-full border-white/20 hover:bg-white/10 text-white">
+                  <Link href="/my-events">View Schedule</Link>
+                </Button>
+              </div>
             </div>
 
-            <Card>
+            {/* Quick Stats Widget */}
+            <div className="hidden md:grid grid-cols-2 gap-4">
+              <Card className="bg-white/5 border-white/10 backdrop-blur-sm">
+                <CardContent className="p-5 flex flex-col items-center justify-center text-center">
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-lg mb-3">
+                    <Trophy className="h-6 w-6 text-white" />
+                  </div>
+                  <span className="text-3xl font-bold text-white">{user.points || 0}</span>
+                  <span className="text-xs text-gray-400 uppercase tracking-wider font-medium">Points</span>
+                </CardContent>
+              </Card>
+              <Card className="bg-white/5 border-white/10 backdrop-blur-sm">
+                <CardContent className="p-5 flex flex-col items-center justify-center text-center">
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center shadow-lg mb-3">
+                    <Ticket className="h-6 w-6 text-white" />
+                  </div>
+                  <span className="text-3xl font-bold text-white">{MY_UPCOMING.length}</span>
+                  <span className="text-xs text-gray-400 uppercase tracking-wider font-medium">Tickets</span>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+
+          {/* Background Decor */}
+          <div className="absolute top-0 right-0 -mt-20 -mr-20 w-96 h-96 bg-cyan-600/20 rounded-full blur-3xl opacity-50" />
+          <div className="absolute bottom-0 left-0 -mb-20 -ml-20 w-72 h-72 bg-blue-600/20 rounded-full blur-3xl opacity-50" />
+        </section>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Main Content Area */}
+          <div className="lg:col-span-2 space-y-8">
+
+            {/* AI Recommendations */}
+            <section>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-2xl font-bold flex items-center gap-2 text-white">
+                  <Zap className="h-6 w-6 text-yellow-500 fill-yellow-500" />
+                  Top Picks for You
+                </h2>
+                <Link href="/ai-recommendations" className="text-sm font-medium text-cyan-400 hover:text-cyan-300 transition-colors">
+                  View all
+                </Link>
+              </div>
+
+              <ScrollArea className="w-full whitespace-nowrap rounded-xl">
+                <div className="flex w-max space-x-4 pb-4">
+                  {FEATURED_EVENTS.map((event) => (
+                    <Link key={event.id} href={`/events/${event.id}`} className="group relative block w-[320px] overflow-hidden rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm transition-all duration-300 hover:bg-white/10 hover:-translate-y-2">
+                      <div className="aspect-video w-full overflow-hidden">
+                        <img
+                          src={event.image}
+                          alt={event.title}
+                          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                        />
+                        <div className="absolute top-3 right-3 rounded-full bg-black/70 backdrop-blur-sm px-3 py-1.5 text-xs font-bold text-white flex items-center gap-1.5 shadow-lg">
+                          <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                          {event.matchScore}% Match
+                        </div>
+                      </div>
+                      <div className="p-5">
+                        <div className="mb-3 flex items-center justify-between">
+                          <Badge className="text-xs font-semibold bg-cyan-600/20 text-cyan-300 border border-cyan-500/30">{event.category}</Badge>
+                          <span className="text-xs text-gray-400 flex items-center gap-1.5 font-medium">
+                            <Users className="h-3.5 w-3.5" /> {event.attendees}
+                          </span>
+                        </div>
+                        <h3 className="font-bold text-lg leading-tight mb-2 truncate text-white group-hover:text-cyan-300 transition-colors" title={event.title}>
+                          {event.title}
+                        </h3>
+                        <div className="flex items-center gap-2 text-sm text-gray-400">
+                          <Calendar className="h-3.5 w-3.5 text-cyan-400" />
+                          {format(event.date, 'MMM d, h:mm a')}
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+                <ScrollBar orientation="horizontal" />
+              </ScrollArea>
+            </section>
+
+            {/* Upcoming Schedule */}
+            <section>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-2xl font-bold text-white">Your Agenda</h2>
+                <Button variant="ghost" size="sm" asChild className="text-gray-400 hover:text-white hover:bg-white/10">
+                  <Link href="/agenda">Full Schedule</Link>
+                </Button>
+              </div>
+
+            <Card className="bg-white/5 border-white/10 backdrop-blur-sm">
               <CardContent className="p-0">
                 {MY_UPCOMING.length > 0 ? (
-                  <div className="divide-y">
+                  <div className="divide-y divide-white/10">
                     {MY_UPCOMING.map((event) => (
-                      <div key={event.id} className="flex items-center gap-4 p-4 hover:bg-muted/50 transition-colors">
-                        <div className="flex-shrink-0 w-16 text-center bg-muted rounded-lg p-2">
-                          <span className="block text-xs font-medium uppercase text-muted-foreground">
+                      <div key={event.id} className="flex items-center gap-4 p-4 hover:bg-white/5 transition-colors">
+                        <div className="flex-shrink-0 w-16 text-center bg-gradient-to-br from-cyan-600/20 to-blue-600/20 border border-cyan-500/30 rounded-lg p-2">
+                          <span className="block text-xs font-medium uppercase text-cyan-400">
                             {format(event.date, 'MMM')}
                           </span>
-                          <span className="block text-xl font-bold text-foreground">
+                          <span className="block text-xl font-bold text-white">
                             {format(event.date, 'd')}
                           </span>
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h3 className="font-semibold truncate">{event.title}</h3>
-                          <div className="flex items-center gap-3 text-sm text-muted-foreground mt-1">
+                          <h3 className="font-semibold truncate text-white">{event.title}</h3>
+                          <div className="flex items-center gap-3 text-sm text-gray-400 mt-1">
                             <span className="flex items-center gap-1">
-                              <Clock className="h-3 w-3" />
+                              <Clock className="h-3 w-3 text-cyan-400" />
                               {format(event.date, 'h:mm a')}
                             </span>
                             <span className="flex items-center gap-1">
-                              <MapPin className="h-3 w-3" />
+                              <MapPin className="h-3 w-3 text-cyan-400" />
                               {event.location}
                             </span>
                           </div>
                         </div>
                         <div className="flex-shrink-0">
-                          <Button variant="outline" size="sm" asChild>
+                          <Button variant="outline" size="sm" asChild className="border-white/20 text-white hover:bg-white/10">
                             <Link href={`/events/${event.id}`}>View</Link>
                           </Button>
                         </div>
@@ -236,10 +237,10 @@ export function AttendeeDashboard() {
                   </div>
                 ) : (
                   <div className="text-center py-12">
-                    <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                    <h3 className="font-semibold">No upcoming events</h3>
-                    <p className="text-muted-foreground text-sm mb-4">Start exploring to build your schedule.</p>
-                    <Button asChild>
+                    <Calendar className="h-12 w-12 text-gray-500 mx-auto mb-4" />
+                    <h3 className="font-semibold text-white">No upcoming events</h3>
+                    <p className="text-gray-400 text-sm mb-4">Start exploring to build your schedule.</p>
+                    <Button asChild className="bg-gradient-to-r from-cyan-500 to-cyan-400 hover:from-cyan-400 hover:to-cyan-300 text-gray-900 font-semibold border-0">
                       <Link href="/explore">Find Events</Link>
                     </Button>
                   </div>
@@ -252,10 +253,10 @@ export function AttendeeDashboard() {
         {/* Sidebar Widgets */}
         <div className="space-y-6">
           {/* QR Code Widget */}
-          <Card className="bg-gradient-to-b from-card to-muted/50 border-primary/20 overflow-hidden">
+          <Card className="bg-gradient-to-b from-white/5 to-white/[0.02] border-cyan-500/20 overflow-hidden backdrop-blur-sm">
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg">Event Pass</CardTitle>
-              <CardDescription>Scan to check in</CardDescription>
+              <CardTitle className="text-lg text-white">Event Pass</CardTitle>
+              <CardDescription className="text-gray-400">Scan to check in</CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col items-center">
               <div className="bg-white p-3 rounded-xl shadow-inner mb-4">
@@ -265,20 +266,20 @@ export function AttendeeDashboard() {
                   className="w-32 h-32"
                 />
               </div>
-              <p className="font-mono text-sm font-medium tracking-wider bg-background/50 px-3 py-1 rounded border">
+              <p className="font-mono text-sm font-medium tracking-wider bg-white/10 text-white px-3 py-1 rounded border border-white/20">
                 {user.registrationId || user.uid.substring(0, 8).toUpperCase()}
               </p>
             </CardContent>
           </Card>
 
           {/* Quick Connect */}
-          <Card>
+          <Card className="bg-white/5 border-white/10 backdrop-blur-sm">
             <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Users className="h-5 w-5 text-primary" />
+              <CardTitle className="text-lg flex items-center gap-2 text-white">
+                <Users className="h-5 w-5 text-cyan-400" />
                 Quick Connect
               </CardTitle>
-              <CardDescription>People you should meet</CardDescription>
+              <CardDescription className="text-gray-400">People you should meet</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -286,18 +287,18 @@ export function AttendeeDashboard() {
                   <div key={i} className="flex items-center gap-3">
                     <Avatar>
                       <AvatarImage src={`https://i.pravatar.cc/150?u=${i}`} />
-                      <AvatarFallback>U{i}</AvatarFallback>
+                      <AvatarFallback className="bg-cyan-600/20 text-cyan-300">U{i}</AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">Alex Johnson</p>
-                      <p className="text-xs text-muted-foreground truncate">Product Designer @ Tech</p>
+                      <p className="text-sm font-medium truncate text-white">Alex Johnson</p>
+                      <p className="text-xs text-gray-400 truncate">Product Designer @ Tech</p>
                     </div>
-                    <Button size="icon" variant="ghost" className="h-8 w-8 rounded-full">
-                      <TrendingUp className="h-4 w-4" />
+                    <Button size="icon" variant="ghost" className="h-8 w-8 rounded-full hover:bg-white/10">
+                      <TrendingUp className="h-4 w-4 text-cyan-400" />
                     </Button>
                   </div>
                 ))}
-                <Button variant="ghost" className="w-full text-xs" asChild>
+                <Button variant="ghost" className="w-full text-xs text-gray-400 hover:text-white hover:bg-white/10" asChild>
                   <Link href="/networking">View all suggestions</Link>
                 </Button>
               </div>
@@ -305,6 +306,7 @@ export function AttendeeDashboard() {
           </Card>
         </div>
       </div>
+    </div>
     </div>
   );
 }

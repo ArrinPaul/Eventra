@@ -202,23 +202,23 @@ export function EventCard({
     
     return (
       <Link href={`/events/${event.id}`}>
-        <Card className="group relative overflow-hidden border-0 bg-card hover:shadow-2xl transition-all duration-500">
+        <Card className="group relative overflow-hidden border-0 bg-white/5 hover:bg-white/10 backdrop-blur-sm border border-white/10 hover:border-white/20 transition-all duration-500 rounded-3xl">
           <div className="grid md:grid-cols-2 gap-0">
             {/* Image Side */}
-            <div className="relative h-64 md:h-full min-h-[300px] overflow-hidden">
+            <div className="relative h-64 md:h-full min-h-[300px] overflow-hidden rounded-t-3xl md:rounded-l-3xl md:rounded-tr-none">
               <div 
                 className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105"
                 style={{ 
                   backgroundImage: eventImage 
                     ? `url(${eventImage})` 
-                    : 'linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--secondary)) 100%)' 
+                    : 'linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%)' 
                 }}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
               
               {/* Top badges */}
               <div className="absolute top-4 left-4 flex gap-2">
-                <Badge className={cn("backdrop-blur-sm", getCategoryColor(event.category))}>
+                <Badge className="bg-white/20 backdrop-blur-sm text-white border-0">
                   {event.category}
                 </Badge>
                 {getStatusBadge()}
@@ -228,7 +228,7 @@ export function EventCard({
               <Button 
                 variant="ghost" 
                 size="icon" 
-                className="absolute top-4 right-4 bg-white/20 backdrop-blur-sm hover:bg-white/30"
+                className="absolute top-4 right-4 bg-white/20 backdrop-blur-sm hover:bg-white/30 rounded-full"
                 onClick={handleLike}
               >
                 <Heart className={cn("w-5 h-5", isLiked ? "fill-red-500 text-red-500" : "text-white")} />
@@ -237,41 +237,41 @@ export function EventCard({
 
             {/* Content Side */}
             <CardContent className="p-8 flex flex-col justify-center">
-              <Badge variant="outline" className="w-fit mb-4">
-                Featured Event
+              <Badge className="w-fit mb-4 bg-gradient-to-r from-cyan-600/20 to-blue-600/20 text-cyan-300 border border-cyan-500/30">
+                ⭐ Featured Event
               </Badge>
               
-              <h2 className="text-2xl md:text-3xl font-bold font-headline mb-3 group-hover:text-primary transition-colors">
+              <h2 className="text-2xl md:text-3xl font-bold mb-3 text-white group-hover:text-cyan-300 transition-colors">
                 {event.title}
               </h2>
               
-              <p className="text-muted-foreground mb-6 line-clamp-2">
+              <p className="text-gray-400 mb-6 line-clamp-2">
                 {event.description}
               </p>
 
               <div className="space-y-3 mb-6">
-                <div className="flex items-center gap-3 text-sm">
-                  <Calendar className="w-4 h-4 text-primary" />
+                <div className="flex items-center gap-3 text-sm text-gray-300">
+                  <Calendar className="w-4 h-4 text-cyan-400" />
                   <span>{formatDate(displayDate)}</span>
-                  <Clock className="w-4 h-4 text-primary ml-2" />
+                  <Clock className="w-4 h-4 text-cyan-400 ml-2" />
                   <span>{formatTime(displayDate)}</span>
                 </div>
-                <div className="flex items-center gap-3 text-sm">
-                  <MapPin className="w-4 h-4 text-primary" />
+                <div className="flex items-center gap-3 text-sm text-gray-300">
+                  <MapPin className="w-4 h-4 text-cyan-400" />
                   <span>{getLocationString()}</span>
                 </div>
-                <div className="flex items-center gap-3 text-sm">
-                  <Users className="w-4 h-4 text-primary" />
+                <div className="flex items-center gap-3 text-sm text-gray-300">
+                  <Users className="w-4 h-4 text-cyan-400" />
                   <span>{likeCount} interested</span>
                   {event.capacity && (
-                    <span className="text-muted-foreground">
-                      Â· {event.capacity - registeredCount} spots left
+                    <span className="text-gray-500">
+                      · {event.capacity - registeredCount} spots left
                     </span>
                   )}
                 </div>
               </div>
 
-              <Button className="w-fit group/btn">
+              <Button className="w-fit group/btn bg-gradient-to-r from-cyan-500 to-cyan-400 hover:from-cyan-400 hover:to-cyan-300 text-gray-900 font-semibold rounded-full border-0">
                 View Event
                 <ChevronRight className="w-4 h-4 ml-1 group-hover/btn:translate-x-1 transition-transform" />
               </Button>
@@ -286,28 +286,28 @@ export function EventCard({
   if (variant === 'compact') {
     return (
       <Link href={`/events/${event.id}`}>
-        <Card className="group hover:bg-muted/50 transition-colors border-0 bg-transparent">
+        <Card className="group hover:bg-white/10 transition-colors border-0 bg-white/5 backdrop-blur-sm rounded-xl">
           <CardContent className="p-4 flex items-center gap-4">
             {/* Date Badge */}
-            <div className="flex-shrink-0 w-14 h-14 rounded-xl bg-primary/10 flex flex-col items-center justify-center">
-              <span className="text-xs text-primary font-medium uppercase">
+            <div className="flex-shrink-0 w-14 h-14 rounded-xl bg-gradient-to-br from-purple-600/20 to-pink-600/20 border border-purple-500/30 flex flex-col items-center justify-center">
+              <span className="text-xs text-purple-400 font-medium uppercase">
                 {displayDate.toLocaleDateString('en-US', { month: 'short' })}
               </span>
-              <span className="text-xl font-bold text-primary">
+              <span className="text-xl font-bold text-white">
                 {displayDate.getDate()}
               </span>
             </div>
 
             {/* Content */}
             <div className="flex-grow min-w-0">
-              <h3 className="font-semibold truncate group-hover:text-primary transition-colors">
+              <h3 className="font-semibold truncate text-white group-hover:text-purple-300 transition-colors">
                 {event.title}
               </h3>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
-                <Clock className="w-3 h-3" />
+              <div className="flex items-center gap-2 text-sm text-gray-400 mt-1">
+                <Clock className="w-3 h-3 text-purple-400" />
                 <span>{formatTime(displayDate)}</span>
-                <span>Â·</span>
-                <MapPin className="w-3 h-3" />
+                <span>·</span>
+                <MapPin className="w-3 h-3 text-purple-400" />
                 <span className="truncate">{getLocationString()}</span>
               </div>
             </div>
@@ -316,10 +316,10 @@ export function EventCard({
             <Button 
               variant="ghost" 
               size="icon"
-              className="flex-shrink-0"
+              className="flex-shrink-0 hover:bg-white/10 rounded-full"
               onClick={handleLike}
             >
-              <Heart className={cn("w-4 h-4", isLiked ? "fill-red-500 text-red-500" : "")} />
+              <Heart className={cn("w-4 h-4", isLiked ? "fill-red-500 text-red-500" : "text-gray-400")} />
             </Button>
           </CardContent>
         </Card>
@@ -330,22 +330,22 @@ export function EventCard({
   // Default variant (grid card)
   return (
     <Link href={`/events/${event.id}`}>
-      <Card className="group relative overflow-hidden border-0 bg-card hover:shadow-xl transition-all duration-300 hover:-translate-y-1 h-full">
+      <Card className="group relative overflow-hidden border-0 bg-white/5 hover:bg-white/10 backdrop-blur-sm border border-white/10 hover:border-white/20 transition-all duration-300 hover:-translate-y-2 h-full rounded-2xl">
         {/* Image */}
-        <div className="relative h-48 overflow-hidden">
+        <div className="relative h-48 overflow-hidden rounded-t-2xl">
           <div 
-            className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105"
+            className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-110"
             style={{ 
               backgroundImage: (event.imageUrl || event.image)
                 ? `url(${event.imageUrl || event.image})` 
-                : 'linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--secondary)) 100%)' 
+                : 'linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%)' 
             }}
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
           
           {/* Top badges */}
           <div className="absolute top-3 left-3 flex gap-2">
-            <Badge className={cn("backdrop-blur-sm text-xs", getCategoryColor(event.category))}>
+            <Badge className="bg-white/20 backdrop-blur-sm text-white text-xs border-0">
               {event.category}
             </Badge>
             {getStatusBadge()}
@@ -355,78 +355,77 @@ export function EventCard({
           <Button 
             variant="ghost" 
             size="icon" 
-            className="absolute top-3 right-3 h-8 w-8 bg-white/20 backdrop-blur-sm hover:bg-white/30"
+            className="absolute top-3 right-3 h-9 w-9 bg-white/20 backdrop-blur-sm hover:bg-white/30 rounded-full"
             onClick={handleLike}
           >
             <Heart className={cn("w-4 h-4", isLiked ? "fill-red-500 text-red-500" : "text-white")} />
           </Button>
 
           {/* Date badge on image */}
-          <div className="absolute bottom-3 left-3 bg-white dark:bg-gray-900 rounded-lg px-3 py-2 flex flex-col items-center shadow-lg">
-            <span className="text-xs text-primary font-medium uppercase">
+          <div className="absolute bottom-3 left-3 bg-black/50 backdrop-blur-sm rounded-xl px-3 py-2 flex flex-col items-center border border-white/10">
+            <span className="text-xs text-cyan-400 font-medium uppercase">
               {displayDate.toLocaleDateString('en-US', { month: 'short' })}
             </span>
-            <span className="text-xl font-bold leading-none">
+            <span className="text-xl font-bold leading-none text-white">
               {displayDate.getDate()}
             </span>
           </div>
         </div>
 
         {/* Content */}
-        <CardContent className="p-4">
-          <h3 className="font-semibold text-lg line-clamp-2 mb-2 group-hover:text-primary transition-colors">
+        <CardContent className="p-5">
+          <h3 className="font-bold text-lg line-clamp-2 mb-2 text-white group-hover:text-cyan-300 transition-colors">
             {event.title}
           </h3>
           
-          <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
+          <p className="text-sm text-gray-400 line-clamp-2 mb-4">
             {event.description}
           </p>
 
-          <div className="space-y-2 mb-3">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Clock className="w-4 h-4 text-primary/70" />
+          <div className="space-y-2 mb-4">
+            <div className="flex items-center gap-2 text-sm text-gray-400">
+              <Clock className="w-4 h-4 text-cyan-400" />
               <span>{formatTime(displayDate)}</span>
             </div>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <MapPin className="w-4 h-4 text-primary/70" />
+            <div className="flex items-center gap-2 text-sm text-gray-400">
+              <MapPin className="w-4 h-4 text-cyan-400" />
               <span className="truncate">{getLocationString()}</span>
             </div>
           </div>
 
           {/* Attendee Avatar Stack */}
           {likeCount > 0 && (
-            <div className="mb-3">
-              <AttendeeAvatars count={likeCount} max={4} />
+            <div className="mb-4">
+              <div className="flex items-center">
+                <div className="flex -space-x-2">
+                  {Array.from({ length: Math.min(likeCount, 3) }, (_, index) => (
+                    <div 
+                      key={index} 
+                      className="w-7 h-7 rounded-full bg-gradient-to-br from-cyan-400 to-blue-400 border-2 border-black"
+                    />
+                  ))}
+                </div>
+                <span className="ml-2 text-xs text-gray-400">+{likeCount} going</span>
+              </div>
             </div>
           )}
 
           {/* Footer with Quick Register */}
-          <div className="flex items-center justify-between mt-3 pt-3 border-t">
+          <div className="flex items-center justify-between pt-4 border-t border-white/10">
             <div className="flex items-center gap-2">
               {(event.pricing?.isFree || event.pricing?.type === 'free') ? (
-                <Badge variant="secondary" className="bg-green-500/10 text-green-600">
-                  Free
-                </Badge>
+                <span className="text-green-400 font-bold">Free</span>
               ) : event.pricing?.basePrice ? (
-                <Badge variant="secondary">
-                  ${event.pricing.basePrice}
-                </Badge>
+                <span className="text-white font-bold">${event.pricing.basePrice}</span>
               ) : (
-                <Badge variant="secondary" className="bg-green-500/10 text-green-600">
-                  Free
-                </Badge>
-              )}
-              {event.capacity && (
-                <span className="text-xs text-muted-foreground">
-                  {Math.max(0, event.capacity - likeCount)} spots left
-                </span>
+                <span className="text-green-400 font-bold">Free</span>
               )}
             </div>
             
             {/* Quick Register Button */}
             <Button 
               size="sm" 
-              className="h-8 px-3"
+              className="h-9 px-4 bg-gradient-to-r from-cyan-500 to-cyan-400 hover:from-cyan-400 hover:to-cyan-300 text-gray-900 font-semibold rounded-full border-0"
               onClick={handleQuickRegister}
               disabled={isRegistering || (event.capacity ? likeCount >= event.capacity : false)}
             >

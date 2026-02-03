@@ -122,13 +122,13 @@ export function LoginForm() {
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Email</FormLabel>
+                <FormLabel className="text-gray-300">Email</FormLabel>
                 <FormControl>
                   <Input 
                     placeholder="name@example.com" 
                     type="email"
                     autoComplete="email"
-                    className="h-11 bg-background/50"
+                    className="h-11 bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-cyan-500/50"
                     {...field} 
                   />
                 </FormControl>
@@ -142,10 +142,10 @@ export function LoginForm() {
             render={({ field }) => (
               <FormItem>
                 <div className="flex items-center justify-between">
-                  <FormLabel>Password</FormLabel>
+                  <FormLabel className="text-gray-300">Password</FormLabel>
                   <Link 
                     href="/forgot-password" 
-                    className="text-sm font-medium text-primary hover:text-primary/80 hover:underline transition-colors"
+                    className="text-sm font-medium text-cyan-400 hover:text-cyan-300 transition-colors"
                   >
                     Forgot password?
                   </Link>
@@ -155,7 +155,7 @@ export function LoginForm() {
                     placeholder="Enter your password" 
                     type="password"
                     autoComplete="current-password"
-                    className="h-11 bg-background/50"
+                    className="h-11 bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-cyan-500/50"
                     {...field} 
                   />
                 </FormControl>
@@ -166,7 +166,7 @@ export function LoginForm() {
           
           <Button 
             type="submit" 
-            className="w-full h-11 text-base font-medium shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all duration-300"
+            className="w-full h-11 text-base font-semibold bg-gradient-to-r from-cyan-500 to-cyan-400 hover:from-cyan-400 hover:to-cyan-300 text-gray-900 border-0 rounded-full shadow-lg shadow-cyan-500/20 hover:shadow-cyan-500/40 transition-all duration-300"
             disabled={isLoading || isGoogleLoading}
           >
             {isLoading ? (
@@ -186,17 +186,17 @@ export function LoginForm() {
 
       <div className="relative">
         <div className="absolute inset-0 flex items-center">
-          <Separator className="w-full" />
+          <Separator className="w-full bg-white/10" />
         </div>
         <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
+          <span className="bg-transparent px-2 text-gray-500">Or continue with</span>
         </div>
       </div>
 
       <Button
         type="button"
         variant="outline"
-        className="w-full h-11 bg-background/50 hover:bg-background/80"
+        className="w-full h-11 bg-white/5 border-white/10 text-white hover:bg-white/10 rounded-full"
         onClick={handleGoogleSignIn}
         disabled={isGoogleLoading || isLoading}
       >
@@ -225,9 +225,9 @@ export function LoginForm() {
         Google
       </Button>
 
-      <div className="text-center text-sm text-muted-foreground">
+      <div className="text-center text-sm text-gray-400">
         Don&apos;t have an account?{' '}
-        <Link href="/register" className="text-primary font-semibold hover:underline">
+        <Link href="/register" className="text-cyan-400 font-semibold hover:text-cyan-300 transition-colors">
           Create account
         </Link>
       </div>

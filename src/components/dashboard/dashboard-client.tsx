@@ -10,8 +10,8 @@ export default function DashboardClient() {
 
     if (isLoading) {
         return (
-            <div className="flex h-[calc(100vh-4rem)] items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <div className="flex h-[calc(100vh-4rem)] items-center justify-center bg-[#0a0b14]">
+                <Loader2 className="h-8 w-8 animate-spin text-cyan-500" />
             </div>
         );
     }

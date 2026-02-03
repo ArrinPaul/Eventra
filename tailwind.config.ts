@@ -17,8 +17,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        body: ['var(--font-pt-sans)', 'sans-serif'],
-        headline: ['var(--font-playfair)', 'serif'],
+        body: ['var(--font-body)', 'sans-serif'],
+        headline: ['var(--font-heading)', 'sans-serif'],
       },
       colors: {
         background: 'hsl(var(--background))',
@@ -99,6 +99,10 @@ export default {
         '3xl': '1.5rem',
       },
       keyframes: {
+        'shimmer': {
+          '0%': { backgroundPosition: '200% 0' },
+          '100%': { backgroundPosition: '-200% 0' },
+        },
         'accordion-down': {
           from: { height: '0' },
           to: { height: 'var(--radix-accordion-content-height)' },

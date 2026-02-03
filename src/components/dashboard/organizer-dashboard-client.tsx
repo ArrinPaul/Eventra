@@ -60,16 +60,16 @@ interface StatCardProps {
 
 function StatCard({ title, value, change, icon: Icon, trend, description }: StatCardProps) {
   return (
-    <Card variant="premium" className="stat-card group">
+    <Card className="group bg-white/5 border-white/10 backdrop-blur-sm hover:bg-white/10 transition-all duration-300">
       <CardContent className="p-6">
         <div className="flex items-center justify-between">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-red-500/20 to-red-600/10 flex items-center justify-center shadow-soft group-hover:shadow-lg transition-all duration-300">
-            <Icon className="h-7 w-7 text-primary" />
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-cyan-600/20 to-blue-600/20 border border-cyan-500/30 flex items-center justify-center group-hover:shadow-lg transition-all duration-300">
+            <Icon className="h-7 w-7 text-cyan-400" />
           </div>
           {change !== undefined && (
             <div className={cn(
               "flex items-center gap-1 text-sm font-semibold px-2.5 py-1 rounded-full",
-              trend === 'up' ? 'bg-emerald-500/10 text-emerald-600' : trend === 'down' ? 'bg-red-500/10 text-red-500' : 'bg-muted text-muted-foreground'
+              trend === 'up' ? 'bg-emerald-500/20 text-emerald-400' : trend === 'down' ? 'bg-red-500/20 text-red-400' : 'bg-white/10 text-gray-400'
             )}>
               {trend === 'up' && <TrendingUp className="h-4 w-4" />}
               {trend === 'down' && <TrendingDown className="h-4 w-4" />}
@@ -78,10 +78,10 @@ function StatCard({ title, value, change, icon: Icon, trend, description }: Stat
           )}
         </div>
         <div className="mt-5">
-          <p className="text-4xl font-bold tracking-tight">{value}</p>
-          <p className="text-sm font-medium text-muted-foreground mt-2">{title}</p>
+          <p className="text-4xl font-bold tracking-tight text-white">{value}</p>
+          <p className="text-sm font-medium text-gray-400 mt-2">{title}</p>
           {description && (
-            <p className="text-xs text-muted-foreground/70 mt-1">{description}</p>
+            <p className="text-xs text-gray-500 mt-1">{description}</p>
           )}
         </div>
       </CardContent>
@@ -102,10 +102,10 @@ function EventRow({ event, onEdit, onDelete, onDuplicate }: EventRowProps) {
   const isPast = displayDate < new Date();
 
   const getStatusColor = () => {
-    if (event.status === 'cancelled') return 'bg-red-500/10 text-red-500';
-    if (event.status === 'draft') return 'bg-yellow-500/10 text-yellow-500';
-    if (isPast) return 'bg-gray-500/10 text-gray-500';
-    return 'bg-green-500/10 text-green-500';
+    if (event.status === 'cancelled') return 'bg-red-500/20 text-red-400 border-red-500/30';
+    if (event.status === 'draft') return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30';
+    if (isPast) return 'bg-gray-500/20 text-gray-400 border-gray-500/30';
+    return 'bg-green-500/20 text-green-400 border-green-500/30';
   };
 
   const getStatusText = () => {
@@ -116,13 +116,13 @@ function EventRow({ event, onEdit, onDelete, onDuplicate }: EventRowProps) {
   };
 
   return (
-    <div className="flex items-center gap-4 p-4 hover:bg-muted/30 rounded-xl transition-all duration-200 group border border-transparent hover:border-border/50 hover:shadow-soft">
+    <div className="flex items-center gap-4 p-4 hover:bg-white/5 rounded-xl transition-all duration-200 group border border-transparent hover:border-white/10">
       {/* Date Column */}
-      <div className="flex-shrink-0 w-16 h-16 rounded-2xl bg-gradient-to-br from-red-500/20 to-red-600/10 flex flex-col items-center justify-center shadow-sm group-hover:shadow-md transition-all duration-300">
-        <span className="text-xs text-primary font-bold uppercase">
+      <div className="flex-shrink-0 w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-600/20 to-blue-600/20 border border-cyan-500/30 flex flex-col items-center justify-center group-hover:shadow-md transition-all duration-300">
+        <span className="text-xs text-cyan-400 font-bold uppercase">
           {displayDate.toLocaleDateString('en-US', { month: 'short' })}
         </span>
-        <span className="text-2xl font-bold text-primary leading-none">
+        <span className="text-2xl font-bold text-white leading-none">
           {displayDate.getDate()}
         </span>
       </div>
@@ -130,24 +130,24 @@ function EventRow({ event, onEdit, onDelete, onDuplicate }: EventRowProps) {
       {/* Event Info */}
       <div className="flex-grow min-w-0">
         <div className="flex items-center gap-2 mb-1.5">
-          <h3 className="font-bold text-base truncate group-hover:text-primary transition-colors">{event.title}</h3>
-          <Badge variant="secondary" className={cn("text-xs font-semibold", getStatusColor())}>
+          <h3 className="font-bold text-base truncate text-white group-hover:text-cyan-300 transition-colors">{event.title}</h3>
+          <Badge className={cn("text-xs font-semibold border", getStatusColor())}>
             {getStatusText()}
           </Badge>
         </div>
-        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+        <div className="flex items-center gap-4 text-sm text-gray-400">
           <span className="flex items-center gap-1.5">
-            <Clock className="h-3.5 w-3.5" />
+            <Clock className="h-3.5 w-3.5 text-cyan-400" />
             {displayDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
           </span>
           <span className="flex items-center gap-1.5">
-            <MapPin className="h-3.5 w-3.5" />
+            <MapPin className="h-3.5 w-3.5 text-cyan-400" />
             {typeof event.location === 'string'
               ? event.location
               : event.location?.venue?.name || 'Virtual'}
           </span>
           <span className="flex items-center gap-1.5 font-medium">
-            <Users className="h-3.5 w-3.5" />
+            <Users className="h-3.5 w-3.5 text-cyan-400" />
             {(event.registeredCount || event.registeredUsers?.length || 0)} / {event.capacity || '∞'}
           </span>
         </div>
@@ -155,34 +155,34 @@ function EventRow({ event, onEdit, onDelete, onDuplicate }: EventRowProps) {
 
       {/* Actions */}
       <div className="flex-shrink-0 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-        <Button variant="ghost" size="icon" asChild>
+        <Button variant="ghost" size="icon" asChild className="hover:bg-white/10">
           <Link href={`/events/${event.id}`}>
-            <Eye className="h-4 w-4" />
+            <Eye className="h-4 w-4 text-gray-400" />
           </Link>
         </Button>
-        <Button variant="ghost" size="icon" onClick={() => onEdit(event)}>
-          <Edit className="h-4 w-4" />
+        <Button variant="ghost" size="icon" onClick={() => onEdit(event)} className="hover:bg-white/10">
+          <Edit className="h-4 w-4 text-gray-400" />
         </Button>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon">
-              <MoreVertical className="h-4 w-4" />
+            <Button variant="ghost" size="icon" className="hover:bg-white/10">
+              <MoreVertical className="h-4 w-4 text-gray-400" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => onDuplicate(event)}>
+          <DropdownMenuContent align="end" className="bg-gray-900 border-white/10">
+            <DropdownMenuItem onClick={() => onDuplicate(event)} className="text-gray-300 hover:text-white focus:bg-white/10">
               <Copy className="h-4 w-4 mr-2" />
               Duplicate
             </DropdownMenuItem>
-            <DropdownMenuItem asChild>
+            <DropdownMenuItem asChild className="text-gray-300 hover:text-white focus:bg-white/10">
               <Link href={`/analytics?event=${event.id}`}>
                 <BarChart3 className="h-4 w-4 mr-2" />
                 Analytics
               </Link>
             </DropdownMenuItem>
-            <DropdownMenuSeparator />
+            <DropdownMenuSeparator className="bg-white/10" />
             <DropdownMenuItem
-              className="text-destructive focus:text-destructive"
+              className="text-red-400 focus:text-red-300 focus:bg-red-500/10"
               onClick={() => onDelete(event.id)}
             >
               <Trash2 className="h-4 w-4 mr-2" />
@@ -330,22 +330,23 @@ export default function OrganizerDashboard() {
     .slice(0, 3);
 
   return (
-    <div className="container py-8">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
-        <div>
-          <h1 className="text-3xl font-bold font-headline">Dashboard</h1>
-          <p className="text-muted-foreground mt-1">
-            Welcome back, {user?.name?.split(' ')[0] || 'Organizer'}!
-          </p>
+    <div className="min-h-screen bg-[#0a0b14]">
+      <div className="container py-8">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-white">Dashboard</h1>
+            <p className="text-gray-400 mt-1">
+              Welcome back, {user?.name?.split(' ')[0] || 'Organizer'}!
+            </p>
+          </div>
+          <Button asChild size="lg" className="gap-2 bg-gradient-to-r from-cyan-500 to-cyan-400 hover:from-cyan-400 hover:to-cyan-300 text-gray-900 font-semibold border-0 rounded-full">
+            <Link href="/events/create">
+              <Plus className="h-5 w-5" />
+              Create Event
+            </Link>
+          </Button>
         </div>
-        <Button asChild size="lg" className="gap-2">
-          <Link href="/events/create">
-            <Plus className="h-5 w-5" />
-            Create Event
-          </Link>
-        </Button>
-      </div>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -382,18 +383,18 @@ export default function OrganizerDashboard() {
       <div className="grid lg:grid-cols-3 gap-6">
         {/* Main Events List */}
         <div className="lg:col-span-2">
-          <Card>
+          <Card className="bg-white/5 border-white/10 backdrop-blur-sm">
             <CardHeader>
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                  <CardTitle>Your Events</CardTitle>
-                  <CardDescription>Manage and track all your events</CardDescription>
+                  <CardTitle className="text-white">Your Events</CardTitle>
+                  <CardDescription className="text-gray-400">Manage and track all your events</CardDescription>
                 </div>
                 <div className="relative w-full sm:w-64">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
                   <Input
                     placeholder="Search events..."
-                    className="pl-9"
+                    className="pl-9 bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-purple-500/50"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
@@ -402,27 +403,27 @@ export default function OrganizerDashboard() {
             </CardHeader>
             <CardContent>
               <Tabs value={activeTab} onValueChange={setActiveTab}>
-                <TabsList className="mb-4">
-                  <TabsTrigger value="all">All</TabsTrigger>
-                  <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
-                  <TabsTrigger value="past">Past</TabsTrigger>
-                  <TabsTrigger value="draft">Drafts</TabsTrigger>
+                <TabsList className="mb-4 bg-white/5 border border-white/10">
+                  <TabsTrigger value="all" className="data-[state=active]:bg-cyan-500 data-[state=active]:text-gray-900 text-gray-400">All</TabsTrigger>
+                  <TabsTrigger value="upcoming" className="data-[state=active]:bg-cyan-500 data-[state=active]:text-gray-900 text-gray-400">Upcoming</TabsTrigger>
+                  <TabsTrigger value="past" className="data-[state=active]:bg-cyan-500 data-[state=active]:text-gray-900 text-gray-400">Past</TabsTrigger>
+                  <TabsTrigger value="draft" className="data-[state=active]:bg-cyan-500 data-[state=active]:text-gray-900 text-gray-400">Drafts</TabsTrigger>
                 </TabsList>
 
                 {loading ? (
                   <div className="flex items-center justify-center py-12">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                    <Loader2 className="h-8 w-8 animate-spin text-cyan-500" />
                   </div>
                 ) : filteredEvents.length === 0 ? (
                   <div className="text-center py-12">
-                    <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                    <h3 className="font-semibold mb-2">No events found</h3>
-                    <p className="text-muted-foreground text-sm mb-4">
+                    <Calendar className="h-12 w-12 text-gray-600 mx-auto mb-4" />
+                    <h3 className="font-semibold mb-2 text-white">No events found</h3>
+                    <p className="text-gray-400 text-sm mb-4">
                       {activeTab === 'all'
                         ? "You haven't created any events yet."
                         : `No ${activeTab} events.`}
                     </p>
-                    <Button asChild>
+                    <Button asChild className="bg-gradient-to-r from-cyan-500 to-cyan-400 hover:from-cyan-400 hover:to-cyan-300 text-gray-900 font-semibold border-0 rounded-full">
                       <Link href="/events/create">
                         <Plus className="h-4 w-4 mr-2" />
                         Create Your First Event
@@ -450,45 +451,45 @@ export default function OrganizerDashboard() {
         {/* Sidebar */}
         <div className="space-y-6">
           {/* Upcoming Events Preview */}
-          <Card>
+          <Card className="bg-white/5 border-white/10 backdrop-blur-sm">
             <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <CalendarDays className="h-5 w-5 text-primary" />
+              <CardTitle className="text-lg flex items-center gap-2 text-white">
+                <CalendarDays className="h-5 w-5 text-cyan-400" />
                 Coming Up
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {upcomingEvents.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-4">
+              {upcomingEventsList.length === 0 ? (
+                <p className="text-sm text-gray-400 text-center py-4">
                   No upcoming events
                 </p>
               ) : (
                 <div className="space-y-4">
-                  {upcomingEvents.map((event) => {
+                  {upcomingEventsList.map((event) => {
                     const date = event.startDate ? new Date(event.startDate) : new Date(event.date || '');
                     return (
                       <Link
                         key={event.id}
                         href={`/events/${event.id}`}
-                        className="flex items-center gap-3 p-2 hover:bg-muted/50 rounded-lg transition-colors group"
+                        className="flex items-center gap-3 p-2 hover:bg-white/5 rounded-lg transition-colors group"
                       >
-                        <div className="w-10 h-10 rounded-lg bg-primary/10 flex flex-col items-center justify-center text-xs">
-                          <span className="text-primary font-medium uppercase">
+                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-cyan-600/20 to-blue-600/20 border border-cyan-500/30 flex flex-col items-center justify-center text-xs">
+                          <span className="text-cyan-400 font-medium uppercase">
                             {date.toLocaleDateString('en-US', { month: 'short' })}
                           </span>
-                          <span className="font-bold text-primary leading-none">
+                          <span className="font-bold text-white leading-none">
                             {date.getDate()}
                           </span>
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="font-medium text-sm truncate group-hover:text-primary transition-colors">
+                          <p className="font-medium text-sm truncate text-white group-hover:text-cyan-300 transition-colors">
                             {event.title}
                           </p>
-                          <p className="text-xs text-muted-foreground">
+                          <p className="text-xs text-gray-400">
                             {(event.registeredCount || event.registeredUsers?.length || 0)} registered
                           </p>
                         </div>
-                        <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                        <ChevronRight className="h-4 w-4 text-gray-500 group-hover:text-cyan-400 transition-colors" />
                       </Link>
                     );
                   })}
@@ -498,35 +499,35 @@ export default function OrganizerDashboard() {
           </Card>
 
           {/* Quick Actions */}
-          <Card>
+          <Card className="bg-white/5 border-white/10 backdrop-blur-sm">
             <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Sparkles className="h-5 w-5 text-primary" />
+              <CardTitle className="text-lg flex items-center gap-2 text-white">
+                <Sparkles className="h-5 w-5 text-cyan-400" />
                 Quick Actions
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
-              <Button variant="outline" className="w-full justify-start" asChild>
+              <Button variant="outline" className="w-full justify-start border-white/10 text-gray-300 hover:text-white hover:bg-white/10" asChild>
                 <Link href="/events/create">
-                  <Plus className="h-4 w-4 mr-2" />
+                  <Plus className="h-4 w-4 mr-2 text-cyan-400" />
                   Create New Event
                 </Link>
               </Button>
-              <Button variant="outline" className="w-full justify-start" asChild>
+              <Button variant="outline" className="w-full justify-start border-white/10 text-gray-300 hover:text-white hover:bg-white/10" asChild>
                 <Link href="/analytics">
-                  <BarChart3 className="h-4 w-4 mr-2" />
+                  <BarChart3 className="h-4 w-4 mr-2 text-cyan-400" />
                   View Analytics
                 </Link>
               </Button>
-              <Button variant="outline" className="w-full justify-start" asChild>
+              <Button variant="outline" className="w-full justify-start border-white/10 text-gray-300 hover:text-white hover:bg-white/10" asChild>
                 <Link href="/check-in-scanner">
-                  <Ticket className="h-4 w-4 mr-2" />
+                  <Ticket className="h-4 w-4 mr-2 text-cyan-400" />
                   Check-in Scanner
                 </Link>
               </Button>
-              <Button variant="outline" className="w-full justify-start" asChild>
+              <Button variant="outline" className="w-full justify-start border-white/10 text-gray-300 hover:text-white hover:bg-white/10" asChild>
                 <Link href="/preferences">
-                  <Settings className="h-4 w-4 mr-2" />
+                  <Settings className="h-4 w-4 mr-2 text-cyan-400" />
                   Settings
                 </Link>
               </Button>
@@ -534,15 +535,15 @@ export default function OrganizerDashboard() {
           </Card>
 
           {/* Pro Tip */}
-          <Card className="bg-gradient-to-br from-primary/10 to-secondary/10 border-0">
+          <Card className="bg-gradient-to-br from-cyan-600/10 to-blue-600/10 border border-cyan-500/20">
             <CardContent className="p-6">
               <div className="flex items-start gap-3">
-                <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
-                  <Sparkles className="h-5 w-5 text-primary" />
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-cyan-600/30 to-blue-600/30 flex items-center justify-center flex-shrink-0">
+                  <Sparkles className="h-5 w-5 text-cyan-400" />
                 </div>
                 <div>
-                  <h4 className="font-semibold mb-1">Pro Tip</h4>
-                  <p className="text-sm text-muted-foreground">
+                  <h4 className="font-semibold mb-1 text-white">Pro Tip</h4>
+                  <p className="text-sm text-gray-400">
                     Use our AI-powered event wizard to create compelling descriptions
                     and agendas automatically.
                   </p>
@@ -552,6 +553,7 @@ export default function OrganizerDashboard() {
           </Card>
         </div>
       </div>
+    </div>
     </div>
   );
 }

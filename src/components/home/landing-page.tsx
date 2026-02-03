@@ -2,553 +2,734 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { eventService, ticketService } from '@/core/services/firestore-services';
+import { Input } from '@/components/ui/input';
 import {
   Sparkles,
   Calendar,
   Users,
-  QrCode,
-  Award,
-  BarChart3,
-  Zap,
+  MapPin,
   ArrowRight,
-  CheckCircle,
+  Search,
   Star,
-  Play,
+  Clock,
+  Ticket,
   ChevronRight,
+  Play,
+  Zap,
   Globe,
   Shield,
-  Rocket,
-  LayoutDashboard
+  TrendingUp,
+  Heart,
+  Share2,
+  Filter,
+  ChevronDown,
+  CheckCircle2,
+  ArrowUpRight,
+  Instagram,
+  Twitter,
+  Linkedin,
+  Github,
+  Mail,
+  Phone,
 } from 'lucide-react';
 import { cn } from '@/core/utils/utils';
-import Image from 'next/image';
+import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
 
-// Animated counter component
-function AnimatedCounter({ end, duration = 2000, suffix = '' }: { end: number; duration?: number; suffix?: string }) {
-  const [count, setCount] = useState(0);
-
-  useEffect(() => {
-    let startTime: number;
-    let animationFrame: number;
-
-    const animate = (timestamp: number) => {
-      if (!startTime) startTime = timestamp;
-      const progress = Math.min((timestamp - startTime) / duration, 1);
-      setCount(Math.floor(progress * end));
-      if (progress < 1) {
-        animationFrame = requestAnimationFrame(animate);
-      }
-    };
-
-    animationFrame = requestAnimationFrame(animate);
-    return () => cancelAnimationFrame(animationFrame);
-  }, [end, duration]);
-
-  return <span>{count.toLocaleString()}{suffix}</span>;
-}
-
-// Feature card component - Eventtts Style
-function FeatureCard({ icon: Icon, title, description, color }: {
-  icon: any;
-  title: string;
-  description: string;
-  color: string;
-}) {
+// ============================================
+// ANIMATED BACKGROUND COMPONENT
+// ============================================
+function AnimatedBackground() {
   return (
-    <Card variant="premium" className="group relative overflow-hidden border bg-card hover:bg-card">
-      <CardContent className="p-6">
-        <div className={cn(
-          "w-14 h-14 rounded-2xl flex items-center justify-center mb-5 shadow-lg transition-all duration-300 group-hover:scale-110 group-hover:shadow-xl",
-          color
-        )}>
-          <Icon className="w-7 h-7 text-white" />
-        </div>
-        <h3 className="text-xl font-bold mb-3 group-hover:text-primary transition-colors">{title}</h3>
-        <p className="text-muted-foreground text-sm leading-relaxed">{description}</p>
-      </CardContent>
-    </Card>
+    <div className="absolute inset-0 overflow-hidden">
+      {/* Gradient Background - Maroon to Dark Red */}
+      <div className="absolute inset-0 bg-gradient-to-b from-[#3D1515] via-[#5D2020] to-[#4A1818]" />
+      
+      {/* Subtle Gradient Orbs */}
+      <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-red-500/10 rounded-full blur-[120px]" />
+      <div className="absolute top-1/3 right-1/4 w-[500px] h-[500px] bg-red-400/10 rounded-full blur-[100px]" />
+      <div className="absolute bottom-0 left-1/3 w-[700px] h-[700px] bg-red-600/10 rounded-full blur-[140px]" />
+    </div>
   );
 }
 
-// Testimonial component - Eventtts Style
-function TestimonialCard({ quote, author, role, avatar }: {
-  quote: string;
-  author: string;
-  role: string;
-  avatar: string;
-}) {
-  return (
-    <Card variant="glass" className="hover:shadow-2xl">
-      <CardContent className="p-6">
-        <div className="flex gap-1 mb-4">
-          {[...Array(5)].map((_, i) => (
-            <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
-          ))}
-        </div>
-        <p className="text-foreground mb-5 italic text-base leading-relaxed">&quot;{quote}&quot;</p>
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center text-white font-bold shadow-lg">
-            {avatar}
-          </div>
-          <div>
-            <p className="font-bold">{author}</p>
-            <p className="text-sm text-muted-foreground">{role}</p>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-export default function LandingPage() {
-  const [isVisible, setIsVisible] = useState(false);
-  const [stats, setStats] = useState({
-    eventsCreated: 500,
-    totalAttendees: 12000,
-    successRate: 98,
-    organizations: 50,
-  });
-  const [loading, setLoading] = useState(true);
+// ============================================
+// NAVBAR COMPONENT
+// ============================================
+function Navbar() {
+  const [scrolled, setScrolled] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    setIsVisible(true);
-
-    // Fetch real stats from Firestore
-    const fetchStats = async () => {
-      try {
-        const events = await eventService.getEvents();
-        const eventsCount = events.length;
-
-        // Calculate total attendees across all events
-        const totalAttendees = events.reduce((sum, event) => {
-          return sum + (event.registeredCount || event.registeredUsers?.length || 0);
-        }, 0);
-
-        // Calculate success rate (events with >50% capacity filled)
-        const successfulEvents = events.filter(event => {
-          const registered = event.registeredCount || event.registeredUsers?.length || 0;
-          const capacity = event.capacity || 100;
-          return (registered / capacity) > 0.5;
-        }).length;
-        const successRate = events.length > 0
-          ? Math.round((successfulEvents / events.length) * 100)
-          : 98;
-
-        // Count unique organizers
-        const organizers = new Set(events.map(e => e.organizerId).filter(Boolean));
-
-        setStats({
-          eventsCreated: Math.max(eventsCount, 500), // Show at least 500 for demo
-          totalAttendees: Math.max(totalAttendees, 12000),
-          successRate: Math.max(successRate, 95),
-          organizations: Math.max(organizers.size, 50),
-        });
-      } catch (error) {
-        console.error('Error fetching stats:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchStats();
+    const handleScroll = () => setScrolled(window.scrollY > 50);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const features = [
+  return (
+    <motion.nav
+      initial={{ y: -100 }}
+      animate={{ y: 0 }}
+      className={cn(
+        "fixed top-0 left-0 right-0 z-50 transition-all duration-500",
+        scrolled 
+          ? "bg-black/80 backdrop-blur-xl border-b border-white/10" 
+          : "bg-transparent"
+      )}
+    >
+      <div className="max-w-7xl mx-auto px-6">
+        <div className="flex items-center justify-between h-20">
+          {/* Logo */}
+          <Link href="/" className="flex items-center gap-3">
+            <div className="relative">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center">
+                <Sparkles className="w-5 h-5 text-white" />
+              </div>
+              <div className="absolute -inset-1 bg-gradient-to-br from-red-500 to-red-600 rounded-xl blur opacity-40" />
+            </div>
+            <span className="text-2xl font-bold text-red-400">
+              Eventra
+            </span>
+          </Link>
+
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center gap-8">
+            <Link href="/explore" className="text-gray-300 hover:text-white transition-colors text-sm font-medium">
+              Explore Events
+            </Link>
+            <Link href="/create" className="text-gray-300 hover:text-white transition-colors text-sm font-medium">
+              Create Event
+            </Link>
+            <Link href="/pricing" className="text-gray-300 hover:text-white transition-colors text-sm font-medium">
+              Pricing
+            </Link>
+            <Link href="/about" className="text-gray-300 hover:text-white transition-colors text-sm font-medium">
+              About
+            </Link>
+          </div>
+
+          {/* Auth Buttons */}
+          <div className="hidden md:flex items-center gap-4">
+            <Button asChild variant="ghost" className="text-gray-300 hover:text-white hover:bg-white/10">
+              <Link href="/login">Sign In</Link>
+            </Button>
+            <Button asChild className="bg-red-500 hover:bg-red-400 text-white font-semibold border-0 rounded-full">
+              <Link href="/register">Sign In</Link>
+            </Button>
+          </div>
+
+          {/* Mobile Menu Button */}
+          <button 
+            className="md:hidden text-white p-2"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          >
+            <div className="w-6 h-5 flex flex-col justify-between">
+              <span className={cn("h-0.5 w-full bg-white transition-all", mobileMenuOpen && "rotate-45 translate-y-2")} />
+              <span className={cn("h-0.5 w-full bg-white transition-all", mobileMenuOpen && "opacity-0")} />
+              <span className={cn("h-0.5 w-full bg-white transition-all", mobileMenuOpen && "-rotate-45 -translate-y-2")} />
+            </div>
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile Menu */}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="md:hidden bg-black/95 backdrop-blur-xl border-t border-white/10"
+          >
+            <div className="px-6 py-6 space-y-4">
+              <Link href="/explore" className="block text-gray-300 hover:text-white py-2">Explore Events</Link>
+              <Link href="/create" className="block text-gray-300 hover:text-white py-2">Create Event</Link>
+              <Link href="/pricing" className="block text-gray-300 hover:text-white py-2">Pricing</Link>
+              <Link href="/about" className="block text-gray-300 hover:text-white py-2">About</Link>
+              <div className="pt-4 flex flex-col gap-3">
+                <Button asChild variant="outline" className="w-full border-white/20 text-white">
+                  <Link href="/login">Sign In</Link>
+                </Button>
+                <Button asChild className="w-full bg-red-500 hover:bg-red-400 text-white font-semibold rounded-full">
+                  <Link href="/register">Sign In</Link>
+                </Button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.nav>
+  );
+}
+
+// ============================================
+// HERO SECTION
+// ============================================
+function HeroSection() {
+  const { scrollY } = useScroll();
+  const y = useTransform(scrollY, [0, 500], [0, 150]);
+  const opacity = useTransform(scrollY, [0, 300], [1, 0]);
+
+  return (
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
+      <AnimatedBackground />
+      
+      <motion.div style={{ y, opacity }} className="relative z-10 max-w-7xl mx-auto px-6 py-20 text-center">
+        {/* Badge */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          <Badge className="mb-8 px-6 py-3 bg-white/10 border-white/20 text-white/90 backdrop-blur-sm rounded-full">
+            <Sparkles className="w-4 h-4 mr-2 text-white/80" />
+            Professional Event Organization Platform
+          </Badge>
+        </motion.div>
+
+        {/* Main Heading */}
+        <motion.h1
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="text-5xl md:text-7xl lg:text-8xl font-bold mb-8 leading-tight"
+        >
+          <span className="text-white">Organize & Manage</span>
+          <br />
+          <span className="text-red-300">
+            Your Events
+          </span>
+        </motion.h1>
+
+        {/* Subheading */}
+        <motion.p
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="text-xl md:text-2xl text-white/70 max-w-3xl mx-auto mb-12"
+        >
+          Everything you need to organize successful events - from planning
+          to execution, attendee management to analytics.
+        </motion.p>
+
+        {/* CTA Buttons */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+          className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16"
+        >
+          <Button asChild size="lg" className="h-14 px-10 bg-red-500 hover:bg-red-400 text-white rounded-full text-lg font-semibold">
+            <Link href="/create">
+              Create New Event
+              <ArrowRight className="ml-2 w-5 h-5" />
+            </Link>
+          </Button>
+          <Button asChild size="lg" variant="outline" className="h-14 px-10 border-white/30 text-white hover:bg-white/10 rounded-full text-lg bg-white/10 backdrop-blur-sm">
+            <Link href="/dashboard">
+              Manage My Events
+            </Link>
+          </Button>
+        </motion.div>
+
+        {/* Stats Cards */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6 }}
+          className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto"
+        >
+          {[
+            { value: '500+', label: 'Events Created', icon: Calendar },
+            { value: '95%', label: 'Success Rate', icon: TrendingUp },
+            { value: '10K+', label: 'Total Attendees', icon: Users },
+          ].map((stat, i) => (
+            <div key={i} className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
+              <stat.icon className="w-8 h-8 text-red-400 mb-4 mx-auto" />
+              <div className="text-3xl md:text-4xl font-bold text-white mb-1">{stat.value}</div>
+              <div className="text-sm text-white/60">{stat.label}</div>
+            </div>
+          ))}
+        </motion.div>
+        </motion.div>
+      </motion.div>
+
+      {/* Scroll Indicator */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1 }}
+        className="absolute bottom-10 left-1/2 -translate-x-1/2"
+      >
+        <motion.div
+          animate={{ y: [0, 10, 0] }}
+          transition={{ repeat: Infinity, duration: 2 }}
+          className="w-6 h-10 rounded-full border-2 border-white/30 flex items-start justify-center p-2"
+        >
+          <motion.div className="w-1.5 h-3 bg-white/50 rounded-full" />
+        </motion.div>
+      </motion.div>
+    </section>
+  );
+}
+
+// ============================================
+// EVENT CARD COMPONENT
+// ============================================
+interface EventCardProps {
+  title: string;
+  date: string;
+  time: string;
+  location: string;
+  image: string;
+  category: string;
+  price: string;
+  attendees: number;
+  featured?: boolean;
+}
+
+function EventCard({ title, date, time, location, image, category, price, attendees, featured }: EventCardProps) {
+  return (
+    <motion.div
+      whileHover={{ y: -8, scale: 1.02 }}
+      transition={{ type: "spring", stiffness: 300 }}
+      className={cn(
+        "group relative rounded-3xl overflow-hidden bg-gradient-to-b from-white/10 to-white/5 border border-white/10 backdrop-blur-sm",
+        featured && "md:col-span-2 md:row-span-2"
+      )}
+    >
+      {/* Image */}
+      <div className={cn("relative overflow-hidden", featured ? "h-64 md:h-80" : "h-48")}>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-10" />
+        <Image
+          src={image}
+          alt={title}
+          fill
+          className="object-cover group-hover:scale-110 transition-transform duration-500"
+        />
+        
+        {/* Category Badge */}
+        <Badge className="absolute top-4 left-4 z-20 bg-white/20 backdrop-blur-sm border-0 text-white">
+          {category}
+        </Badge>
+
+        {/* Like Button */}
+        <button className="absolute top-4 right-4 z-20 w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/30 transition-colors">
+          <Heart className="w-5 h-5 text-white" />
+        </button>
+      </div>
+
+      {/* Content */}
+      <div className="p-6">
+        <h3 className={cn("font-bold text-white mb-3 line-clamp-2 group-hover:text-red-300 transition-colors", featured ? "text-2xl" : "text-lg")}>
+          {title}
+        </h3>
+        
+        <div className="space-y-2 mb-4">
+          <div className="flex items-center text-gray-400 text-sm">
+            <Calendar className="w-4 h-4 mr-2" />
+            {date} • {time}
+          </div>
+          <div className="flex items-center text-gray-400 text-sm">
+            <MapPin className="w-4 h-4 mr-2" />
+            {location}
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between pt-4 border-t border-white/10">
+          <div className="flex items-center gap-2">
+            <div className="flex -space-x-2">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="w-7 h-7 rounded-full bg-gradient-to-br from-red-400 to-red-500 border-2 border-[#3D1515]" />
+              ))}
+            </div>
+            <span className="text-white/60 text-sm">+{attendees} going</span>
+          </div>
+          <div className="text-white font-bold">
+            {price === 'Free' ? (
+              <span className="text-green-400">Free</span>
+            ) : (
+              price
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Hover Glow Effect */}
+      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+        <div className="absolute inset-0 bg-gradient-to-t from-red-500/10 to-transparent" />
+      </div>
+    </motion.div>
+  );
+}
+
+// ============================================
+// FEATURED EVENTS SECTION
+// ============================================
+function FeaturedEventsSection() {
+  const events = [
     {
-      icon: Calendar,
-      title: 'Smart Event Creation',
-      description: 'Create events in minutes with our AI-powered wizard that generates descriptions, agendas, and checklists.',
-      color: 'bg-[hsl(var(--primary))]',
+      title: "Tech Innovation Summit 2026",
+      date: "Feb 15, 2026",
+      time: "9:00 AM",
+      location: "Main Auditorium, Tech Park",
+      image: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800",
+      category: "Technology",
+      price: "₹499",
+      attendees: 234,
+      featured: true,
     },
     {
-      icon: QrCode,
-      title: 'QR Ticketing',
-      description: 'Secure, encrypted QR codes for seamless check-in. Real-time attendance tracking included.',
-      color: 'bg-[hsl(var(--secondary))]',
+      title: "Music Festival Night",
+      date: "Feb 20, 2026",
+      time: "6:00 PM",
+      location: "Open Air Theatre",
+      image: "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=800",
+      category: "Music",
+      price: "₹299",
+      attendees: 512,
+    },
+    {
+      title: "Startup Pitch Competition",
+      date: "Feb 18, 2026",
+      time: "10:00 AM",
+      location: "Business School",
+      image: "https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=800",
+      category: "Business",
+      price: "Free",
+      attendees: 89,
+    },
+    {
+      title: "Art & Design Workshop",
+      date: "Feb 22, 2026",
+      time: "2:00 PM",
+      location: "Creative Studio",
+      image: "https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?w=800",
+      category: "Art",
+      price: "₹199",
+      attendees: 45,
+    },
+    {
+      title: "Hackathon 2026",
+      date: "Feb 25, 2026",
+      time: "8:00 AM",
+      location: "Engineering Block",
+      image: "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=800",
+      category: "Technology",
+      price: "Free",
+      attendees: 156,
+    },
+  ];
+
+  return (
+    <section className="relative py-32 bg-gradient-to-b from-[#4A1818] to-[#3D1515]">
+      <div className="max-w-7xl mx-auto px-6">
+        {/* Section Header */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12">
+          <div>
+            <Badge className="mb-4 bg-red-500/20 text-red-300 border-red-500/30">
+              <TrendingUp className="w-3 h-3 mr-2" />
+              Trending Now
+            </Badge>
+            <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
+              Featured Events
+            </h2>
+            <p className="text-white/60 text-lg max-w-xl">
+              Discover the most popular events happening around you. Don&apos;t miss out on these amazing experiences.
+            </p>
+          </div>
+          <Button asChild variant="outline" className="mt-6 md:mt-0 border-white/20 text-white hover:bg-white/10">
+            <Link href="/explore">
+              View All Events
+              <ArrowRight className="ml-2 w-4 h-4" />
+            </Link>
+          </Button>
+        </div>
+
+        {/* Events Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {events.map((event, i) => (
+            <EventCard key={i} {...event} featured={i === 0} />
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ============================================
+// CATEGORIES SECTION
+// ============================================
+function CategoriesSection() {
+  const categories = [
+    { name: 'Technology', icon: Zap, color: 'from-blue-500 to-cyan-500', count: 234 },
+    { name: 'Music', icon: Play, color: 'from-pink-500 to-rose-500', count: 189 },
+    { name: 'Business', icon: TrendingUp, color: 'from-green-500 to-emerald-500', count: 156 },
+    { name: 'Sports', icon: Star, color: 'from-orange-500 to-amber-500', count: 98 },
+    { name: 'Art', icon: Heart, color: 'from-purple-500 to-violet-500', count: 87 },
+    { name: 'Education', icon: Globe, color: 'from-indigo-500 to-blue-500', count: 203 },
+  ];
+
+  return (
+    <section className="relative py-32 bg-gradient-to-b from-[#3D1515] via-[#4A1818] to-[#3D1515]">
+      <div className="max-w-7xl mx-auto px-6">
+        <div className="text-center mb-16">
+          <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
+            Browse by Category
+          </h2>
+          <p className="text-white/60 text-lg">
+            Find events that match your interests
+          </p>
+        </div>
+
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          {categories.map((cat, i) => (
+            <motion.div
+              key={i}
+              whileHover={{ scale: 1.05, y: -5 }}
+              className="group cursor-pointer"
+            >
+              <div className="relative p-6 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm hover:bg-white/10 transition-all text-center">
+                <div className={cn("w-14 h-14 mx-auto mb-4 rounded-xl bg-gradient-to-br flex items-center justify-center", cat.color)}>
+                  <cat.icon className="w-7 h-7 text-white" />
+                </div>
+                <h3 className="text-white font-semibold mb-1">{cat.name}</h3>
+                <p className="text-white/50 text-sm">{cat.count} events</p>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ============================================
+// FEATURES SECTION
+// ============================================
+function FeaturesSection() {
+  const features = [
+    {
+      icon: Ticket,
+      title: "Smart Ticketing",
+      description: "Secure QR-based tickets with instant delivery and easy check-in process.",
+      color: "from-purple-500 to-pink-500"
     },
     {
       icon: Users,
-      title: 'Networking & Matchmaking',
-      description: 'AI-powered attendee matching based on interests and goals. Build meaningful connections.',
-      color: 'bg-[hsl(var(--accent))]',
+      title: "Community Building",
+      description: "Connect with like-minded people and build lasting relationships.",
+      color: "from-blue-500 to-cyan-500"
     },
     {
-      icon: BarChart3,
-      title: 'Deep Analytics',
-      description: 'Real-time insights on registrations, engagement, and demographics. Make data-driven decisions.',
-      color: 'bg-gradient-to-br from-[hsl(var(--primary))] to-[hsl(var(--accent))]',
+      icon: Sparkles,
+      title: "AI-Powered Recommendations",
+      description: "Discover events tailored to your interests using advanced AI.",
+      color: "from-green-500 to-emerald-500"
     },
     {
-      icon: Award,
-      title: 'Auto Certificates',
-      description: 'Automatically generate and distribute personalized certificates after events end.',
-      color: 'bg-gradient-to-br from-[hsl(var(--accent))] to-[hsl(var(--secondary))]',
+      icon: Shield,
+      title: "Secure Payments",
+      description: "Bank-grade security for all transactions with multiple payment options.",
+      color: "from-orange-500 to-amber-500"
     },
     {
-      icon: Zap,
-      title: 'AI Assistant',
-      description: 'Your 24/7 event companion. Answer attendee questions and provide recommendations.',
-      color: 'bg-gradient-to-br from-[hsl(var(--secondary))] to-[hsl(var(--primary))]',
-    },
-  ];
-
-  const testimonials = [
-    {
-      quote: "EventOS transformed how we manage campus events. Registration time reduced by 80%!",
-      author: "Sarah Chen",
-      role: "Student Council President",
-      avatar: "SC",
+      icon: Globe,
+      title: "Global Reach",
+      description: "Host and attend events from anywhere in the world.",
+      color: "from-pink-500 to-rose-500"
     },
     {
-      quote: "The AI planner feature saved us hours of planning. It's like having an extra team member.",
-      author: "Michael Rodriguez",
-      role: "Event Coordinator",
-      avatar: "MR",
-    },
-    {
-      quote: "Best event platform we&apos;ve used. The analytics alone are worth it.",
-      author: "Emily Watson",
-      role: "Club Lead",
-      avatar: "EW",
+      icon: TrendingUp,
+      title: "Real-time Analytics",
+      description: "Track your event performance with detailed insights and reports.",
+      color: "from-indigo-500 to-violet-500"
     },
   ];
 
   return (
-    <div className="min-h-screen bg-background overflow-hidden">
-      {/* Hero Section */}
-      <section className="relative min-h-[90vh] flex items-center">
-        {/* Background Effects */}
-        {/* Background Effects */}
-        <div className="absolute inset-0 -z-10 overflow-hidden">
-          <div className="absolute inset-0 bg-background" />
-          <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-[100px] animate-pulse-glow" />
-          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-secondary/20 rounded-full blur-[100px] animate-pulse-glow" style={{ animationDelay: '1s' }} />
-          <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:radial-gradient(ellipse_at_center,black,transparent_75%)] opacity-20" />
-          <div className="absolute inset-0 bg-gradient-to-b from-background/5 via-background/50 to-background" />
+    <section className="relative py-32 bg-[#3D1515] overflow-hidden">
+      {/* Background Elements */}
+      <div className="absolute top-1/2 left-0 w-[500px] h-[500px] bg-red-500/10 rounded-full blur-[150px] -translate-y-1/2" />
+      <div className="absolute top-1/2 right-0 w-[500px] h-[500px] bg-red-400/10 rounded-full blur-[150px] -translate-y-1/2" />
+
+      <div className="relative max-w-7xl mx-auto px-6">
+        <div className="text-center mb-16">
+          <Badge className="mb-4 bg-white/10 text-white border-white/20">
+            <Zap className="w-3 h-3 mr-2" />
+            Powerful Features
+          </Badge>
+          <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
+            Everything You Need
+          </h2>
+          <p className="text-white/60 text-lg max-w-2xl mx-auto">
+            From event creation to post-event analytics, we&apos;ve got you covered with all the tools you need.
+          </p>
         </div>
 
-        <div className="container mx-auto px-4 py-20">
-          <div className={cn(
-            "max-w-4xl mx-auto text-center transition-all duration-1000",
-            isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
-          )}>
-            {/* Badge */}
-            <Badge variant="gradient" className="mb-8 px-5 py-2.5 text-sm font-semibold shadow-lg">
-              <Sparkles className="w-4 h-4 mr-2" />
-              AI-Powered Event Management
-            </Badge>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {features.map((feature, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.1 }}
+              viewport={{ once: true }}
+              className="group relative p-8 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-sm hover:bg-white/10 transition-all"
+            >
+              <div className={cn("w-14 h-14 mb-6 rounded-2xl bg-gradient-to-br flex items-center justify-center", feature.color)}>
+                <feature.icon className="w-7 h-7 text-white" />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-3">{feature.title}</h3>
+              <p className="text-gray-400">{feature.description}</p>
+              
+              {/* Hover effect */}
+              <div className="absolute inset-0 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className={cn("absolute inset-0 rounded-3xl bg-gradient-to-br opacity-10", feature.color)} />
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
 
-            {/* Headline */}
-            <h1 className="text-5xl md:text-7xl font-bold font-headline tracking-tight mb-6">
-              <span className="text-gradient bg-gradient-to-r from-red-500 via-red-600 to-red-500 bg-clip-text text-transparent">
-                Organize & Manage
-              </span>
-              <br />
-              <span className="text-foreground">Your Events</span>
-            </h1>
-            <p className="text-xl md:text-2xl text-muted-foreground mb-4 font-medium">
-              Everything you need to organize successful events
+// ============================================
+// CTA SECTION
+// ============================================
+// Main CTA
+function CTASection() {
+  return (
+    <section className="relative py-32 bg-[#2A0F0F] overflow-hidden">
+      <div className="max-w-5xl mx-auto px-6">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true }}
+          className="relative rounded-[3rem] overflow-hidden"
+        >
+          {/* Background Gradient - Red/Coral */}
+          <div className="absolute inset-0 bg-gradient-to-r from-red-600 via-red-500 to-red-600" />
+          <div className={"absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width=\"30\" height=\"30\" viewBox=\"0 0 30 30\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cpath d=\"M1.22676 0C1.91374 0 2.45351 0.539773 2.45351 1.22676C2.45351 1.91374 1.91374 2.45351 1.22676 2.45351C0.539773 2.45351 0 1.91374 0 1.22676C0 0.539773 0.539773 0 1.22676 0Z\" fill=\"rgba(255,255,255,0.07)\"%3E%3C/path%3E%3C/svg%3E')] opacity-50"} />
+          
+          <div className="relative z-10 p-12 md:p-20 text-center">
+            <h2 className="text-4xl md:text-6xl font-bold text-white mb-6">
+              Ready to Create Your Event?
+            </h2>
+            <p className="text-xl text-white/80 max-w-2xl mx-auto mb-10">
+              Join thousands of organizers who are already creating amazing events on Eventra.
             </p>
-            <p className="text-lg text-muted-foreground/80 max-w-2xl mx-auto mb-12">
-              From planning to execution, attendee management to analytics. Create memorable experiences with AI-powered automation.
-            </p>
-
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
-              <Button asChild size="xl" variant="gradient" className="group shadow-glow-red btn-glow">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <Button asChild size="lg" className="h-14 px-10 bg-white text-red-600 hover:bg-gray-100 rounded-full text-lg font-semibold">
                 <Link href="/register">
-                  Create New Event
-                  <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                  Start Free Trial
+                  <ArrowRight className="ml-2 w-5 h-5" />
                 </Link>
               </Button>
-              <Button asChild size="xl" variant="outline" className="group border-2 hover:bg-muted">
-                <Link href="/explore">
-                  Explore Events
-                  <ChevronRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              <Button asChild size="lg" variant="outline" className="h-14 px-10 border-white/30 text-white hover:bg-white/10 rounded-full text-lg">
+                <Link href="/contact">
+                  Contact Sales
                 </Link>
               </Button>
             </div>
-
-            {/* Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-3xl mx-auto">
-              {[
-                { value: stats.eventsCreated, suffix: '+', label: 'Events Created' },
-                { value: stats.totalAttendees, suffix: '+', label: 'Attendees' },
-                { value: stats.successRate, suffix: '%', label: 'Success Rate' },
-                { value: stats.organizations, suffix: '+', label: 'Organizations' },
-              ].map((stat, index) => (
-                <div key={index} className="text-center">
-                  <div className="text-3xl md:text-4xl font-bold text-primary mb-1">
-                    {loading ? (
-                      <div className="h-10 w-16 bg-muted animate-pulse rounded mx-auto" />
-                    ) : (
-                      <AnimatedCounter end={stat.value} suffix={stat.suffix} />
-                    )}
-                  </div>
-                  <div className="text-sm text-muted-foreground">{stat.label}</div>
-                </div>
-              ))}
-            </div>
           </div>
-        </div>
-      </section>
+        </motion.div>
+      </div>
+    </section>
+  );
+}
 
-      {/* Live Preview Section */}
-      <section className="py-24 bg-muted/30 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5" />
-        {/* Background Pattern - Dot Grid */}
-        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20" />
-        <div className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(#CBD5E1 1px, transparent 1px)', backgroundSize: '40px 40px', opacity: 0.3 }} />
+// ============================================
+// FOOTER COMPONENT
+// ============================================
+function Footer() {
+  const footerLinks = {
+    Product: ['Features', 'Pricing', 'Integrations', 'API'],
+    Company: ['About', 'Blog', 'Careers', 'Press'],
+    Resources: ['Documentation', 'Help Center', 'Community', 'Status'],
+    Legal: ['Privacy', 'Terms', 'Cookies', 'Licenses'],
+  };
 
-        <div className="container mx-auto px-4 relative z-10">
-          <div className="text-center mb-16">
-            <Badge variant="outline" className="mb-4">
-              <LayoutDashboard className="w-4 h-4 mr-2" />
-              Platform Preview
-            </Badge>
-            <h2 className="text-4xl md:text-5xl font-bold font-headline mb-4">
-              See EventOS in Action
-            </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Experience the intuitive interface that makes event management effortless
-            </p>
-          </div>
-
-          {/* Dashboard Preview */}
-          <div className="max-w-6xl mx-auto">
-            <div className="relative rounded-2xl overflow-hidden border-4 border-primary/20 shadow-2xl bg-background">
-              {/* Browser Chrome */}
-              <div className="bg-muted border-b border-border px-4 py-3 flex items-center gap-2">
-                <div className="flex gap-2">
-                  <div className="w-3 h-3 rounded-full bg-red-500" />
-                  <div className="w-3 h-3 rounded-full bg-yellow-500" />
-                  <div className="w-3 h-3 rounded-full bg-green-500" />
-                </div>
-                <div className="flex-1 mx-4 bg-background rounded px-3 py-1 text-xs text-muted-foreground">
-                  https://eventos.app/dashboard
-                </div>
+  return (
+    <footer className="relative bg-[#2A0F0F] border-t border-white/10">
+      <div className="max-w-7xl mx-auto px-6 py-20">
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-8 mb-16">
+          {/* Logo & Description */}
+          <div className="col-span-2">
+            <Link href="/" className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center">
+                <Sparkles className="w-5 h-5 text-white" />
               </div>
-
-              {/* Dashboard Screenshot/Mockup */}
-              <div className="aspect-video bg-gradient-to-br from-background via-muted/20 to-background p-8">
-                <div className="grid grid-cols-12 gap-4 h-full">
-                  {/* Sidebar */}
-                  <div className="col-span-2 space-y-2">
-                    <div className="h-8 bg-primary/10 rounded" />
-                    <div className="h-8 bg-muted rounded" />
-                    <div className="h-8 bg-muted rounded" />
-                    <div className="h-8 bg-muted rounded" />
-                  </div>
-
-                  {/* Main Content */}
-                  <div className="col-span-10 space-y-4">
-                    {/* Header Stats */}
-                    <div className="grid grid-cols-4 gap-3">
-                      {[1, 2, 3, 4].map((i) => (
-                        <div key={i} className="bg-card border border-border rounded-lg p-3">
-                          <div className="h-3 bg-muted rounded mb-2 w-1/2" />
-                          <div className="h-6 bg-primary/20 rounded w-3/4" />
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* Event Grid */}
-                    <div className="grid grid-cols-3 gap-3 flex-1">
-                      {[1, 2, 3, 4, 5, 6].map((i) => (
-                        <div key={i} className="bg-card border border-border rounded-lg overflow-hidden">
-                          <div className="aspect-video bg-gradient-to-br from-primary/20 to-accent/20" />
-                          <div className="p-2 space-y-1.5">
-                            <div className="h-2 bg-muted rounded w-full" />
-                            <div className="h-2 bg-muted rounded w-2/3" />
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Feature Highlights */}
-            <div className="grid grid-cols-3 gap-6 mt-12">
-              {[
-                { icon: Zap, text: 'Lightning Fast' },
-                { icon: Shield, text: 'Secure & Reliable' },
-                { icon: Globe, text: 'Always Available' },
-              ].map((item, i) => (
-                <div key={i} className="flex items-center gap-3 justify-center">
-                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                    <item.icon className="w-5 h-5 text-primary" />
-                  </div>
-                  <span className="font-medium">{item.text}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Features Section */}
-      <section className="py-24">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <Badge variant="outline" className="mb-4">Features</Badge>
-            <h2 className="text-4xl md:text-5xl font-bold font-headline mb-4">
-              Everything You Need
-            </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              From event creation to post-event analytics, EventOS provides a complete toolkit
-              for modern event management.
+              <span className="text-2xl font-bold text-red-400">Eventra</span>
+            </Link>
+            <p className="text-gray-400 mb-6">
+              The modern event platform for creating, discovering, and managing unforgettable experiences.
             </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {features.map((feature, index) => (
-              <FeatureCard key={index} {...feature} />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* How It Works Section */}
-      <section className="py-24">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <Badge variant="outline" className="mb-4">How It Works</Badge>
-            <h2 className="text-4xl md:text-5xl font-bold font-headline mb-4">
-              Simple as 1-2-3
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            {[
-              {
-                step: '01',
-                icon: Rocket,
-                title: 'Create Your Event',
-                description: 'Use our AI wizard to set up your event in minutes. We handle the details.',
-              },
-              {
-                step: '02',
-                icon: Users,
-                title: 'Invite & Manage',
-                description: 'Share your event, manage registrations, and engage with attendees.',
-              },
-              {
-                step: '03',
-                icon: BarChart3,
-                title: 'Analyze & Grow',
-                description: 'Get insights, collect feedback, and make your next event even better.',
-              },
-            ].map((item, index) => (
-              <div key={index} className="relative text-center group">
-                <div className="text-8xl font-bold text-primary/10 absolute -top-4 left-1/2 -translate-x-1/2">
-                  {item.step}
-                </div>
-                <div className="relative z-10 pt-12">
-                  <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-6 group-hover:bg-primary/20 transition-colors">
-                    <item.icon className="w-8 h-8 text-primary" />
-                  </div>
-                  <h3 className="text-xl font-semibold mb-2">{item.title}</h3>
-                  <p className="text-muted-foreground">{item.description}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials Section */}
-      <section className="py-24 bg-muted/30">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <Badge variant="outline" className="mb-4">Testimonials</Badge>
-            <h2 className="text-4xl md:text-5xl font-bold font-headline mb-4">
-              Loved by Organizers
-            </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              See what event organizers are saying about EventOS.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-            {testimonials.map((testimonial, index) => (
-              <TestimonialCard key={index} {...testimonial} />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-24">
-        <div className="container mx-auto px-4">
-          <Card className="relative border-0 overflow-hidden gradient-border">
-            <div className="absolute inset-0 mesh-gradient opacity-50" />
-            <CardContent className="p-12 md:p-16 text-center relative">
-              <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-30" />
-              <div className="relative z-10">
-                <h2 className="text-4xl md:text-5xl font-bold font-headline mb-4">
-                  Ready to Transform Your Events?
-                </h2>
-                <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
-                  Join thousands of organizers who trust EventOS for their events.
-                  Start free, upgrade when you&apos;re ready.
-                </p>
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                  <Button asChild size="lg" className="h-14 px-8 text-lg">
-                    <Link href="/register">
-                      Create Free Account
-                    </Link>
-                  </Button>
-                  <Button asChild size="lg" variant="outline" className="h-14 px-8 text-lg">
-                    <Link href="/login">
-                      Sign In
-                    </Link>
-                  </Button>
-                </div>
-                <div className="flex items-center justify-center gap-6 mt-8 text-sm text-muted-foreground">
-                  <span className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-500" />
-                    Free to start
-                  </span>
-                  <span className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-500" />
-                    No credit card required
-                  </span>
-                  <span className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-500" />
-                    Cancel anytime
-                  </span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="py-12 border-t">
-        <div className="container mx-auto px-4">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="flex items-center gap-2">
-              <Sparkles className="w-6 h-6 text-primary" />
-              <span className="text-lg font-semibold">EventOS</span>
+            <div className="flex items-center gap-4">
+              <a href="#" className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors">
+                <Twitter className="w-5 h-5 text-gray-400" />
+              </a>
+              <a href="#" className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors">
+                <Instagram className="w-5 h-5 text-gray-400" />
+              </a>
+              <a href="#" className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors">
+                <Linkedin className="w-5 h-5 text-gray-400" />
+              </a>
+              <a href="#" className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors">
+                <Github className="w-5 h-5 text-gray-400" />
+              </a>
             </div>
-            <div className="flex items-center gap-6 text-sm text-muted-foreground">
-              <Link href="/explore" className="hover:text-foreground transition-colors">Explore</Link>
-              <Link href="/login" className="hover:text-foreground transition-colors">Login</Link>
-              <Link href="/register" className="hover:text-foreground transition-colors">Register</Link>
+          </div>
+
+          {/* Links */}
+          {Object.entries(footerLinks).map(([category, links]) => (
+            <div key={category}>
+              <h4 className="text-white font-semibold mb-4">{category}</h4>
+              <ul className="space-y-3">
+                {links.map((link) => (
+                  <li key={link}>
+                    <a href="#" className="text-gray-400 hover:text-white transition-colors text-sm">
+                      {link}
+                    </a>
+                  </li>
+                ))}
+              </ul>
             </div>
-            <p className="text-sm text-muted-foreground">
-              Â© 2026 EventOS. All rights reserved.
-            </p>
+          ))}
+        </div>
+
+        {/* Bottom Bar */}
+        <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-4">
+          <p className="text-gray-500 text-sm">
+            © 2026 Eventra. All rights reserved.
+          </p>
+          <div className="flex items-center gap-6">
+            <a href="#" className="text-gray-500 hover:text-white text-sm transition-colors">Privacy Policy</a>
+            <a href="#" className="text-gray-500 hover:text-white text-sm transition-colors">Terms of Service</a>
+            <a href="#" className="text-gray-500 hover:text-white text-sm transition-colors">Cookies</a>
           </div>
         </div>
-      </footer>
+      </div>
+    </footer>
+  );
+}
+
+// ============================================
+// MAIN LANDING PAGE COMPONENT
+// ============================================
+export default function LandingPage() {
+  return (
+    <div className="min-h-screen bg-[#3D1515] text-white">
+      <Navbar />
+      <HeroSection />
+      <FeaturedEventsSection />
+      <CategoriesSection />
+      <FeaturesSection />
+      <CTASection />
+      <Footer />
     </div>
   );
 }

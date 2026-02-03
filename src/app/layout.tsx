@@ -3,7 +3,7 @@ import './globals.css';
 import { Providers } from '@/components/providers';
 import { Toaster } from '@/components/ui/toaster';
 import FloatingAiChat from '@/components/chat/floating-ai-chat';
-import { Playfair_Display, PT_Sans } from 'next/font/google';
+import { Outfit, Inter } from 'next/font/google';
 import { baseMetadata, viewport as seoViewport, generateOrganizationSchema } from '@/core/services/seo';
 
 // Export SEO metadata
@@ -18,16 +18,15 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = seoViewport;
 
-const playfair = Playfair_Display({
+const outfit = Outfit({
   subsets: ['latin'],
-  variable: '--font-playfair',
+  variable: '--font-heading',
   display: 'swap',
 });
 
-const ptSans = PT_Sans({
+const inter = Inter({
   subsets: ['latin'],
-  weight: ['400', '700'],
-  variable: '--font-pt-sans',
+  variable: '--font-body',
   display: 'swap',
 });
 
@@ -39,14 +38,14 @@ export default function RootLayout({
   const organizationSchema = generateOrganizationSchema();
   
   return (
-    <html lang="en" suppressHydrationWarning className={`${playfair.variable} ${ptSans.variable}`}>
+    <html lang="en" suppressHydrationWarning className={`${outfit.variable} ${inter.variable}`}>
       <head>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
         />
       </head>
-      <body className="font-body antialiased">
+      <body className="font-body antialiased bg-background text-foreground selection:bg-primary/20 selection:text-primary">
         <Providers>
           {children}
           <Toaster />

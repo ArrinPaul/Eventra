@@ -37,6 +37,7 @@ import {
   Gift
 } from 'lucide-react';
 import { format } from 'date-fns';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/hooks/use-auth';
 import { EventTicketing, TicketType, EventTicket, BookingRequest, DiscountCode } from '@/types';
 import { cn } from '@/core/utils/utils';
@@ -349,60 +350,112 @@ export function TicketingClient() {
     );
   };
 
-  const MyTicketCard = ({ ticket, event }: { ticket: EventTicket; event?: EventTicketing }) => (
-    <Card>
-      <CardHeader className="pb-3">
-        <div className="flex justify-between items-start">
-          <div>
-            <CardTitle className="text-lg">
-              {event?.title || 'Event Title'}
-            </CardTitle>
-            <CardDescription>
-              {ticket.ticketType.name} Ã¢â‚¬Â¢ {format(ticket.purchaseDate, 'MMM dd, yyyy')}
-            </CardDescription>
-          </div>
-          <Badge 
-            variant={ticket.ticketStatus === 'confirmed' ? 'default' : 'secondary'}
-            className={cn(
-              ticket.ticketStatus === 'confirmed' && "bg-green-500",
-              ticket.ticketStatus === 'used' && "bg-secondary"
+  const MyTicketCard = ({ ticket, event }: { ticket: EventTicket; event?: EventTicketing }) => {
+    const [isFlipped, setIsFlipped] = useState(false);
+    const isPremium = ticket.ticketType.name.toLowerCase().includes('vip') || ticket.ticketType.name.toLowerCase().includes('premium');
+
+    return (
+      <div 
+        className="relative h-[220px] w-full perspective-1000 cursor-pointer group"
+        onClick={() => setIsFlipped(!isFlipped)}
+      >
+        <motion.div
+          className="w-full h-full relative preserve-3d transition-all duration-500"
+          animate={{ rotateY: isFlipped ? 180 : 0 }}
+          transition={{ type: 'spring', stiffness: 260, damping: 20 }}
+        >
+          {/* Front of Card */}
+          <div className={cn(
+            "absolute inset-0 backface-hidden rounded-xl border shadow-lg overflow-hidden flex flex-col bg-card",
+            isPremium && "border-amber-400/50"
+          )}>
+            {/* Holographic overlay for premium */}
+            {isPremium && (
+              <div className="absolute inset-0 pointer-events-none opacity-20 bg-[linear-gradient(110deg,#fff_0%,#fff_10%,#3b82f6_20%,#3b82f6_30%,#fff_40%,#fff_50%,#8b5cf6_60%,#8b5cf6_70%,#fff_80%,#fff_90%,#fff_100%)] bg-[length:200%_100%] animate-[shimmer_3s_infinite_linear]" />
             )}
-          >
-            {ticket.ticketStatus}
-          </Badge>
-        </div>
+            
+            <div className={cn(
+              "h-2 w-full",
+              isPremium ? "bg-gradient-to-r from-amber-400 to-amber-600" : "bg-primary"
+            )} />
+            
+            <div className="p-4 flex-1 space-y-3">
+              <div className="flex justify-between items-start">
+                <div className="space-y-1">
+                  <h3 className="font-bold text-lg leading-tight line-clamp-1">{event?.title || 'Event Ticket'}</h3>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline" className="text-[10px] h-5">
+                      {ticket.ticketType.name}
+                    </Badge>
+                    <span className="text-[10px] text-muted-foreground">
+                      {format(ticket.purchaseDate, 'MMM dd, yyyy')}
+                    </span>
+                  </div>
+                </div>
+                <div className="h-10 w-10 bg-muted rounded-lg flex items-center justify-center">
+                  <Ticket className={cn("h-5 w-5", isPremium ? "text-amber-500" : "text-primary")} />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 pt-2 border-t border-dashed">
+                <div>
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Status</p>
+                  <p className={cn(
+                    "text-xs font-bold capitalize",
+                    ticket.ticketStatus === 'confirmed' ? "text-green-600" : "text-muted-foreground"
+                  )}>{ticket.ticketStatus}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Ticket ID</p>
+                  <p className="text-xs font-mono truncate">{ticket.id.substring(0, 8)}...</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-muted/50 p-3 flex justify-between items-center text-[10px]">
+              <span className="flex items-center gap-1">
+                <Info className="h-3 w-3" /> Tap to reveal QR
+              </span>
+              <span className="font-bold">Eventra Pass</span>
+            </div>
+          </div>
+
+          {/* Back of Card (QR Code) */}
+          <div className={cn(
+            "absolute inset-0 backface-hidden rounded-xl border shadow-lg flex flex-col items-center justify-center bg-white dark:bg-slate-900 rotate-y-180",
+            isPremium && "border-amber-400"
+          )}>
+            <div className="p-4 bg-white rounded-lg shadow-inner mb-3">
+              <QrCode className="h-24 w-24 text-black" />
+            </div>
+            <p className="font-mono text-[10px] text-muted-foreground mb-4">{ticket.id}</p>
+            <div className="flex gap-2 w-full px-4">
+              <Button size="sm" variant="outline" className="flex-1 h-8 text-[10px]">
+                <Download className="h-3 w-3 mr-1" /> Save
+              </Button>
+              <Button size="sm" variant="outline" className="flex-1 h-8 text-[10px]">
+                <Share2 className="h-3 w-3 mr-1" /> Share
+              </Button>
+            </div>
+          </div>
+        </motion.div>
+      </div>
+    );
+  };
+
+  const TicketSkeleton = () => (
+    <Card className="animate-pulse overflow-hidden">
+      <div className="h-48 bg-muted" />
+      <CardHeader>
+        <div className="h-6 bg-muted rounded w-3/4 mb-2" />
+        <div className="h-4 bg-muted rounded w-full" />
       </CardHeader>
-      
       <CardContent className="space-y-4">
-        <div className="grid grid-cols-2 gap-4 text-sm">
-          <div>
-            <div className="text-muted-foreground">Price Paid</div>
-            <div className="font-medium">Ã¢â€šÂ¹{ticket.price.toLocaleString()}</div>
-          </div>
-          <div>
-            <div className="text-muted-foreground">Ticket ID</div>
-            <div className="font-mono text-xs">{ticket.id}</div>
-          </div>
-        </div>
-        
-        {ticket.discount && (
-          <Alert>
-            <Gift className="h-4 w-4" />
-            <AlertDescription>
-              You saved Ã¢â€šÂ¹{ticket.discount.amount} with code &quot;{ticket.discount.code}&quot;
-            </AlertDescription>
-          </Alert>
-        )}
-        
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" className="flex-1">
-            <QrCode className="h-4 w-4 mr-2" />
-            Show QR Code
-          </Button>
-          <Button variant="outline" size="sm" className="flex-1">
-            <Download className="h-4 w-4 mr-2" />
-            Download
-          </Button>
+        <div className="h-4 bg-muted rounded w-1/2" />
+        <div className="h-4 bg-muted rounded w-1/2" />
+        <div className="flex justify-between items-center pt-2">
+          <div className="h-8 bg-muted rounded w-20" />
+          <div className="h-8 bg-muted rounded w-32" />
         </div>
       </CardContent>
     </Card>
@@ -456,9 +509,13 @@ export function TicketingClient() {
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {events.map(event => (
-                  <EventCard key={event.id} event={event} />
-                ))}
+                {isLoading ? (
+                  Array.from({ length: 6 }).map((_, i) => <TicketSkeleton key={i} />)
+                ) : (
+                  events.map(event => (
+                    <EventCard key={event.id} event={event} />
+                  ))
+                )}
               </div>
             </>
           ) : (
@@ -665,7 +722,11 @@ export function TicketingClient() {
         </TabsContent>
         
         <TabsContent value="my-tickets" className="space-y-6">
-          {myTickets.length === 0 ? (
+          {isLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {Array.from({ length: 3 }).map((_, i) => <TicketSkeleton key={i} />)}
+            </div>
+          ) : myTickets.length === 0 ? (
             <Card>
               <CardContent className="text-center py-12">
                 <Ticket className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
@@ -696,12 +757,31 @@ export function TicketingClient() {
       </Tabs>
       
       {bookingSuccess && (
-        <Alert className="border-green-200 bg-green-50">
-          <CheckCircle2 className="h-4 w-4 text-green-600" />
-          <AlertDescription className="text-green-800">
-            Booking confirmed! Check your email for tickets and confirmation details.
-          </AlertDescription>
-        </Alert>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          className="fixed bottom-6 right-6 z-50 max-w-md"
+        >
+          <Alert className="border-green-200 bg-green-50 shadow-2xl">
+            <CheckCircle2 className="h-5 w-5 text-green-600" />
+            <div className="ml-2">
+              <AlertDescription className="text-green-800 font-bold text-base">
+                Booking Confirmed! 🎉
+              </AlertDescription>
+              <AlertDescription className="text-green-700 text-sm">
+                Your digital tickets are now available in your wallet.
+              </AlertDescription>
+            </div>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="ml-auto text-green-800 hover:bg-green-100"
+              onClick={() => setBookingSuccess(false)}
+            >
+              Dismiss
+            </Button>
+          </Alert>
+        </motion.div>
       )}
     </div>
   );
