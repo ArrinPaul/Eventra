@@ -146,7 +146,7 @@ export default function Header() {
                     <Button variant="ghost" className="relative h-10 w-10 rounded-full border border-white/20 hover:border-white/40">
                       <Avatar className="h-9 w-9">
                         <AvatarImage src={user.photoURL || ''} alt={user.displayName || 'User'} />
-                        <AvatarFallback className="bg-gradient-to-br from-cyan-500 to-blue-600 text-white">
+                        <AvatarFallback className="bg-gradient-to-br from-red-500 to-red-600 text-white">
                           {user.displayName?.charAt(0) || user.email?.charAt(0) || 'U'}
                         </AvatarFallback>
                       </Avatar>
@@ -156,7 +156,7 @@ export default function Header() {
                     <div className="flex items-center gap-3 p-3">
                       <Avatar className="h-10 w-10">
                         <AvatarImage src={user.photoURL || ''} />
-                        <AvatarFallback className="bg-gradient-to-br from-cyan-500 to-blue-600 text-white">
+                        <AvatarFallback className="bg-gradient-to-br from-red-500 to-red-600 text-white">
                           {user.displayName?.charAt(0) || 'U'}
                         </AvatarFallback>
                       </Avatar>
@@ -198,7 +198,7 @@ export default function Header() {
                 <Button asChild variant="ghost" className="text-gray-300 hover:text-white hover:bg-white/10 rounded-full">
                   <Link href="/login">Sign In</Link>
                 </Button>
-                <Button asChild className="bg-gradient-to-r from-cyan-500 to-cyan-400 hover:from-cyan-400 hover:to-cyan-300 text-gray-900 font-semibold border-0 rounded-full">
+                <Button asChild className="bg-red-500 hover:bg-red-400 text-white font-semibold border-0 rounded-full">
                   <Link href="/register">Get Started</Link>
                 </Button>
               </div>
@@ -250,7 +250,7 @@ export default function Header() {
                   <Button asChild variant="outline" className="w-full border-white/20 text-white hover:bg-white/10 rounded-full">
                     <Link href="/login">Sign In</Link>
                   </Button>
-                  <Button asChild className="w-full bg-gradient-to-r from-cyan-500 to-cyan-400 hover:from-cyan-400 hover:to-cyan-300 text-gray-900 font-semibold rounded-full">
+                  <Button asChild className="w-full bg-red-500 hover:bg-red-400 text-white font-semibold rounded-full">
                     <Link href="/register">Get Started</Link>
                   </Button>
                 </div>

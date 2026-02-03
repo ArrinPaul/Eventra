@@ -253,7 +253,6 @@ function HeroSection() {
             </div>
           ))}
         </motion.div>
-        </motion.div>
       </motion.div>
 
       {/* Scroll Indicator */}
