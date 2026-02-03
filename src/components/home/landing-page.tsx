@@ -6,13 +6,13 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { eventService, ticketService } from '@/core/services/firestore-services';
-import { 
-  Sparkles, 
-  Calendar, 
-  Users, 
-  QrCode, 
-  Award, 
-  BarChart3, 
+import {
+  Sparkles,
+  Calendar,
+  Users,
+  QrCode,
+  Award,
+  BarChart3,
   Zap,
   ArrowRight,
   CheckCircle,
@@ -51,30 +51,30 @@ function AnimatedCounter({ end, duration = 2000, suffix = '' }: { end: number; d
   return <span>{count.toLocaleString()}{suffix}</span>;
 }
 
-// Feature card component
-function FeatureCard({ icon: Icon, title, description, color }: { 
-  icon: any; 
-  title: string; 
+// Feature card component - Eventtts Style
+function FeatureCard({ icon: Icon, title, description, color }: {
+  icon: any;
+  title: string;
   description: string;
   color: string;
 }) {
   return (
-    <Card className="group relative overflow-hidden border-0 bg-card/50 backdrop-blur-sm hover:bg-card/80 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+    <Card variant="premium" className="group relative overflow-hidden border bg-card hover:bg-card">
       <CardContent className="p-6">
         <div className={cn(
-          "w-12 h-12 rounded-xl flex items-center justify-center mb-4 transition-transform group-hover:scale-110",
+          "w-14 h-14 rounded-2xl flex items-center justify-center mb-5 shadow-lg transition-all duration-300 group-hover:scale-110 group-hover:shadow-xl",
           color
         )}>
-          <Icon className="w-6 h-6 text-white" />
+          <Icon className="w-7 h-7 text-white" />
         </div>
-        <h3 className="text-lg font-semibold mb-2">{title}</h3>
-        <p className="text-muted-foreground text-sm">{description}</p>
+        <h3 className="text-xl font-bold mb-3 group-hover:text-primary transition-colors">{title}</h3>
+        <p className="text-muted-foreground text-sm leading-relaxed">{description}</p>
       </CardContent>
     </Card>
   );
 }
 
-// Testimonial component
+// Testimonial component - Eventtts Style
 function TestimonialCard({ quote, author, role, avatar }: {
   quote: string;
   author: string;
@@ -82,21 +82,21 @@ function TestimonialCard({ quote, author, role, avatar }: {
   avatar: string;
 }) {
   return (
-    <Card className="bg-card/50 backdrop-blur-sm border-0">
+    <Card variant="glass" className="hover:shadow-2xl">
       <CardContent className="p-6">
         <div className="flex gap-1 mb-4">
           {[...Array(5)].map((_, i) => (
-            <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+            <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
           ))}
         </div>
-        <p className="text-foreground mb-4 italic">&quot;{quote}&quot;</p>
+        <p className="text-foreground mb-5 italic text-base leading-relaxed">&quot;{quote}&quot;</p>
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full gradient-primary flex items-center justify-center text-white font-semibold">
+          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center text-white font-bold shadow-lg">
             {avatar}
           </div>
           <div>
-            <p className="font-semibold text-sm">{author}</p>
-            <p className="text-xs text-muted-foreground">{role}</p>
+            <p className="font-bold">{author}</p>
+            <p className="text-sm text-muted-foreground">{role}</p>
           </div>
         </div>
       </CardContent>
@@ -116,31 +116,31 @@ export default function LandingPage() {
 
   useEffect(() => {
     setIsVisible(true);
-    
+
     // Fetch real stats from Firestore
     const fetchStats = async () => {
       try {
         const events = await eventService.getEvents();
         const eventsCount = events.length;
-        
+
         // Calculate total attendees across all events
         const totalAttendees = events.reduce((sum, event) => {
           return sum + (event.registeredCount || event.registeredUsers?.length || 0);
         }, 0);
-        
+
         // Calculate success rate (events with >50% capacity filled)
         const successfulEvents = events.filter(event => {
           const registered = event.registeredCount || event.registeredUsers?.length || 0;
           const capacity = event.capacity || 100;
           return (registered / capacity) > 0.5;
         }).length;
-        const successRate = events.length > 0 
-          ? Math.round((successfulEvents / events.length) * 100) 
+        const successRate = events.length > 0
+          ? Math.round((successfulEvents / events.length) * 100)
           : 98;
 
         // Count unique organizers
         const organizers = new Set(events.map(e => e.organizerId).filter(Boolean));
-        
+
         setStats({
           eventsCreated: Math.max(eventsCount, 500), // Show at least 500 for demo
           totalAttendees: Math.max(totalAttendees, 12000),
@@ -222,9 +222,13 @@ export default function LandingPage() {
       {/* Hero Section */}
       <section className="relative min-h-[90vh] flex items-center">
         {/* Background Effects */}
-        <div className="absolute inset-0 -z-10">
-          <div className="absolute inset-0 mesh-gradient" />
-          <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:radial-gradient(ellipse_at_center,white,transparent_75%)]" />
+        {/* Background Effects */}
+        <div className="absolute inset-0 -z-10 overflow-hidden">
+          <div className="absolute inset-0 bg-background" />
+          <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-[100px] animate-pulse-glow" />
+          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-secondary/20 rounded-full blur-[100px] animate-pulse-glow" style={{ animationDelay: '1s' }} />
+          <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:radial-gradient(ellipse_at_center,black,transparent_75%)] opacity-20" />
+          <div className="absolute inset-0 bg-gradient-to-b from-background/5 via-background/50 to-background" />
         </div>
 
         <div className="container mx-auto px-4 py-20">
@@ -233,34 +237,35 @@ export default function LandingPage() {
             isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
           )}>
             {/* Badge */}
-            <Badge variant="secondary" className="mb-6 px-4 py-2 text-sm font-medium">
+            <Badge variant="gradient" className="mb-8 px-5 py-2.5 text-sm font-semibold shadow-lg">
               <Sparkles className="w-4 h-4 mr-2" />
               AI-Powered Event Management
             </Badge>
 
             {/* Headline */}
             <h1 className="text-5xl md:text-7xl font-bold font-headline tracking-tight mb-6">
-              <span className="gradient-text">
-                EventOS
+              <span className="text-gradient bg-gradient-to-r from-red-500 via-red-600 to-red-500 bg-clip-text text-transparent">
+                Organize & Manage
               </span>
+              <br />
+              <span className="text-foreground">Your Events</span>
             </h1>
-            <p className="text-xl md:text-2xl text-muted-foreground mb-4">
-              The Intelligent Event Management Platform
+            <p className="text-xl md:text-2xl text-muted-foreground mb-4 font-medium">
+              Everything you need to organize successful events
             </p>
-            <p className="text-lg text-muted-foreground/80 max-w-2xl mx-auto mb-10">
-              Create, manage, and scale events effortlessly. From registration to certificates, 
-              we&apos;ve got everything covered with AI-powered automation.
+            <p className="text-lg text-muted-foreground/80 max-w-2xl mx-auto mb-12">
+              From planning to execution, attendee management to analytics. Create memorable experiences with AI-powered automation.
             </p>
 
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
-              <Button asChild size="lg" className="h-14 px-8 text-lg group">
+              <Button asChild size="xl" variant="gradient" className="group shadow-glow-red btn-glow">
                 <Link href="/register">
-                  Get Started Free
+                  Create New Event
                   <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </Link>
               </Button>
-              <Button asChild size="lg" variant="outline" className="h-14 px-8 text-lg group">
+              <Button asChild size="xl" variant="outline" className="group border-2 hover:bg-muted">
                 <Link href="/explore">
                   Explore Events
                   <ChevronRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -295,6 +300,10 @@ export default function LandingPage() {
       {/* Live Preview Section */}
       <section className="py-24 bg-muted/30 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5" />
+        {/* Background Pattern - Dot Grid */}
+        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20" />
+        <div className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(#CBD5E1 1px, transparent 1px)', backgroundSize: '40px 40px', opacity: 0.3 }} />
+
         <div className="container mx-auto px-4 relative z-10">
           <div className="text-center mb-16">
             <Badge variant="outline" className="mb-4">
@@ -323,7 +332,7 @@ export default function LandingPage() {
                   https://eventos.app/dashboard
                 </div>
               </div>
-              
+
               {/* Dashboard Screenshot/Mockup */}
               <div className="aspect-video bg-gradient-to-br from-background via-muted/20 to-background p-8">
                 <div className="grid grid-cols-12 gap-4 h-full">
@@ -334,7 +343,7 @@ export default function LandingPage() {
                     <div className="h-8 bg-muted rounded" />
                     <div className="h-8 bg-muted rounded" />
                   </div>
-                  
+
                   {/* Main Content */}
                   <div className="col-span-10 space-y-4">
                     {/* Header Stats */}
@@ -346,7 +355,7 @@ export default function LandingPage() {
                         </div>
                       ))}
                     </div>
-                    
+
                     {/* Event Grid */}
                     <div className="grid grid-cols-3 gap-3 flex-1">
                       {[1, 2, 3, 4, 5, 6].map((i) => (
@@ -392,7 +401,7 @@ export default function LandingPage() {
               Everything You Need
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              From event creation to post-event analytics, EventOS provides a complete toolkit 
+              From event creation to post-event analytics, EventOS provides a complete toolkit
               for modern event management.
             </p>
           </div>
@@ -486,7 +495,7 @@ export default function LandingPage() {
                   Ready to Transform Your Events?
                 </h2>
                 <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
-                  Join thousands of organizers who trust EventOS for their events. 
+                  Join thousands of organizers who trust EventOS for their events.
                   Start free, upgrade when you&apos;re ready.
                 </p>
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-4">

@@ -12,31 +12,31 @@ import { useEffect, useState } from 'react';
 import { NotificationBell } from '@/components/notifications/notification-center';
 
 function ThemeToggle() {
-    const { setTheme, theme } = useTheme();
-    const [mounted, setMounted] = useState(false);
+  const { setTheme, theme } = useTheme();
+  const [mounted, setMounted] = useState(false);
 
-    useEffect(() => {
-        setMounted(true);
-    }, []);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
-    if (!mounted) {
-        // Render a placeholder or nothing on the server
-        // to avoid hydration mismatch.
-        return <div className="h-10 w-10" />;
-    }
+  if (!mounted) {
+    // Render a placeholder or nothing on the server
+    // to avoid hydration mismatch.
+    return <div className="h-10 w-10" />;
+  }
 
-    return (
-        <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-            className="interactive-element"
-        >
-            <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-            <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-            <span className="sr-only">Toggle theme</span>
-        </Button>
-    );
+  return (
+    <Button
+      variant="ghost"
+      size="icon"
+      onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+      className="interactive-element"
+    >
+      <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+      <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+      <span className="sr-only">Toggle theme</span>
+    </Button>
+  );
 }
 
 export default function Header() {
@@ -56,29 +56,29 @@ export default function Header() {
     { href: '/check-in-scanner', label: 'Scanner', roles: ['organizer', 'admin'] },
     { href: '/admin', label: 'Dashboard', roles: ['organizer', 'admin'] },
   ].filter(link => {
-      if (isAuthPage) return false;
-      // Show Home and Explore for all users
-      if (link.href === '/' || link.href === '/explore') return true;
-      if (!user) {
-        return false;
-      }
-      // Filter out auth-required pages for non-logged-in users
-      if (link.requireAuth && !user) return false;
-      // For logged-in users, filter based on roles
-      return !link.roles || link.roles.includes(user.role);
+    if (isAuthPage) return false;
+    // Show Home and Explore for all users
+    if (link.href === '/' || link.href === '/explore') return true;
+    if (!user) {
+      return false;
+    }
+    // Filter out auth-required pages for non-logged-in users
+    if (link.requireAuth && !user) return false;
+    // For logged-in users, filter based on roles
+    return !link.roles || link.roles.includes(user.role);
   });
 
   const renderNavLinks = (isMobile = false) => (
     <nav className={cn(
-      isMobile ? 'flex flex-col space-y-2' : 'hidden md:flex items-center space-x-6 text-sm font-medium'
+      isMobile ? 'flex flex-col space-y-3' : 'hidden md:flex items-center space-x-1'
     )}>
       {navLinks.map(link => (
         <Link
           key={link.href}
           href={link.href}
           className={cn(
-            'transition-colors hover:text-primary',
-            pathname === link.href ? 'text-primary font-semibold' : 'text-muted-foreground'
+            'nav-link',
+            pathname === link.href && 'active'
           )}
         >
           {link.label}
@@ -88,7 +88,7 @@ export default function Header() {
   );
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-50 w-full glass-header transition-all duration-300">
       <div className="container flex h-16 items-center">
         <div className="mr-4 hidden md:flex">
           <Logo />
@@ -106,51 +106,51 @@ export default function Header() {
                 <Logo />
                 {renderNavLinks(true)}
                 <div className="pt-6">
-                {user ? (
-                   <Button variant="outline" onClick={logout} className="w-full">
-                     <LogOut className="mr-2 h-4 w-4" />
-                     Log Out
-                   </Button>
-                ) : (
+                  {user ? (
+                    <Button variant="outline" onClick={logout} className="w-full">
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Log Out
+                    </Button>
+                  ) : (
                     <div className="flex flex-col space-y-2">
-                        <Button asChild variant="outline" className="w-full">
-                            <Link href="/login">Login</Link>
-                        </Button>
-                        <Button asChild className="w-full">
-                            <Link href="/register">Register</Link>
-                        </Button>
+                      <Button asChild variant="outline" className="w-full">
+                        <Link href="/login">Login</Link>
+                      </Button>
+                      <Button asChild className="w-full">
+                        <Link href="/register">Register</Link>
+                      </Button>
                     </div>
-                )}
+                  )}
                 </div>
               </div>
             </SheetContent>
           </Sheet>
         </div>
-        
+
         <div className="flex flex-1 items-center justify-end gap-6">
-            {renderNavLinks()}
-            {user && <NotificationBell />}
-            <ThemeToggle />
-            <div className="flex items-center gap-4">
-              {user ? (
-                <>
-                  <span className="hidden sm:inline text-sm text-muted-foreground">Welcome, {user.name.split(' ')[0]}</span>
-                   <Button variant="ghost" size="icon" onClick={logout} className="hidden md:inline-flex interactive-element">
-                        <LogOut className="h-5 w-5"/>
-                        <span className="sr-only">Log Out</span>
-                    </Button>
-                </>
-              ) : (
-                <div className="hidden md:flex items-center gap-2">
-                  <Button asChild variant="ghost" className="interactive-element">
-                    <Link href="/login">Login</Link>
-                  </Button>
-                  <Button asChild className="interactive-element">
-                    <Link href="/register">Register</Link>
-                  </Button>
-                </div>
-              )}
-            </div>
+          {renderNavLinks()}
+          {user && <NotificationBell />}
+          <ThemeToggle />
+          <div className="flex items-center gap-4">
+            {user ? (
+              <>
+                <span className="hidden sm:inline text-sm text-muted-foreground">Welcome, {user.name.split(' ')[0]}</span>
+                <Button variant="ghost" size="icon" onClick={logout} className="hidden md:inline-flex interactive-element">
+                  <LogOut className="h-5 w-5" />
+                  <span className="sr-only">Log Out</span>
+                </Button>
+              </>
+            ) : (
+              <div className="hidden md:flex items-center gap-2">
+                <Button asChild variant="ghost" className="interactive-element">
+                  <Link href="/login">Login</Link>
+                </Button>
+                <Button asChild className="interactive-element">
+                  <Link href="/register">Register</Link>
+                </Button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </header>

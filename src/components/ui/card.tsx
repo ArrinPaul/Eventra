@@ -2,19 +2,28 @@ import * as React from "react"
 
 import { cn } from "@/core/utils/utils"
 
-const Card = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn(
-      "rounded-lg border bg-card text-card-foreground shadow-sm",
-      className
-    )}
-    {...props}
-  />
-))
+interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
+  variant?: 'default' | 'glass' | 'premium' | 'gradient'
+}
+
+const Card = React.forwardRef<HTMLDivElement, CardProps>(
+  ({ className, variant = 'default', ...props }, ref) => {
+    const variants = {
+      default: "rounded-xl border bg-card text-card-foreground shadow-soft transition-all duration-300 hover:shadow-card-hover",
+      glass: "rounded-xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg border border-white/20 dark:border-white/10 shadow-xl text-card-foreground transition-all duration-300 hover:shadow-2xl",
+      premium: "rounded-xl border bg-card text-card-foreground shadow-premium transition-all duration-300 hover:shadow-xl hover:-translate-y-1",
+      gradient: "rounded-xl bg-gradient-to-br from-red-500/5 to-blue-500/5 border border-red-500/10 text-card-foreground shadow-soft transition-all duration-300 hover:shadow-lg",
+    }
+
+    return (
+      <div
+        ref={ref}
+        className={cn(variants[variant], className)}
+        {...props}
+      />
+    )
+  }
+)
 Card.displayName = "Card"
 
 const CardHeader = React.forwardRef<

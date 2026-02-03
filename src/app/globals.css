@@ -4,47 +4,58 @@
 
 @layer base {
   :root {
-    /* -- Clean Light Mode (Eventtts Style) -- */
-    --background: 0 0% 100%; /* Pure white #FFFFFF */
-    --foreground: 222 47% 11%; /* Deep navy text #0F172A */
+    /* -- Premium Light Mode -- */
+    --background: 210 40% 98%;
+    /* Soft blue-grey tint #F8FAFC - Not stark white */
+    --foreground: 222 47% 11%;
+    /* #0F172A */
 
     --card: 0 0% 100%;
     --card-foreground: 222 47% 11%;
- 
+
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
- 
-    /* Primary: Bright Red (Eventtts Brand) */
-    --primary: 4 90% 58%; /* #E53935 - Bright Red */
+
+    /* Primary: Vibrance Red */
+    --primary: 350 89% 60%;
+    /* #FA2C3C - Vibrant Premium Red */
     --primary-foreground: 0 0% 100%;
- 
-    /* Secondary: Bright Blue Accent */
-    --secondary: 217 91% 60%; /* #3B82F6 - Blue */
+
+    /* Secondary: Deep Indigo */
+    --secondary: 226 70% 55%;
+    /* #2A52BE */
     --secondary-foreground: 0 0% 100%;
- 
+
     --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
- 
-    --accent: 0 100% 97%; /* Very light red/pink tint */
+    --muted-foreground: 215 16% 47%;
+
+    --accent: 350 100% 98%;
+    /* Very light red tint */
     --accent-foreground: 222 47% 11%;
- 
+
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 100%;
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 4 90% 58%;
- 
-    --radius: 0.75rem; /* Modern rounded corners */
+    --ring: 350 89% 60%;
+
+    --radius: 1rem;
+    /* More rounded = more modern */
 
     /* Chart Colors - Vibrant Feature Icons */
-    --chart-1: 4 90% 58%; /* Red */
-    --chart-2: 271 81% 66%; /* Purple */
-    --chart-3: 188 94% 43%; /* Cyan */
-    --chart-4: 160 84% 39%; /* Green */
-    --chart-5: 38 92% 50%;  /* Orange */
+    --chart-1: 4 90% 58%;
+    /* Red */
+    --chart-2: 271 81% 66%;
+    /* Purple */
+    --chart-3: 188 94% 43%;
+    /* Cyan */
+    --chart-4: 160 84% 39%;
+    /* Green */
+    --chart-5: 38 92% 50%;
+    /* Orange */
 
-    /* Sidebar Light */
+    /* Sidebar */
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
     --sidebar-primary: 240 5.9% 10%;
@@ -54,38 +65,39 @@
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
- 
+
   .dark {
-    /* -- Dark Mode (Navy/Slate) -- */
-    --background: 222 47% 11%; /* #1E293B - Dark navy */
-    --foreground: 210 40% 98%;
+    /* -- Premium Dark Mode (Midnight) -- */
+    --background: 240 10% 3.9%;
+    /* #09090b - Deep Black/Grey */
+    --foreground: 0 0% 98%;
 
-    --card: 217 33% 17%; /* #1E293B - Slightly lighter */
-    --card-foreground: 210 40% 98%;
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
 
-    --popover: 217 33% 17%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
 
-    /* Primary: Bright Red (maintains brand) */
-    --primary: 4 90% 58%; /* #E53935 */
+    /* Primary: Glow Red */
+    --primary: 350 89% 60%;
     --primary-foreground: 0 0% 100%;
 
-    /* Secondary: Bright Blue */
-    --secondary: 217 91% 60%; /* #3B82F6 */
+    /* Secondary: Glow Blue */
+    --secondary: 217 91% 60%;
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
 
-    --accent: 217.2 32.6% 17.5%; /* Dark blue-grey */
-    --accent-foreground: 210 40% 98%;
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
 
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 252 82% 62%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 350 89% 60%;
 
     /* Chart Colors Dark - Vibrant */
     --chart-1: 4 90% 58%;
@@ -95,7 +107,7 @@
     --chart-5: 38 92% 50%;
 
     /* Sidebar Dark */
-    --sidebar-background: 224 71% 5%;
+    --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
     --sidebar-primary-foreground: 0 0% 100%;
@@ -105,25 +117,35 @@
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 }
- 
+
 @layer base {
   * {
     @apply border-border;
   }
+
   body {
-    @apply bg-background text-foreground font-body antialiased;
+    @apply bg-background text-foreground font-body antialiased selection:bg-primary/20 selection:text-primary;
+    /* Subtle noise texture for premium feel */
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
   }
-  h1, h2, h3, h4, h5, h6 {
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     @apply font-headline tracking-tight;
   }
 }
 
 @layer components {
+
   /* Enhanced Glassmorphism */
   .glass-effect {
     @apply bg-card/60 backdrop-blur-md border border-border/50 shadow-sm;
   }
-  
+
   .glass-panel {
     @apply bg-background/40 backdrop-blur-xl border border-white/10 shadow-xl;
   }
@@ -132,20 +154,20 @@
   .hover-lift {
     @apply transition-transform duration-200 ease-out hover:-translate-y-1;
   }
-  
+
   .hover-glow {
-    @apply transition-shadow duration-200 hover:shadow-[0_0_20px_rgba(99,102,241,0.3)];
+    @apply transition-shadow duration-200 hover:shadow-[0_0_20px_rgba(99, 102, 241, 0.3)];
   }
 
   /* Gradients - Eventtts Style */
   .text-gradient {
     @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-red-600;
   }
-  
+
   .text-gradient-blue {
     @apply bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-blue-600;
   }
-  
+
   .bg-gradient-brand {
     @apply bg-gradient-to-r from-primary to-red-600;
   }
@@ -197,10 +219,256 @@
     width: 8px;
     height: 8px;
   }
+
   ::-webkit-scrollbar-track {
     @apply bg-transparent;
   }
+
   ::-webkit-scrollbar-thumb {
     @apply bg-muted-foreground/20 rounded-full hover:bg-muted-foreground/40 transition-colors;
+  }
+
+  /* ============================================
+     PREMIUM GLASSMORPHISM - Eventtts Style
+     ============================================ */
+  .glass-card {
+    @apply bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg border border-white/20 dark:border-white/10 shadow-xl;
+  }
+
+  .glass-header {
+    @apply bg-background/80 backdrop-blur-lg border-b border-border/50;
+  }
+
+  /* ============================================
+     PREMIUM SHADOWS
+     ============================================ */
+  .shadow-soft {
+    box-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.1), 0 4px 16px -4px rgba(0, 0, 0, 0.08);
+  }
+
+  .shadow-premium {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 10px 20px -5px rgba(0, 0, 0, 0.1), 0 20px 40px -10px rgba(0, 0, 0, 0.1);
+  }
+
+  .shadow-glow-red {
+    box-shadow: 0 0 20px rgba(229, 57, 53, 0.25), 0 8px 32px rgba(229, 57, 53, 0.15);
+  }
+
+  .shadow-glow-blue {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.25), 0 8px 32px rgba(59, 130, 246, 0.15);
+  }
+
+  /* ============================================
+     GRADIENT BORDER - Eventtts Style
+     ============================================ */
+  .gradient-border {
+    position: relative;
+    background: hsl(var(--card));
+    border-radius: var(--radius);
+  }
+
+  .gradient-border::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    padding: 2px;
+    border-radius: inherit;
+    background: linear-gradient(135deg, #E53935, #3B82F6, #8B5CF6);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+  }
+
+  /* ============================================
+     MESH GRADIENT BACKGROUND
+     ============================================ */
+  .mesh-gradient {
+    background:
+      radial-gradient(at 40% 20%, rgba(229, 57, 53, 0.15) 0px, transparent 50%),
+      radial-gradient(at 80% 0%, rgba(59, 130, 246, 0.12) 0px, transparent 50%),
+      radial-gradient(at 0% 50%, rgba(139, 92, 246, 0.1) 0px, transparent 50%),
+      radial-gradient(at 80% 50%, rgba(229, 57, 53, 0.08) 0px, transparent 50%),
+      radial-gradient(at 0% 100%, rgba(59, 130, 246, 0.1) 0px, transparent 50%);
+  }
+
+  .dark .mesh-gradient {
+    background:
+      radial-gradient(at 40% 20%, rgba(229, 57, 53, 0.1) 0px, transparent 50%),
+      radial-gradient(at 80% 0%, rgba(59, 130, 246, 0.08) 0px, transparent 50%),
+      radial-gradient(at 0% 50%, rgba(139, 92, 246, 0.06) 0px, transparent 50%),
+      radial-gradient(at 80% 50%, rgba(229, 57, 53, 0.04) 0px, transparent 50%),
+      radial-gradient(at 0% 100%, rgba(59, 130, 246, 0.06) 0px, transparent 50%);
+  }
+
+  /* ============================================
+     ANIMATIONS & KEYFRAMES
+     ============================================ */
+  @keyframes fade-in-up {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes scale-in {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes float {
+
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+
+  @keyframes pulse-glow {
+
+    0%,
+    100% {
+      box-shadow: 0 0 20px rgba(229, 57, 53, 0.3);
+    }
+
+    50% {
+      box-shadow: 0 0 40px rgba(229, 57, 53, 0.5);
+    }
+  }
+
+  @keyframes shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+
+    100% {
+      background-position: 200% 0;
+    }
+  }
+
+  .animate-fade-in-up {
+    animation: fade-in-up 0.6s ease-out;
+  }
+
+  .animate-scale-in {
+    animation: scale-in 0.3s ease-out;
+  }
+
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  .animate-pulse-glow {
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+
+  /* ============================================
+     INTERACTIVE ENHANCEMENTS
+     ============================================ */
+  .interactive-element {
+    @apply transition-all duration-200 ease-out;
+  }
+
+  .interactive-element:hover {
+    @apply scale-[1.02];
+  }
+
+  .interactive-element:active {
+    @apply scale-[0.98];
+  }
+
+  .hover-shadow {
+    @apply transition-shadow duration-300;
+  }
+
+  .hover-shadow:hover {
+    @apply shadow-xl;
+  }
+
+  /* ============================================
+     STAT CARDS & UI ELEMENTS
+     ============================================ */
+  .stat-card {
+    @apply relative overflow-hidden rounded-xl border bg-card p-6 transition-all duration-300;
+  }
+
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 100px;
+    height: 100px;
+    background: linear-gradient(135deg, rgba(229, 57, 53, 0.1), transparent);
+    border-radius: 0 0 0 100%;
+  }
+
+  .stat-card:hover {
+    @apply shadow-lg -translate-y-0.5;
+  }
+
+  /* ============================================
+     NAVIGATION ENHANCEMENTS
+     ============================================ */
+  .nav-link {
+    @apply relative px-3 py-2 text-sm font-medium text-muted-foreground transition-all duration-200 hover:text-foreground;
+  }
+
+  .nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%) scaleX(0);
+    width: 20px;
+    height: 2px;
+    background: linear-gradient(90deg, #E53935, #3B82F6);
+    border-radius: 1px;
+    transition: transform 0.2s ease;
+  }
+
+  .nav-link:hover::after,
+  .nav-link.active::after {
+    transform: translateX(-50%) scaleX(1);
+  }
+
+  .nav-link.active {
+    @apply text-primary font-semibold;
+  }
+
+  /* ============================================
+     BUTTON GLOW EFFECT
+     ============================================ */
+  .btn-glow {
+    @apply relative overflow-hidden;
+  }
+
+  .btn-glow::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, transparent 40%, rgba(255, 255, 255, 0.3) 50%, transparent 60%);
+    transform: translateX(-100%);
+    transition: transform 0.6s ease;
+  }
+
+  .btn-glow:hover::after {
+    transform: translateX(100%);
   }
 }

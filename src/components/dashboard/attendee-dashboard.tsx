@@ -7,14 +7,14 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  Calendar, 
-  MapPin, 
-  Clock, 
-  ArrowRight, 
-  Sparkles, 
-  Trophy, 
-  Users, 
+import {
+  Calendar,
+  MapPin,
+  Clock,
+  ArrowRight,
+  Sparkles,
+  Trophy,
+  Users,
   TrendingUp,
   Star,
   Zap,
@@ -83,60 +83,64 @@ export function AttendeeDashboard() {
   return (
     <div className="container py-8 space-y-8 animate-in fade-in duration-500">
       {/* Hero Section */}
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-primary/10 via-purple-500/10 to-blue-500/10 border border-white/10 p-8 md:p-12">
+      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-red-500/10 via-blue-500/5 to-purple-500/10 border border-border/50 p-8 md:p-12 shadow-premium">
         <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-          <div className="space-y-4 max-w-2xl">
-            <div className="inline-flex items-center rounded-full bg-background/50 backdrop-blur px-3 py-1 text-sm font-medium text-primary border border-primary/20">
+          <div className="space-y-5 max-w-2xl">
+            <div className="inline-flex items-center rounded-full bg-gradient-to-r from-red-500 to-red-600 px-4 py-1.5 text-sm font-semibold text-white shadow-lg">
               <Sparkles className="mr-2 h-4 w-4" />
               <span>AI-Curated Experience</span>
             </div>
             <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight font-headline">
-              Hello, {user.name.split(' ')[0]}!
+              Hello, <span className="text-gradient bg-gradient-to-r from-red-500 to-red-600 bg-clip-text text-transparent">{user.name.split(' ')[0]}</span>!
             </h1>
             <p className="text-lg text-muted-foreground">
-              You have <span className="font-bold text-foreground">{MY_UPCOMING.length} events</span> coming up this week. 
+              You have <span className="font-bold text-primary">{MY_UPCOMING.length} events</span> coming up this week.
               Your personalized recommendations are ready.
             </p>
             <div className="flex flex-wrap gap-3 pt-2">
-              <Button asChild size="lg" className="rounded-full shadow-lg shadow-primary/20">
+              <Button asChild size="lg" variant="gradient" className="rounded-full shadow-glow-red btn-glow">
                 <Link href="/explore">
                   Explore Events <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
-              <Button asChild variant="outline" size="lg" className="rounded-full bg-background/50 backdrop-blur hover:bg-background/80">
+              <Button asChild variant="outline" size="lg" className="rounded-full border-2 hover:bg-muted">
                 <Link href="/my-events">View Schedule</Link>
               </Button>
             </div>
           </div>
-          
+
           {/* Quick Stats Widget */}
           <div className="hidden md:grid grid-cols-2 gap-4">
-            <Card className="bg-background/60 backdrop-blur border-none shadow-xl">
-              <CardContent className="p-4 flex flex-col items-center justify-center text-center">
-                <Trophy className="h-8 w-8 text-yellow-500 mb-2" />
-                <span className="text-2xl font-bold">{user.points || 0}</span>
-                <span className="text-xs text-muted-foreground uppercase tracking-wider">Points</span>
+            <Card variant="glass" className="shadow-xl">
+              <CardContent className="p-5 flex flex-col items-center justify-center text-center">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-lg mb-3">
+                  <Trophy className="h-6 w-6 text-white" />
+                </div>
+                <span className="text-3xl font-bold">{user.points || 0}</span>
+                <span className="text-xs text-muted-foreground uppercase tracking-wider font-medium">Points</span>
               </CardContent>
             </Card>
-            <Card className="bg-background/60 backdrop-blur border-none shadow-xl">
-              <CardContent className="p-4 flex flex-col items-center justify-center text-center">
-                <Ticket className="h-8 w-8 text-blue-500 mb-2" />
-                <span className="text-2xl font-bold">{MY_UPCOMING.length}</span>
-                <span className="text-xs text-muted-foreground uppercase tracking-wider">Tickets</span>
+            <Card variant="glass" className="shadow-xl">
+              <CardContent className="p-5 flex flex-col items-center justify-center text-center">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center shadow-lg mb-3">
+                  <Ticket className="h-6 w-6 text-white" />
+                </div>
+                <span className="text-3xl font-bold">{MY_UPCOMING.length}</span>
+                <span className="text-xs text-muted-foreground uppercase tracking-wider font-medium">Tickets</span>
               </CardContent>
             </Card>
           </div>
         </div>
-        
+
         {/* Background Decor */}
-        <div className="absolute top-0 right-0 -mt-20 -mr-20 w-96 h-96 bg-primary/20 rounded-full blur-3xl opacity-50" />
-        <div className="absolute bottom-0 left-0 -mb-20 -ml-20 w-72 h-72 bg-blue-500/20 rounded-full blur-3xl opacity-50" />
+        <div className="absolute top-0 right-0 -mt-20 -mr-20 w-96 h-96 bg-red-500/15 rounded-full blur-3xl opacity-50" />
+        <div className="absolute bottom-0 left-0 -mb-20 -ml-20 w-72 h-72 bg-blue-500/15 rounded-full blur-3xl opacity-50" />
       </section>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Main Content Area */}
         <div className="lg:col-span-2 space-y-8">
-          
+
           {/* AI Recommendations */}
           <section>
             <div className="flex items-center justify-between mb-4">
@@ -148,34 +152,34 @@ export function AttendeeDashboard() {
                 View all
               </Link>
             </div>
-            
+
             <ScrollArea className="w-full whitespace-nowrap rounded-xl">
               <div className="flex w-max space-x-4 pb-4">
                 {FEATURED_EVENTS.map((event) => (
-                  <Link key={event.id} href={`/events/${event.id}`} className="group relative block w-[300px] overflow-hidden rounded-xl border bg-card transition-all hover:shadow-lg hover:-translate-y-1">
+                  <Link key={event.id} href={`/events/${event.id}`} className="group relative block w-[320px] overflow-hidden rounded-2xl border bg-card transition-all duration-300 hover:shadow-xl hover:-translate-y-2">
                     <div className="aspect-video w-full overflow-hidden">
-                      <img 
-                        src={event.image} 
+                      <img
+                        src={event.image}
                         alt={event.title}
-                        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
                       />
-                      <div className="absolute top-2 right-2 rounded-full bg-black/70 backdrop-blur px-2 py-1 text-xs font-medium text-white flex items-center gap-1">
-                        <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                      <div className="absolute top-3 right-3 rounded-full bg-black/70 backdrop-blur-sm px-3 py-1.5 text-xs font-bold text-white flex items-center gap-1.5 shadow-lg">
+                        <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
                         {event.matchScore}% Match
                       </div>
                     </div>
-                    <div className="p-4">
-                      <div className="mb-2 flex items-center justify-between">
-                        <Badge variant="secondary" className="text-xs">{event.category}</Badge>
-                        <span className="text-xs text-muted-foreground flex items-center gap-1">
-                          <Users className="h-3 w-3" /> {event.attendees}
+                    <div className="p-5">
+                      <div className="mb-3 flex items-center justify-between">
+                        <Badge variant="red" className="text-xs font-semibold">{event.category}</Badge>
+                        <span className="text-xs text-muted-foreground flex items-center gap-1.5 font-medium">
+                          <Users className="h-3.5 w-3.5" /> {event.attendees}
                         </span>
                       </div>
-                      <h3 className="font-semibold leading-tight mb-2 truncate" title={event.title}>
+                      <h3 className="font-bold text-lg leading-tight mb-2 truncate group-hover:text-primary transition-colors" title={event.title}>
                         {event.title}
                       </h3>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <Calendar className="h-3 w-3" />
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Calendar className="h-3.5 w-3.5" />
                         {format(event.date, 'MMM d, h:mm a')}
                       </div>
                     </div>
@@ -194,7 +198,7 @@ export function AttendeeDashboard() {
                 <Link href="/agenda">Full Schedule</Link>
               </Button>
             </div>
-            
+
             <Card>
               <CardContent className="p-0">
                 {MY_UPCOMING.length > 0 ? (
@@ -255,8 +259,8 @@ export function AttendeeDashboard() {
             </CardHeader>
             <CardContent className="flex flex-col items-center">
               <div className="bg-white p-3 rounded-xl shadow-inner mb-4">
-                <img 
-                  src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(JSON.stringify({id: user.uid}))}`}
+                <img
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(JSON.stringify({ id: user.uid }))}`}
                   alt="QR Code"
                   className="w-32 h-32"
                 />

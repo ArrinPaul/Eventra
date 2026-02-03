@@ -60,16 +60,16 @@ interface StatCardProps {
 
 function StatCard({ title, value, change, icon: Icon, trend, description }: StatCardProps) {
   return (
-    <Card>
+    <Card variant="premium" className="stat-card group">
       <CardContent className="p-6">
         <div className="flex items-center justify-between">
-          <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-            <Icon className="h-6 w-6 text-primary" />
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-red-500/20 to-red-600/10 flex items-center justify-center shadow-soft group-hover:shadow-lg transition-all duration-300">
+            <Icon className="h-7 w-7 text-primary" />
           </div>
           {change !== undefined && (
             <div className={cn(
-              "flex items-center gap-1 text-sm font-medium",
-              trend === 'up' ? 'text-green-500' : trend === 'down' ? 'text-red-500' : 'text-muted-foreground'
+              "flex items-center gap-1 text-sm font-semibold px-2.5 py-1 rounded-full",
+              trend === 'up' ? 'bg-emerald-500/10 text-emerald-600' : trend === 'down' ? 'bg-red-500/10 text-red-500' : 'bg-muted text-muted-foreground'
             )}>
               {trend === 'up' && <TrendingUp className="h-4 w-4" />}
               {trend === 'down' && <TrendingDown className="h-4 w-4" />}
@@ -77,11 +77,11 @@ function StatCard({ title, value, change, icon: Icon, trend, description }: Stat
             </div>
           )}
         </div>
-        <div className="mt-4">
-          <p className="text-3xl font-bold">{value}</p>
-          <p className="text-sm text-muted-foreground mt-1">{title}</p>
+        <div className="mt-5">
+          <p className="text-4xl font-bold tracking-tight">{value}</p>
+          <p className="text-sm font-medium text-muted-foreground mt-2">{title}</p>
           {description && (
-            <p className="text-xs text-muted-foreground mt-1">{description}</p>
+            <p className="text-xs text-muted-foreground/70 mt-1">{description}</p>
           )}
         </div>
       </CardContent>
@@ -116,39 +116,39 @@ function EventRow({ event, onEdit, onDelete, onDuplicate }: EventRowProps) {
   };
 
   return (
-    <div className="flex items-center gap-4 p-4 hover:bg-muted/50 rounded-lg transition-colors group">
+    <div className="flex items-center gap-4 p-4 hover:bg-muted/30 rounded-xl transition-all duration-200 group border border-transparent hover:border-border/50 hover:shadow-soft">
       {/* Date Column */}
-      <div className="flex-shrink-0 w-14 h-14 rounded-xl bg-primary/10 flex flex-col items-center justify-center">
-        <span className="text-xs text-primary font-medium uppercase">
+      <div className="flex-shrink-0 w-16 h-16 rounded-2xl bg-gradient-to-br from-red-500/20 to-red-600/10 flex flex-col items-center justify-center shadow-sm group-hover:shadow-md transition-all duration-300">
+        <span className="text-xs text-primary font-bold uppercase">
           {displayDate.toLocaleDateString('en-US', { month: 'short' })}
         </span>
-        <span className="text-xl font-bold text-primary leading-none">
+        <span className="text-2xl font-bold text-primary leading-none">
           {displayDate.getDate()}
         </span>
       </div>
 
       {/* Event Info */}
       <div className="flex-grow min-w-0">
-        <div className="flex items-center gap-2 mb-1">
-          <h3 className="font-semibold truncate">{event.title}</h3>
-          <Badge variant="secondary" className={cn("text-xs", getStatusColor())}>
+        <div className="flex items-center gap-2 mb-1.5">
+          <h3 className="font-bold text-base truncate group-hover:text-primary transition-colors">{event.title}</h3>
+          <Badge variant="secondary" className={cn("text-xs font-semibold", getStatusColor())}>
             {getStatusText()}
           </Badge>
         </div>
         <div className="flex items-center gap-4 text-sm text-muted-foreground">
-          <span className="flex items-center gap-1">
-            <Clock className="h-3 w-3" />
+          <span className="flex items-center gap-1.5">
+            <Clock className="h-3.5 w-3.5" />
             {displayDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
           </span>
-          <span className="flex items-center gap-1">
-            <MapPin className="h-3 w-3" />
-            {typeof event.location === 'string' 
-              ? event.location 
+          <span className="flex items-center gap-1.5">
+            <MapPin className="h-3.5 w-3.5" />
+            {typeof event.location === 'string'
+              ? event.location
               : event.location?.venue?.name || 'Virtual'}
           </span>
-          <span className="flex items-center gap-1">
-            <Users className="h-3 w-3" />
-            {(event.registeredCount || event.registeredUsers?.length || 0)} / {event.capacity || 'âˆž'}
+          <span className="flex items-center gap-1.5 font-medium">
+            <Users className="h-3.5 w-3.5" />
+            {(event.registeredCount || event.registeredUsers?.length || 0)} / {event.capacity || '∞'}
           </span>
         </div>
       </div>
@@ -181,7 +181,7 @@ function EventRow({ event, onEdit, onDelete, onDuplicate }: EventRowProps) {
               </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem 
+            <DropdownMenuItem
               className="text-destructive focus:text-destructive"
               onClick={() => onDelete(event.id)}
             >
@@ -199,7 +199,7 @@ export default function OrganizerDashboard() {
   const { user } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
-  
+
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -217,10 +217,10 @@ export default function OrganizerDashboard() {
         setEvents(organizerEvents);
       } catch (error) {
         console.error('Error fetching events:', error);
-        toast({ 
-          title: 'Error', 
-          description: 'Failed to load events.', 
-          variant: 'destructive' 
+        toast({
+          title: 'Error',
+          description: 'Failed to load events.',
+          variant: 'destructive'
         });
       } finally {
         setLoading(false);
@@ -240,10 +240,10 @@ export default function OrganizerDashboard() {
       setEvents(events.filter(e => e.id !== eventId));
       toast({ title: 'Event Deleted' });
     } catch (error) {
-      toast({ 
-        title: 'Error', 
-        description: 'Failed to delete event.', 
-        variant: 'destructive' 
+      toast({
+        title: 'Error',
+        description: 'Failed to delete event.',
+        variant: 'destructive'
       });
     }
   };
@@ -258,15 +258,15 @@ export default function OrganizerDashboard() {
         status: 'draft',
         registeredCount: 0,
       };
-      
+
       const newId = await eventService.createEvent(duplicatedEvent);
       setEvents([...events, { ...duplicatedEvent, id: newId } as Event]);
       toast({ title: 'Event Duplicated', description: 'A copy has been created as a draft.' });
     } catch (error) {
-      toast({ 
-        title: 'Error', 
-        description: 'Failed to duplicate event.', 
-        variant: 'destructive' 
+      toast({
+        title: 'Error',
+        description: 'Failed to duplicate event.',
+        variant: 'destructive'
       });
     }
   };
@@ -297,9 +297,9 @@ export default function OrganizerDashboard() {
 
   const eventsThisMonth = events.filter(e => e.createdAt?.toDate ? e.createdAt.toDate() >= lastMonth : true).length;
   const eventsLastMonth = events.filter(e => e.createdAt?.toDate ? (e.createdAt.toDate() >= monthBeforeLast && e.createdAt.toDate() < lastMonth) : false).length;
-  
-  const eventTrend = eventsLastMonth > 0 
-    ? Math.round(((eventsThisMonth - eventsLastMonth) / eventsLastMonth) * 100) 
+
+  const eventTrend = eventsLastMonth > 0
+    ? Math.round(((eventsThisMonth - eventsLastMonth) / eventsLastMonth) * 100)
     : 0;
 
   const totalAttendees = events.reduce((sum, e) => sum + (e.registeredCount || e.registeredUsers?.length || 0), 0);
@@ -371,8 +371,8 @@ export default function OrganizerDashboard() {
         />
         <StatCard
           title="Avg. Fill Rate"
-          value={stats.totalCapacity > 0 
-            ? `${Math.round((stats.totalAttendees / stats.totalCapacity) * 100)}%` 
+          value={stats.totalCapacity > 0
+            ? `${Math.round((stats.totalAttendees / stats.totalCapacity) * 100)}%`
             : '0%'}
           icon={BarChart3}
           trend="neutral"
@@ -418,8 +418,8 @@ export default function OrganizerDashboard() {
                     <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                     <h3 className="font-semibold mb-2">No events found</h3>
                     <p className="text-muted-foreground text-sm mb-4">
-                      {activeTab === 'all' 
-                        ? "You haven't created any events yet." 
+                      {activeTab === 'all'
+                        ? "You haven't created any events yet."
                         : `No ${activeTab} events.`}
                     </p>
                     <Button asChild>
@@ -543,7 +543,7 @@ export default function OrganizerDashboard() {
                 <div>
                   <h4 className="font-semibold mb-1">Pro Tip</h4>
                   <p className="text-sm text-muted-foreground">
-                    Use our AI-powered event wizard to create compelling descriptions 
+                    Use our AI-powered event wizard to create compelling descriptions
                     and agendas automatically.
                   </p>
                 </div>
