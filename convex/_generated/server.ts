@@ -1,10 +1,11 @@
 import { v } from "convex/values";
 
-export const query = (args: any) => args;
-export const mutation = (args: any) => args;
-export const internalMutation = (args: any) => args;
-export const internalQuery = (args: any) => args;
+export type Id<T extends string> = string & { __tableName: T };
 
-// Mock context for handlers
+export const query = (obj: { args: any, handler: (ctx: any, args: any) => Promise<any> }) => obj;
+export const mutation = (obj: { args: any, handler: (ctx: any, args: any) => Promise<any> }) => obj;
+export const internalMutation = (obj: { args: any, handler: (ctx: any, args: any) => Promise<any> }) => obj;
+export const internalQuery = (obj: { args: any, handler: (ctx: any, args: any) => Promise<any> }) => obj;
+
 export type QueryCtx = any;
 export type MutationCtx = any;

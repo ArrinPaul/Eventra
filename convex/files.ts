@@ -16,7 +16,7 @@ export const saveFile = mutation({
     size: v.number(),
     userId: v.id("users"),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx: any, args: any) => {
     const url = await ctx.storage.getUrl(args.storageId);
     if (!url) throw new Error("File not found in storage");
     
@@ -29,7 +29,7 @@ export const saveFile = mutation({
 
 export const getMetadata = query({
   args: { storageId: v.string() },
-  handler: async (ctx, args) => {
+  handler: async (ctx: any, args: any) => {
     return await ctx.db
       .query("files")
       .filter((q) => q.eq(q.field("storageId"), args.storageId))

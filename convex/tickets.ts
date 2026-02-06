@@ -3,7 +3,7 @@ import { v } from "convex/values";
 
 export const getByEventId = query({
   args: { eventId: v.id("events") },
-  handler: async (ctx, args) => {
+  handler: async (ctx: any, args: any) => {
     return await ctx.db
       .query("tickets")
       .withIndex("by_event", (q) => q.eq("eventId", args.eventId))
@@ -13,7 +13,7 @@ export const getByEventId = query({
 
 export const getByUserId = query({
   args: { userId: v.id("users") },
-  handler: async (ctx, args) => {
+  handler: async (ctx: any, args: any) => {
     return await ctx.db
       .query("tickets")
       .withIndex("by_user", (q) => q.eq("userId", args.userId))
@@ -32,7 +32,7 @@ export const create = mutation({
     purchaseDate: v.number(),
     qrCode: v.optional(v.string()),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx: any, args: any) => {
     return await ctx.db.insert("tickets", args);
   },
 });
@@ -43,7 +43,7 @@ export const updateStatus = mutation({
     status: v.string(),
     checkInStatus: v.optional(v.string()),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx: any, args: any) => {
     await ctx.db.patch(args.id, {
       status: args.status,
       checkInStatus: args.checkInStatus,
@@ -53,7 +53,7 @@ export const updateStatus = mutation({
 
 export const getTicketByNumber = query({
   args: { ticketNumber: v.string() },
-  handler: async (ctx, args) => {
+  handler: async (ctx: any, args: any) => {
     return await ctx.db
       .query("tickets")
       .withIndex("by_ticket_number", (q) => q.eq("ticketNumber", args.ticketNumber))
@@ -63,7 +63,7 @@ export const getTicketByNumber = query({
 
 export const checkInTicket = mutation({
   args: { id: v.id("tickets") },
-  handler: async (ctx, args) => {
+  handler: async (ctx: any, args: any) => {
     const ticket = await ctx.db.get(args.id);
     if (!ticket) throw new Error("Ticket not found");
     

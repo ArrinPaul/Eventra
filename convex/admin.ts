@@ -16,7 +16,7 @@ export const getUsers = query({
     status: v.optional(v.string()),
     search: v.optional(v.string()),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx: any, args: any) => {
     if (!(await isAdmin(ctx))) {
       throw new Error("Unauthorized");
     }
@@ -45,7 +45,7 @@ export const updateUserRole = mutation({
     userId: v.id("users"),
     role: v.union(v.literal("student"), v.literal("professional"), v.literal("organizer"), v.literal("admin"), v.literal("speaker"), v.literal("attendee")),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx: any, args: any) => {
     if (!(await isAdmin(ctx))) {
       throw new Error("Unauthorized");
     }
@@ -58,7 +58,7 @@ export const updateUserStatus = mutation({
     userId: v.id("users"),
     status: v.string(),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx: any, args: any) => {
     if (!(await isAdmin(ctx))) {
       throw new Error("Unauthorized");
     }

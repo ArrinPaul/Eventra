@@ -4,7 +4,7 @@ import { v } from "convex/values";
 
 export const viewer = query({
   args: {},
-  handler: async (ctx) => {
+  handler: async (ctx: any) => {
     const userId = await auth.getUserId(ctx);
     if (userId === null) {
       return null;
@@ -38,7 +38,7 @@ export const update = mutation({
     organizationName: v.optional(v.string()),
     website: v.optional(v.string()),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx: any, args: any) => {
     const userId = await auth.getUserId(ctx);
     if (userId === null) {
       throw new Error("Not authenticated");
@@ -49,7 +49,7 @@ export const update = mutation({
 
 export const awardPoints = mutation({
   args: { points: v.number() },
-  handler: async (ctx, args) => {
+  handler: async (ctx: any, args: any) => {
     const userId = await auth.getUserId(ctx);
     if (!userId) throw new Error("Not authenticated");
     const user = await ctx.db.get(userId);
@@ -60,9 +60,16 @@ export const awardPoints = mutation({
 
 export const checkIn = mutation({
   args: {},
-  handler: async (ctx) => {
+  handler: async (ctx: any) => {
     const userId = await auth.getUserId(ctx);
     if (!userId) throw new Error("Not authenticated");
     await ctx.db.patch(userId, { checkedIn: true });
+  },
+});
+
+export const list = query({
+  args: {},
+  handler: async (ctx: any) => {
+    return await ctx.db.query("users").collect();
   },
 });

@@ -10,7 +10,7 @@ export const get = query({
 
 export const getById = query({
   args: { id: v.string() },
-  handler: async (ctx, args) => {
+  handler: async (ctx: any, args: any) => {
     // Normalize ID - handled by Convex usually but good for robustness
     const id = args.id as any; 
     return await ctx.db.get(id);
@@ -37,7 +37,7 @@ export const create = mutation({
     targetAudience: v.optional(v.string()),
     organizationId: v.optional(v.string()),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx: any, args: any) => {
     const eventId = await ctx.db.insert("events", args);
     return eventId;
   },
@@ -57,7 +57,7 @@ export const update = mutation({
       // Add other fields as needed
     }),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx: any, args: any) => {
     const { id, updates } = args;
     await ctx.db.patch(id, updates);
   },
@@ -65,7 +65,7 @@ export const update = mutation({
 
 export const deleteEvent = mutation({
   args: { id: v.id("events") },
-  handler: async (ctx, args) => {
+  handler: async (ctx: any, args: any) => {
     await ctx.db.delete(args.id);
   },
 });

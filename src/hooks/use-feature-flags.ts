@@ -23,7 +23,6 @@ export function useFeatureFlags() {
     isNotificationsEnabled: envConfig.features.notificationsEnabled,
     
     // Service configuration status
-    isFirebaseConfigured: envConfig.firebase.isConfigured,
     isGoogleAIConfigured: envConfig.googleAI.isConfigured,
     isGoogleOAuthConfigured: envConfig.googleOAuth.isConfigured,
     isEmailConfigured: envConfig.email.isConfigured,

@@ -6,6 +6,7 @@ export const api: any = {
     update: "users:update",
     awardPoints: "users:awardPoints",
     checkIn: "users:checkIn",
+    list: "users:list",
   },
   events: {
     get: "events:get",
@@ -21,10 +22,33 @@ export const api: any = {
     getTicketByNumber: "tickets:getTicketByNumber",
     checkInTicket: "tickets:checkInTicket",
   },
+  notifications: {
+    get: "notifications:get",
+    markRead: "notifications:markRead",
+    deleteNotification: "notifications:deleteNotification",
+    markAllRead: "notifications:markAllRead",
+  },
   files: {
     generateUploadUrl: "files:generateUploadUrl",
     saveFile: "files:saveFile",
     getMetadata: "files:getMetadata",
+  },
+  chat: {
+    getRooms: "chat:getRooms",
+    getMessages: "chat:getMessages",
+    sendMessage: "chat:sendMessage",
+    createRoom: "chat:createRoom",
+  },
+  communities: {
+    list: "communities:list",
+    getById: "communities:getById",
+    create: "communities:create",
+    join: "communities:join",
+  },
+  posts: {
+    list: "posts:list",
+    create: "posts:create",
+    like: "posts:like",
   },
   admin: {
     getUsers: "admin:getUsers",

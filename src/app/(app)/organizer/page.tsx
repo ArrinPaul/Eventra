@@ -7,18 +7,18 @@ import OrganizerDashboard from '@/components/dashboard/organizer-dashboard-clien
 import { Loader2 } from 'lucide-react';
 
 export default function OrganizerPage() {
-    const { user, isLoading } = useAuth();
+    const { user, loading } = useAuth();
     const router = useRouter();
 
     useEffect(() => {
         // Redirect non-organizers after auth is loaded
-        if (!isLoading && user?.role !== 'organizer' && user?.role !== 'admin') {
+        if (!loading && user?.role !== 'organizer' && user?.role !== 'admin') {
             router.push('/explore');
         }
-    }, [user, isLoading, router]);
+    }, [user, loading, router]);
 
     // Show loading state while checking auth
-    if (isLoading) {
+    if (loading) {
         return (
             <div className="flex items-center justify-center h-[calc(100vh-4rem)]">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />

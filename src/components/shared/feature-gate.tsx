@@ -174,7 +174,6 @@ export function ConfigurationStatusBanner() {
   const flags = useFeatureFlags();
   
   const unconfiguredFeatures = [
-    !flags.isFirebaseConfigured && 'Firebase (Required)',
     !flags.isGoogleAIConfigured && 'AI Features',
     !flags.isGoogleOAuthConfigured && 'Google Integrations',
     !flags.isStripeConfigured && 'Payments',
@@ -185,26 +184,14 @@ export function ConfigurationStatusBanner() {
     return null;
   }
 
-  const hasRequiredMissing = !flags.isFirebaseConfigured;
-
   return (
-    <Alert variant={hasRequiredMissing ? 'destructive' : 'default'} className="mb-4">
+    <Alert className="mb-4">
       <AlertCircle className="h-4 w-4" />
-      <AlertTitle>
-        {hasRequiredMissing ? 'Required Configuration Missing' : 'Optional Features Not Configured'}
-      </AlertTitle>
+      <AlertTitle>Optional Features Not Configured</AlertTitle>
       <AlertDescription>
-        <p className="mb-2">
-          {hasRequiredMissing
-            ? 'Firebase must be configured for the app to work properly.'
-            : 'Some features are disabled because their services are not configured.'}
-        </p>
-        <p className="text-sm">
-          Missing: {unconfiguredFeatures.join(', ')}
-        </p>
-        <p className="text-sm mt-1">
-          See <code className="bg-muted px-1 rounded">.env.example</code> for configuration details.
-        </p>
+        <p className="mb-2">Some features are disabled because their services are not configured.</p>
+        <p className="text-sm">Missing: {unconfiguredFeatures.join(', ')}</p>
+        <p className="text-sm mt-1">See <code className="bg-muted px-1 rounded">.env.example</code> for configuration details.</p>
       </AlertDescription>
     </Alert>
   );
