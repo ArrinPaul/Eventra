@@ -158,25 +158,6 @@ export const EVENTOS_CONFIG = {
     },
   },
 
-  // Firebase Configuration (Production)
-  firebase: {
-    config: {
-      apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-      authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-      projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-      storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-      messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-      appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-    },
-    emulator: {
-      enabled: process.env.NODE_ENV === 'development',
-      auth: { host: 'localhost', port: 9099 },
-      firestore: { host: 'localhost', port: 8080 },
-      functions: { host: 'localhost', port: 5001 },
-      storage: { host: 'localhost', port: 9199 },
-    },
-  },
-
   // Security Configuration
   security: {
     jwtSecret: process.env.JWT_SECRET,
@@ -206,7 +187,6 @@ export const EVENTOS_CONFIG = {
   // Analytics Configuration
   analytics: {
     providers: {
-      firebase: true,
       googleAnalytics: process.env.NEXT_PUBLIC_GA_ID,
       mixpanel: process.env.NEXT_PUBLIC_MIXPANEL_TOKEN,
     },

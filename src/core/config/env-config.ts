@@ -18,18 +18,6 @@ export interface EnvConfig {
   domain: string;
   nodeEnv: 'development' | 'production' | 'test';
 
-  // Firebase
-  firebase: {
-    apiKey: string | undefined;
-    authDomain: string | undefined;
-    projectId: string | undefined;
-    storageBucket: string | undefined;
-    messagingSenderId: string | undefined;
-    appId: string | undefined;
-    measurementId: string | undefined;
-    isConfigured: boolean;
-  };
-
   // Google AI
   googleAI: {
     apiKey: string | undefined;
@@ -66,7 +54,6 @@ export interface EnvConfig {
     paymentsEnabled: boolean;
     analyticsEnabled: boolean;
     notificationsEnabled: boolean;
-    useFirebaseEmulator: boolean;
   };
 }
 
@@ -95,22 +82,6 @@ function getBooleanEnvVar(key: string, fallback: boolean): boolean {
 // ============================================================
 
 function buildEnvConfig(): EnvConfig {
-  // Firebase Configuration
-  const firebaseApiKey = getEnvVar('NEXT_PUBLIC_FIREBASE_API_KEY');
-  const firebaseAuthDomain = getEnvVar('NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN');
-  const firebaseProjectId = getEnvVar('NEXT_PUBLIC_FIREBASE_PROJECT_ID');
-  const firebaseStorageBucket = getEnvVar('NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET');
-  const firebaseMessagingSenderId = getEnvVar('NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID');
-  const firebaseAppId = getEnvVar('NEXT_PUBLIC_FIREBASE_APP_ID');
-  const firebaseMeasurementId = getEnvVar('NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID');
-  
-  const firebaseIsConfigured = !!(
-    firebaseApiKey &&
-    firebaseAuthDomain &&
-    firebaseProjectId &&
-    firebaseAppId
-  );
-
   // Google AI Configuration
   const googleAIApiKey = getEnvVar('GOOGLE_GENAI_API_KEY');
   const googleAIIsConfigured = !!googleAIApiKey;
@@ -140,18 +111,6 @@ function buildEnvConfig(): EnvConfig {
     siteUrl: getEnvVar('NEXT_PUBLIC_SITE_URL', 'http://localhost:9002')!,
     domain: getEnvVar('NEXT_PUBLIC_DOMAIN', 'localhost:9002')!,
     nodeEnv,
-
-    // Firebase
-    firebase: {
-      apiKey: firebaseApiKey,
-      authDomain: firebaseAuthDomain,
-      projectId: firebaseProjectId,
-      storageBucket: firebaseStorageBucket,
-      messagingSenderId: firebaseMessagingSenderId,
-      appId: firebaseAppId,
-      measurementId: firebaseMeasurementId,
-      isConfigured: firebaseIsConfigured,
-    },
 
     // Google AI
     googleAI: {
@@ -189,7 +148,6 @@ function buildEnvConfig(): EnvConfig {
       paymentsEnabled: getBooleanEnvVar('NEXT_PUBLIC_ENABLE_PAYMENTS', stripeIsConfigured),
       analyticsEnabled: getBooleanEnvVar('NEXT_PUBLIC_ENABLE_ANALYTICS', true),
       notificationsEnabled: getBooleanEnvVar('NEXT_PUBLIC_ENABLE_NOTIFICATIONS', emailIsConfigured),
-      useFirebaseEmulator: getBooleanEnvVar('USE_FIREBASE_EMULATOR', nodeEnv === 'development'),
     },
   };
 }
@@ -211,14 +169,6 @@ export const envConfig = buildEnvConfig();
 export function validateEnvConfig(): { isValid: boolean; warnings: string[]; errors: string[] } {
   const warnings: string[] = [];
   const errors: string[] = [];
-
-  // Firebase is required for the app to function
-  if (!envConfig.firebase.isConfigured) {
-    errors.push(
-      'Firebase is not configured. Set NEXT_PUBLIC_FIREBASE_* environment variables. ' +
-      'See .env.example for details.'
-    );
-  }
 
   // Google AI - warn if not configured
   if (!envConfig.googleAI.isConfigured) {
@@ -273,7 +223,6 @@ export function logEnvConfigStatus(): void {
   console.log(`Site URL: ${envConfig.siteUrl}`);
   console.log('');
   console.log('Services:');
-  console.log(`  ✅ Firebase: ${envConfig.firebase.isConfigured ? 'Configured' : '❌ Not configured'}`);
   console.log(`  ${envConfig.googleAI.isConfigured ? '✅' : '⚠️'} Google AI: ${envConfig.googleAI.isConfigured ? 'Configured' : 'Not configured (AI disabled)'}`);
   console.log(`  ${envConfig.googleOAuth.isConfigured ? '✅' : '⚠️'} Google OAuth: ${envConfig.googleOAuth.isConfigured ? 'Configured' : 'Not configured (integrations disabled)'}`);
   console.log(`  ${envConfig.email.isConfigured ? '✅' : '⚠️'} Email: ${envConfig.email.isConfigured ? 'Configured' : 'Not configured (notifications disabled)'}`);
@@ -284,7 +233,6 @@ export function logEnvConfigStatus(): void {
   console.log(`  Google Integrations: ${envConfig.features.googleIntegrationsEnabled ? '✅ Enabled' : '❌ Disabled'}`);
   console.log(`  Payments: ${envConfig.features.paymentsEnabled ? '✅ Enabled' : '❌ Disabled'}`);
   console.log(`  Notifications: ${envConfig.features.notificationsEnabled ? '✅ Enabled' : '❌ Disabled'}`);
-  console.log(`  Firebase Emulator: ${envConfig.features.useFirebaseEmulator ? '✅ Enabled' : '❌ Disabled'}`);
   console.log('================================\n');
 }
 
