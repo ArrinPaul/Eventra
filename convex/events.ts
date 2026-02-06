@@ -69,3 +69,20 @@ export const deleteEvent = mutation({
     await ctx.db.delete(args.id);
   },
 });
+
+export const getAttendees = query({
+  args: { eventId: v.id("events") },
+  handler: async (ctx: any, args: any) => {
+    const regs = await ctx.db
+      .query("registrations")
+      .withIndex("by_event", (q: any) => q.eq("eventId", args.eventId))
+      .collect();
+      
+    const attendees = [];
+    for (const reg of regs) {
+      const user = await ctx.db.get(reg.userId);
+      if (user) attendees.push({ ...user, registrationStatus: reg.status });
+    }
+    return attendees;
+  },
+});

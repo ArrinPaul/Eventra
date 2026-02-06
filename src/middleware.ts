@@ -116,7 +116,7 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Get auth token from cookies (Firebase auth stores token here)
+  // Get auth token from cookies
   const authToken = request.cookies.get('auth-token')?.value;
   const userRole = request.cookies.get('user-role')?.value;
   

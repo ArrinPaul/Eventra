@@ -14,6 +14,7 @@ export const api: any = {
     create: "events:create",
     update: "events:update",
     deleteEvent: "events:deleteEvent",
+    getAttendees: "events:getAttendees",
   },
   tickets: {
     getByEventId: "tickets:getByEventId",
@@ -49,6 +50,10 @@ export const api: any = {
     list: "posts:list",
     create: "posts:create",
     like: "posts:like",
+  },
+  registrations: {
+    register: "registrations:register",
+    getRegistration: "registrations:getRegistration",
   },
   admin: {
     getUsers: "admin:getUsers",

@@ -25,26 +25,17 @@ vi.mock('next/image', () => ({
   },
 }));
 
-// Mock Firebase
-vi.mock('@/core/config/firebase', () => ({
-  auth: {
-    currentUser: null,
-    onAuthStateChanged: vi.fn(),
-  },
-  db: {},
-  storage: {},
-}));
-
 // Mock useAuth hook
 vi.mock('@/hooks/use-auth', () => ({
   useAuth: () => ({
     user: null,
-    users: [],
     loading: false,
-    error: null,
-    login: vi.fn(),
+    isAuthenticated: false,
     logout: vi.fn(),
-    signup: vi.fn(),
+    signIn: vi.fn(),
+    updateUser: vi.fn(),
+    awardPoints: vi.fn(),
+    checkInUser: vi.fn(),
   }),
 }));
 
@@ -99,6 +90,3 @@ Object.assign(navigator, {
     readText: vi.fn().mockResolvedValue(''),
   },
 });
-
-// Suppress console errors during tests (optional)
-// vi.spyOn(console, 'error').mockImplementation(() => {});
