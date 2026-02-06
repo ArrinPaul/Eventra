@@ -24,7 +24,6 @@ type EventFormProps = {
   event: Event | null;
 };
 
-// Helper to extract date string from Event
 function getDateString(event: Event): string {
   if (event.startDate) {
     const date = event.startDate instanceof Date ? event.startDate : new Date(event.startDate);
@@ -33,7 +32,6 @@ function getDateString(event: Event): string {
   return '';
 }
 
-// Helper to extract location string from Event
 function getLocationString(event: Event): string {
   if (typeof event.location === 'string') return event.location;
   if (event.location?.venue?.name) return event.location.venue.name;
@@ -63,41 +61,19 @@ export function EventForm({ onSave, event }: EventFormProps) {
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    // Convert form values to Event type with required defaults
     const startDate = new Date(values.date + 'T' + values.time);
-    const eventData: Omit<Event, 'id'> = {
+    const eventData: any = {
       title: values.title,
       description: values.description,
-      startDate,
-      endDate: startDate, // Default to same as start
-      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      location: {
-        type: 'physical',
-        venue: { name: values.location },
-      } as any,
+      startDate: startDate.getTime(),
+      endDate: startDate.getTime() + 3600000,
+      location: { venue: values.location },
       type: 'workshop',
       category: values.category,
-      tags: [],
       capacity: 100,
-      waitlistEnabled: false,
-      pricing: { type: 'free' } as any,
       status: 'draft',
-      visibility: 'public',
-      agenda: [],
-      speakers: [],
-      organizers: [],
-      moderators: [],
-      registeredUsers: [],
-      waitlistedUsers: [],
-      attendedUsers: [],
-      settings: {} as any,
-      integrations: {},
-      analytics: {} as any,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      createdBy: '',
-      organizationId: '',
-      // Legacy fields for compatibility
+      organizerId: '',
+      registeredCount: 0,
       date: values.date,
       time: values.time,
       targetAudience: values.targetAudience,

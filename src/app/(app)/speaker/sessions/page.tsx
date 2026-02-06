@@ -2,44 +2,26 @@
 
 import React, { useState } from 'react';
 import {
-  User,
-  Calendar,
-  Clock,
-  MapPin,
   Users,
-  FileText,
-  Upload,
-  Edit,
-  Save,
-  X,
-  Plus,
+  Calendar,
   Mic,
-  Video,
-  Download,
-  Share2,
-  ExternalLink,
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
 import { useQuery } from 'convex/react';
-import { api } from '../../../../convex/_generated/api';
+import { api } from "../../../../../convex/_generated/api";
 
 export default function SpeakerSessionDashboard() {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState<'sessions' | 'profile' | 'materials'>('sessions');
   const allEventsRaw = useQuery(api.events.get);
   const { toast } = useToast();
 
   const loading = allEventsRaw === undefined;
   const events = (allEventsRaw || []).map((e: any) => ({ ...e, id: e._id }));
   
-  const speakerSessions = events.filter(event => 
+  const speakerSessions = events.filter((event: any) => 
     event.speakers && event.speakers.some((s: any) => (typeof s === 'string' ? s === user?._id : s.id === user?._id))
   );
 
@@ -56,7 +38,7 @@ export default function SpeakerSessionDashboard() {
 
       <div className="grid grid-cols-1 gap-6">
         <h2 className="text-2xl font-bold">My Sessions</h2>
-        {speakerSessions.map((session) => (
+        {speakerSessions.map((session: any) => (
           <Card key={session.id} className="bg-white/5 border-white/10 text-white">
             <CardHeader>
               <div className="flex justify-between items-start">

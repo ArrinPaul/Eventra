@@ -24,13 +24,13 @@ export const getUsers = query({
     let users = await ctx.db.query("users").collect();
 
     if (args.role && args.role !== "all") {
-      users = users.filter((u) => u.role === args.role);
+      users = users.filter((u: any) => u.role === args.role);
     }
 
     if (args.search) {
       const search = args.search.toLowerCase();
       users = users.filter(
-        (u) =>
+        (u: any) =>
           u.name?.toLowerCase().includes(search) ||
           u.email?.toLowerCase().includes(search)
       );

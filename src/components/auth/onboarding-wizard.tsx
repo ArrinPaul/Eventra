@@ -28,7 +28,8 @@ import {
   GraduationCap, 
   Building2,
   Sparkles,
-  X
+  X,
+  Loader2
 } from 'lucide-react';
 import { cn, getErrorMessage } from '@/core/utils/utils';
 

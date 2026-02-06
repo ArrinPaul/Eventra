@@ -50,22 +50,22 @@ export default function AdminDashboardClient() {
     const loading = allUsersRaw === undefined;
     const users = (allUsersRaw || []).map((u: any) => ({ ...u, id: u._id }));
 
-    const attendeeUsers = users.filter(user => user.role !== 'organizer' && user.role !== 'admin');
+    const attendeeUsers = users.filter((user: any) => user.role !== 'organizer' && user.role !== 'admin');
     
     const filteredUsers = attendeeUsers
-        .filter(user => filterRole === 'all' || user.role === filterRole)
-        .filter(user => (user.name || '').toLowerCase().includes(searchTerm.toLowerCase()) || (user.email || '').toLowerCase().includes(searchTerm.toLowerCase()));
+        .filter((user: any) => filterRole === 'all' || user.role === filterRole)
+        .filter((user: any) => (user.name || '').toLowerCase().includes(searchTerm.toLowerCase()) || (user.email || '').toLowerCase().includes(searchTerm.toLowerCase()));
 
     const handleExport = () => {
         downloadCSV(filteredUsers, 'eventra_attendees.csv');
     };
 
     if (adminUser?.role !== 'admin' && adminUser !== undefined) {
-        return <div className="container py-20 text-center">Unauthorized Access</div>;
+        return <div className="container py-20 text-center text-white">Unauthorized Access</div>;
     }
 
     return (
-        <div className="container py-8 space-y-6">
+        <div className="container py-8 space-y-6 text-white">
             <div>
                 <h1 className="text-4xl font-bold font-headline mb-2 text-white">Admin Dashboard</h1>
                 <p className="text-muted-foreground">Manage platform settings, users, events, and analytics.</p>
@@ -106,7 +106,7 @@ export default function AdminDashboardClient() {
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
-                                            {filteredUsers.length > 0 ? filteredUsers.map(user => (
+                                            {filteredUsers.length > 0 ? filteredUsers.map((user: any) => (
                                                 <TableRow key={user.id} className="border-white/10">
                                                     <TableCell className="font-medium text-white">{user.name}</TableCell>
                                                     <TableCell className="text-gray-300">{user.email}</TableCell>

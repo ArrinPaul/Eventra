@@ -32,7 +32,7 @@ export const getMetadata = query({
   handler: async (ctx: any, args: any) => {
     return await ctx.db
       .query("files")
-      .filter((q) => q.eq(q.field("storageId"), args.storageId))
+      .filter((q: any) => q.eq(q.field("storageId"), args.storageId))
       .first();
   },
 });

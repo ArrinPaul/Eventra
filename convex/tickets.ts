@@ -1,12 +1,12 @@
-import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { mutation, query } from "./_generated/server";
 
 export const getByEventId = query({
   args: { eventId: v.id("events") },
   handler: async (ctx: any, args: any) => {
     return await ctx.db
       .query("tickets")
-      .withIndex("by_event", (q) => q.eq("eventId", args.eventId))
+      .withIndex("by_event", (q: any) => q.eq("eventId", args.eventId))
       .collect();
   },
 });
@@ -16,31 +16,33 @@ export const getByUserId = query({
   handler: async (ctx: any, args: any) => {
     return await ctx.db
       .query("tickets")
-      .withIndex("by_user", (q) => q.eq("userId", args.userId))
+      .withIndex("by_user", (q: any) => q.eq("userId", args.userId))
       .collect();
   },
 });
 
-export const create = mutation({
+export const createTicket = mutation({
   args: {
     eventId: v.id("events"),
     userId: v.id("users"),
-    ticketTypeId: v.optional(v.string()),
     ticketNumber: v.string(),
-    status: v.string(),
     price: v.number(),
-    purchaseDate: v.number(),
-    qrCode: v.optional(v.string()),
+    status: v.string(),
+    attendeeName: v.string(),
+    attendeeEmail: v.string(),
   },
   handler: async (ctx: any, args: any) => {
-    return await ctx.db.insert("tickets", args);
+    return await ctx.db.insert("tickets", {
+      ...args,
+      purchaseDate: Date.now(),
+    });
   },
 });
 
-export const updateStatus = mutation({
+export const updateTicketStatus = mutation({
   args: {
     id: v.id("tickets"),
-    status: v.string(),
+    status: v.union(v.literal("confirmed"), v.literal("pending"), v.literal("cancelled"), v.literal("checked-in"), v.literal("refunded")),
     checkInStatus: v.optional(v.string()),
   },
   handler: async (ctx: any, args: any) => {
@@ -56,7 +58,7 @@ export const getTicketByNumber = query({
   handler: async (ctx: any, args: any) => {
     return await ctx.db
       .query("tickets")
-      .withIndex("by_ticket_number", (q) => q.eq("ticketNumber", args.ticketNumber))
+      .withIndex("by_ticket_number", (q: any) => q.eq("ticketNumber", args.ticketNumber))
       .unique();
   },
 });
