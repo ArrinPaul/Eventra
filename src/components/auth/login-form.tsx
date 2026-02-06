@@ -13,11 +13,10 @@ import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { Separator } from '@/components/ui/separator';
 import { Loader2, ArrowRight } from 'lucide-react';
-import { signInWithGoogle, signInWithEmail } from '@/features/auth/services/auth-service';
 import { cn, getErrorMessage } from '@/core/utils/utils';
 
 export function LoginForm() {
-  const { login } = useAuth();
+  const { signIn } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
@@ -38,47 +37,19 @@ export function LoginForm() {
   async function onSubmit(values: LoginFormData) {
     setIsLoading(true);
     try {
-      // Try Firebase Auth first
-      const authUser = await signInWithEmail(values.email, values.password);
-      
-      if (authUser) {
-        toast({
-          title: 'Welcome back!',
-          description: `Successfully signed in as ${authUser.displayName || 'User'}.`,
-        });
-        
-        // Intelligent redirect based on user state
-        if (!authUser.onboardingCompleted) {
-          router.push('/onboarding');
-        } else {
-          router.push(callbackUrl);
-        }
-        return;
-      }
-    } catch (firebaseError: any) {
-      // Fallback for demo/dev purposes if Firebase isn't fully configured
-      console.warn('Firebase login failed, attempting legacy login:', firebaseError);
-      
-      const user = await login(values.email);
-      if (user) {
-        toast({
-          title: 'Welcome back!',
-          description: `Successfully signed in as ${user.name}.`,
-        });
-        
-        // Redirect organizers to their specific dashboard
-        if (user.role === 'organizer') {
-           router.push('/organizer');
-        } else {
-           router.push('/explore');
-        }
-        return;
-      }
-      
+      // Convex Auth supports password too if configured, but let's focus on Google as requested
+      // For now, if they try email, we can either point to Google or implement it if providers allow
+      await signIn("password", values);
+      toast({
+        title: 'Welcome back!',
+        description: `Successfully signed in.`,
+      });
+      router.push(callbackUrl);
+    } catch (error: any) {
       toast({
         variant: 'destructive',
         title: 'Login Failed',
-        description: 'Invalid email or password. Please try again.',
+        description: getErrorMessage(error),
       });
     } finally {
       setIsLoading(false);
@@ -88,27 +59,14 @@ export function LoginForm() {
   async function handleGoogleSignIn() {
     setIsGoogleLoading(true);
     try {
-      const authUser = await signInWithGoogle();
-      
-      if (authUser) {
-        toast({
-          title: 'Welcome!',
-          description: `Successfully signed in with Google.`,
-        });
-        
-        if (!authUser.onboardingCompleted) {
-          router.push('/onboarding');
-        } else {
-          router.push(callbackUrl);
-        }
-      }
+      await signIn("google");
+      // Note: signIn("google") will redirect away, so we don't need to do anything else here
     } catch (error: unknown) {
       toast({
         variant: 'destructive',
         title: 'Google Sign-In Failed',
         description: getErrorMessage(error),
       });
-    } finally {
       setIsGoogleLoading(false);
     }
   }

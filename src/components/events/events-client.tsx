@@ -1,7 +1,9 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import type { Event } from '@/types';
 import { useAuth } from '@/hooks/use-auth';
+import { useQuery, useMutation } from 'convex/react';
+import { api } from '../../../convex/_generated/api';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -9,7 +11,6 @@ import { Plus, Edit, Trash2, Calendar, Clock, MapPin, Users, Tag, Loader2 } from
 import { useToast } from '@/hooks/use-toast';
 import { EventForm } from './event-form';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { eventService } from '@/core/services/firestore-services';
 import Link from 'next/link';
 
 function EventCard({ event, isOrganizer, onEdit, onDelete }: { event: Event; isOrganizer: boolean; onEdit: (event: Event) => void; onDelete: (eventId: string) => void; }) {
@@ -59,48 +60,54 @@ function EventCard({ event, isOrganizer, onEdit, onDelete }: { event: Event; isO
 
 export default function EventsClient() {
   const { user } = useAuth();
-  const [events, setEvents] = useState<Event[]>([]);
+  const { toast } = useToast();
+  
+  // Convex Hooks
+  const allEventsRaw = useQuery(api.events.get);
+  const createEventMutation = useMutation(api.events.create);
+  const updateEventMutation = useMutation(api.events.update);
+  const deleteEventMutation = useMutation(api.events.deleteEvent);
+
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
-  const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
 
+  const loading = allEventsRaw === undefined;
   const isOrganizer = user?.role === 'organizer' || user?.role === 'admin';
 
-  useEffect(() => {
-    const fetchEvents = async () => {
-      setLoading(true);
-      try {
-        const fetchedEvents = await eventService.getEvents();
-        setEvents(fetchedEvents);
-      } catch (error) {
-        console.error('Error fetching events:', error);
-        toast({ title: 'Error', description: 'Failed to load events.', variant: 'destructive' });
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchEvents();
-  }, [toast]);
+  // Map Convex data to Event type
+  const events: Event[] = (allEventsRaw || []).map((e: any) => ({
+    ...e,
+    id: e._id,
+  }));
 
   const handleSave = async (eventData: Omit<Event, 'id'>) => {
     try {
       if (editingEvent) {
-        await eventService.updateEvent(editingEvent.id, eventData);
-        setEvents(events.map(e => e.id === editingEvent.id ? { ...editingEvent, ...eventData } : e));
+        await updateEventMutation({ 
+          id: editingEvent.id as any, 
+          updates: {
+            ...eventData,
+            startDate: new Date(eventData.startDate).getTime(),
+            endDate: new Date(eventData.endDate).getTime(),
+          } 
+        });
         toast({ title: 'Event Updated', description: `"${eventData.title}" has been updated.` });
       } else {
-        // Ensure organizationId is set
-        const newEventData: Omit<Event, 'id'> = {
+        const newEvent = {
           ...eventData,
           organizationId: user?.organizationId || 'default',
-          startDate: eventData.startDate || new Date(), // Fallback if form returns legacy only
-          endDate: eventData.endDate || new Date(),
+          startDate: new Date(eventData.startDate || Date.now()).getTime(),
+          endDate: new Date(eventData.endDate || Date.now()).getTime(),
           status: 'published',
-          visibility: 'public'
+          registeredCount: 0,
+          capacity: eventData.capacity || 100,
+          organizerId: user?.uid as any,
+          type: eventData.type || 'event',
+          category: eventData.category || 'general',
+          description: eventData.description || '',
+          location: eventData.location || {},
         };
-        const newId = await eventService.createEvent(newEventData);
-        setEvents([...events, { ...newEventData, id: newId } as Event]);
+        await createEventMutation(newEvent);
         toast({ title: 'Event Created', description: `"${eventData.title}" has been added.` });
       }
       setEditingEvent(null);
@@ -118,8 +125,7 @@ export default function EventsClient() {
   
   const handleDelete = async (eventId: string) => {
     try {
-      await eventService.deleteEvent(eventId);
-      setEvents(events.filter(e => e.id !== eventId));
+      await deleteEventMutation({ id: eventId as any });
       toast({ title: 'Event Deleted', variant: 'destructive' });
     } catch (error) {
       console.error('Error deleting event:', error);

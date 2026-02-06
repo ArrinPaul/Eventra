@@ -1,14 +1,15 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { SESSIONS as initialSessions, AGENDA_STRING } from '@/core/data/data';
-import type { Session, Event } from '@/types';
+import { AGENDA_STRING } from '@/core/data/data';
+import type { Session } from '@/types';
 import { useAuth } from '@/hooks/use-auth';
+import { useQuery } from 'convex/react';
+import { api } from '../../../convex/_generated/api';
 import { useToast } from '@/hooks/use-toast';
 import { Calendar, Clock, Plus, Minus, Sparkles, Loader2, User, Tag, AlertTriangle, MapPin } from 'lucide-react';
 import { getRecommendedSessions } from '@/core/actions/actions';
-import { eventService } from '@/core/services/firestore-services';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,38 +34,16 @@ function getGoogleCalendarUrl(session: Session) {
     let endTimeStr = '';
 
     if (session.startTime && session.endTime) {
-        startTimeStr = session.startTime.toISOString().replace(/-|:|\.\d\d\d/g, "");
-        endTimeStr = session.endTime.toISOString().replace(/-|:|\.\d\d\d/g, "");
-    } else if (session.time) {
-         // Legacy fallback (approximate date)
-        const parts = session.time.split(' - ');
-        // ... (complex parsing omitted for brevity, assuming real data has Dates now)
-        // Fallback to current date for mock
-        const now = new Date();
-        startTimeStr = now.toISOString().replace(/-|:|\.\d\d\d/g, "");
-        endTimeStr = now.toISOString().replace(/-|:|\.\d\d\d/g, "");
+        startTimeStr = new Date(session.startTime).toISOString().replace(/-|:|\.\d\d\d/g, "");
+        endTimeStr = new Date(session.endTime).toISOString().replace(/-|:|\.\d\d\d/g, "");
     }
-
-    return `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(session.title)}&details=${encodeURIComponent(session.description)}&location=${encodeURIComponent(session.location || '')}&dates=${startTimeStr}/${endTimeStr}`;
+    
+    return `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(session.title)}&details=${encodeURIComponent(session.description || '')}&location=${encodeURIComponent(session.location || '')}&dates=${startTimeStr}/${endTimeStr}`;
 }
 
 const getSessionDateRange = (session: Session) => {
     if (session.startTime && session.endTime) {
-        return { start: session.startTime, end: session.endTime };
-    }
-    if (session.time) {
-        // Legacy parsing
-        const [startStr, endStr] = session.time.split(' - ');
-        const parseLegacy = (t: string) => {
-            const d = new Date();
-            const [time, period] = t.split(' ');
-            let [h, m] = time.split(':').map(Number);
-            if (period === 'PM' && h !== 12) h += 12;
-            if (period === 'AM' && h === 12) h = 0;
-            d.setHours(h, m, 0, 0);
-            return d;
-        };
-        return { start: parseLegacy(startStr), end: parseLegacy(endStr || startStr) };
+        return { start: new Date(session.startTime), end: new Date(session.endTime) };
     }
     return { start: new Date(), end: new Date() };
 };
@@ -87,32 +66,37 @@ const hasTimeConflict = (newSession: Session, mySessionIds: string[], allSession
 
 
 function SessionCard({ session, allSessions }: { session: Session, allSessions: Session[] }) {
-  const { user, addEventToUser, removeEventFromUser } = useAuth();
+  const { user, updateUser } = useAuth();
   const { toast } = useToast();
   const [conflict, setConflict] = useState<Session | null>(null);
 
   if (!user) return null;
 
-  const isAdded = (user.myEvents || []).includes(session.id);
-  const timeString = formatSessionTime(session.startTime, session.endTime, session.time);
+  const myEvents = user.myEvents || [];
+  const isAdded = myEvents.includes(session.id);
+  const timeString = formatSessionTime(
+    session.startTime ? new Date(session.startTime) : undefined, 
+    session.endTime ? new Date(session.endTime) : undefined, 
+    session.time
+  );
 
-  const handleAddEvent = () => {
-    const conflictingSession = hasTimeConflict(session, user.myEvents || [], allSessions);
+  const handleAddEvent = async () => {
+    const conflictingSession = hasTimeConflict(session, myEvents, allSessions);
     if (conflictingSession) {
       setConflict(conflictingSession);
     } else {
-      addEventToUser(session.id);
+      await updateUser({ myEvents: [...myEvents, session.id] });
       toast({ title: 'Added to your events!', description: session.title });
     }
   };
   
-  const handleRemoveEvent = () => {
-    removeEventFromUser(session.id);
+  const handleRemoveEvent = async () => {
+    await updateUser({ myEvents: myEvents.filter((id: string) => id !== session.id) });
     toast({ title: 'Removed from your events', description: session.title });
   }
 
-  const handleConfirmAdd = () => {
-    addEventToUser(session.id, true);
+  const handleConfirmAdd = async () => {
+    await updateUser({ myEvents: [...myEvents, session.id] });
     toast({ title: 'Added to your events!', description: session.title });
     setConflict(null);
   };
@@ -179,49 +163,31 @@ function SessionCard({ session, allSessions }: { session: Session, allSessions: 
 
 export default function AgendaClient() {
   const { user } = useAuth();
-  const [sessions, setSessions] = useState<Session[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
+  
+  const allEventsRaw = useQuery(api.events.get);
   const [loadingRecommendations, setLoadingRecommendations] = useState(false);
   const [recommendations, setRecommendations] = useState<string[]>([]);
   const [isAlertOpen, setIsAlertOpen] = useState(false);
-  const { toast } = useToast();
 
-  useEffect(() => {
-    const fetchSessions = async () => {
-      setLoading(true);
-      try {
-        const events = await eventService.getEvents();
-        // Extract sessions from all events
-        const allSessions = events.flatMap(event => 
-          (event.agenda || []).map(session => ({
-             ...session,
-             // Ensure legacy compatibility if needed - AgendaItem uses 'room', Session uses 'location'
-             location: session.room,
-             // If startTime/endTime are strings (from JSON), convert to Date
-             startTime: session.startTime ? new Date(session.startTime) : undefined,
-             endTime: session.endTime ? new Date(session.endTime) : undefined,
-          }))
-        );
-        // If no sessions found in DB, fallback to initialSessions for demo?
-        // The Roadmap says "Refactor ... to fetch real data".
-        // If DB is empty, we show empty.
-        setSessions(allSessions as Session[]);
-      } catch (error) {
-        console.error("Error fetching agenda:", error);
-        toast({ title: 'Error', description: 'Failed to load agenda.', variant: 'destructive' });
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchSessions();
-  }, [toast]);
+  const loading = allEventsRaw === undefined;
+  
+  const sessions: Session[] = (allEventsRaw || []).flatMap((event: any) => 
+    (event.agenda || []).map((session: any, index: number) => ({
+       ...session,
+       id: session.id || `${event._id}-session-${index}`,
+       location: session.room || event.location?.venue?.name || 'TBD',
+       startTime: session.startTime ? new Date(session.startTime) : undefined,
+       endTime: session.endTime ? new Date(session.endTime) : undefined,
+    }))
+  );
 
   const handleGetRecommendations = async () => {
     if (!user) return;
     setLoadingRecommendations(true);
     try {
       const result = await getRecommendedSessions({
-        role: user.role as 'student' | 'professional',
+        role: (user.role as 'student' | 'professional') || 'student',
         interests: user.interests || '',
         agenda: AGENDA_STRING,
         myEvents: user.myEvents || [],

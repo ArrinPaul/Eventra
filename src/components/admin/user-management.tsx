@@ -75,12 +75,11 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { formatDistanceToNow } from 'date-fns';
-import { userManagementService, type UserData, type UserFilters } from '@/features/admin/services/user-management-service';
+import { useQuery, useMutation } from 'convex/react';
+import { api } from '../../../convex/_generated/api';
 
 export default function UserManagement() {
   const { toast } = useToast();
-  const [loading, setLoading] = useState(true);
-  const [users, setUsers] = useState<UserData[]>([]);
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [filters, setFilters] = useState<UserFilters>({
     search: '',
@@ -90,48 +89,38 @@ export default function UserManagement() {
     sortOrder: 'desc'
   });
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
+  const [selectedUser, setSelectedUser] = useState<any | null>(null);
   const [showUserDialog, setShowUserDialog] = useState(false);
   const [showBanDialog, setShowBanDialog] = useState(false);
   const [banReason, setBanReason] = useState('');
-  const [hasMore, setHasMore] = useState(false);
   const itemsPerPage = 10;
 
-  useEffect(() => {
-    loadUsers();
-  }, [filters.role, filters.status, filters.sortBy, filters.sortOrder]);
+  // Use Convex hooks
+  const convexUsers = useQuery(api.admin.getUsers, {
+    role: filters.role,
+    search: filters.search,
+  });
+  
+  const updateRole = useMutation(api.admin.updateUserRole);
+  const updateStatus = useMutation(api.admin.updateUserStatus);
 
-  const loadUsers = useCallback(async () => {
-    setLoading(true);
-    try {
-      const result = await userManagementService.getUsers(
-        {
-          role: filters.role,
-          status: filters.status,
-          sortBy: filters.sortBy,
-          sortOrder: filters.sortOrder,
-          search: filters.search,
-        },
-        50 // Get more for client-side filtering
-      );
-      
-      setUsers(result.data);
-      setHasMore(result.hasMore);
-    } catch (error) {
-      console.error('Error loading users:', error);
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Failed to load users. Please try again.',
-      });
-    } finally {
-      setLoading(false);
-    }
-  }, [filters, toast]);
+  const loading = convexUsers === undefined;
+  const users = convexUsers || [];
 
   // Filtered and sorted users
   const filteredUsers = useMemo(() => {
-    let result = [...users];
+    let result = [...users].map(u => ({
+      ...u,
+      id: u._id,
+      createdAt: new Date(u._creationTime),
+      lastActive: new Date(u._creationTime), // Placeholder
+      eventsAttended: u.eventsAttended || 0,
+      points: u.points || 0,
+      badges: 0,
+      connections: 0,
+      isVerified: true,
+      status: u.status || 'active',
+    }));
 
     // Search filter
     if (filters.search) {

@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState } from 'react';
 import { useAuth } from '@/hooks/use-auth';
+import { useQuery } from 'convex/react';
+import { api } from '../../../convex/_generated/api';
 import { Event } from '@/types';
-import { eventService } from '@/core/services/firestore-services';
 import { MyEventCard } from '@/components/events/my-event-card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -20,94 +21,43 @@ import {
   Loader2,
   CalendarDays,
   QrCode,
-  Download,
   Share2
 } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/core/utils/utils';
 import { format, isPast, isFuture, isToday } from 'date-fns';
-import { db, FIRESTORE_COLLECTIONS } from '@/core/config/firebase';
-import { doc, getDoc, updateDoc, arrayUnion, arrayRemove, setDoc, Timestamp } from 'firebase/firestore';
 
-// Helper function to safely parse event date
 const getEventDate = (event: Event): Date => {
-  // Prefer startDate, fall back to date if available
   const dateValue = event.startDate || event.date;
   if (!dateValue) return new Date();
-  
-  // Handle Firestore Timestamp
-  if (typeof dateValue === 'object' && dateValue !== null && 'toDate' in dateValue) {
-    return (dateValue as { toDate: () => Date }).toDate();
-  }
-  // Handle Date object
-  if (dateValue instanceof Date) return dateValue;
-  // Handle string
   return new Date(dateValue);
 };
 
 export default function MyEventsClient() {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const { toast } = useToast();
-  const [events, setEvents] = useState<Event[]>([]);
-  const [wishlisted, setWishlisted] = useState<string[]>([]);
-  const [ratings, setRatings] = useState<Record<string, number>>({});
-  const [loading, setLoading] = useState(true);
+  
+  const allEventsRaw = useQuery(api.events.get);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('registered');
 
-  // Load user's wishlist and ratings from Firestore
-  const loadUserPreferences = useCallback(async () => {
-    if (!user?.uid) return;
-    
-    try {
-      const userPrefsRef = doc(db, FIRESTORE_COLLECTIONS.USERS, user.uid);
-      const userPrefsDoc = await getDoc(userPrefsRef);
-      
-      if (userPrefsDoc.exists()) {
-        const data = userPrefsDoc.data();
-        setWishlisted(data.wishlist || []);
-        setRatings(data.eventRatings || {});
-      }
-    } catch (error) {
-      console.error('Error loading user preferences:', error);
-    }
-  }, [user?.uid]);
+  const loading = allEventsRaw === undefined;
+  
+  const events: Event[] = (allEventsRaw || []).map((e: any) => ({
+    ...e,
+    id: e._id,
+  }));
 
-  useEffect(() => {
-    const fetchEvents = async () => {
-      if (!user?.uid) return;
-      
-      setLoading(true);
-      try {
-        // Fetch all events the user is registered for
-        const allEvents = await eventService.getEvents();
-        
-        // Filter events where user is registered
-        const userEvents = allEvents.filter(event => 
-          event.attendees?.includes(user.uid!) || 
-          event.registeredUsers?.includes(user.uid!) ||
-          user.myEvents?.includes(event.id)
-        );
-        
-        setEvents(userEvents);
-        
-        // Load wishlist and ratings from Firestore
-        await loadUserPreferences();
-      } catch (error) {
-        console.error('Error fetching events:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const userEvents = events.filter(event => 
+    event.attendees?.includes(user?._id || user?.id || '') || 
+    event.registeredUsers?.includes(user?._id || user?.id || '') ||
+    user?.myEvents?.includes(event.id)
+  );
 
-    fetchEvents();
-  }, [user, loadUserPreferences]);
+  const wishlisted = user?.wishlist || [];
 
-  // Filter events based on search and tab
   const filterEvents = (events: Event[], tab: string) => {
     let filtered = events;
-    
-    // Search filter
     if (searchQuery) {
       filtered = filtered.filter(event =>
         event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -115,7 +65,6 @@ export default function MyEventsClient() {
       );
     }
     
-    // Tab-based filtering
     switch (tab) {
       case 'registered':
         return filtered.filter(event => {
@@ -128,115 +77,42 @@ export default function MyEventsClient() {
           return isPast(eventDate) && !isToday(eventDate);
         });
       case 'wishlist':
-        // Return wishlisted events (would need to fetch these separately in a real app)
-        return filtered.filter(event => wishlisted.includes(event.id));
+        return events.filter(event => wishlisted.includes(event.id));
       default:
         return filtered;
     }
   };
 
-  const registeredEvents = filterEvents(events, 'registered');
-  const pastEvents = filterEvents(events, 'past');
+  const registeredEvents = filterEvents(userEvents, 'registered');
+  const pastEvents = filterEvents(userEvents, 'past');
   const wishlistedEvents = filterEvents(events, 'wishlist');
 
-  // Handle removing from wishlist - save to Firestore
   const handleRemoveWishlist = async (eventId: string) => {
-    const updatedWishlist = wishlisted.filter(id => id !== eventId);
-    setWishlisted(updatedWishlist);
-    
-    if (user?.uid) {
-      try {
-        const userRef = doc(db, FIRESTORE_COLLECTIONS.USERS, user.uid);
-        await updateDoc(userRef, {
-          wishlist: arrayRemove(eventId)
-        });
-      } catch (error) {
-        console.error('Error removing from wishlist:', error);
-        // Revert on error
-        setWishlisted(wishlisted);
-      }
-    }
-    
-    toast({
-      title: 'Removed from wishlist',
-      description: 'Event removed from your saved events.',
+    await updateUser({
+      wishlist: wishlisted.filter((id: string) => id !== eventId)
     });
+    toast({ title: 'Removed from wishlist' });
   };
 
-  // Handle adding to wishlist - save to Firestore
-  const handleAddWishlist = async (eventId: string) => {
-    const updatedWishlist = [...wishlisted, eventId];
-    setWishlisted(updatedWishlist);
-    
-    if (user?.uid) {
-      try {
-        const userRef = doc(db, FIRESTORE_COLLECTIONS.USERS, user.uid);
-        await updateDoc(userRef, {
-          wishlist: arrayUnion(eventId)
-        });
-      } catch (error) {
-        console.error('Error adding to wishlist:', error);
-        // Revert on error
-        setWishlisted(wishlisted);
-      }
-    }
-    
-    toast({
-      title: 'Added to wishlist',
-      description: 'Event saved to your wishlist.',
-    });
-  };
-
-  // Handle rating event - save to Firestore
   const handleRateEvent = async (eventId: string, rating: number) => {
-    // Optimistic update
-    setRatings(prev => ({ ...prev, [eventId]: rating }));
-    
-    if (user?.uid) {
-      try {
-        const userRef = doc(db, FIRESTORE_COLLECTIONS.USERS, user.uid);
-        await updateDoc(userRef, {
-          [`eventRatings.${eventId}`]: rating
-        });
-      } catch (error) {
-        console.error('Error saving rating:', error);
-      }
-    }
-    
-    toast({
-      title: 'Rating submitted',
-      description: `You rated this event ${rating} star${rating > 1 ? 's' : ''}.`,
+    const currentRatings = user?.eventRatings || {};
+    await updateUser({
+      eventRatings: { ...currentRatings, [eventId]: rating }
     });
+    toast({ title: 'Rating submitted' });
   };
 
-  // Get next upcoming event
   const nextEvent = registeredEvents
-    .filter(e => {
-      const eventDate = getEventDate(e);
-      return isFuture(eventDate) || isToday(eventDate);
-    })
-    .sort((a, b) => {
-      const dateA = getEventDate(a);
-      const dateB = getEventDate(b);
-      return dateA.getTime() - dateB.getTime();
-    })[0];
+    .sort((a, b) => getEventDate(a).getTime() - getEventDate(b).getTime())[0];
 
-  if (!user) {
+  if (!user && !loading) {
     return (
       <div className="container py-16 text-center">
         <div className="max-w-md mx-auto">
           <Calendar className="h-16 w-16 mx-auto mb-6 text-muted-foreground" />
           <h1 className="text-2xl font-bold mb-4">Sign in to see your events</h1>
-          <p className="text-muted-foreground mb-6">
-            Track your registered events, save favorites to your wishlist, and manage your schedule.
-          </p>
           <div className="flex gap-4 justify-center">
-            <Button asChild>
-              <Link href="/login">Sign In</Link>
-            </Button>
-            <Button asChild variant="outline">
-              <Link href="/explore">Explore Events</Link>
-            </Button>
+            <Button asChild><Link href="/login">Sign In</Link></Button>
           </div>
         </div>
       </div>
@@ -245,23 +121,16 @@ export default function MyEventsClient() {
 
   return (
     <div className="container py-8">
-      {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
         <div>
           <h1 className="text-3xl font-bold mb-2">My Events</h1>
-          <p className="text-muted-foreground">
-            Manage your registered events and wishlist
-          </p>
+          <p className="text-muted-foreground">Manage your registered events and wishlist</p>
         </div>
         <Button asChild>
-          <Link href="/explore">
-            <Plus className="mr-2 h-4 w-4" />
-            Find Events
-          </Link>
+          <Link href="/explore"><Plus className="mr-2 h-4 w-4" />Find Events</Link>
         </Button>
       </div>
 
-      {/* Next Event Card */}
       {nextEvent && (
         <div className="mb-8">
           <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent rounded-xl p-6 border">
@@ -270,198 +139,76 @@ export default function MyEventsClient() {
                 <p className="text-sm font-medium text-primary mb-2">YOUR NEXT EVENT</p>
                 <h2 className="text-2xl font-bold mb-2">{nextEvent.title}</h2>
                 <div className="flex flex-wrap gap-4 text-sm text-muted-foreground mb-4">
-                  <span className="flex items-center gap-1">
-                    <CalendarDays className="h-4 w-4" />
-                    {format(getEventDate(nextEvent), 'EEEE, MMMM d, yyyy')}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Ticket className="h-4 w-4" />
-                    {typeof nextEvent.location === 'string' 
-                      ? nextEvent.location 
-                      : nextEvent.location?.venue?.name || 'Online Event'}
-                  </span>
+                  <span className="flex items-center gap-1"><CalendarDays className="h-4 w-4" />{format(getEventDate(nextEvent), 'EEEE, MMMM d, yyyy')}</span>
                 </div>
                 <div className="flex gap-3">
-                  <Button asChild size="sm">
-                    <Link href={`/events/${nextEvent.id}`}>View Details</Link>
-                  </Button>
-                  <Button variant="outline" size="sm">
-                    <QrCode className="mr-2 h-4 w-4" />
-                    Show Ticket
-                  </Button>
-                  <Button variant="ghost" size="sm">
-                    <Share2 className="mr-2 h-4 w-4" />
-                    Share
-                  </Button>
+                  <Button asChild size="sm"><Link href={`/events/${nextEvent.id}`}>View Details</Link></Button>
                 </div>
-              </div>
-              <div className="hidden md:block">
-                {nextEvent.imageUrl || nextEvent.image ? (
-                  <img 
-                    src={nextEvent.imageUrl || nextEvent.image} 
-                    alt={nextEvent.title}
-                    className="w-48 h-32 object-cover rounded-lg"
-                  />
-                ) : (
-                  <div className="w-48 h-32 bg-gradient-to-br from-primary/20 to-primary/5 rounded-lg flex items-center justify-center">
-                    <Calendar className="h-12 w-12 text-primary/50" />
-                  </div>
-                )}
               </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* Search */}
       <div className="mb-6">
         <div className="relative max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search your events..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
-          />
+          <Input placeholder="Search your events..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-10" />
         </div>
       </div>
 
-      {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="mb-6">
           <TabsTrigger value="registered" className="gap-2">
-            <Ticket className="h-4 w-4" />
-            Registered
-            {registeredEvents.length > 0 && (
-              <Badge variant="secondary" className="ml-1">
-                {registeredEvents.length}
-              </Badge>
-            )}
+            <Ticket className="h-4 w-4" /> Registered
+            {registeredEvents.length > 0 && <Badge variant="secondary" className="ml-1">{registeredEvents.length}</Badge>}
           </TabsTrigger>
           <TabsTrigger value="past" className="gap-2">
-            <History className="h-4 w-4" />
-            Past Events
-            {pastEvents.length > 0 && (
-              <Badge variant="secondary" className="ml-1">
-                {pastEvents.length}
-              </Badge>
-            )}
+            <History className="h-4 w-4" /> Past Events
+            {pastEvents.length > 0 && <Badge variant="secondary" className="ml-1">{pastEvents.length}</Badge>}
           </TabsTrigger>
           <TabsTrigger value="wishlist" className="gap-2">
-            <Heart className="h-4 w-4" />
-            Wishlist
-            {wishlistedEvents.length > 0 && (
-              <Badge variant="secondary" className="ml-1">
-                {wishlistedEvents.length}
-              </Badge>
-            )}
+            <Heart className="h-4 w-4" /> Wishlist
+            {wishlistedEvents.length > 0 && <Badge variant="secondary" className="ml-1">{wishlistedEvents.length}</Badge>}
           </TabsTrigger>
         </TabsList>
 
         {loading ? (
-          <div className="flex items-center justify-center py-16">
-            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-          </div>
+          <div className="flex items-center justify-center py-16"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>
         ) : (
           <>
             <TabsContent value="registered">
               {registeredEvents.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {registeredEvents.map(event => (
-                    <MyEventCard 
-                      key={event.id} 
-                      event={event} 
-                      variant="upcoming"
-                    />
-                  ))}
+                  {registeredEvents.map(event => <MyEventCard key={event.id} event={event} variant="upcoming" />)}
                 </div>
               ) : (
-                <EmptyState
-                  icon={<Ticket className="h-12 w-12" />}
-                  title="No upcoming events"
-                  description="You haven't registered for any upcoming events yet."
-                  action={
-                    <Button asChild>
-                      <Link href="/explore">Browse Events</Link>
-                    </Button>
-                  }
-                />
+                <div className="text-center py-16"><p className="text-muted-foreground">No upcoming events.</p></div>
               )}
             </TabsContent>
 
             <TabsContent value="past">
               {pastEvents.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {pastEvents.map(event => (
-                    <MyEventCard 
-                      key={event.id} 
-                      event={event} 
-                      variant="past"
-                      onRate={handleRateEvent}
-                    />
-                  ))}
+                  {pastEvents.map(event => <MyEventCard key={event.id} event={event} variant="past" onRate={handleRateEvent} />)}
                 </div>
               ) : (
-                <EmptyState
-                  icon={<History className="h-12 w-12" />}
-                  title="No past events"
-                  description="Events you've attended will appear here."
-                />
+                <div className="text-center py-16"><p className="text-muted-foreground">No past events.</p></div>
               )}
             </TabsContent>
 
             <TabsContent value="wishlist">
               {wishlistedEvents.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {wishlistedEvents.map(event => (
-                    <MyEventCard 
-                      key={event.id} 
-                      event={event} 
-                      variant="wishlist"
-                      onRemoveWishlist={handleRemoveWishlist}
-                    />
-                  ))}
+                  {wishlistedEvents.map(event => <MyEventCard key={event.id} event={event} variant="wishlist" onRemoveWishlist={handleRemoveWishlist} />)}
                 </div>
               ) : (
-                <EmptyState
-                  icon={<Heart className="h-12 w-12" />}
-                  title="Your wishlist is empty"
-                  description="Save events you're interested in to find them later."
-                  action={
-                    <Button asChild>
-                      <Link href="/explore">Discover Events</Link>
-                    </Button>
-                  }
-                />
+                <div className="text-center py-16"><p className="text-muted-foreground">Your wishlist is empty.</p></div>
               )}
             </TabsContent>
           </>
         )}
       </Tabs>
-    </div>
-  );
-}
-
-// Empty State Component
-function EmptyState({
-  icon,
-  title,
-  description,
-  action
-}: {
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-  action?: React.ReactNode;
-}) {
-  return (
-    <div className="text-center py-16">
-      <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-muted mb-6">
-        <div className="text-muted-foreground">{icon}</div>
-      </div>
-      <h3 className="text-xl font-semibold mb-2">{title}</h3>
-      <p className="text-muted-foreground mb-6 max-w-sm mx-auto">{description}</p>
-      {action}
     </div>
   );
 }

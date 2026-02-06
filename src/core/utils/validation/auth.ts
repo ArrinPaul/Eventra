@@ -24,7 +24,7 @@ const passwordMatch = (data: { password: string; confirmPassword: string }) =>
 
 const passwordMatchError = {
   message: "Passwords don't match",
-  path: ["confirmPassword"] as const,
+  path: ["confirmPassword"],
 };
 
 export const baseRegisterSchema = z.object(baseFields).refine(passwordMatch, passwordMatchError);

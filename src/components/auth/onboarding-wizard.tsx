@@ -28,9 +28,7 @@ import {
   X
 } from 'lucide-react';
 import { cn, getErrorMessage } from '@/core/utils/utils';
-import { updateUserProfile } from '@/features/auth/services/auth-service';
-import { storage } from '@/core/config/firebase';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+// Remove Firebase imports
 
 // Available interests for selection
 const AVAILABLE_INTERESTS = [
@@ -57,12 +55,23 @@ const profileSchema = z.object({
 
 // Step 2: Student Specific Schema
 const studentSchema = z.object({
-  department: z.string().min(1, 'Please select your department'),
-  year: z.string().min(1, 'Please select your year'),
+  college: z.string().min(2, 'College name is required'),
+  degree: z.enum(['ug', 'pg'], { required_error: 'Please select your degree' }),
+  year: z.number().min(1).max(5),
   interests: z.array(z.string()).min(1, 'Select at least one interest'),
 });
 
-// Step 3: Organizer Specific Schema
+// Step 2: Professional Specific Schema
+const professionalSchema = z.object({
+  company: z.string().min(2, 'Company name is required'),
+  designation: z.string().min(2, 'Designation is required'),
+  country: z.string().min(2, 'Country is required'),
+  gender: z.enum(['male', 'female', 'other', 'prefer-not-to-say'], { required_error: 'Please select your gender' }),
+  bloodGroup: z.string().min(1, 'Blood group is required'),
+  interests: z.array(z.string()).min(1, 'Select at least one interest'),
+});
+
+// Step 2: Organizer Specific Schema
 const organizerSchema = z.object({
   organizationName: z.string().min(2, 'Organization name is required'),
   designation: z.string().min(2, 'Your role/designation is required'),
@@ -71,11 +80,13 @@ const organizerSchema = z.object({
 
 type ProfileFormData = z.infer<typeof profileSchema>;
 type StudentFormData = z.infer<typeof studentSchema>;
+type ProfessionalFormData = z.infer<typeof professionalSchema>;
 type OrganizerFormData = z.infer<typeof organizerSchema>;
 
 interface OnboardingData {
   profile: ProfileFormData;
   student?: StudentFormData;
+  professional?: ProfessionalFormData;
   organizer?: OrganizerFormData;
   photoURL?: string;
 }
@@ -87,7 +98,7 @@ export function OnboardingWizard() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [currentStep, setCurrentStep] = useState(1);
-  const [userType, setUserType] = useState<'student' | 'organizer'>('student');
+  const [userType, setUserType] = useState<'student' | 'professional' | 'organizer'>('student');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
@@ -106,17 +117,31 @@ export function OnboardingWizard() {
     defaultValues: onboardingData.profile,
   });
 
-  // Student Form (Step 2 for students)
+  // Student Form (Step 2)
   const studentForm = useForm<StudentFormData>({
     resolver: zodResolver(studentSchema),
     defaultValues: {
-      department: '',
-      year: '',
+      college: '',
+      degree: 'ug',
+      year: 1,
       interests: [],
     },
   });
 
-  // Organizer Form (Step 2 for organizers)
+  // Professional Form (Step 2)
+  const professionalForm = useForm<ProfessionalFormData>({
+    resolver: zodResolver(professionalSchema),
+    defaultValues: {
+      company: '',
+      designation: '',
+      country: '',
+      gender: 'male',
+      bloodGroup: '',
+      interests: [],
+    },
+  });
+
+  // Organizer Form (Step 2)
   const organizerForm = useForm<OrganizerFormData>({
     resolver: zodResolver(organizerSchema),
     defaultValues: {
@@ -161,12 +186,9 @@ export function OnboardingWizard() {
       };
       reader.readAsDataURL(file);
 
-      // Upload to Firebase Storage
-      const storageRef = ref(storage, `avatars/${user?.id || 'temp'}_${Date.now()}`);
-      await uploadBytes(storageRef, file);
-      const downloadURL = await getDownloadURL(storageRef);
-      
-      setOnboardingData(prev => ({ ...prev, photoURL: downloadURL }));
+      // TODO: Implement Convex File Storage upload
+      // For now, just using the preview
+      setOnboardingData(prev => ({ ...prev, photoURL: reader.result as string }));
       
       toast({
         title: 'Photo uploaded',
@@ -190,7 +212,8 @@ export function OnboardingWizard() {
       const newInterests = prev.includes(interest)
         ? prev.filter(i => i !== interest)
         : [...prev, interest];
-      studentForm.setValue('interests', newInterests);
+      if (userType === 'student') studentForm.setValue('interests', newInterests);
+      if (userType === 'professional') professionalForm.setValue('interests', newInterests);
       return newInterests;
     });
   };
@@ -216,6 +239,15 @@ export function OnboardingWizard() {
           }));
           setCurrentStep(3);
         }
+      } else if (userType === 'professional') {
+        const isValid = await professionalForm.trigger();
+        if (isValid) {
+          setOnboardingData(prev => ({
+            ...prev,
+            professional: professionalForm.getValues(),
+          }));
+          setCurrentStep(3);
+        }
       } else {
         const isValid = await organizerForm.trigger();
         if (isValid) {
@@ -235,38 +267,48 @@ export function OnboardingWizard() {
     }
   };
 
+import { useMutation } from 'convex/react';
+import { api } from '../../../convex/_generated/api';
+
+// ... inside OnboardingWizard component
+  const updateProfile = useMutation(api.users.update);
+
   // Handle final submission
   const handleComplete = async () => {
     setIsSubmitting(true);
     
     try {
       // Prepare user data
-      const userData: Record<string, any> = {
-        displayName: onboardingData.profile.displayName,
+      const userData: any = {
+        name: onboardingData.profile.displayName,
         bio: onboardingData.profile.bio || '',
         phone: onboardingData.profile.phone || '',
-        photoURL: onboardingData.photoURL || null,
-        role: userType === 'organizer' ? 'organizer' : 'attendee',
+        image: onboardingData.photoURL || null,
+        role: userType,
         onboardingCompleted: true,
       };
 
       if (userType === 'student' && onboardingData.student) {
-        userData.department = onboardingData.student.department;
-        userData.year = onboardingData.student.year;
-        userData.interests = onboardingData.student.interests;
+        Object.assign(userData, onboardingData.student);
+        // Map student interests to string if it's an array
+        if (Array.isArray(userData.interests)) {
+          userData.interests = userData.interests.join(', ');
+        }
+      } else if (userType === 'professional' && onboardingData.professional) {
+        Object.assign(userData, onboardingData.professional);
+        if (Array.isArray(userData.interests)) {
+          userData.interests = userData.interests.join(', ');
+        }
       } else if (userType === 'organizer' && onboardingData.organizer) {
         userData.organizationName = onboardingData.organizer.organizationName;
         userData.designation = onboardingData.organizer.designation;
         userData.website = onboardingData.organizer.website || '';
       }
 
-      // Update user profile (would use Firebase in production)
-      if (user?.id) {
-        await updateUserProfile(user.id, userData);
-      }
+      await updateProfile(userData);
 
       toast({
-        title: 'Welcome to EventOS! ÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â°',
+        title: 'Welcome to Eventra! 🎊',
         description: 'Your profile has been set up successfully.',
       });
 
@@ -292,7 +334,7 @@ export function OnboardingWizard() {
           <CardTitle className="text-2xl">Complete Your Profile</CardTitle>
         </div>
         <CardDescription>
-          Let&apos;s personalize your EventOS experience
+          Let&apos;s personalize your Eventra experience
         </CardDescription>
         <Progress value={progress} className="mt-4 h-2" />
         <p className="text-sm text-muted-foreground mt-2">
@@ -383,7 +425,7 @@ export function OnboardingWizard() {
             {/* User Type Selection */}
             <div className="space-y-3">
               <label className="text-sm font-medium">I am a... *</label>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <button
                   type="button"
                   onClick={() => setUserType('student')}
@@ -398,10 +440,23 @@ export function OnboardingWizard() {
                     'h-8 w-8',
                     userType === 'student' ? 'text-primary' : 'text-muted-foreground'
                   )} />
-                  <span className="font-medium">Student / Attendee</span>
-                  <span className="text-xs text-muted-foreground">
-                    Discover & attend events
-                  </span>
+                  <span className="font-medium text-sm">Student</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setUserType('professional')}
+                  className={cn(
+                    'flex flex-col items-center gap-2 p-4 rounded-lg border-2 transition-all',
+                    userType === 'professional'
+                      ? 'border-primary bg-primary/5'
+                      : 'border-border hover:border-primary/50'
+                  )}
+                >
+                  <User className={cn(
+                    'h-8 w-8',
+                    userType === 'professional' ? 'text-primary' : 'text-muted-foreground'
+                  )} />
+                  <span className="font-medium text-sm">Professional</span>
                 </button>
                 <button
                   type="button"
@@ -417,10 +472,7 @@ export function OnboardingWizard() {
                     'h-8 w-8',
                     userType === 'organizer' ? 'text-primary' : 'text-muted-foreground'
                   )} />
-                  <span className="font-medium">Organizer</span>
-                  <span className="text-xs text-muted-foreground">
-                    Create & manage events
-                  </span>
+                  <span className="font-medium text-sm">Organizer</span>
                 </button>
               </div>
             </div>
@@ -446,20 +498,189 @@ export function OnboardingWizard() {
               <form className="space-y-4">
                 <FormField
                   control={studentForm.control}
-                  name="department"
+                  name="college"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Department *</FormLabel>
+                      <FormLabel>College Name *</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter your college" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={studentForm.control}
+                    name="degree"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Degree *</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Degree" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="ug">Undergraduate (UG)</SelectItem>
+                            <SelectItem value="pg">Postgraduate (PG)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={studentForm.control}
+                    name="year"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Year *</FormLabel>
+                        <Select onValueChange={(v) => field.onChange(parseInt(v))} value={field.value.toString()}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Year" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="1">1st Year</SelectItem>
+                            <SelectItem value="2">2nd Year</SelectItem>
+                            <SelectItem value="3">3rd Year</SelectItem>
+                            <SelectItem value="4">4th Year</SelectItem>
+                            <SelectItem value="5">5th Year</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <FormField
+                  control={studentForm.control}
+                  name="interests"
+                  render={() => (
+                    <FormItem>
+                      <FormLabel>Interests * (Select at least one)</FormLabel>
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {AVAILABLE_INTERESTS.map(interest => (
+                          <Badge
+                            key={interest}
+                            variant={selectedInterests.includes(interest) ? 'default' : 'outline'}
+                            className={cn(
+                              'cursor-pointer transition-all',
+                              selectedInterests.includes(interest) 
+                                ? 'bg-primary hover:bg-primary/90' 
+                                : 'hover:bg-primary/10'
+                            )}
+                            onClick={() => toggleInterest(interest)}
+                          >
+                            {interest}
+                            {selectedInterests.includes(interest) && (
+                              <X className="h-3 w-3 ml-1" />
+                            )}
+                          </Badge>
+                        ))}
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </form>
+            </Form>
+          </div>
+        )}
+
+        {/* Step 2: Professional Specifics */}
+        {currentStep === 2 && userType === 'professional' && (
+          <div className="space-y-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                <User className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <h3 className="font-semibold">Professional Details</h3>
+                <p className="text-sm text-muted-foreground">
+                  Tell us about your professional background
+                </p>
+              </div>
+            </div>
+
+            <Form {...professionalForm}>
+              <form className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={professionalForm.control}
+                    name="company"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Company *</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Enter company" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={professionalForm.control}
+                    name="designation"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Designation *</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Enter designation" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={professionalForm.control}
+                    name="country"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Country *</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Enter country" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={professionalForm.control}
+                    name="bloodGroup"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Blood Group *</FormLabel>
+                        <FormControl>
+                          <Input placeholder="e.g. O+" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <FormField
+                  control={professionalForm.control}
+                  name="gender"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Gender *</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select your department" />
+                            <SelectValue placeholder="Select gender" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {DEPARTMENTS.map(dept => (
-                            <SelectItem key={dept} value={dept}>{dept}</SelectItem>
-                          ))}
+                          <SelectItem value="male">Male</SelectItem>
+                          <SelectItem value="female">Female</SelectItem>
+                          <SelectItem value="other">Other</SelectItem>
+                          <SelectItem value="prefer-not-to-say">Prefer not to say</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -467,34 +688,7 @@ export function OnboardingWizard() {
                   )}
                 />
                 <FormField
-                  control={studentForm.control}
-                  name="year"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Year of Study *</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select your year" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="1">1st Year</SelectItem>
-                          <SelectItem value="2">2nd Year</SelectItem>
-                          <SelectItem value="3">3rd Year</SelectItem>
-                          <SelectItem value="4">4th Year</SelectItem>
-                          <SelectItem value="pg1">PG - 1st Year</SelectItem>
-                          <SelectItem value="pg2">PG - 2nd Year</SelectItem>
-                          <SelectItem value="phd">PhD</SelectItem>
-                          <SelectItem value="alumni">Alumni</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={studentForm.control}
+                  control={professionalForm.control}
                   name="interests"
                   render={() => (
                     <FormItem>
@@ -621,8 +815,24 @@ export function OnboardingWizard() {
                 {userType === 'student' && onboardingData.student && (
                   <>
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Department:</span>
-                      <span className="font-medium">{onboardingData.student.department}</span>
+                      <span className="text-muted-foreground">College:</span>
+                      <span className="font-medium">{onboardingData.student.college}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Interests:</span>
+                      <span className="font-medium">{selectedInterests.length} selected</span>
+                    </div>
+                  </>
+                )}
+                {userType === 'professional' && onboardingData.professional && (
+                  <>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Company:</span>
+                      <span className="font-medium">{onboardingData.professional.company}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Designation:</span>
+                      <span className="font-medium">{onboardingData.professional.designation}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Interests:</span>

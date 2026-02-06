@@ -1,20 +1,20 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
+import { useQuery, useMutation } from "convex/react";
+import { api } from "../../../convex/_generated/api";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
@@ -26,7 +26,6 @@ import {
   BarChart3,
   Settings,
   Search,
-  Filter,
   MoreVertical,
   Edit,
   Trash2,
@@ -36,16 +35,13 @@ import {
   TrendingDown,
   Clock,
   CheckCircle2,
-  AlertCircle,
   Sparkles,
-  ArrowUpRight,
   CalendarDays,
   MapPin,
   ChevronRight,
   Loader2
 } from 'lucide-react';
 import { cn } from '@/core/utils/utils';
-import { eventService } from '@/core/services/firestore-services';
 import { useToast } from '@/hooks/use-toast';
 import type { Event } from '@/types';
 
@@ -200,35 +196,27 @@ export default function OrganizerDashboard() {
   const router = useRouter();
   const { toast } = useToast();
 
-  const [events, setEvents] = useState<Event[]>([]);
-  const [loading, setLoading] = useState(true);
+  const allEventsRaw = useQuery(api.events.get);
+  const deleteEventMutation = useMutation(api.events.deleteEvent);
+  const createEventMutation = useMutation(api.events.create);
+
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('all');
 
-  useEffect(() => {
-    const fetchEvents = async () => {
-      setLoading(true);
-      try {
-        const allEvents = await eventService.getEvents();
-        // Filter to only show events created by this organizer
-        const organizerEvents = allEvents.filter(
-          e => e.organizerId === user?.uid || e.organizers?.includes(user?.uid || '') || e.organizationId === user?.organizationId
-        );
-        setEvents(organizerEvents);
-      } catch (error) {
-        console.error('Error fetching events:', error);
-        toast({
-          title: 'Error',
-          description: 'Failed to load events.',
-          variant: 'destructive'
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (user) fetchEvents();
-  }, [user, toast]);
+  // Loading state
+  const loading = allEventsRaw === undefined;
+  
+  // Filter and Map events
+  const events: Event[] = (allEventsRaw || [])
+    .filter((e: any) => 
+      e.organizerId === user?.uid || 
+      e.organizers?.includes(user?.uid || '') || 
+      e.organizationId === user?.organizationId
+    )
+    .map((e: any) => ({
+      ...e,
+      id: e._id,
+    }));
 
   const handleEdit = (event: Event) => {
     router.push(`/events/${event.id}/edit`);
@@ -236,8 +224,7 @@ export default function OrganizerDashboard() {
 
   const handleDelete = async (eventId: string) => {
     try {
-      await eventService.deleteEvent(eventId);
-      setEvents(events.filter(e => e.id !== eventId));
+      await deleteEventMutation({ id: eventId as any });
       toast({ title: 'Event Deleted' });
     } catch (error) {
       toast({
@@ -252,17 +239,25 @@ export default function OrganizerDashboard() {
     try {
       // Create a copy without the id field
       const { id: _id, ...eventWithoutId } = event;
-      const duplicatedEvent: Omit<Event, 'id'> = {
-        ...eventWithoutId,
+      const duplicatedEvent = {
         title: `${event.title} (Copy)`,
+        description: event.description || 'No description',
         status: 'draft',
         registeredCount: 0,
+        startDate: new Date(event.startDate).getTime(),
+        endDate: new Date(event.endDate).getTime(),
+        location: event.location || {},
+        type: event.type || 'event',
+        category: event.category || 'general',
+        organizerId: user?.uid as any,
+        capacity: event.capacity || 100,
+        // Optional fields handled by schema
       };
 
-      const newId = await eventService.createEvent(duplicatedEvent);
-      setEvents([...events, { ...duplicatedEvent, id: newId } as Event]);
+      await createEventMutation(duplicatedEvent);
       toast({ title: 'Event Duplicated', description: 'A copy has been created as a draft.' });
     } catch (error) {
+      console.error(error);
       toast({
         title: 'Error',
         description: 'Failed to duplicate event.',
@@ -295,16 +290,26 @@ export default function OrganizerDashboard() {
   const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
   const monthBeforeLast = new Date(now.getFullYear(), now.getMonth() - 2, now.getDate());
 
-  const eventsThisMonth = events.filter(e => e.createdAt?.toDate ? e.createdAt.toDate() >= lastMonth : true).length;
-  const eventsLastMonth = events.filter(e => e.createdAt?.toDate ? (e.createdAt.toDate() >= monthBeforeLast && e.createdAt.toDate() < lastMonth) : false).length;
+  const getEventDate = (date: any) => {
+    if (!date) return new Date(0);
+    if (date instanceof Date) return date;
+    if (typeof date === 'number') return new Date(date);
+    if (date.toDate) return date.toDate();
+    return new Date(date);
+  };
+
+  const eventsThisMonth = events.filter(e => getEventDate(e.createdAt).getTime() >= lastMonth.getTime()).length;
+  const eventsLastMonth = events.filter(e => {
+    const d = getEventDate(e.createdAt);
+    return d.getTime() >= monthBeforeLast.getTime() && d.getTime() < lastMonth.getTime();
+  }).length;
 
   const eventTrend = eventsLastMonth > 0
     ? Math.round(((eventsThisMonth - eventsLastMonth) / eventsLastMonth) * 100)
     : 0;
 
   const totalAttendees = events.reduce((sum, e) => sum + (e.registeredCount || e.registeredUsers?.length || 0), 0);
-  // Simulating registration trend based on recent events
-  const regTrend = 15; // Assume 15% for now as registration timestamps are harder to aggregate without a sub-query
+  const regTrend = 15; 
 
   const stats = {
     totalEvents: events.length,

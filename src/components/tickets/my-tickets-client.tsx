@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useAuth } from '@/hooks/use-auth';
-import { ticketService } from '@/core/services/firestore-services';
+import { useQuery } from 'convex/react';
+import { api } from '../../../convex/_generated/api';
 import { EventTicket } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -24,7 +25,6 @@ import {
   Share2,
   CalendarPlus,
   CheckCircle2,
-  XCircle,
   Loader2,
   ChevronRight,
   Sparkles
@@ -36,11 +36,10 @@ import { QRCodeSVG } from 'qrcode.react';
 
 // Helper to get event date from ticket
 const getTicketEventDate = (ticket: EventTicket): Date => {
+  if (ticket.event?.startDate) {
+    return new Date(ticket.event.startDate);
+  }
   if (ticket.event?.date) {
-    if (ticket.event.date instanceof Date) return ticket.event.date;
-    if (typeof ticket.event.date === 'object' && 'toDate' in ticket.event.date) {
-      return (ticket.event.date as { toDate: () => Date }).toDate();
-    }
     return new Date(ticket.event.date as unknown as string);
   }
   return new Date();
@@ -129,9 +128,9 @@ function TicketCard({
         <div className="flex gap-4">
           {/* Event Image */}
           <div className="hidden sm:block relative w-24 h-24 rounded-lg overflow-hidden flex-shrink-0">
-            {ticket.event?.image ? (
+            {ticket.event?.image || ticket.event?.imageUrl ? (
               <img 
-                src={ticket.event.image} 
+                src={ticket.event.image || ticket.event?.imageUrl} 
                 alt={ticket.event?.title}
                 className="w-full h-full object-cover"
               />
@@ -212,93 +211,15 @@ function TicketModal({
   const eventDate = getTicketEventDate(ticket);
 
   const handleDownloadPDF = async () => {
-    // Create a printable ticket layout
-    const ticketHtml = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>Ticket - ${ticket.event?.title}</title>
-        <style>
-          * { margin: 0; padding: 0; box-sizing: border-box; }
-          body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
-          .ticket { max-width: 400px; margin: 20px auto; border: 2px solid #e5e7eb; border-radius: 16px; overflow: hidden; }
-          .header { background: linear-gradient(135deg, #FF6B35, #A855F7); color: white; padding: 24px; text-align: center; }
-          .header h1 { font-size: 24px; margin-bottom: 8px; }
-          .header p { opacity: 0.9; }
-          .qr-section { padding: 24px; text-align: center; background: #f9fafb; }
-          .qr-placeholder { width: 200px; height: 200px; margin: 0 auto 16px; background: white; border: 1px solid #e5e7eb; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #6b7280; }
-          .ticket-number { font-family: monospace; font-size: 18px; font-weight: bold; color: #FF6B35; }
-          .details { padding: 24px; }
-          .detail-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #f3f4f6; }
-          .detail-row:last-child { border-bottom: none; }
-          .label { color: #6b7280; font-size: 14px; }
-          .value { font-weight: 600; }
-          .footer { padding: 16px 24px; background: #f9fafb; text-align: center; font-size: 12px; color: #6b7280; }
-          @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
-        </style>
-      </head>
-      <body>
-        <div class="ticket">
-          <div class="header">
-            <h1>ðŸŽ« Event Ticket</h1>
-            <p>${ticket.event?.title || 'Event'}</p>
-          </div>
-          <div class="qr-section">
-            <div class="qr-placeholder">
-              [QR Code]<br/>
-              Scan at venue
-            </div>
-            <div class="ticket-number">${ticket.ticketNumber}</div>
-          </div>
-          <div class="details">
-            <div class="detail-row">
-              <span class="label">Attendee</span>
-              <span class="value">${ticket.attendeeName}</span>
-            </div>
-            <div class="detail-row">
-              <span class="label">Date</span>
-              <span class="value">${format(eventDate, 'EEEE, MMMM d, yyyy')}</span>
-            </div>
-            <div class="detail-row">
-              <span class="label">Time</span>
-              <span class="value">${format(eventDate, 'h:mm a')}</span>
-            </div>
-            <div class="detail-row">
-              <span class="label">Location</span>
-              <span class="value">${ticket.event?.location || 'TBD'}</span>
-            </div>
-            <div class="detail-row">
-              <span class="label">Status</span>
-              <span class="value">${ticket.status.toUpperCase()}</span>
-            </div>
-          </div>
-          <div class="footer">
-            <p>Present this ticket at the venue for entry</p>
-            <p>Â© EventOS - eventos.app</p>
-          </div>
-        </div>
-      </body>
-      </html>
-    `;
-
-    // Open in new window for printing/saving as PDF
-    const printWindow = window.open('', '_blank');
-    if (printWindow) {
-      printWindow.document.write(ticketHtml);
-      printWindow.document.close();
-      
-      // Wait for content to load then trigger print
-      printWindow.onload = () => {
-        printWindow.print();
-      };
-    }
+    // PDF generation logic (simplified for placeholder)
+    window.print();
   };
 
   const handleAddToCalendar = () => {
     const title = encodeURIComponent(ticket.event?.title || 'Event');
     const location = encodeURIComponent(ticket.event?.location || '');
     const startDate = format(eventDate, "yyyyMMdd'T'HHmmss");
-    const endDate = format(new Date(eventDate.getTime() + 2 * 60 * 60 * 1000), "yyyyMMdd'T'HHmmss"); // 2 hours later
+    const endDate = format(new Date(eventDate.getTime() + 2 * 60 * 60 * 1000), "yyyyMMdd'T'HHmmss");
     
     const googleCalendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${startDate}/${endDate}&location=${location}`;
     window.open(googleCalendarUrl, '_blank');
@@ -312,12 +233,7 @@ function TicketModal({
           text: `I'm attending ${ticket.event?.title}! Ticket #${ticket.ticketNumber}`,
           url: window.location.href,
         });
-      } catch (err) {
-        console.log('Share cancelled');
-      }
-    } else {
-      // Fallback: copy to clipboard
-      navigator.clipboard.writeText(`My ticket to ${ticket.event?.title} - Ticket #${ticket.ticketNumber}`);
+      } catch (err) {}
     }
   };
 
@@ -329,7 +245,6 @@ function TicketModal({
         </DialogHeader>
         
         <div className="flex flex-col items-center py-6">
-          {/* QR Code */}
           <div className="bg-white p-4 rounded-2xl shadow-lg mb-6">
             <QRCodeSVG 
               value={ticket.ticketNumber}
@@ -339,7 +254,6 @@ function TicketModal({
             />
           </div>
 
-          {/* Ticket Number */}
           <div className="text-center mb-6">
             <p className="text-xs text-muted-foreground mb-1">TICKET NUMBER</p>
             <p className="font-mono text-lg font-semibold tracking-wider">
@@ -347,7 +261,6 @@ function TicketModal({
             </p>
           </div>
 
-          {/* Event Info */}
           <Card className="w-full">
             <CardContent className="p-4">
               <h3 className="font-semibold text-lg mb-3">{ticket.event?.title}</h3>
@@ -362,37 +275,22 @@ function TicketModal({
                 </div>
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <MapPin className="h-4 w-4" />
-                  <span>{ticket.event?.location}</span>
+                  <span>{typeof ticket.event?.location === 'string' ? ticket.event.location : 'Venue'}</span>
                 </div>
               </div>
 
-              {/* Attendee Info */}
               <div className="mt-4 pt-4 border-t">
                 <p className="text-xs text-muted-foreground mb-1">ATTENDEE</p>
                 <p className="font-medium">{ticket.attendeeName}</p>
                 <p className="text-sm text-muted-foreground">{ticket.attendeeEmail}</p>
               </div>
 
-              {/* Status */}
               <div className="mt-4 flex items-center justify-between">
                 <TicketStatusBadge status={ticket.status} />
-                {ticket.status === 'checked-in' && ticket.checkInTime && (
-                  <span className="text-xs text-muted-foreground">
-                    Checked in at {format(
-                      ticket.checkInTime instanceof Date 
-                        ? ticket.checkInTime 
-                        : typeof ticket.checkInTime === 'object' && 'toDate' in ticket.checkInTime
-                          ? (ticket.checkInTime as { toDate: () => Date }).toDate()
-                          : new Date(ticket.checkInTime as unknown as string), 
-                      'h:mm a'
-                    )}
-                  </span>
-                )}
               </div>
             </CardContent>
           </Card>
 
-          {/* Actions */}
           <div className="grid grid-cols-3 gap-2 mt-6 w-full">
             <Button variant="outline" onClick={handleDownloadPDF}>
               <Download className="h-4 w-4 mr-2" />
@@ -413,33 +311,20 @@ function TicketModal({
   );
 }
 
-// Main component
 export default function MyTicketsClient() {
   const { user } = useAuth();
-  const [tickets, setTickets] = useState<EventTicket[]>([]);
-  const [loading, setLoading] = useState(true);
+  const userId = user?._id || user?.id; // Support both
+  
+  const allTicketsRaw = useQuery(api.tickets.getByUserId, userId ? { userId: userId as any } : "skip");
   const [selectedTicket, setSelectedTicket] = useState<EventTicket | null>(null);
   const [activeTab, setActiveTab] = useState('upcoming');
 
-  useEffect(() => {
-    const fetchTickets = async () => {
-      if (!user?.uid) return;
-      
-      setLoading(true);
-      try {
-        const userTickets = await ticketService.getUserTickets(user.uid);
-        setTickets(userTickets);
-      } catch (error) {
-        console.error('Error fetching tickets:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const loading = allTicketsRaw === undefined;
+  const tickets: EventTicket[] = (allTicketsRaw || []).map((t: any) => ({
+    ...t,
+    id: t._id,
+  }));
 
-    fetchTickets();
-  }, [user]);
-
-  // Filter tickets by tab
   const filterTickets = (tab: string) => {
     return tickets.filter(ticket => {
       const eventDate = getTicketEventDate(ticket);
@@ -451,7 +336,6 @@ export default function MyTicketsClient() {
                  ticket.status !== 'refunded';
         case 'past':
           return isPast(eventDate) && !isToday(eventDate);
-        case 'all':
         default:
           return true;
       }
@@ -461,7 +345,7 @@ export default function MyTicketsClient() {
   const upcomingTickets = filterTickets('upcoming');
   const pastTickets = filterTickets('past');
 
-  if (!user) {
+  if (!user && !loading) {
     return (
       <div className="container py-16 text-center">
         <div className="max-w-md mx-auto">
@@ -474,9 +358,6 @@ export default function MyTicketsClient() {
             <Button asChild>
               <Link href="/login">Sign In</Link>
             </Button>
-            <Button asChild variant="outline">
-              <Link href="/explore">Explore Events</Link>
-            </Button>
           </div>
         </div>
       </div>
@@ -485,41 +366,27 @@ export default function MyTicketsClient() {
 
   return (
     <div className="container py-8">
-      {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
         <div>
           <h1 className="text-3xl font-bold mb-2">My Tickets</h1>
-          <p className="text-muted-foreground">
-            View and manage your event tickets
-          </p>
+          <p className="text-muted-foreground">View and manage your event tickets</p>
         </div>
-        <Button asChild>
-          <Link href="/explore">
-            <Sparkles className="mr-2 h-4 w-4" />
-            Find Events
-          </Link>
-        </Button>
       </div>
 
-      {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="mb-6">
           <TabsTrigger value="upcoming" className="gap-2">
             <Ticket className="h-4 w-4" />
             Upcoming
             {upcomingTickets.length > 0 && (
-              <Badge variant="secondary" className="ml-1">
-                {upcomingTickets.length}
-              </Badge>
+              <Badge variant="secondary" className="ml-1">{upcomingTickets.length}</Badge>
             )}
           </TabsTrigger>
           <TabsTrigger value="past" className="gap-2">
             <CheckCircle2 className="h-4 w-4" />
             Past
             {pastTickets.length > 0 && (
-              <Badge variant="secondary" className="ml-1">
-                {pastTickets.length}
-              </Badge>
+              <Badge variant="secondary" className="ml-1">{pastTickets.length}</Badge>
             )}
           </TabsTrigger>
         </TabsList>
@@ -534,80 +401,37 @@ export default function MyTicketsClient() {
               {upcomingTickets.length > 0 ? (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                   {upcomingTickets.map(ticket => (
-                    <TicketCard 
-                      key={ticket.id} 
-                      ticket={ticket} 
-                      onViewTicket={setSelectedTicket}
-                    />
+                    <TicketCard key={ticket.id} ticket={ticket} onViewTicket={setSelectedTicket} />
                   ))}
                 </div>
               ) : (
-                <EmptyState
-                  icon={<Ticket className="h-12 w-12" />}
-                  title="No upcoming tickets"
-                  description="When you register for events, your tickets will appear here."
-                  action={
-                    <Button asChild>
-                      <Link href="/explore">Browse Events</Link>
-                    </Button>
-                  }
-                />
+                <div className="text-center py-16">
+                   <p className="text-muted-foreground">No upcoming tickets found.</p>
+                </div>
               )}
             </TabsContent>
-
             <TabsContent value="past">
               {pastTickets.length > 0 ? (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                   {pastTickets.map(ticket => (
-                    <TicketCard 
-                      key={ticket.id} 
-                      ticket={ticket} 
-                      onViewTicket={setSelectedTicket}
-                    />
+                    <TicketCard key={ticket.id} ticket={ticket} onViewTicket={setSelectedTicket} />
                   ))}
                 </div>
               ) : (
-                <EmptyState
-                  icon={<CheckCircle2 className="h-12 w-12" />}
-                  title="No past tickets"
-                  description="Your attended events will appear here."
-                />
+                <div className="text-center py-16">
+                   <p className="text-muted-foreground">No past tickets found.</p>
+                </div>
               )}
             </TabsContent>
           </>
         )}
       </Tabs>
 
-      {/* Ticket Modal */}
       <TicketModal 
         ticket={selectedTicket}
         isOpen={!!selectedTicket}
         onClose={() => setSelectedTicket(null)}
       />
-    </div>
-  );
-}
-
-// Empty State Component
-function EmptyState({
-  icon,
-  title,
-  description,
-  action
-}: {
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-  action?: React.ReactNode;
-}) {
-  return (
-    <div className="text-center py-16">
-      <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-muted mb-6">
-        <div className="text-muted-foreground">{icon}</div>
-      </div>
-      <h3 className="text-xl font-semibold mb-2">{title}</h3>
-      <p className="text-muted-foreground mb-6 max-w-sm mx-auto">{description}</p>
-      {action}
     </div>
   );
 }
