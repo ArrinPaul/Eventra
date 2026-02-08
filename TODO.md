@@ -25,12 +25,15 @@
 - [x] **Chatbot Enhancement**: Upgraded AI Bot to answer questions about specific events using Convex data.
 - [x] **AI Event Planner**: Added "AI Assist" in event creation to generate agendas and descriptions.
 
-## Phase 6: Advanced Features 🛠️ (Current)
+## Phase 6: Advanced Features ✅
 - [x] **Matchmaking**: AI-driven user networking recommendations implemented.
-- [ ] **Certificate Engine**: Server-side PDF generation for attendance.
-- [ ] **Analytics Deep-Dive**: Advanced aggregation queries for organizers.
-- [ ] **Smart Notifications**: AI-driven personalized event reminders.
+- [x] **Certificate Engine**: AI-powered certificate issuance and verification system.
+- [x] **Analytics Deep-Dive**: Advanced aggregation queries and AI insights for organizers.
+- [x] **Smart Notifications**: AI-driven personalized event reminders and engagement picks.
+- [x] **Feedback Analysis**: Real-time AI sentiment analysis for event reviews.
 
-## Phase 7: Deployment & Verification 🏁
+## Phase 7: Deployment & Verification 🏁 (Current)
 - [x] **Build Verification**: `npm run typecheck` passing.
+- [x] **Structure Cleanup**: Removed legacy `.idx`, `.orchids`, and `scripts` directories.
 - [ ] **Vercel Deployment**: Final deployment and environment verification.
+- [ ] **Convex Production**: Sync production schema and environment variables.

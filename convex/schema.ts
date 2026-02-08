@@ -171,12 +171,88 @@ export default defineSchema({
     readBy: v.array(v.id("users")),
   }).index("by_room", ["roomId"]),
 
-  files: defineTable({
-    storageId: v.string(),
-    userId: v.id("users"),
-    name: v.string(),
-    contentType: v.string(),
-    size: v.number(),
-    url: v.string(),
-  }).index("by_user", ["userId"]),
-});
+    files: defineTable({
+
+      storageId: v.string(),
+
+      userId: v.id("users"),
+
+      name: v.string(),
+
+      contentType: v.string(),
+
+      size: v.number(),
+
+      url: v.string(),
+
+    }).index("by_user", ["userId"]),
+
+  
+
+      reviews: defineTable({
+
+  
+
+        eventId: v.id("events"),
+
+  
+
+        userId: v.id("users"),
+
+  
+
+        rating: v.number(),
+
+  
+
+        comment: v.optional(v.string()),
+
+  
+
+        createdAt: v.number(),
+
+  
+
+      }).index("by_event", ["eventId"]).index("by_user", ["userId"]),
+
+  
+
+    
+
+  
+
+      certificates: defineTable({
+
+  
+
+        eventId: v.id("events"),
+
+  
+
+        userId: v.id("users"),
+
+  
+
+        certificateNumber: v.string(),
+
+  
+
+        issueDate: v.number(),
+
+  
+
+        personalizedMessage: v.optional(v.string()),
+
+  
+
+      }).index("by_user", ["userId"]).index("by_event", ["eventId"]).index("by_certificate_number", ["certificateNumber"]),
+
+  
+
+    });
+
+  
+
+    
+
+  

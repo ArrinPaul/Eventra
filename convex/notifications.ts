@@ -47,3 +47,20 @@ export const markAllRead = mutation({
     }
   },
 });
+
+export const create = mutation({
+  args: {
+    userId: v.id("users"),
+    title: v.string(),
+    message: v.string(),
+    type: v.string(),
+    link: v.optional(v.string()),
+  },
+  handler: async (ctx: any, args: any) => {
+    return await ctx.db.insert("notifications", {
+      ...args,
+      read: false,
+      createdAt: Date.now(),
+    });
+  },
+});

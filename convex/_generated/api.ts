@@ -33,6 +33,7 @@ export const api: any = {
     markRead: "notifications:markRead",
     deleteNotification: "notifications:deleteNotification",
     markAllRead: "notifications:markAllRead",
+    create: "notifications:create",
   },
   files: {
     getUrl: "files:getUrl",
@@ -65,5 +66,15 @@ export const api: any = {
     register: "registrations:register",
     getRegistration: "registrations:getRegistration",
     getByEvents: "registrations:getByEvents",
+  },
+  reviews: {
+    submit: "reviews:submit",
+    getByEvent: "reviews:getByEvent",
+  },
+  certificates: {
+    issue: "certificates:issue",
+    getByUser: "certificates:getByUser",
+    getByEvent: "certificates:getByEvent",
+    getByEventAndUser: "certificates:getByEventAndUser",
   }
 };
