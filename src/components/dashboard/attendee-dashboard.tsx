@@ -92,7 +92,7 @@ export function AttendeeDashboard() {
                 <span>AI-Curated Experience</span>
               </div>
               <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-white">
-                Hello, <span className="bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">{user.name.split(' ')[0]}</span>!
+                Hello, <span className="bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">{user.name?.split(' ')[0] ?? 'there'}</span>!
               </h1>
               <p className="text-lg text-gray-400">
                 You have <span className="font-bold text-cyan-400">{MY_UPCOMING.length} events</span> coming up this week.

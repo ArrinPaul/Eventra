@@ -24,7 +24,7 @@ export const update = mutation({
     bio: v.optional(v.string()),
     phone: v.optional(v.string()),
     image: v.optional(v.string()),
-    role: v.optional(v.union(v.literal("student"), v.literal("professional"), v.literal("organizer"), v.literal("admin"), v.literal("speaker"), v.literal("attendee"))),
+    role: v.optional(v.union(v.literal("student"), v.literal("professional"), v.literal("organizer"), v.literal("admin"), v.literal("speaker"), v.literal("attendee"), v.literal("vendor"))),
     onboardingCompleted: v.optional(v.boolean()),
     college: v.optional(v.string()),
     degree: v.optional(v.union(v.literal("ug"), v.literal("pg"))),
@@ -35,8 +35,6 @@ export const update = mutation({
     gender: v.optional(v.union(v.literal("male"), v.literal("female"), v.literal("other"), v.literal("prefer-not-to-say"))),
     bloodGroup: v.optional(v.string()),
     interests: v.optional(v.string()),
-    organizationName: v.optional(v.string()),
-    website: v.optional(v.string()),
     notificationPreferences: v.optional(v.object({
       email: v.optional(v.boolean()),
       push: v.optional(v.boolean()),
@@ -44,6 +42,8 @@ export const update = mutation({
       communityUpdates: v.optional(v.boolean()),
       marketingEmails: v.optional(v.boolean()),
     })),
+    wishlist: v.optional(v.array(v.string())),
+    eventRatings: v.optional(v.any()),
   },
   handler: async (ctx, args) => {
     const userId = await auth.getUserId(ctx);

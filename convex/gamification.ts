@@ -64,9 +64,10 @@ export const addPoints = mutation({
 
     const currentPoints = user.points ?? 0;
     const newPoints = currentPoints + args.points;
-    const newLevel = Math.floor(newPoints / 500) + 1;
+    const currentXp = (user.xp ?? 0) + args.points;
+    const newLevel = Math.floor(currentXp / 500) + 1;
 
-    await ctx.db.patch(args.userId, { points: newPoints, level: newLevel });
+    await ctx.db.patch(args.userId, { points: newPoints, xp: currentXp, level: newLevel });
 
     await ctx.db.insert("points_history", {
       userId: args.userId,
@@ -227,7 +228,8 @@ export const joinChallenge = mutation({
       userId,
       challengeId: args.challengeId,
       progress: 0,
-      completedAt: undefined,
+      completed: false,
+      startedAt: Date.now(),
     });
   },
 });
@@ -256,25 +258,55 @@ export const updateChallengeProgress = mutation({
 
     await ctx.db.patch(uc._id, {
       progress: args.progress,
+      completed: isComplete ? true : false,
       completedAt: isComplete ? Date.now() : undefined,
     });
 
-    if (isComplete && challenge?.reward) {
+    if (isComplete && challenge?.xpReward) {
       // Award points on completion
       const user = await ctx.db.get(userId);
       if (user) {
         const currentPoints = user.points ?? 0;
-        const newPoints = currentPoints + challenge.reward;
-        const newLevel = Math.floor(newPoints / 500) + 1;
-        await ctx.db.patch(userId, { points: newPoints, level: newLevel });
+        const newPoints = currentPoints + challenge.xpReward;
+        const currentXp = (user.xp ?? 0) + challenge.xpReward;
+        const newLevel = Math.floor(currentXp / 500) + 1;
+        await ctx.db.patch(userId, { points: newPoints, xp: currentXp, level: newLevel });
 
         await ctx.db.insert("points_history", {
           userId,
-          points: challenge.reward,
+          points: challenge.xpReward,
           reason: `Completed challenge: ${challenge.title}`,
           createdAt: Date.now(),
         });
       }
     }
+  },
+});
+
+/**
+ * Get a user's gamification profile (level, xp, badge count)
+ */
+export const getProfile = query({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    const user = await ctx.db.get(args.userId);
+    if (!user) return null;
+
+    const badgeCount = (
+      await ctx.db
+        .query("user_badges")
+        .withIndex("by_user", (q) => q.eq("userId", args.userId))
+        .collect()
+    ).length;
+
+    const xp = (user as any).xp || (user as any).points || 0;
+    const level = Math.floor(xp / 500) + 1;
+
+    return {
+      xp,
+      level,
+      points: (user as any).points || 0,
+      badgeCount,
+    };
   },
 });

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -41,6 +42,7 @@ import { cn } from '@/core/utils/utils';
 export function NotificationBell() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   
   const notificationsRaw = useQuery(api.notifications.get) || [];
@@ -69,7 +71,7 @@ export function NotificationBell() {
           ) : (
             <div className="divide-y divide-white/10">
               {notificationsRaw.slice(0, 10).map((n: any) => (
-                <div key={n._id} className={cn("p-4 hover:bg-white/5 cursor-pointer", !n.read && "bg-cyan-500/5")} onClick={() => markRead({ id: n._id })}>
+                <div key={n._id} className={cn("p-4 hover:bg-white/5 cursor-pointer", !n.read && "bg-cyan-500/5")} onClick={() => { markRead({ id: n._id }); if (n.link) { setOpen(false); router.push(n.link); } }}>
                   <div className="flex gap-3">
                     <div className="flex-1">
                       <p className={cn("text-sm", !n.read && "font-bold")}>{n.title}</p>
@@ -89,6 +91,7 @@ export function NotificationBell() {
 }
 
 export function NotificationCenter() {
+  const router = useRouter();
   const notifications = useQuery(api.notifications.get) || [];
   const markRead = useMutation(api.notifications.markRead);
   const markAllRead = useMutation(api.notifications.markAllRead);
@@ -105,7 +108,7 @@ export function NotificationCenter() {
       <Card className="bg-white/5 border-white/10">
         <div className="divide-y divide-white/10">
           {notifications.map((n: any) => (
-            <div key={n._id} className={cn("p-6 flex justify-between items-start", !n.read && "bg-cyan-500/5")}>
+            <div key={n._id} className={cn("p-6 flex justify-between items-start cursor-pointer hover:bg-white/5 transition-colors", !n.read && "bg-cyan-500/5")} onClick={() => { if (!n.read) markRead({ id: n._id }); if (n.link) router.push(n.link); }}>
               <div>
                 <h3 className="font-bold">{n.title}</h3>
                 <p className="text-gray-300 mt-1">{n.message}</p>

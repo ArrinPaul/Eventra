@@ -97,13 +97,22 @@ export default function EnhancedChatClient({ initialRoomId }: { initialRoomId?: 
             </div>
             <ScrollArea className="flex-1 p-4">
               <div className="space-y-4">
-                {messages.map((m: any) => (
-                  <div key={m._id} className={cn("flex flex-col", m.senderId === (user?._id || user?.id) ? "items-end" : "items-start")}>
-                    <div className={cn("p-3 rounded-lg max-w-[70%]", m.senderId === (user?._id || user?.id) ? "bg-cyan-600" : "bg-white/10")}>
-                      <p className="text-sm">{m.content}</p>
+                {messages.map((m: any) => {
+                  const isMe = m.senderId === (user?._id || user?.id);
+                  return (
+                    <div key={m._id} className={cn("flex flex-col", isMe ? "items-end" : "items-start")}>
+                      {!isMe && m.senderName && (
+                        <p className="text-xs text-gray-500 mb-1 ml-1">{m.senderName}</p>
+                      )}
+                      <div className={cn("p-3 rounded-lg max-w-[70%]", isMe ? "bg-cyan-600" : "bg-white/10")}>
+                        <p className="text-sm">{m.content}</p>
+                      </div>
+                      <p className="text-[10px] text-gray-500 mt-1 mx-1">
+                        {new Date(m._creationTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </p>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
                 <div ref={messagesEndRef} />
               </div>
             </ScrollArea>

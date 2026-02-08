@@ -136,7 +136,7 @@ export const verify = query({
   handler: async (ctx, args) => {
     const cert = await ctx.db
       .query("certificates")
-      .filter((q) => q.eq(q.field("certificateNumber"), args.certificateNumber))
+      .withIndex("by_certificate_number", (q) => q.eq("certificateNumber", args.certificateNumber))
       .unique();
 
     if (!cert) return null;

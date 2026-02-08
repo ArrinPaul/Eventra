@@ -17,7 +17,7 @@ import {
   XCircle
 } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
-import { useQuery } from 'convex/react';
+import { useQuery, useConvex } from 'convex/react';
 import { api } from '../../../../convex/_generated/api';
 import { format } from 'date-fns';
 import {
@@ -30,13 +30,15 @@ import {
 
 export function CertificatesClient() {
   const { user } = useAuth();
-  const certificates = useQuery(api.certificates.getByUser) || [];
+  const convex = useConvex();
+  const certificatesRaw = useQuery(api.certificates.getByUser);
+  const certificates = certificatesRaw ?? [];
   const [searchTerm, setSearchTerm] = useState('');
   const [verifyNumber, setVerifyNumber] = useState('');
   const [verifyResult, setVerifyResult] = useState<any>(null);
   const [verifying, setVerifying] = useState(false);
   
-  const loading = certificates === undefined;
+  const loading = certificatesRaw === undefined;
 
   const filteredCertificates = certificates.filter((cert: any) => 
     cert.event?.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -80,19 +82,22 @@ Verified by Eventra Platform
     if (!verifyNumber.trim()) return;
     setVerifying(true);
     setVerifyResult(null);
-    // Use a timeout to simulate async; in production, call verify query
     try {
-      const match = certificates.find((c: any) => c.certificateNumber === verifyNumber.trim());
-      if (match) {
+      // Use Convex query to search all certificates, not just local ones
+      const result = await convex.query(api.certificates.verify, { certificateNumber: verifyNumber.trim() });
+      if (result) {
         setVerifyResult({
           valid: true,
-          certificateNumber: match.certificateNumber,
-          eventTitle: match.event?.title ?? 'Unknown',
-          issueDate: match.issueDate,
+          certificateNumber: result.certificateNumber,
+          eventTitle: result.eventTitle ?? 'Unknown',
+          userName: result.userName ?? 'Unknown',
+          issueDate: result.issueDate,
         });
       } else {
         setVerifyResult({ valid: false });
       }
+    } catch {
+      setVerifyResult({ valid: false });
     } finally {
       setVerifying(false);
     }

@@ -1,25 +1,55 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useQuery } from 'convex/react';
+import { api } from '../../../convex/_generated/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   BarChart3, 
   Users, 
   Calendar, 
   TrendingUp, 
-  Sparkles
+  Sparkles,
+  CheckCircle,
+  Clock,
+  Star,
+  Ticket,
+  Loader2
 } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
 
 export default function AnalyticsDashboard() {
   const [selectedTab, setSelectedTab] = useState('overview');
+  const analytics = useQuery(api.events.getAnalytics);
+
+  if (!analytics) {
+    return (
+      <div className="flex items-center justify-center py-20 text-white">
+        <Loader2 className="h-8 w-8 animate-spin text-cyan-500" />
+      </div>
+    );
+  }
+
+  const statCards = [
+    { label: 'Total Events', value: analytics.totalEvents, icon: Calendar, color: 'text-cyan-400', bg: 'bg-cyan-500/10' },
+    { label: 'Active Events', value: analytics.activeEvents, icon: Sparkles, color: 'text-green-400', bg: 'bg-green-500/10' },
+    { label: 'Total Users', value: analytics.totalUsers, icon: Users, color: 'text-purple-400', bg: 'bg-purple-500/10' },
+    { label: 'Registrations', value: analytics.totalRegistrations, icon: Ticket, color: 'text-amber-400', bg: 'bg-amber-500/10' },
+  ];
+
+  const categoryEntries = Object.entries(analytics.eventsByCategory || {}).sort(([,a], [,b]) => (b as number) - (a as number));
+  const statusEntries = Object.entries(analytics.eventsByStatus || {});
+  const maxCategoryCount = categoryEntries.length > 0 ? Math.max(...categoryEntries.map(([, v]) => v as number)) : 1;
 
   return (
     <div className="space-y-6 text-white">
       <div className="flex items-center justify-between">
-        <div><h2 className="text-2xl font-bold">Analytics Dashboard</h2><p className="text-gray-400">Track platform performance</p></div>
+        <div>
+          <h2 className="text-2xl font-bold">Analytics Dashboard</h2>
+          <p className="text-gray-400">Real-time platform performance metrics</p>
+        </div>
       </div>
 
       <Tabs value={selectedTab} onValueChange={setSelectedTab}>
@@ -28,17 +58,98 @@ export default function AnalyticsDashboard() {
           <TabsTrigger value="events">Events</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="overview" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <TabsContent value="overview" className="space-y-6 mt-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {statCards.map((stat) => (
+              <Card key={stat.label} className="bg-white/5 border-white/10 text-white">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-sm text-gray-400">{stat.label}</p>
+                    <div className={`p-2 rounded-lg ${stat.bg}`}>
+                      <stat.icon className={`h-4 w-4 ${stat.color}`} />
+                    </div>
+                  </div>
+                  <p className="text-3xl font-bold">{stat.value.toLocaleString()}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Card className="bg-white/5 border-white/10 text-white">
+              <CardHeader>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4 text-cyan-400" />
+                  Recent Activity (30 days)
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-400">New Registrations</span>
+                  <span className="font-bold text-cyan-400">{analytics.recentRegistrations}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-400">Upcoming Events</span>
+                  <span className="font-bold text-green-400">{analytics.upcomingEvents}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-400">Completed Events</span>
+                  <span className="font-bold text-purple-400">{analytics.completedEvents}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-400">Average Rating</span>
+                  <span className="font-bold text-amber-400 flex items-center gap-1">
+                    <Star className="h-3 w-3 fill-amber-400" />
+                    {analytics.averageRating || 'N/A'}
+                  </span>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-white/5 border-white/10 text-white">
+              <CardHeader>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <BarChart3 className="h-4 w-4 text-cyan-400" />
+                  Events by Status
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {statusEntries.length === 0 ? (
+                  <p className="text-sm text-gray-500">No events yet</p>
+                ) : statusEntries.map(([status, count]) => (
+                  <div key={status} className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      {status === 'published' && <CheckCircle className="h-3.5 w-3.5 text-green-400" />}
+                      {status === 'draft' && <Clock className="h-3.5 w-3.5 text-gray-400" />}
+                      {status === 'completed' && <Star className="h-3.5 w-3.5 text-purple-400" />}
+                      {status === 'cancelled' && <Calendar className="h-3.5 w-3.5 text-red-400" />}
+                      <span className="text-sm text-gray-300 capitalize">{status}</span>
+                    </div>
+                    <Badge variant="secondary" className="bg-white/10">{count as number}</Badge>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="events" className="space-y-6 mt-4">
           <Card className="bg-white/5 border-white/10 text-white">
-            <CardContent className="p-6">
-              <p className="text-sm text-gray-400">Total Events</p>
-              <p className="text-2xl font-bold">12</p>
-            </CardContent>
-          </Card>
-          <Card className="bg-white/5 border-white/10 text-white">
-            <CardContent className="p-6">
-              <p className="text-sm text-gray-400">Active Users</p>
-              <p className="text-2xl font-bold">450</p>
+            <CardHeader>
+              <CardTitle className="text-base">Events by Category</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {categoryEntries.length === 0 ? (
+                <p className="text-sm text-gray-500">No categorized events yet</p>
+              ) : categoryEntries.map(([category, count]) => (
+                <div key={category} className="space-y-1">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-300">{category}</span>
+                    <span className="text-gray-400">{count as number}</span>
+                  </div>
+                  <Progress value={((count as number) / maxCategoryCount) * 100} className="h-2" />
+                </div>
+              ))}
             </CardContent>
           </Card>
         </TabsContent>

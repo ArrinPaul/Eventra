@@ -74,8 +74,18 @@ export const create = mutation({
     // Check notification preferences
     const user = await ctx.db.get(args.userId);
     if (user?.notificationPreferences) {
-      const prefs = user.notificationPreferences as Record<string, boolean>;
-      if (prefs[args.type] === false) return null; // User opted out
+      const prefs = user.notificationPreferences;
+      // Map notification types to preference keys
+      const typeToPreference: Record<string, keyof typeof prefs> = {
+        event: "eventReminders",
+        certificate: "email",
+        gamification: "push",
+        admin: "email",
+        community: "communityUpdates",
+        marketing: "marketingEmails",
+      };
+      const prefKey = typeToPreference[args.type];
+      if (prefKey && prefs[prefKey] === false) return null; // User opted out
     }
 
     return await ctx.db.insert("notifications", {

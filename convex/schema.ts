@@ -52,7 +52,18 @@ export default defineSchema({
     description: v.string(),
     startDate: v.number(),
     endDate: v.number(),
-    location: v.any(),
+    location: v.optional(v.union(
+      v.string(),
+      v.object({
+        venue: v.optional(v.union(v.string(), v.object({ name: v.optional(v.string()), address: v.optional(v.string()), city: v.optional(v.string()), country: v.optional(v.string()) }))),
+        address: v.optional(v.string()),
+        city: v.optional(v.string()),
+        country: v.optional(v.string()),
+        lat: v.optional(v.number()),
+        lng: v.optional(v.number()),
+        virtualLink: v.optional(v.string()),
+      })
+    )),
     type: v.string(),
     category: v.string(),
     status: v.string(),
@@ -65,7 +76,14 @@ export default defineSchema({
     price: v.optional(v.number()),
     currency: v.optional(v.string()),
     targetAudience: v.optional(v.string()),
-    agenda: v.optional(v.any()),
+    agenda: v.optional(v.array(v.object({
+      title: v.string(),
+      startTime: v.optional(v.string()),
+      endTime: v.optional(v.string()),
+      description: v.optional(v.string()),
+      speaker: v.optional(v.string()),
+      type: v.optional(v.string()),
+    }))),
     speakers: v.optional(v.array(v.string())),
     waitlistEnabled: v.optional(v.boolean()),
     tags: v.optional(v.array(v.string())),
@@ -253,4 +271,14 @@ export default defineSchema({
     details: v.optional(v.string()),
     createdAt: v.number(),
   }).index("by_user", ["userId"]).index("by_resource", ["resource"]),
+
+  activity_feed: defineTable({
+    userId: v.id("users"),
+    type: v.string(), // "registration", "badge_earned", "post_created", "event_created", "check_in", "connection"
+    title: v.string(),
+    description: v.optional(v.string()),
+    link: v.optional(v.string()),
+    metadata: v.optional(v.any()),
+    createdAt: v.number(),
+  }).index("by_user", ["userId"]).index("by_created", ["createdAt"]),
 });

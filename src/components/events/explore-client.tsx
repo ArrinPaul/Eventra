@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -103,12 +103,12 @@ export default function ExploreClient() {
   const ITEMS_PER_PAGE = 12;
 
   const loading = allEventsRaw === undefined;
-  const events: Event[] = (allEventsRaw || []).map((e: any) => ({
+  const events: Event[] = useMemo(() => (allEventsRaw || []).map((e: any) => ({
     ...e,
     id: e._id,
   })).filter((event: Event) => {
-    return event.status !== 'cancelled' && event.visibility !== 'private';
-  });
+    return event.status !== 'cancelled';
+  }), [allEventsRaw]);
 
   // Fetch AI Recommendations when events are loaded
   const fetchAIRecommendations = useCallback(async () => {

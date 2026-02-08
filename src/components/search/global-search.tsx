@@ -26,7 +26,7 @@ export default function GlobalSearch({ className }: GlobalSearchProps) {
     const q = query.toLowerCase();
     return events
       .filter(
-        (e: Record<string, unknown> & { title?: string; description?: string; category?: string; location?: Record<string, unknown> | string }) =>
+        (e: any) =>
           e.title?.toLowerCase().includes(q) ||
           e.description?.toLowerCase().includes(q) ||
           e.category?.toLowerCase().includes(q) ||
@@ -101,7 +101,7 @@ export default function GlobalSearch({ className }: GlobalSearchProps) {
             </div>
           ) : (
             <div className="divide-y divide-white/5">
-              {results.map((event: Record<string, unknown> & { _id: string; title?: string; startDate?: string; location?: Record<string, unknown>; category?: string; capacity?: number; registeredCount?: number }) => (
+              {results.map((event: any) => (
                 <Link
                   key={event._id}
                   href={`/events/${event._id}`}
@@ -126,7 +126,7 @@ export default function GlobalSearch({ className }: GlobalSearchProps) {
                               <MapPin className="h-3 w-3" />
                               {typeof event.location.venue === 'string'
                                 ? event.location.venue
-                                : event.location.venue.name ?? ''}
+                                : event.location.venue?.name ?? ''}
                             </span>
                           )}
                           {event.capacity && (

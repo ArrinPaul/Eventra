@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { 
   Users, 
   Zap, 
@@ -14,14 +15,20 @@ import {
   UserPlus,
   MessageSquare,
   Trophy,
-  Target
+  Target,
+  Check,
+  X,
+  UserMinus
 } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
+import { useQuery, useMutation } from 'convex/react';
+import { api } from '../../../convex/_generated/api';
 import { getMatchmakingRecommendations, MatchmakingResult } from '@/app/actions/matchmaking';
 import { MatchmakingCard } from './matchmaking-card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { cn } from '@/core/utils/utils';
 
 export default function NetworkingClient() {
   const { user } = useAuth();
@@ -29,6 +36,24 @@ export default function NetworkingClient() {
   const [loading, setLoading] = useState(true);
   const [result, setResult] = useState<MatchmakingResult | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+
+  const connections = useQuery(api.connections.getMyConnections) || [];
+  const sendConnectionRequest = useMutation(api.connections.sendRequest);
+  const respondToRequest = useMutation(api.connections.respondToRequest);
+  const removeConnection = useMutation(api.connections.removeConnection);
+
+  const acceptedConnections = connections.filter((c: any) => c.status === 'accepted');
+  const pendingReceived = connections.filter((c: any) => c.status === 'pending' && c.direction === 'received');
+  const pendingSent = connections.filter((c: any) => c.status === 'pending' && c.direction === 'sent');
+
+  const handleConnect = async (userId: string) => {
+    try {
+      await sendConnectionRequest({ receiverId: userId as any });
+      toast({ title: "Request Sent", description: "Connection request has been sent." });
+    } catch (e: any) {
+      toast({ title: "Error", description: e.message || "Failed to send request", variant: "destructive" });
+    }
+  };
 
   const fetchMatches = useCallback(async () => {
     if (!user) return;
@@ -130,7 +155,7 @@ export default function NetworkingClient() {
                   <MatchmakingCard 
                     key={match.userId} 
                     match={match} 
-                    onConnect={(id) => toast({ title: "Request Sent", description: "Connection request has been sent successfully." })}
+                    onConnect={(id) => handleConnect(id)}
                   />
                 ))}
               </div>
@@ -145,11 +170,94 @@ export default function NetworkingClient() {
           </div>
         </TabsContent>
 
-        <TabsContent value="connections">
-          <div className="py-20 text-center text-gray-500 border border-white/10 rounded-lg">
-            <MessageSquare size={48} className="mx-auto mb-4 opacity-20" />
-            <p>Manage your professional connections here soon.</p>
-          </div>
+        <TabsContent value="connections" className="space-y-6">
+          {pendingReceived.length > 0 && (
+            <div className="space-y-3">
+              <h3 className="text-lg font-semibold">Pending Requests</h3>
+              {pendingReceived.map((c: any) => (
+                <Card key={c._id} className="bg-white/5 border-white/10">
+                  <CardContent className="p-4 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-10 w-10">
+                        <AvatarImage src={c.otherUser?.image} />
+                        <AvatarFallback className="bg-cyan-500/10 text-cyan-500">{c.otherUser?.name?.charAt(0) || '?'}</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p className="font-medium text-white">{c.otherUser?.name || 'Unknown'}</p>
+                        <p className="text-xs text-gray-500">{c.otherUser?.role || 'Member'}</p>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button size="sm" className="bg-cyan-600 hover:bg-cyan-500" onClick={async () => { await respondToRequest({ connectionId: c._id, accept: true }); toast({ title: 'Accepted!' }); }}>
+                        <Check className="w-4 h-4 mr-1" /> Accept
+                      </Button>
+                      <Button size="sm" variant="outline" className="border-white/10 text-red-400 hover:bg-red-500/10" onClick={async () => { await respondToRequest({ connectionId: c._id, accept: false }); toast({ title: 'Declined' }); }}>
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+
+          {acceptedConnections.length > 0 ? (
+            <div className="space-y-3">
+              <h3 className="text-lg font-semibold">My Connections ({acceptedConnections.length})</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {acceptedConnections.map((c: any) => (
+                  <Card key={c._id} className="bg-white/5 border-white/10">
+                    <CardContent className="p-4 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-10 w-10">
+                          <AvatarImage src={c.otherUser?.image} />
+                          <AvatarFallback className="bg-cyan-500/10 text-cyan-500">{c.otherUser?.name?.charAt(0) || '?'}</AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="font-medium text-white">{c.otherUser?.name || 'Unknown'}</p>
+                          <p className="text-xs text-gray-500">{c.otherUser?.role || 'Member'}</p>
+                        </div>
+                      </div>
+                      <Button size="sm" variant="ghost" className="text-red-400 hover:bg-red-500/10" onClick={async () => { await removeConnection({ connectionId: c._id }); toast({ title: 'Connection removed' }); }}>
+                        <UserMinus className="w-4 h-4" />
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          ) : pendingReceived.length === 0 ? (
+            <div className="py-20 text-center text-gray-500 border border-white/10 rounded-lg">
+              <Users size={48} className="mx-auto mb-4 opacity-20" />
+              <p className="font-medium text-white mb-1">No connections yet</p>
+              <p className="text-sm">Use AI Matchmaking to find people and connect!</p>
+            </div>
+          ) : null}
+
+          {pendingSent.length > 0 && (
+            <div className="space-y-3">
+              <h3 className="text-lg font-semibold text-gray-400">Sent Requests ({pendingSent.length})</h3>
+              {pendingSent.map((c: any) => (
+                <Card key={c._id} className="bg-white/5 border-white/10">
+                  <CardContent className="p-4 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-10 w-10">
+                        <AvatarImage src={c.otherUser?.image} />
+                        <AvatarFallback className="bg-cyan-500/10 text-cyan-500">{c.otherUser?.name?.charAt(0) || '?'}</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p className="font-medium text-white">{c.otherUser?.name || 'Unknown'}</p>
+                        <p className="text-xs text-gray-400">Pending...</p>
+                      </div>
+                    </div>
+                    <Button size="sm" variant="ghost" className="text-gray-400 hover:bg-white/5" onClick={async () => { await removeConnection({ connectionId: c._id }); toast({ title: 'Request cancelled' }); }}>
+                      Cancel
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </TabsContent>
       </Tabs>
     </div>

@@ -215,8 +215,8 @@ export default function UserManagement() {
                 <TableRow key={user.id} className="border-white/10">
                     <TableCell>
                         <div className="flex items-center gap-3 text-white">
-                            <Avatar className="h-9 w-9"><AvatarImage src={user.photoURL} /><AvatarFallback>{user.name.charAt(0)}</AvatarFallback></Avatar>
-                            <div><p className="font-medium">{user.name}</p><p className="text-xs text-gray-400">{user.email}</p></div>
+                            <Avatar className="h-9 w-9"><AvatarImage src={user.photoURL} /><AvatarFallback>{user.name?.charAt(0) || '?'}</AvatarFallback></Avatar>
+                            <div><p className="font-medium">{user.name || 'Unknown'}</p><p className="text-xs text-gray-400">{user.email}</p></div>
                         </div>
                     </TableCell>
                     <TableCell className="text-white capitalize">{user.role}</TableCell>

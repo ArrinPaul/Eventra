@@ -131,7 +131,7 @@ export default function CalendarPage() {
               {selectedDate && selectedEvents.length === 0 && (
                 <p className="text-gray-500 text-sm">No events on this date.</p>
               )}
-              {selectedEvents.map((event: Record<string, unknown> & { _id: string; title?: string; category?: string; startDate: string; location?: Record<string, unknown>; capacity?: number; registeredCount?: number }) => (
+              {selectedEvents.map((event: any) => (
                 <Link href={`/events/${event._id}`} key={event._id}>
                   <div className="p-4 rounded-xl bg-white/5 border border-white/10 hover:border-cyan-500/50 transition-all cursor-pointer">
                     <div className="flex items-start justify-between mb-2">
@@ -150,7 +150,7 @@ export default function CalendarPage() {
                           <MapPin className="h-3 w-3" />
                           {typeof event.location.venue === 'string'
                             ? event.location.venue
-                            : event.location.venue.name ?? 'TBD'}
+                            : event.location.venue?.name ?? 'TBD'}
                         </span>
                       )}
                     </div>

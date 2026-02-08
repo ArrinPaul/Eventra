@@ -49,7 +49,8 @@ export const updateUserRole = mutation({
       v.literal("organizer"),
       v.literal("admin"),
       v.literal("speaker"),
-      v.literal("attendee")
+      v.literal("attendee"),
+      v.literal("vendor")
     ),
   },
   handler: async (ctx, args) => {
@@ -137,7 +138,7 @@ export const updateSetting = mutation({
 
     const existing = await ctx.db
       .query("system_settings")
-      .filter((q) => q.eq(q.field("key"), args.key))
+      .withIndex("by_key", (q) => q.eq("key", args.key))
       .unique();
 
     if (existing) {
@@ -161,8 +162,9 @@ async function logAuditAction(ctx: any, action: string, details: Record<string, 
   await ctx.db.insert("audit_log", {
     userId,
     action,
+    resource: action.split(":")[0],
     details: JSON.stringify(details),
-    timestamp: Date.now(),
+    createdAt: Date.now(),
   });
 }
 

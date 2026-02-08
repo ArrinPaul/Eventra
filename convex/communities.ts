@@ -76,10 +76,20 @@ export const deleteCommunity = mutation({
     const members = await ctx.db.query("community_members")
       .withIndex("by_community", (q) => q.eq("communityId", args.id)).collect();
     for (const m of members) await ctx.db.delete(m._id);
-    // Delete posts
+    // Delete posts and their associated likes/comments
     const posts = await ctx.db.query("community_posts")
       .withIndex("by_community", (q) => q.eq("communityId", args.id)).collect();
-    for (const p of posts) await ctx.db.delete(p._id);
+    for (const p of posts) {
+      // Delete post likes
+      const likes = await ctx.db.query("post_likes")
+        .withIndex("by_post", (q) => q.eq("postId", p._id)).collect();
+      for (const l of likes) await ctx.db.delete(l._id);
+      // Delete post comments
+      const comments = await ctx.db.query("comments")
+        .withIndex("by_post", (q) => q.eq("postId", p._id)).collect();
+      for (const c of comments) await ctx.db.delete(c._id);
+      await ctx.db.delete(p._id);
+    }
     await ctx.db.delete(args.id);
   },
 });

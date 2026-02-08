@@ -15,11 +15,43 @@ export type Permission =
   | 'manage_integrations'
   | 'view_workspace_items';
 
-export type UserRole = 'student' | 'professional' | 'organizer';
+export type UserRole = 'student' | 'professional' | 'organizer' | 'admin' | 'speaker' | 'attendee' | 'vendor';
 
 export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
+  admin: [
+    'view_events',
+    'create_events',
+    'edit_events',
+    'delete_events',
+    'manage_registrations',
+    'view_analytics',
+    'connect_google_workspace',
+    'create_documents',
+    'edit_documents',
+    'create_spreadsheets',
+    'sync_data',
+    'manage_integrations',
+    'view_workspace_items'
+  ],
   student: [
     'view_events',
+    'view_workspace_items'
+  ],
+  attendee: [
+    'view_events',
+    'view_workspace_items'
+  ],
+  speaker: [
+    'view_events',
+    'create_events',
+    'edit_events',
+    'view_analytics',
+    'view_workspace_items'
+  ],
+  vendor: [
+    'view_events',
+    'create_events',
+    'manage_registrations',
     'view_workspace_items'
   ],
   professional: [

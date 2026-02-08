@@ -1,8 +1,28 @@
-import { query, mutation } from "./_generated/server";
+import { query, mutation, internalMutation } from "./_generated/server";
 import { v } from "convex/values";
 import { auth } from "./auth";
-import { QueryCtx, MutationCtx } from "./_generated/server";
-import { Id } from "./_generated/dataModel";
+
+const locationValidator = v.optional(v.union(
+  v.string(),
+  v.object({
+    venue: v.optional(v.union(v.string(), v.object({ name: v.optional(v.string()), address: v.optional(v.string()), city: v.optional(v.string()), country: v.optional(v.string()) }))),
+    address: v.optional(v.string()),
+    city: v.optional(v.string()),
+    country: v.optional(v.string()),
+    lat: v.optional(v.number()),
+    lng: v.optional(v.number()),
+    virtualLink: v.optional(v.string()),
+  })
+));
+
+const agendaValidator = v.optional(v.array(v.object({
+  title: v.string(),
+  startTime: v.optional(v.string()),
+  endTime: v.optional(v.string()),
+  description: v.optional(v.string()),
+  speaker: v.optional(v.string()),
+  type: v.optional(v.string()),
+})));
 
 export const get = query({
   args: {},
@@ -12,10 +32,9 @@ export const get = query({
 });
 
 export const getById = query({
-  args: { id: v.string() },
+  args: { id: v.id("events") },
   handler: async (ctx, args) => {
-    const id = args.id as Id<"events">;
-    return await ctx.db.get(id);
+    return await ctx.db.get(args.id);
   },
 });
 
@@ -55,7 +74,7 @@ export const create = mutation({
     description: v.string(),
     startDate: v.number(),
     endDate: v.number(),
-    location: v.any(),
+    location: locationValidator,
     type: v.string(),
     category: v.string(),
     status: v.string(),
@@ -68,7 +87,7 @@ export const create = mutation({
     currency: v.optional(v.string()),
     targetAudience: v.optional(v.string()),
     organizationId: v.optional(v.string()),
-    agenda: v.optional(v.any()),
+    agenda: agendaValidator,
     speakers: v.optional(v.array(v.string())),
     waitlistEnabled: v.optional(v.boolean()),
     tags: v.optional(v.array(v.string())),
@@ -87,7 +106,7 @@ export const update = mutation({
       description: v.optional(v.string()),
       startDate: v.optional(v.number()),
       endDate: v.optional(v.number()),
-      location: v.optional(v.any()),
+      location: locationValidator,
       type: v.optional(v.string()),
       category: v.optional(v.string()),
       status: v.optional(v.string()),
@@ -98,7 +117,7 @@ export const update = mutation({
       price: v.optional(v.number()),
       currency: v.optional(v.string()),
       targetAudience: v.optional(v.string()),
-      agenda: v.optional(v.any()),
+      agenda: agendaValidator,
       speakers: v.optional(v.array(v.string())),
       waitlistEnabled: v.optional(v.boolean()),
       tags: v.optional(v.array(v.string())),
@@ -157,18 +176,24 @@ export const deleteEvent = mutation({
       .query("registrations")
       .withIndex("by_event", (q) => q.eq("eventId", args.id))
       .collect();
+    // Collect ticket IDs from registrations for dedup
+    const deletedTicketIds = new Set<string>();
     for (const reg of regs) {
       if (reg.ticketId) {
         await ctx.db.delete(reg.ticketId);
+        deletedTicketIds.add(reg.ticketId.toString());
       }
       await ctx.db.delete(reg._id);
     }
+    // Delete remaining tickets not linked from registrations
     const tickets = await ctx.db
       .query("tickets")
       .withIndex("by_event", (q) => q.eq("eventId", args.id))
       .collect();
     for (const ticket of tickets) {
-      await ctx.db.delete(ticket._id);
+      if (!deletedTicketIds.has(ticket._id.toString())) {
+        await ctx.db.delete(ticket._id);
+      }
     }
     const reviews = await ctx.db
       .query("reviews")
@@ -222,5 +247,68 @@ export const cloneEvent = mutation({
       registeredCount: 0,
       organizerId: userId,
     });
+  },
+});
+
+export const getAnalytics = query({
+  args: {},
+  handler: async (ctx) => {
+    const events = await ctx.db.query("events").collect();
+    const registrations = await ctx.db.query("registrations").collect();
+    const users = await ctx.db.query("users").collect();
+    const reviews = await ctx.db.query("reviews").collect();
+
+    const now = Date.now();
+    const upcomingEvents = events.filter((e) => e.status === "published" && (e.startDate || 0) > now);
+    const pastEvents = events.filter((e) => e.status === "completed" || (e.startDate || 0) < now);
+
+    // Events by category
+    const byCategory: Record<string, number> = {};
+    events.forEach((e) => {
+      const cat = (e as any).category || "Uncategorized";
+      byCategory[cat] = (byCategory[cat] || 0) + 1;
+    });
+
+    // Registrations over last 30 days
+    const thirtyDaysAgo = now - 30 * 24 * 60 * 60 * 1000;
+    const recentRegistrations = registrations.filter((r) => (r as any).registeredAt > thirtyDaysAgo);
+
+    // Average rating
+    const avgRating = reviews.length > 0
+      ? reviews.reduce((sum, r) => sum + ((r as any).rating || 0), 0) / reviews.length
+      : 0;
+
+    return {
+      totalEvents: events.length,
+      activeEvents: events.filter((e) => e.status === "published").length,
+      upcomingEvents: upcomingEvents.length,
+      completedEvents: pastEvents.length,
+      totalRegistrations: registrations.length,
+      totalUsers: users.length,
+      recentRegistrations: recentRegistrations.length,
+      averageRating: Math.round(avgRating * 10) / 10,
+      eventsByCategory: byCategory,
+      eventsByStatus: events.reduce((acc: Record<string, number>, e) => {
+        acc[e.status || "draft"] = (acc[e.status || "draft"] || 0) + 1;
+        return acc;
+      }, {}),
+    };
+  },
+});
+
+// Internal mutation called by cron to auto-complete past events
+export const autoCompletePastEvents = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const now = Date.now();
+    const events = await ctx.db.query("events").collect();
+    let completed = 0;
+    for (const event of events) {
+      if (event.status === "published" && event.endDate && event.endDate < now) {
+        await ctx.db.patch(event._id, { status: "completed" });
+        completed++;
+      }
+    }
+    return { completed };
   },
 });

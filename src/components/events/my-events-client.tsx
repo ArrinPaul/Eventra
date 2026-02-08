@@ -38,6 +38,7 @@ export default function MyEventsClient() {
   const { toast } = useToast();
   
   const allEventsRaw = useQuery(api.events.get);
+  const myRegistrations = useQuery(api.registrations.getByUser);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('registered');
 
@@ -48,9 +49,15 @@ export default function MyEventsClient() {
     id: e._id,
   }));
 
+  // Get event IDs from real registrations
+  const registeredEventIds = new Set(
+    (myRegistrations || [])
+      .filter((r: any) => r.status === 'confirmed' || r.status === 'registered')
+      .map((r: any) => r.eventId?.toString())
+  );
+
   const userEvents = events.filter(event => 
-    false || // Legacy field removed; registration checked via backend
-    false ||
+    registeredEventIds.has(event.id?.toString()) ||
     user?.myEvents?.includes(event.id)
   );
 

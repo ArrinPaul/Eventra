@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
 import Header from '@/components/layout/header';
+import { ErrorBoundary } from '@/components/shared/error-boundary';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -25,13 +26,17 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   }
 
   if (!user) {
-    return null; // or another loading state, will be redirected
+    return null;
   }
 
   return (
     <div className="flex flex-col min-h-screen bg-[#0a0b14]">
-      <Header />
-      <main className="flex-1">{children}</main>
+      <ErrorBoundary>
+        <Header />
+      </ErrorBoundary>
+      <main className="flex-1">
+        <ErrorBoundary>{children}</ErrorBoundary>
+      </main>
     </div>
   );
 }
