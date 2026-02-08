@@ -4,56 +4,70 @@ import { auth } from "./auth";
 
 /**
  * Register for an event
- * Automatically creates a confirmed registration and a unique ticket
+ * Checks capacity, creates ticket, awards XP, sends notification
  */
 export const register = mutation({
   args: { eventId: v.id("events") },
-  handler: async (ctx: any, args: any) => {
+  handler: async (ctx, args) => {
     const userId = await auth.getUserId(ctx);
     if (!userId) throw new Error("Unauthorized");
-    
+
     const event = await ctx.db.get(args.eventId);
     if (!event) throw new Error("Event not found");
-    
+
+    if (event.status !== "published") {
+      throw new Error("Event is not available for registration");
+    }
+
     const existing = await ctx.db
       .query("registrations")
-      .withIndex("by_event_user", (q: any) => q.eq("eventId", args.eventId).eq("userId", userId))
+      .withIndex("by_event_user", (q) => q.eq("eventId", args.eventId).eq("userId", userId))
       .unique();
-      
+
     if (existing) return existing._id;
-    
-    // 1. Create unique ticket number
+
+    // Capacity enforcement
+    const isFull = event.registeredCount >= event.capacity;
+    if (isFull && !event.waitlistEnabled) {
+      throw new Error("Event is at full capacity");
+    }
+
+    const isWaitlisted = isFull && event.waitlistEnabled;
+    const status = isWaitlisted ? "waitlisted" : "confirmed";
+
+    // Get user info for ticket
+    const user = await ctx.db.get(userId);
     const ticketNumber = `EVT-${args.eventId.substring(0, 4)}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
-    
-    // 2. Create the ticket
+
     const ticketId = await ctx.db.insert("tickets", {
       eventId: args.eventId,
       userId,
       ticketNumber,
-      status: "confirmed",
+      status,
       price: event.price || 0,
       purchaseDate: Date.now(),
+      attendeeName: user?.name || "Attendee",
+      attendeeEmail: user?.email || "",
     });
 
-    // 3. Create the registration linked to the ticket
     const regId = await ctx.db.insert("registrations", {
       userId,
       eventId: args.eventId,
-      status: "confirmed",
+      status,
       registrationDate: Date.now(),
       ticketId,
     });
-    
-    // 4. Update event attendee count
-    await ctx.db.patch(args.eventId, {
-      registeredCount: (event.registeredCount || 0) + 1,
-    });
 
-    // 5. Award XP for registration
-    const user = await ctx.db.get(userId);
+    if (!isWaitlisted) {
+      await ctx.db.patch(args.eventId, {
+        registeredCount: (event.registeredCount || 0) + 1,
+      });
+    }
+
+    // Award XP
     await ctx.db.patch(userId, {
-      points: (user.points || 0) + 50,
-      xp: (user.xp || 0) + 50,
+      points: (user?.points || 0) + 50,
+      xp: (user?.xp || 0) + 50,
     });
 
     await ctx.db.insert("points_history", {
@@ -62,8 +76,80 @@ export const register = mutation({
       reason: `Registered for event: ${event.title}`,
       createdAt: Date.now(),
     });
-    
+
+    // Send notification
+    await ctx.db.insert("notifications", {
+      userId,
+      title: isWaitlisted ? "Added to Waitlist" : "Registration Confirmed! 🎉",
+      message: isWaitlisted
+        ? `You've been added to the waitlist for "${event.title}".`
+        : `You're registered for "${event.title}". Your ticket: ${ticketNumber}`,
+      type: "event",
+      read: false,
+      createdAt: Date.now(),
+      link: `/tickets`,
+    });
+
     return regId;
+  },
+});
+
+/**
+ * Cancel registration
+ */
+export const cancel = mutation({
+  args: { eventId: v.id("events") },
+  handler: async (ctx, args) => {
+    const userId = await auth.getUserId(ctx);
+    if (!userId) throw new Error("Unauthorized");
+
+    const reg = await ctx.db
+      .query("registrations")
+      .withIndex("by_event_user", (q) => q.eq("eventId", args.eventId).eq("userId", userId))
+      .unique();
+
+    if (!reg) throw new Error("Registration not found");
+
+    await ctx.db.patch(reg._id, { status: "cancelled" });
+
+    if (reg.ticketId) {
+      await ctx.db.patch(reg.ticketId, { status: "cancelled" });
+    }
+
+    const event = await ctx.db.get(args.eventId);
+    if (event && reg.status === "confirmed") {
+      await ctx.db.patch(args.eventId, {
+        registeredCount: Math.max(0, (event.registeredCount || 1) - 1),
+      });
+
+      // Auto-promote from waitlist
+      if (event.waitlistEnabled) {
+        const waitlisted = await ctx.db
+          .query("registrations")
+          .withIndex("by_event", (q) => q.eq("eventId", args.eventId))
+          .filter((q) => q.eq(q.field("status"), "waitlisted"))
+          .first();
+
+        if (waitlisted) {
+          await ctx.db.patch(waitlisted._id, { status: "confirmed" });
+          if (waitlisted.ticketId) {
+            await ctx.db.patch(waitlisted.ticketId, { status: "confirmed" });
+          }
+          await ctx.db.patch(args.eventId, {
+            registeredCount: (event.registeredCount || 1),
+          });
+          await ctx.db.insert("notifications", {
+            userId: waitlisted.userId,
+            title: "You're In! 🎉",
+            message: `A spot opened up for "${event.title}" and you've been promoted from the waitlist!`,
+            type: "event",
+            read: false,
+            createdAt: Date.now(),
+            link: `/tickets`,
+          });
+        }
+      }
+    }
   },
 });
 
@@ -72,50 +158,40 @@ export const register = mutation({
  */
 export const getRegistration = query({
   args: { eventId: v.id("events") },
-  handler: async (ctx: any, args: any) => {
+  handler: async (ctx, args) => {
     const userId = await auth.getUserId(ctx);
     if (!userId) return null;
-    
-        return await ctx.db
-    
-          .query("registrations")
-    
-          .withIndex("by_event_user", (q: any) => q.eq("eventId", args.eventId).eq("userId", userId))
-    
-          .unique();
-    
-      },
-    
-    });
-    
-    
-    
-    export const getByEvents = query({
-    
-      args: { eventIds: v.array(v.id("events")) },
-    
-      handler: async (ctx: any, args: any) => {
-    
-        const allRegs = [];
-    
-        for (const eventId of args.eventIds) {
-    
-          const regs = await ctx.db
-    
-            .query("registrations")
-    
-            .withIndex("by_event", (q: any) => q.eq("eventId", eventId))
-    
-            .collect();
-    
-          allRegs.push(...regs);
-    
-        }
-    
-        return allRegs;
-    
-      },
-    
-    });
-    
-    
+
+    return await ctx.db
+      .query("registrations")
+      .withIndex("by_event_user", (q) => q.eq("eventId", args.eventId).eq("userId", userId))
+      .unique();
+  },
+});
+
+export const getByEvents = query({
+  args: { eventIds: v.array(v.id("events")) },
+  handler: async (ctx, args) => {
+    const allRegs = [];
+    for (const eventId of args.eventIds) {
+      const regs = await ctx.db
+        .query("registrations")
+        .withIndex("by_event", (q) => q.eq("eventId", eventId))
+        .collect();
+      allRegs.push(...regs);
+    }
+    return allRegs;
+  },
+});
+
+export const getByUser = query({
+  args: {},
+  handler: async (ctx) => {
+    const userId = await auth.getUserId(ctx);
+    if (!userId) return [];
+    return await ctx.db
+      .query("registrations")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .collect();
+  },
+});

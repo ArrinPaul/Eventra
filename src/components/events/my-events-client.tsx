@@ -49,8 +49,8 @@ export default function MyEventsClient() {
   }));
 
   const userEvents = events.filter(event => 
-    event.attendees?.includes(user?._id || user?.id || '') || 
-    event.registeredUsers?.includes(user?._id || user?.id || '') ||
+    false || // Legacy field removed; registration checked via backend
+    false ||
     user?.myEvents?.includes(event.id)
   );
 

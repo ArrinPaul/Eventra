@@ -139,9 +139,9 @@ export default function Header() {
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="relative h-10 w-10 rounded-full border border-white/20 hover:border-white/40">
                       <Avatar className="h-9 w-9">
-                        <AvatarImage src={user.photoURL || ''} alt={user.displayName || 'User'} />
+                        <AvatarImage src={user.image || ''} alt={user.name || 'User'} />
                         <AvatarFallback className="bg-gradient-to-br from-purple-500 to-violet-600 text-white">
-                          {user.displayName?.charAt(0) || user.email?.charAt(0) || 'U'}
+                          {user.name?.charAt(0) || user.email?.charAt(0) || 'U'}
                         </AvatarFallback>
                       </Avatar>
                     </Button>
@@ -149,13 +149,13 @@ export default function Header() {
                   <DropdownMenuContent className="w-56 bg-black/90 backdrop-blur-xl border-white/10" align="end">
                     <div className="flex items-center gap-3 p-3">
                       <Avatar className="h-10 w-10">
-                        <AvatarImage src={user.photoURL || ''} />
+                        <AvatarImage src={user.image || ''} />
                         <AvatarFallback className="bg-gradient-to-br from-purple-500 to-violet-600 text-white">
-                          {user.displayName?.charAt(0) || 'U'}
+                          {user.name?.charAt(0) || 'U'}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex flex-col">
-                        <span className="text-sm font-medium text-white">{user.displayName || 'User'}</span>
+                        <span className="text-sm font-medium text-white">{user.name || 'User'}</span>
                         <span className="text-xs text-gray-400">{user.email}</span>
                       </div>
                     </div>

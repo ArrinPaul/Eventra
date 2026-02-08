@@ -8,14 +8,16 @@ export const submit = mutation({
     rating: v.number(),
     comment: v.optional(v.string()),
   },
-  handler: async (ctx: any, args: any) => {
+  handler: async (ctx, args) => {
     const userId = await auth.getUserId(ctx);
     if (!userId) throw new Error("Unauthorized");
 
+    if (args.rating < 1 || args.rating > 5) throw new Error("Rating must be between 1 and 5");
+
     const existing = await ctx.db
       .query("reviews")
-      .withIndex("by_event", (q: any) => q.eq("eventId", args.eventId))
-      .filter((q: any) => q.eq(q.field("userId"), userId))
+      .withIndex("by_event", (q) => q.eq("eventId", args.eventId))
+      .filter((q) => q.eq(q.field("userId"), userId))
       .unique();
 
     if (existing) {
@@ -38,10 +40,39 @@ export const submit = mutation({
 
 export const getByEvent = query({
   args: { eventId: v.id("events") },
-  handler: async (ctx: any, args: any) => {
-    return await ctx.db
+  handler: async (ctx, args) => {
+    const reviews = await ctx.db
       .query("reviews")
-      .withIndex("by_event", (q: any) => q.eq("eventId", args.eventId))
+      .withIndex("by_event", (q) => q.eq("eventId", args.eventId))
       .collect();
+
+    const enriched = [];
+    for (const review of reviews) {
+      const user = await ctx.db.get(review.userId);
+      enriched.push({
+        ...review,
+        userName: user?.name ?? "Anonymous",
+        userImage: user?.image,
+      });
+    }
+    return enriched;
+  },
+});
+
+export const getEventRating = query({
+  args: { eventId: v.id("events") },
+  handler: async (ctx, args) => {
+    const reviews = await ctx.db
+      .query("reviews")
+      .withIndex("by_event", (q) => q.eq("eventId", args.eventId))
+      .collect();
+
+    if (reviews.length === 0) return { average: 0, count: 0 };
+
+    const sum = reviews.reduce((acc, r) => acc + r.rating, 0);
+    return {
+      average: Math.round((sum / reviews.length) * 10) / 10,
+      count: reviews.length,
+    };
   },
 });

@@ -14,9 +14,12 @@ const formSchema = z.object({
   date: z.string().min(1),
   time: z.string().min(1),
   location: z.string().min(2),
-  category: z.enum(['Workshop', 'Talk', 'Panel']),
+  category: z.enum(['Workshop', 'Talk', 'Panel', 'Tech', 'Networking', 'Social', 'Career']),
   targetAudience: z.enum(['Student', 'Professional', 'Both']),
   description: z.string().min(10),
+  capacity: z.coerce.number().min(1).max(100000),
+  status: z.enum(['draft', 'published']),
+  type: z.enum(['physical', 'virtual', 'hybrid']),
 });
 
 type EventFormProps = {
@@ -46,9 +49,12 @@ export function EventForm({ onSave, event }: EventFormProps) {
         date: getDateString(event),
         time: event.time || '',
         location: getLocationString(event),
-        category: (event.category as 'Workshop' | 'Talk' | 'Panel') || 'Workshop',
+        category: (event.category as z.infer<typeof formSchema>['category']) || 'Workshop',
         targetAudience: (event.targetAudience as 'Student' | 'Professional' | 'Both') || 'Both',
         description: event.description,
+        capacity: event.capacity ?? 100,
+        status: (event.status as 'draft' | 'published') ?? 'draft',
+        type: (event.type as 'physical' | 'virtual' | 'hybrid') ?? 'physical',
     } : {
       title: '',
       date: '',
@@ -57,22 +63,25 @@ export function EventForm({ onSave, event }: EventFormProps) {
       category: 'Workshop',
       targetAudience: 'Both',
       description: '',
+      capacity: 50,
+      status: 'draft',
+      type: 'physical',
     },
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     const startDate = new Date(values.date + 'T' + values.time);
-    const eventData: any = {
+    const eventData: Omit<Event, 'id'> = {
       title: values.title,
       description: values.description,
       startDate: startDate.getTime(),
       endDate: startDate.getTime() + 3600000,
       location: { venue: values.location },
-      type: 'workshop',
+      type: values.type,
       category: values.category,
-      capacity: 100,
-      status: 'draft',
-      organizerId: '',
+      capacity: values.capacity,
+      status: values.status,
+      organizerId: '' as any,
       registeredCount: 0,
       date: values.date,
       time: values.time,
@@ -91,8 +100,13 @@ export function EventForm({ onSave, event }: EventFormProps) {
         </div>
         <FormField control={form.control} name="location" render={({ field }) => (<FormItem><FormLabel>Location</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)}/>
         <div className="grid grid-cols-2 gap-4">
-            <FormField control={form.control} name="category" render={({ field }) => (<FormItem><FormLabel>Category</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl><SelectContent><SelectItem value="Workshop">Workshop</SelectItem><SelectItem value="Talk">Talk</SelectItem><SelectItem value="Panel">Panel</SelectItem></SelectContent></Select><FormMessage /></FormItem>)}/>
+            <FormField control={form.control} name="category" render={({ field }) => (<FormItem><FormLabel>Category</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl><SelectContent><SelectItem value="Workshop">Workshop</SelectItem><SelectItem value="Talk">Talk</SelectItem><SelectItem value="Panel">Panel</SelectItem><SelectItem value="Tech">Tech</SelectItem><SelectItem value="Networking">Networking</SelectItem><SelectItem value="Social">Social</SelectItem><SelectItem value="Career">Career</SelectItem></SelectContent></Select><FormMessage /></FormItem>)}/>
             <FormField control={form.control} name="targetAudience" render={({ field }) => (<FormItem><FormLabel>Target Audience</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl><SelectContent><SelectItem value="Student">Student</SelectItem><SelectItem value="Professional">Professional</SelectItem><SelectItem value="Both">Both</SelectItem></SelectContent></Select><FormMessage /></FormItem>)}/>
+        </div>
+        <div className="grid grid-cols-3 gap-4">
+            <FormField control={form.control} name="capacity" render={({ field }) => (<FormItem><FormLabel>Capacity</FormLabel><FormControl><Input type="number" min={1} {...field} /></FormControl><FormMessage /></FormItem>)}/>
+            <FormField control={form.control} name="status" render={({ field }) => (<FormItem><FormLabel>Status</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl><SelectContent><SelectItem value="draft">Draft</SelectItem><SelectItem value="published">Published</SelectItem></SelectContent></Select><FormMessage /></FormItem>)}/>
+            <FormField control={form.control} name="type" render={({ field }) => (<FormItem><FormLabel>Event Type</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl><SelectContent><SelectItem value="physical">In-Person</SelectItem><SelectItem value="virtual">Virtual</SelectItem><SelectItem value="hybrid">Hybrid</SelectItem></SelectContent></Select><FormMessage /></FormItem>)}/>
         </div>
         <FormField control={form.control} name="description" render={({ field }) => (<FormItem><FormLabel>Description</FormLabel><FormControl><Textarea {...field} /></FormControl><FormMessage /></FormItem>)}/>
         <Button type="submit" className="w-full">Save Event</Button>

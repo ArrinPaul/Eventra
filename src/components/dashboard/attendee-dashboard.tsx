@@ -173,7 +173,7 @@ export function AttendeeDashboard() {
                         <div className="mb-3 flex items-center justify-between">
                           <Badge className="text-xs font-semibold bg-cyan-600/20 text-cyan-300 border border-cyan-500/30">{event.category}</Badge>
                           <span className="text-xs text-gray-400 flex items-center gap-1.5 font-medium">
-                            <Users className="h-3.5 w-3.5" /> {event.attendees}
+                            <Users className="h-3.5 w-3.5" /> {event.registeredCount ?? 0}
                           </span>
                         </div>
                         <h3 className="font-bold text-lg leading-tight mb-2 truncate text-white group-hover:text-cyan-300 transition-colors" title={event.title}>
@@ -261,13 +261,13 @@ export function AttendeeDashboard() {
             <CardContent className="flex flex-col items-center">
               <div className="bg-white p-3 rounded-xl shadow-inner mb-4">
                 <img
-                  src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(JSON.stringify({ id: user.uid }))}`}
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(user.registrationId || user._id || user.id || '')}`}
                   alt="QR Code"
                   className="w-32 h-32"
                 />
               </div>
               <p className="font-mono text-sm font-medium tracking-wider bg-white/10 text-white px-3 py-1 rounded border border-white/20">
-                {user.registrationId || user.uid.substring(0, 8).toUpperCase()}
+                {user.registrationId || (user._id || user.id || '').substring(0, 8).toUpperCase()}
               </p>
             </CardContent>
           </Card>

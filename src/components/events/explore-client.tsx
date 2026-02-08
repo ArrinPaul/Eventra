@@ -216,7 +216,7 @@ export default function ExploreClient() {
         case 'date-desc':
           return dateB.getTime() - dateA.getTime();
         case 'popular':
-          return ((b.registeredCount || b.registeredUsers?.length || 0) - (a.registeredCount || a.registeredUsers?.length || 0));
+          return ((b.registeredCount || 0) - (a.registeredCount || 0));
         case 'recent':
           const createdA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
           const createdB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
@@ -274,7 +274,7 @@ export default function ExploreClient() {
       const eventDate = e.startDate ? new Date(e.startDate) : new Date(e.date || '');
       return eventDate > new Date();
     })
-    .sort((a, b) => ((b.registeredCount || b.registeredUsers?.length || 0) - (a.registeredCount || a.registeredUsers?.length || 0)))[0];
+    .sort((a, b) => ((b.registeredCount || 0) - (a.registeredCount || 0)))[0];
 
   return (
     <div className="min-h-screen bg-black">

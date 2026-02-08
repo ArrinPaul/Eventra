@@ -4,62 +4,58 @@ import { authTables } from "@convex-dev/auth/server";
 
 export default defineSchema({
   ...authTables,
+
   users: defineTable({
     name: v.optional(v.string()),
     email: v.optional(v.string()),
     image: v.optional(v.string()),
-    role: v.optional(v.union(v.literal("student"), v.literal("professional"), v.literal("organizer"), v.literal("admin"), v.literal("speaker"), v.literal("attendee"), v.literal("vendor"))),
-    
-    // Onboarding & Profile
+    role: v.optional(v.union(
+      v.literal("student"), v.literal("professional"), v.literal("organizer"),
+      v.literal("admin"), v.literal("speaker"), v.literal("attendee"), v.literal("vendor"),
+    )),
     onboardingCompleted: v.optional(v.boolean()),
     bio: v.optional(v.string()),
-    interests: v.optional(v.string()), // Comma-separated or JSON string
-    
-    // Student fields
+    interests: v.optional(v.string()),
     college: v.optional(v.string()),
     degree: v.optional(v.union(v.literal("ug"), v.literal("pg"))),
     year: v.optional(v.number()),
-    
-    // Professional fields
     company: v.optional(v.string()),
     designation: v.optional(v.string()),
     country: v.optional(v.string()),
     gender: v.optional(v.union(v.literal("male"), v.literal("female"), v.literal("other"), v.literal("prefer-not-to-say"))),
     bloodGroup: v.optional(v.string()),
-    
-    // Common fields
     phone: v.optional(v.string()),
     mobile: v.optional(v.string()),
     foodChoice: v.optional(v.union(v.literal("veg"), v.literal("non-veg"), v.literal("vegan"))),
-    emergencyContact: v.optional(v.object({
-      name: v.string(),
-      number: v.string(),
-    })),
-    
-    // System fields
+    emergencyContact: v.optional(v.object({ name: v.string(), number: v.string() })),
     registrationId: v.optional(v.string()),
     checkedIn: v.optional(v.boolean()),
     points: v.optional(v.number()),
     organizationId: v.optional(v.string()),
-    status: v.optional(v.string()), // active, suspended, banned
-    myEvents: v.optional(v.array(v.string())), // Array of session/event IDs
-    wishlist: v.optional(v.array(v.string())), // Array of event IDs
-    eventRatings: v.optional(v.any()), // Map of eventId to rating
-    
-    // Gamification
+    status: v.optional(v.string()),
+    myEvents: v.optional(v.array(v.string())),
+    wishlist: v.optional(v.array(v.string())),
+    eventRatings: v.optional(v.any()),
     xp: v.optional(v.number()),
     level: v.optional(v.number()),
-  }).index("by_email", ["email"]),
+    notificationPreferences: v.optional(v.object({
+      email: v.optional(v.boolean()),
+      push: v.optional(v.boolean()),
+      eventReminders: v.optional(v.boolean()),
+      communityUpdates: v.optional(v.boolean()),
+      marketingEmails: v.optional(v.boolean()),
+    })),
+  }).index("by_email", ["email"]).index("by_points", ["points"]),
 
   events: defineTable({
     title: v.string(),
     description: v.string(),
-    startDate: v.number(), // timestamp
-    endDate: v.number(), // timestamp
-    location: v.any(), // Store versatile location object
+    startDate: v.number(),
+    endDate: v.number(),
+    location: v.any(),
     type: v.string(),
     category: v.string(),
-    status: v.string(), // draft, published, cancelled, completed
+    status: v.string(),
     organizerId: v.id("users"),
     organizationId: v.optional(v.string()),
     imageUrl: v.optional(v.string()),
@@ -69,14 +65,16 @@ export default defineSchema({
     price: v.optional(v.number()),
     currency: v.optional(v.string()),
     targetAudience: v.optional(v.string()),
-    agenda: v.optional(v.any()), // Array of agenda items
-    speakers: v.optional(v.array(v.string())), // Array of user IDs
+    agenda: v.optional(v.any()),
+    speakers: v.optional(v.array(v.string())),
+    waitlistEnabled: v.optional(v.boolean()),
+    tags: v.optional(v.array(v.string())),
   }).index("by_organizer", ["organizerId"]).index("by_status", ["status"]),
 
   registrations: defineTable({
     userId: v.id("users"),
     eventId: v.id("events"),
-    status: v.string(), // confirmed, pending, cancelled, checked-in
+    status: v.string(),
     registrationDate: v.number(),
     ticketId: v.optional(v.id("tickets")),
     checkedIn: v.optional(v.boolean()),
@@ -88,28 +86,30 @@ export default defineSchema({
     userId: v.id("users"),
     ticketTypeId: v.optional(v.string()),
     ticketNumber: v.string(),
-    status: v.string(), // confirmed, pending, cancelled, checked-in, refunded
+    status: v.string(),
     price: v.number(),
     purchaseDate: v.number(),
     qrCode: v.optional(v.string()),
     checkInStatus: v.optional(v.string()),
+    attendeeName: v.optional(v.string()),
+    attendeeEmail: v.optional(v.string()),
   }).index("by_user", ["userId"]).index("by_event", ["eventId"]).index("by_ticket_number", ["ticketNumber"]),
 
   notifications: defineTable({
     userId: v.id("users"),
     title: v.string(),
     message: v.string(),
-    type: v.string(), // event, system, reminder
+    type: v.string(),
     read: v.boolean(),
     createdAt: v.number(),
     link: v.optional(v.string()),
-  }).index("by_user", ["userId"]),
+  }).index("by_user", ["userId"]).index("by_user_read", ["userId", "read"]),
 
   badges: defineTable({
     name: v.string(),
     description: v.string(),
     imageUrl: v.optional(v.string()),
-    icon: v.string(), // emoji or lucide icon name
+    icon: v.string(),
     criteria: v.string(),
     category: v.string(),
     xpReward: v.number(),
@@ -120,7 +120,7 @@ export default defineSchema({
     userId: v.id("users"),
     badgeId: v.id("badges"),
     awardedAt: v.number(),
-  }).index("by_user", ["userId"]),
+  }).index("by_user", ["userId"]).index("by_user_badge", ["userId", "badgeId"]),
 
   points_history: defineTable({
     userId: v.id("users"),
@@ -142,7 +142,7 @@ export default defineSchema({
   community_members: defineTable({
     communityId: v.id("communities"),
     userId: v.id("users"),
-    role: v.string(), // member, moderator, admin
+    role: v.string(),
     joinedAt: v.number(),
   }).index("by_community", ["communityId"]).index("by_user", ["userId"]).index("by_community_user", ["communityId", "userId"]),
 
@@ -155,13 +155,26 @@ export default defineSchema({
     createdAt: v.number(),
   }).index("by_community", ["communityId"]),
 
+  post_likes: defineTable({
+    postId: v.id("community_posts"),
+    userId: v.id("users"),
+    createdAt: v.number(),
+  }).index("by_post", ["postId"]).index("by_user_post", ["userId", "postId"]),
+
+  comments: defineTable({
+    postId: v.id("community_posts"),
+    authorId: v.id("users"),
+    content: v.string(),
+    createdAt: v.number(),
+  }).index("by_post", ["postId"]),
+
   chat_rooms: defineTable({
     name: v.optional(v.string()),
-    type: v.string(), // direct, group, event
+    type: v.string(),
     eventId: v.optional(v.id("events")),
     participants: v.array(v.id("users")),
     lastMessageAt: v.optional(v.number()),
-  }),
+  }).index("by_event", ["eventId"]),
 
   messages: defineTable({
     roomId: v.id("chat_rooms"),
@@ -171,88 +184,73 @@ export default defineSchema({
     readBy: v.array(v.id("users")),
   }).index("by_room", ["roomId"]),
 
-    files: defineTable({
+  files: defineTable({
+    storageId: v.string(),
+    userId: v.id("users"),
+    name: v.string(),
+    contentType: v.string(),
+    size: v.number(),
+    url: v.string(),
+  }).index("by_user", ["userId"]),
 
-      storageId: v.string(),
+  reviews: defineTable({
+    eventId: v.id("events"),
+    userId: v.id("users"),
+    rating: v.number(),
+    comment: v.optional(v.string()),
+    createdAt: v.number(),
+  }).index("by_event", ["eventId"]).index("by_user", ["userId"]),
 
-      userId: v.id("users"),
+  certificates: defineTable({
+    eventId: v.id("events"),
+    userId: v.id("users"),
+    certificateNumber: v.string(),
+    issueDate: v.number(),
+    personalizedMessage: v.optional(v.string()),
+  }).index("by_user", ["userId"]).index("by_event", ["eventId"]).index("by_certificate_number", ["certificateNumber"]),
 
-      name: v.string(),
+  connections: defineTable({
+    requesterId: v.id("users"),
+    receiverId: v.id("users"),
+    status: v.string(),
+    createdAt: v.number(),
+  }).index("by_requester", ["requesterId"]).index("by_receiver", ["receiverId"]),
 
-      contentType: v.string(),
+  challenges: defineTable({
+    title: v.string(),
+    description: v.string(),
+    type: v.string(),
+    xpReward: v.number(),
+    criteria: v.string(),
+    target: v.number(),
+    icon: v.string(),
+    isActive: v.boolean(),
+    startDate: v.optional(v.number()),
+    endDate: v.optional(v.number()),
+  }),
 
-      size: v.number(),
+  user_challenges: defineTable({
+    userId: v.id("users"),
+    challengeId: v.id("challenges"),
+    progress: v.number(),
+    completed: v.boolean(),
+    completedAt: v.optional(v.number()),
+    startedAt: v.number(),
+  }).index("by_user", ["userId"]).index("by_user_challenge", ["userId", "challengeId"]),
 
-      url: v.string(),
+  system_settings: defineTable({
+    key: v.string(),
+    value: v.string(),
+    updatedAt: v.number(),
+    updatedBy: v.optional(v.id("users")),
+  }).index("by_key", ["key"]),
 
-    }).index("by_user", ["userId"]),
-
-  
-
-      reviews: defineTable({
-
-  
-
-        eventId: v.id("events"),
-
-  
-
-        userId: v.id("users"),
-
-  
-
-        rating: v.number(),
-
-  
-
-        comment: v.optional(v.string()),
-
-  
-
-        createdAt: v.number(),
-
-  
-
-      }).index("by_event", ["eventId"]).index("by_user", ["userId"]),
-
-  
-
-    
-
-  
-
-      certificates: defineTable({
-
-  
-
-        eventId: v.id("events"),
-
-  
-
-        userId: v.id("users"),
-
-  
-
-        certificateNumber: v.string(),
-
-  
-
-        issueDate: v.number(),
-
-  
-
-        personalizedMessage: v.optional(v.string()),
-
-  
-
-      }).index("by_user", ["userId"]).index("by_event", ["eventId"]).index("by_certificate_number", ["certificateNumber"]),
-
-  
-
-    });
-
-  
-
-    
-
-  
+  audit_log: defineTable({
+    userId: v.id("users"),
+    action: v.string(),
+    resource: v.string(),
+    resourceId: v.optional(v.string()),
+    details: v.optional(v.string()),
+    createdAt: v.number(),
+  }).index("by_user", ["userId"]).index("by_resource", ["resource"]),
+});

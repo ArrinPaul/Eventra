@@ -114,7 +114,7 @@ class PermissionsService {
    * Get event-specific permissions for a user
    */
   getEventPermissions(user: User | null, event: { organizerId?: string } | null): EventPermissions {
-    const isOwner = user && event && user.uid === event.organizerId;
+    const isOwner = user && event && (user._id || user.id) === event.organizerId;
     
     return {
       canView: this.hasPermission(user, 'view_events'),
@@ -279,7 +279,7 @@ class PermissionsService {
       if (eventPermissions.isOwner) return true;
       
       // Users can see items they created
-      if (item.createdBy === user.uid) return true;
+      if (item.createdBy === (user._id || user.id)) return true;
       
       // Professionals can see planning and note documents
       if (user.role === 'professional' && 

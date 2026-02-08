@@ -66,7 +66,7 @@ export default function EventCreationWizard() {
     startDate: undefined as Date | undefined,
     locationType: 'physical',
     venue: '',
-    capacity: 100,
+    capacity: 50,
   });
   const [isSaving, setIsSaving] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -181,6 +181,43 @@ export default function EventCreationWizard() {
                   </PopoverContent>
                 </Popover>
               </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Venue / Location</Label>
+                <Input
+                  placeholder="e.g. Room 301, Main Hall"
+                  value={formData.venue}
+                  onChange={e => setFormData({...formData, venue: e.target.value})}
+                  className="bg-white/5 border-white/10"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Capacity</Label>
+                <Input
+                  type="number"
+                  min={1}
+                  placeholder="50"
+                  value={formData.capacity}
+                  onChange={e => setFormData({...formData, capacity: parseInt(e.target.value) || 50})}
+                  className="bg-white/5 border-white/10"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Event Format</Label>
+              <Select value={formData.locationType} onValueChange={v => setFormData({...formData, locationType: v})}>
+                <SelectTrigger className="bg-white/5 border-white/10">
+                  <SelectValue placeholder="Select format" />
+                </SelectTrigger>
+                <SelectContent className="bg-zinc-900 border-white/10 text-white">
+                  <SelectItem value="physical">In-Person</SelectItem>
+                  <SelectItem value="virtual">Virtual</SelectItem>
+                  <SelectItem value="hybrid">Hybrid</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="pt-4 flex gap-4">

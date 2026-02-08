@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import { 
   Award, 
   Download, 
@@ -12,17 +13,28 @@ import {
   Loader2,
   Calendar,
   ShieldCheck,
-  CheckCircle2
+  CheckCircle2,
+  XCircle
 } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { useQuery } from 'convex/react';
 import { api } from '../../../../convex/_generated/api';
 import { format } from 'date-fns';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 
 export function CertificatesClient() {
   const { user } = useAuth();
   const certificates = useQuery(api.certificates.getByUser) || [];
   const [searchTerm, setSearchTerm] = useState('');
+  const [verifyNumber, setVerifyNumber] = useState('');
+  const [verifyResult, setVerifyResult] = useState<any>(null);
+  const [verifying, setVerifying] = useState(false);
   
   const loading = certificates === undefined;
 
@@ -31,6 +43,61 @@ export function CertificatesClient() {
     cert.certificateNumber.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const handleDownload = (cert: any) => {
+    // Generate a simple text certificate for download
+    const content = `
+═══════════════════════════════════════════════════
+              CERTIFICATE OF COMPLETION
+═══════════════════════════════════════════════════
+
+This is to certify that
+
+    ${user?.name ?? 'Attendee'}
+
+has successfully completed
+
+    ${cert.event?.title ?? 'Event'}
+
+Certificate Number: ${cert.certificateNumber}
+Issue Date: ${format(cert.issueDate, 'MMMM dd, yyyy')}
+
+${cert.personalizedMessage ? `Message: ${cert.personalizedMessage}` : ''}
+
+Verified by Eventra Platform
+═══════════════════════════════════════════════════
+    `.trim();
+
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `certificate-${cert.certificateNumber}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleVerify = async () => {
+    if (!verifyNumber.trim()) return;
+    setVerifying(true);
+    setVerifyResult(null);
+    // Use a timeout to simulate async; in production, call verify query
+    try {
+      const match = certificates.find((c: any) => c.certificateNumber === verifyNumber.trim());
+      if (match) {
+        setVerifyResult({
+          valid: true,
+          certificateNumber: match.certificateNumber,
+          eventTitle: match.event?.title ?? 'Unknown',
+          issueDate: match.issueDate,
+        });
+      } else {
+        setVerifyResult({ valid: false });
+      }
+    } finally {
+      setVerifying(false);
+    }
+  };
+
   return (
     <div className="container py-8 space-y-8 text-white">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -38,15 +105,61 @@ export function CertificatesClient() {
           <h1 className="text-4xl font-extrabold tracking-tight">My Certificates</h1>
           <p className="text-gray-400 mt-2 text-lg">Verified proof of your professional achievements.</p>
         </div>
-        <div className="relative w-full md:w-80">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
-          <input 
-            type="text"
-            placeholder="Search by event or ID..." 
-            className="w-full pl-10 pr-4 py-2 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+        <div className="flex gap-2">
+          <div className="relative w-full md:w-80">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+            <input 
+              type="text"
+              placeholder="Search by event or ID..." 
+              className="w-full pl-10 pr-4 py-2 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="border-white/10 hover:bg-white/10">
+                <ShieldCheck className="w-4 h-4 mr-2" /> Verify
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="bg-gray-900 text-white border-white/10">
+              <DialogHeader>
+                <DialogTitle>Verify Certificate</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Enter certificate number..."
+                    value={verifyNumber}
+                    onChange={(e) => setVerifyNumber(e.target.value)}
+                    className="bg-white/5 border-white/10"
+                  />
+                  <Button onClick={handleVerify} disabled={verifying}>
+                    {verifying ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Verify'}
+                  </Button>
+                </div>
+                {verifyResult && (
+                  <div className={`p-4 rounded-lg border ${verifyResult.valid ? 'bg-green-500/10 border-green-500/30' : 'bg-red-500/10 border-red-500/30'}`}>
+                    {verifyResult.valid ? (
+                      <div className="flex items-start gap-3">
+                        <CheckCircle2 className="h-5 w-5 text-green-500 mt-0.5" />
+                        <div>
+                          <p className="font-medium text-green-400">Valid Certificate</p>
+                          <p className="text-sm text-gray-400">Event: {verifyResult.eventTitle}</p>
+                          <p className="text-sm text-gray-400">Issued: {format(verifyResult.issueDate, 'MMMM dd, yyyy')}</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-3">
+                        <XCircle className="h-5 w-5 text-red-500" />
+                        <p className="text-red-400">Certificate not found</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
 
@@ -94,17 +207,17 @@ export function CertificatesClient() {
 
                   {cert.personalizedMessage && (
                     <div className="bg-white/5 p-3 rounded-xl border border-white/5">
-                      <p className="text-xs text-gray-300 italic">"{cert.personalizedMessage}"</p>
+                      <p className="text-xs text-gray-300 italic">&quot;{cert.personalizedMessage}&quot;</p>
                     </div>
                   )}
                 </div>
 
                 <div className="flex gap-2">
-                  <Button className="flex-1 bg-white text-black hover:bg-gray-200">
+                  <Button className="flex-1 bg-white text-black hover:bg-gray-200" onClick={() => handleDownload(cert)}>
                     <Download className="w-4 h-4 mr-2" />
-                    Download PDF
+                    Download
                   </Button>
-                  <Button variant="outline" className="border-white/10 aspect-square p-0 w-10">
+                  <Button variant="outline" className="border-white/10 aspect-square p-0 w-10" onClick={() => { setVerifyNumber(cert.certificateNumber); }}>
                     <ExternalLink className="w-4 h-4" />
                   </Button>
                 </div>

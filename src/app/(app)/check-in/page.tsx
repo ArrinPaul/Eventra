@@ -8,34 +8,30 @@ import { Check, QrCode } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import QrScanner from '@/components/check-in/qr-scanner';
 import { useToast } from '@/hooks/use-toast';
+import { useQuery } from 'convex/react';
+import { api } from '../../../../convex/_generated/api';
 
 
 export default function CheckInPage() {
-    const { user, updateUser, awardPoints, checkInUser } = useAuth();
+    const { user } = useAuth();
     const [isScannerOpen, setIsScannerOpen] = useState(false);
     const { toast } = useToast();
+    const myTickets = useQuery(api.tickets.getMyTickets) ?? [];
     
     if (!user) return null;
 
-    const isOrganizer = user.role === 'organizer';
-    const qrData = JSON.stringify({ registrationId: user.registrationId, name: user.name, id: user.id });
+    const isOrganizer = user.role === 'organizer' || user.role === 'admin';
+    
+    // Use ticketNumber as QR data (plain string) – must match what scanner expects
+    const firstTicket = myTickets[0];
+    const qrData = firstTicket?.ticketNumber ?? user.registrationId ?? 'NO-TICKET';
     const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(qrData)}`;
     
-    const handleManualCheckIn = () => {
-        if (!user.checkedIn) {
-            updateUser({ checkedIn: true });
-            awardPoints(25);
-        }
-    };
-
-    const handleScanSuccess = (scannedUser: any) => {
+    const handleScanSuccess = (scannedData: any) => {
         setIsScannerOpen(false);
-        // Note: checkInUser in hook currently only checks in viewer.
-        // For organizer to check in others, we need a different mutation.
-        checkInUser();
         toast({
-            title: 'Check-in Successful',
-            description: `${scannedUser.name} has been checked in.`,
+            title: 'Scan Captured',
+            description: `Scanned: ${typeof scannedData === 'string' ? scannedData : scannedData?.name ?? 'Unknown'}. Use the Check-in Scanner page for full processing.`,
         });
     };
 
@@ -45,7 +41,7 @@ export default function CheckInPage() {
                 <div>
                     <h1 className="text-4xl font-bold font-headline mb-4">{isOrganizer ? 'Check-in Desk' : 'My Check-in'}</h1>
                     <p className="text-muted-foreground mb-8">
-                        {isOrganizer ? 'Scan attendee QR codes to check them in.' : 'Present your QR code or registration ID at the check-in desk.'}
+                        {isOrganizer ? 'Scan attendee QR codes to check them in.' : 'Present your QR code at the check-in desk.'}
                     </p>
                 </div>
                 {isOrganizer && (
@@ -72,10 +68,16 @@ export default function CheckInPage() {
                             <QrCode /> Your Check-in Code
                         </CardTitle>
                         <CardDescription>
-                            Your current status is: 
-                            <span className={user.checkedIn ? 'text-green-500 font-bold' : 'text-red-500 font-bold'}>
-                                {user.checkedIn ? ' CHECKED IN' : ' NOT CHECKED IN'}
-                            </span>
+                            {firstTicket ? (
+                                <>
+                                    Status:{' '}
+                                    <span className={firstTicket.status === 'checked-in' ? 'text-green-500 font-bold' : 'text-yellow-500 font-bold'}>
+                                        {firstTicket.status === 'checked-in' ? ' CHECKED IN' : ' NOT CHECKED IN'}
+                                    </span>
+                                </>
+                            ) : (
+                                <span className="text-muted-foreground">No tickets found. Register for an event first.</span>
+                            )}
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="flex flex-col items-center gap-6">
@@ -89,14 +91,13 @@ export default function CheckInPage() {
                             />
                         </div>
                         <div>
-                            <p className="text-sm text-muted-foreground">Registration ID</p>
-                            <p className="font-mono text-2xl font-bold tracking-widest">{user.registrationId}</p>
+                            <p className="text-sm text-muted-foreground">Ticket Number</p>
+                            <p className="font-mono text-2xl font-bold tracking-widest">{qrData}</p>
                         </div>
-                        {!user.checkedIn && !isOrganizer && (
-                            <Button onClick={handleManualCheckIn}>
-                                <Check className="mr-2 h-4 w-4"/>
-                                Manually Mark as Checked-in (Demo)
-                            </Button>
+                        {firstTicket?.event && (
+                            <div className="text-sm text-muted-foreground">
+                                Event: <span className="font-medium text-foreground">{firstTicket.event.title}</span>
+                            </div>
                         )}
                     </CardContent>
                 </Card>

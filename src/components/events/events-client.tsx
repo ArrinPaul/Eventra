@@ -101,7 +101,7 @@ export default function EventsClient() {
           status: 'published',
           registeredCount: 0,
           capacity: eventData.capacity || 100,
-          organizerId: user?.uid as any,
+          organizerId: (user?._id || user?.id) as any,
           type: eventData.type || 'event',
           category: eventData.category || 'general',
           description: eventData.description || '',

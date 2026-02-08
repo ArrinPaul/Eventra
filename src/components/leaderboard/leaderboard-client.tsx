@@ -21,7 +21,7 @@ export default function LeaderboardClient() {
             ...u,
             id: u._id,
             displayPoints: u.points || 0,
-            photoURL: u.image || u.photoURL,
+            avatar: u.image || '',
         }))
         .sort((a: any, b: any) => b.displayPoints - a.displayPoints);
 
@@ -38,7 +38,7 @@ export default function LeaderboardClient() {
                         {rankedUsers.map((u: any, i: number) => (
                             <TableRow key={u.id} className={cn((currentUser?._id || currentUser?.id) === u.id && "bg-primary/10")}>
                                 <TableCell className="font-bold">{i + 1}</TableCell>
-                                <TableCell><div className="flex items-center gap-3"><Avatar><AvatarImage src={u.photoURL} /><AvatarFallback>{u.name?.charAt(0)}</AvatarFallback></Avatar><div><p className="font-medium">{u.name}</p><p className="text-xs text-gray-400 capitalize">{u.role}</p></div></div></TableCell>
+                                <TableCell><div className="flex items-center gap-3"><Avatar><AvatarImage src={u.avatar} /><AvatarFallback>{u.name?.charAt(0)}</AvatarFallback></Avatar><div><p className="font-medium">{u.name}</p><p className="text-xs text-gray-400 capitalize">{u.role}</p></div></div></TableCell>
                                 <TableCell className="text-right font-bold text-lg">{u.displayPoints}</TableCell>
                             </TableRow>
                         ))}

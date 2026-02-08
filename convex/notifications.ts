@@ -4,44 +4,58 @@ import { auth } from "./auth";
 
 export const get = query({
   args: {},
-  handler: async (ctx: any) => {
+  handler: async (ctx) => {
     const userId = await auth.getUserId(ctx);
     if (!userId) return [];
-    
+
     return await ctx.db
       .query("notifications")
-      .withIndex("by_user", (q: any) => q.eq("userId", userId))
+      .withIndex("by_user", (q) => q.eq("userId", userId))
       .order("desc")
       .collect();
   },
 });
 
+export const getUnreadCount = query({
+  args: {},
+  handler: async (ctx) => {
+    const userId = await auth.getUserId(ctx);
+    if (!userId) return 0;
+
+    const unread = await ctx.db
+      .query("notifications")
+      .withIndex("by_user_read", (q) => q.eq("userId", userId).eq("read", false))
+      .collect();
+
+    return unread.length;
+  },
+});
+
 export const markRead = mutation({
   args: { id: v.id("notifications") },
-  handler: async (ctx: any, args: any) => {
+  handler: async (ctx, args) => {
     await ctx.db.patch(args.id, { read: true });
   },
 });
 
 export const deleteNotification = mutation({
   args: { id: v.id("notifications") },
-  handler: async (ctx: any, args: any) => {
+  handler: async (ctx, args) => {
     await ctx.db.delete(args.id);
   },
 });
 
 export const markAllRead = mutation({
   args: {},
-  handler: async (ctx: any) => {
+  handler: async (ctx) => {
     const userId = await auth.getUserId(ctx);
     if (!userId) return;
-    
+
     const unread = await ctx.db
       .query("notifications")
-      .withIndex("by_user", (q: any) => q.eq("userId", userId))
-      .filter((q: any) => q.eq(q.field("read"), false))
+      .withIndex("by_user_read", (q) => q.eq("userId", userId).eq("read", false))
       .collect();
-      
+
     for (const n of unread) {
       await ctx.db.patch(n._id, { read: true });
     }
@@ -56,11 +70,35 @@ export const create = mutation({
     type: v.string(),
     link: v.optional(v.string()),
   },
-  handler: async (ctx: any, args: any) => {
+  handler: async (ctx, args) => {
+    // Check notification preferences
+    const user = await ctx.db.get(args.userId);
+    if (user?.notificationPreferences) {
+      const prefs = user.notificationPreferences as Record<string, boolean>;
+      if (prefs[args.type] === false) return null; // User opted out
+    }
+
     return await ctx.db.insert("notifications", {
       ...args,
       read: false,
       createdAt: Date.now(),
     });
+  },
+});
+
+export const clearAll = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const userId = await auth.getUserId(ctx);
+    if (!userId) return;
+
+    const all = await ctx.db
+      .query("notifications")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .collect();
+
+    for (const n of all) {
+      await ctx.db.delete(n._id);
+    }
   },
 });

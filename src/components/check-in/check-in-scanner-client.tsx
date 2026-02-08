@@ -71,7 +71,10 @@ export default function CheckInScannerClient() {
 
   const handleProcessCheckIn = async (ticketNumber: string) => {
     try {
-      const response = await checkInTicketMutation({ ticketNumber });
+      const response = await checkInTicketMutation({ 
+        ticketNumber,
+        eventId: selectedEvent ? (selectedEvent as any) : undefined,
+      });
       const result: ScanResult = {
         success: true,
         ticket: response.ticket,

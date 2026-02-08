@@ -116,7 +116,7 @@ export default function UserManagement() {
       eventsAttended: u.eventsAttended || 0,
       points: u.points || 0,
       status: u.status || 'active',
-      photoURL: u.image || u.photoURL,
+      photoURL: u.image || '',
     }));
 
     if (filters.status !== 'all') {

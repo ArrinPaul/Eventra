@@ -11,12 +11,6 @@ interface AuthContextType {
   awardPoints: (points: number) => Promise<void>;
   checkInUser: () => Promise<void>;
   isAuthenticated: boolean;
-  // Legacy placeholders to prevent build errors in un-migrated components
-  login?: (email: string) => Promise<any>;
-  register?: (userData: any) => Promise<any>;
-  addEventToUser?: (sessionId: string, force?: boolean) => Promise<void>;
-  removeEventFromUser?: (sessionId: string) => Promise<void>;
-  refreshUser?: () => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -32,12 +26,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     updateUser: auth.updateUser,
     awardPoints: auth.awardPoints,
     checkInUser: auth.checkInUser,
-    // Placeholders
-    login: async () => {},
-    register: auth.updateUser,
-    addEventToUser: async () => {},
-    removeEventFromUser: async () => {},
-    refreshUser: async () => {},
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

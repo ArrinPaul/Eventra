@@ -9,11 +9,9 @@ export type UserRole = 'student' | 'professional' | 'organizer' | 'admin' | 'spe
 export interface User {
   _id?: string;
   id: string;
-  uid?: string; // Legacy alias
   name: string;
   email: string;
   image?: string;
-  photoURL?: string; // Legacy alias
   role: UserRole;
   onboardingCompleted?: boolean;
   bio?: string;
@@ -26,12 +24,15 @@ export interface User {
   country?: string;
   gender?: string;
   points?: number;
+  level?: number;
   checkedIn?: boolean;
   myEvents?: string[];
   wishlist?: string[];
   eventRatings?: Record<string, number>;
   organizationId?: string;
   mobile?: string;
+  registrationId?: string;
+  notificationPreferences?: Record<string, boolean>;
 }
 
 export interface Event {
@@ -41,21 +42,17 @@ export interface Event {
   description: string;
   startDate: number | Date;
   endDate: number | Date;
-  date?: string; // Legacy compatibility
-  time?: string; // Legacy compatibility
+  date?: string;
+  time?: string;
   location: any;
   type: string;
   category: string;
   status: string;
   organizerId: string;
   imageUrl?: string;
-  image?: string; // Legacy alias
   capacity: number;
   registeredCount: number;
-  registeredUsers?: string[]; // Legacy compatibility
-  attendees?: string[]; // Legacy compatibility
   visibility?: 'public' | 'private' | 'unlisted';
-  pricing?: { isFree?: boolean; type?: string; price?: number };
   tags?: string[];
   isPaid?: boolean;
   price?: number;
@@ -79,12 +76,12 @@ export interface EventTicket {
   price: number;
   currency?: string;
   qrCode?: string;
-  attendeeName: string;
-  attendeeEmail: string;
+  attendeeName?: string;
+  attendeeEmail?: string;
   event?: Partial<Event>;
 }
 
-export interface LegacySession {
+export interface Session {
   id: string;
   title: string;
   speaker: string;
@@ -99,16 +96,13 @@ export interface LegacySession {
   room?: string;
 }
 
-export type Session = LegacySession;
-export type LegacyEvent = Event;
-
 export function getUserInterests(user: User | null): string[] {
   if (!user?.interests) return [];
   return user.interests.split(',').map(s => s.trim());
 }
 
-export function getUserSkills(user: User | null): string[] {
-  return []; // Placeholder
+export function getUserSkills(_user: User | null): string[] {
+  return [];
 }
 
 export function getUserAttendedEvents(user: User | null): string[] {
@@ -131,8 +125,30 @@ export interface ChatMessage {
   senderId: string;
   content: string;
   sentAt: number;
+  senderName?: string;
+  senderImage?: string;
 }
 
-export interface Community { _id?: string; id: string; name: string; description: string; category: string; memberCount: number; }
-export interface FeedPost { _id?: string; id: string; authorId: string; content: string; likes: number; createdAt: number; }
+export interface Community {
+  _id?: string;
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  memberCount: number;
+  isPrivate?: boolean;
+}
+
+export interface FeedPost {
+  _id?: string;
+  id: string;
+  authorId: string;
+  content: string;
+  likes: number;
+  createdAt: number;
+  authorName?: string;
+  authorImage?: string;
+  communityId?: string;
+}
+
 export interface UserProfile extends User {}
