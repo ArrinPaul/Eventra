@@ -64,5 +64,6 @@ export const api: any = {
   registrations: {
     register: "registrations:register",
     getRegistration: "registrations:getRegistration",
+    getByEvents: "registrations:getByEvents",
   }
 };

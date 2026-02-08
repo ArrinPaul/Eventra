@@ -1,7 +1,11 @@
 'use server';
 
 import { generateEventRecommendations, EventRecommendationInput } from '@/ai/flows/recommendation-engine';
-import type { Event } from '@/types';
+import type { Event, User } from '@/types';
+import { ConvexHttpClient } from "convex/browser";
+import { api } from "../../../convex/_generated/api";
+
+const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
 export interface AIRecommendation {
   eventId: string;
@@ -25,18 +29,51 @@ export interface AIRecommendationsResult {
  */
 export async function getAIRecommendations(
   userId: string,
-  userInterests: string[],
-  userSkills: string[],
-  pastEventTypes: string[],
-  availableEvents: Event[]
+  userInterests?: string[],
+  userSkills?: string[],
+  pastEventTypes?: string[],
+  availableEvents?: Event[]
 ): Promise<AIRecommendationsResult> {
   try {
-    // Transform events to the format expected by the AI flow
-    const transformedEvents = availableEvents.slice(0, 20).map(event => {
+    let events = availableEvents;
+    let interests = userInterests;
+    let skills = userSkills;
+    let history = pastEventTypes;
+
+    // 1. Fetch data from Convex if not provided
+    if (!events || events.length === 0) {
+      const allEvents = await convex.query(api.events.get);
+      events = allEvents.map((e: any) => ({ ...e, id: e._id }));
+    }
+
+    if (!interests || !skills) {
+      const user = await convex.query(api.users.list).then((users: any[]) => 
+        users.find(u => u._id === userId || u.id === userId)
+      ) as User | undefined;
+
+      if (user) {
+        interests = interests || (user.interests ? user.interests.split(',').map(i => i.trim()) : []);
+        skills = skills || []; // Could be fetched from a skills table if it existed
+        history = history || user.myEvents || [];
+      }
+    }
+
+    // Ensure we have defaults
+    interests = interests || ['Tech', 'Networking', 'Career'];
+    skills = skills || ['learning', 'professional development'];
+    history = history || [];
+    const eventsToProcess = (events || []).filter(e => e.status !== 'cancelled').slice(0, 30);
+
+    if (eventsToProcess.length === 0) {
+      return { recommendations: [], error: 'No active events found for recommendations' };
+    }
+
+    // 2. Transform events to the format expected by the AI flow
+    const transformedEvents = eventsToProcess.map(event => {
       // Access extended event properties that may not be on the base Event type
       const eventData = event as Event & { difficulty?: 'advanced' | 'intermediate' | 'beginner' };
       return {
-        id: event.id,
+        id: event.id || (event as any)._id,
         title: event.title,
         description: event.description || '',
         type: event.category || 'General',
@@ -60,23 +97,23 @@ export async function getAIRecommendations(
       };
     });
 
-    // Build user behavior profile
+    // 3. Build user behavior profile
     const userBehavior: EventRecommendationInput['userBehavior'] = {
       userId,
-      eventAttendanceHistory: pastEventTypes.map((type, i) => ({
+      eventAttendanceHistory: history.map((type, i) => ({
         eventId: `past-${i}`,
-        eventType: type,
+        eventType: typeof type === 'string' ? type : 'Workshop',
         rating: 4
       })),
       engagementPatterns: {
-        preferredEventTypes: userInterests.length > 0 ? userInterests : ['Tech', 'Networking', 'Workshop'],
+        preferredEventTypes: interests.length > 0 ? interests : ['Tech', 'Networking', 'Workshop'],
         preferredTimeSlots: ['evening', 'weekend'],
         networkingStyle: 'moderate',
         learningPreferences: ['hands-on', 'discussion']
       },
-      skillDevelopmentGoals: userSkills.length > 0 ? userSkills : ['networking', 'professional development'],
+      skillDevelopmentGoals: skills.length > 0 ? skills : ['networking', 'professional development'],
       networkingGoals: ['expand network', 'find mentors'],
-      currentFocus: userInterests.length > 0 ? userInterests : ['career growth']
+      currentFocus: interests.length > 0 ? interests : ['career growth']
     };
 
     const contextualFactors = {
@@ -85,14 +122,14 @@ export async function getAIRecommendations(
       trendingTopics: ['AI', 'sustainability', 'remote work']
     };
 
-    // Call the AI flow
+    // 4. Call the AI flow
     const result = await generateEventRecommendations({
       userBehavior,
       availableEvents: transformedEvents,
       contextualFactors
     });
 
-    // Transform recommendations back to our simpler format
+    // 5. Transform recommendations back to our simpler format
     const recommendations: AIRecommendation[] = result.recommendations.map(rec => ({
       eventId: rec.eventId,
       relevanceScore: rec.relevanceScore,
@@ -113,7 +150,7 @@ export async function getAIRecommendations(
     console.error('AI Recommendations error:', error);
     
     // Return fallback recommendations based on simple matching
-    const fallbackRecs = generateFallbackRecommendations(availableEvents, userInterests);
+    const fallbackRecs = generateFallbackRecommendations(availableEvents || [], userInterests || []);
     
     return {
       recommendations: fallbackRecs,

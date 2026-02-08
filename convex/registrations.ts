@@ -76,9 +76,46 @@ export const getRegistration = query({
     const userId = await auth.getUserId(ctx);
     if (!userId) return null;
     
-    return await ctx.db
-      .query("registrations")
-      .withIndex("by_event_user", (q: any) => q.eq("eventId", args.eventId).eq("userId", userId))
-      .unique();
-  },
-});
+        return await ctx.db
+    
+          .query("registrations")
+    
+          .withIndex("by_event_user", (q: any) => q.eq("eventId", args.eventId).eq("userId", userId))
+    
+          .unique();
+    
+      },
+    
+    });
+    
+    
+    
+    export const getByEvents = query({
+    
+      args: { eventIds: v.array(v.id("events")) },
+    
+      handler: async (ctx: any, args: any) => {
+    
+        const allRegs = [];
+    
+        for (const eventId of args.eventIds) {
+    
+          const regs = await ctx.db
+    
+            .query("registrations")
+    
+            .withIndex("by_event", (q: any) => q.eq("eventId", eventId))
+    
+            .collect();
+    
+          allRegs.push(...regs);
+    
+        }
+    
+        return allRegs;
+    
+      },
+    
+    });
+    
+    

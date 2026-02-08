@@ -36,9 +36,19 @@ export function MyEventCard({
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
 
-  const displayDate = event.startDate 
-    ? (typeof event.startDate === 'object' && 'toDate' in event.startDate ? (event.startDate as { toDate: () => Date }).toDate() : new Date(event.startDate))
-    : (event.date ? new Date(event.date) : new Date());
+  const parseDate = (dateVal: any): Date => {
+    if (!dateVal) return new Date();
+    if (dateVal instanceof Date) return dateVal;
+    if (typeof dateVal === 'number') return new Date(dateVal);
+    if (typeof dateVal === 'string') return new Date(dateVal);
+    // Legacy support for Firestore-like objects
+    if (typeof dateVal === 'object' && 'toDate' in dateVal && typeof dateVal.toDate === 'function') {
+      return dateVal.toDate();
+    }
+    return new Date(dateVal);
+  };
+
+  const displayDate = parseDate(event.startDate);
 
   const eventImage = event.imageUrl || event.image || `https://picsum.photos/seed/${event.id}/800/600`;
 
@@ -46,9 +56,7 @@ export function MyEventCard({
   const getLiveStatus = () => {
     const now = new Date();
     const eventDate = displayDate;
-    const endDate = event.endDate 
-      ? (typeof event.endDate === 'object' && 'toDate' in event.endDate ? (event.endDate as { toDate: () => Date }).toDate() : new Date(event.endDate))
-      : new Date(eventDate.getTime() + 3 * 60 * 60 * 1000); // Default 3 hours
+    const endDate = event.endDate ? parseDate(event.endDate) : new Date(eventDate.getTime() + 3 * 60 * 60 * 1000); // Default 3 hours
 
     // Event is live now
     if (now >= eventDate && now <= endDate) {

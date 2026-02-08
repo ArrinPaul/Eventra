@@ -5,9 +5,8 @@ export const loginSchema = z.object({
   password: z.string().min(1, { message: 'Password is required.' }),
 });
 
-// Base fields without refine (so we can extend)
-const baseFields = {
-  role: z.enum(['student', 'professional', 'organizer']),
+// Common fields for all registration types
+const commonFields = {
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
   email: z.string().email({ message: 'Please enter a valid email address.' }),
   password: z.string().min(6, { message: 'Password must be at least 6 characters.' }),
@@ -18,34 +17,25 @@ const baseFields = {
   emergencyContactNumber: z.string().min(10, { message: 'Emergency contact number is required.' }),
 };
 
-// Password match refinement
-const passwordMatch = (data: { password: string; confirmPassword: string }) => 
-  data.password === data.confirmPassword;
-
-const passwordMatchError = {
-  message: "Passwords don't match",
-  path: ["confirmPassword"],
-};
-
-export const baseRegisterSchema = z.object(baseFields).refine(passwordMatch, passwordMatchError);
+const passwordMatchRefine = [
+  (data: any) => data.password === data.confirmPassword,
+  {
+    message: "Passwords don't match",
+    path: ["confirmPassword"],
+  }
+] as const;
 
 export const studentSchema = z.object({
-  ...baseFields,
+  ...commonFields,
   role: z.literal('student'),
   interests: z.string().min(3, { message: 'Please list at least one interest.' }),
   college: z.string().min(2, { message: 'College name is required.' }),
   degree: z.enum(['ug', 'pg']),
   year: z.coerce.number().min(1).max(5),
-  company: z.string().optional(),
-  designation: z.string().optional(),
-  country: z.string().optional(),
-  gender: z.string().optional(),
-  bloodGroup: z.string().optional(),
-  verificationCode: z.string().optional(),
-}).refine(passwordMatch, passwordMatchError);
+}).refine(...passwordMatchRefine);
 
 export const professionalSchema = z.object({
-  ...baseFields,
+  ...commonFields,
   role: z.literal('professional'),
   interests: z.string().min(3, { message: 'Please list at least one interest.' }),
   company: z.string().min(2, { message: 'Company name is required.' }),
@@ -53,26 +43,21 @@ export const professionalSchema = z.object({
   country: z.string().min(2, { message: 'Country is required.' }),
   gender: z.enum(['male', 'female', 'other', 'prefer-not-to-say']),
   bloodGroup: z.string().min(1, { message: 'Blood group is required.' }),
-  college: z.string().optional(),
-  degree: z.string().optional(),
-  year: z.coerce.number().optional(),
-  verificationCode: z.string().optional(),
-}).refine(passwordMatch, passwordMatchError);
+}).refine(...passwordMatchRefine);
 
 export const organizerSchema = z.object({
-  ...baseFields,
+  ...commonFields,
   role: z.literal('organizer'),
   company: z.string().min(2, { message: 'Organization Name is required.' }),
   designation: z.string().min(2, { message: 'Position is required.' }),
   verificationCode: z.string().min(1, { message: "Organizer verification code is required." }),
-  interests: z.string().optional(),
-  college: z.string().optional(),
-  degree: z.string().optional(),
-  year: z.coerce.number().optional(),
-  country: z.string().optional(),
-  gender: z.string().optional(),
-  bloodGroup: z.string().optional(),
-}).refine(passwordMatch, passwordMatchError);
+}).refine(...passwordMatchRefine);
+
+export const registerSchema = z.discriminatedUnion('role', [
+  z.object({ ...commonFields, role: z.literal('student'), interests: z.string().min(3), college: z.string(), degree: z.enum(['ug', 'pg']), year: z.coerce.number() }),
+  z.object({ ...commonFields, role: z.literal('professional'), interests: z.string().min(3), company: z.string(), designation: z.string(), country: z.string(), gender: z.enum(['male', 'female', 'other', 'prefer-not-to-say']), bloodGroup: z.string() }),
+  z.object({ ...commonFields, role: z.literal('organizer'), company: z.string(), designation: z.string(), verificationCode: z.string() }),
+]).refine(...passwordMatchRefine);
 
 export type LoginFormData = z.infer<typeof loginSchema>;
 export type RegisterFormData = z.infer<typeof studentSchema> | z.infer<typeof professionalSchema> | z.infer<typeof organizerSchema>;

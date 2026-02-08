@@ -26,6 +26,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
+import { EventChatbot, ChatbotTrigger } from '@/components/ai/event-chatbot';
 
 export default function EventDetailsClient({ eventId }: { eventId: string }) {
   const router = useRouter();
@@ -37,6 +38,7 @@ export default function EventDetailsClient({ eventId }: { eventId: string }) {
   const registerMutation = useMutation(api.registrations.register);
   
   const [registering, setRegistering] = useState(false);
+  const [showChatbot, setShowChatbot] = useState(false);
 
   const handleRegister = async () => {
     if (!user) {
@@ -96,6 +98,26 @@ export default function EventDetailsClient({ eventId }: { eventId: string }) {
           </div>
         </div>
       </div>
+
+      {/* AI Chatbot */}
+      {showChatbot ? (
+        <div className="fixed bottom-6 right-6 z-50 w-80 md:w-96">
+          <EventChatbot 
+            event={{
+              id: event._id,
+              title: event.title,
+              description: event.description,
+              date: new Date(event.startDate).toLocaleDateString(),
+              location: typeof event.location === 'string' ? event.location : event.location?.venue?.name,
+              category: event.category,
+              agenda: event.agenda,
+            } as any}
+            onClose={() => setShowChatbot(false)}
+          />
+        </div>
+      ) : (
+        <ChatbotTrigger onClick={() => setShowChatbot(true)} />
+      )}
     </div>
   );
 }
