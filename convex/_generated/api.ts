@@ -1,5 +1,3 @@
-import { GenericId } from "convex/values";
-
 export const api: any = {
   users: {
     viewer: "users:viewer",
@@ -19,9 +17,16 @@ export const api: any = {
   tickets: {
     getByEventId: "tickets:getByEventId",
     getByUserId: "tickets:getByUserId",
-    create: "tickets:create",
+    createTicket: "tickets:createTicket",
+    updateTicketStatus: "tickets:updateTicketStatus",
     getTicketByNumber: "tickets:getTicketByNumber",
     checkInTicket: "tickets:checkInTicket",
+  },
+  chat: {
+    getRooms: "chat:getRooms",
+    getMessages: "chat:getMessages",
+    sendMessage: "chat:sendMessage",
+    createRoom: "chat:createRoom",
   },
   notifications: {
     get: "notifications:get",
@@ -30,34 +35,34 @@ export const api: any = {
     markAllRead: "notifications:markAllRead",
   },
   files: {
-    generateUploadUrl: "files:generateUploadUrl",
+    getUrl: "files:getUrl",
     saveFile: "files:saveFile",
-    getMetadata: "files:getMetadata",
   },
-  chat: {
-    getRooms: "chat:getRooms",
-    getMessages: "chat:getMessages",
-    sendMessage: "chat:sendMessage",
-    createRoom: "chat:createRoom",
+  admin: {
+    getUsers: "admin:getUsers",
+    updateUserRole: "admin:updateUserRole",
+    updateUserStatus: "admin:updateUserStatus",
   },
   communities: {
     list: "communities:list",
     getById: "communities:getById",
     create: "communities:create",
     join: "communities:join",
+    getMemberStatus: "communities:getMemberStatus",
   },
   posts: {
     list: "posts:list",
     create: "posts:create",
     like: "posts:like",
   },
+  gamification: {
+    getBadgeDefinitions: "gamification:getBadgeDefinitions",
+    getUserBadges: "gamification:getUserBadges",
+    getPointsHistory: "gamification:getPointsHistory",
+    awardBadge: "gamification:awardBadge",
+  },
   registrations: {
     register: "registrations:register",
     getRegistration: "registrations:getRegistration",
-  },
-  admin: {
-    getUsers: "admin:getUsers",
-    updateUserRole: "admin:updateUserRole",
-    updateUserStatus: "admin:updateUserStatus",
   }
 };

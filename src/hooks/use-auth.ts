@@ -19,14 +19,31 @@ export const useAuth = () => {
     isAuthenticated,
     logout: signOut,
     signIn,
-    updateUser: (data: any) => updateUserMutation(data),
-    awardPoints: (points: number) => awardPointsMutation({ points }),
-    checkInUser: () => checkInMutation(),
-    // Shim for register if needed, though usually handled by flow
+    updateUser: async (data: any) => {
+        try {
+            return await updateUserMutation(data);
+        } catch (e) {
+            console.error("Update user failed", e);
+            throw e;
+        }
+    },
+    awardPoints: async (points: number) => {
+        try {
+            return await awardPointsMutation({ points });
+        } catch (e) {
+            console.error("Award points failed", e);
+        }
+    },
+    checkInUser: async () => {
+        try {
+            return await checkInMutation();
+        } catch (e) {
+            console.error("Check-in failed", e);
+        }
+    },
     register: async (data: any) => {
-        // Logic to update user profile after initial auth
         return updateUserMutation(data);
     },
-    users: [], // Shim for components expecting users list from auth (admin only usually)
+    users: [],
   };
 };

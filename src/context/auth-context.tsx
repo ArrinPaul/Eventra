@@ -7,33 +7,36 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   logout: () => Promise<void>;
-  // Add other methods as placeholders to prevent breaking components
-  login: (email: string) => Promise<any>;
-  register: (userData: any) => Promise<any>;
   updateUser: (updatedUser: any) => Promise<any>;
-  addEventToUser: (sessionId: string, force?: boolean) => Promise<void>;
-  removeEventFromUser: (sessionId: string) => Promise<void>;
-  awardPoints: (points: number, message?: string) => Promise<void>;
-  checkInUser: (registrationId: string) => Promise<void>;
-  refreshUser: () => Promise<void>;
+  awardPoints: (points: number) => Promise<void>;
+  checkInUser: () => Promise<void>;
+  isAuthenticated: boolean;
+  // Legacy placeholders to prevent build errors in un-migrated components
+  login?: (email: string) => Promise<any>;
+  register?: (userData: any) => Promise<any>;
+  addEventToUser?: (sessionId: string, force?: boolean) => Promise<void>;
+  removeEventFromUser?: (sessionId: string) => Promise<void>;
+  refreshUser?: () => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const { user, loading, logout } = useConvexAuthHook();
+  const auth = useConvexAuthHook();
 
   const value: AuthContextType = {
-    user: user as unknown as User,
-    loading,
-    logout: logout as any,
+    user: auth.user as unknown as User,
+    loading: auth.loading,
+    logout: auth.logout as any,
+    isAuthenticated: auth.isAuthenticated,
+    updateUser: auth.updateUser,
+    awardPoints: auth.awardPoints,
+    checkInUser: auth.checkInUser,
+    // Placeholders
     login: async () => {},
-    register: async () => ({}) as any,
-    updateUser: async () => {},
+    register: auth.updateUser,
     addEventToUser: async () => {},
     removeEventFromUser: async () => {},
-    awardPoints: async () => {},
-    checkInUser: async () => {},
     refreshUser: async () => {},
   };
 

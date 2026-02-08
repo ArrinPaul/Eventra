@@ -27,12 +27,21 @@ export const create = mutation({
     const userId = await auth.getUserId(ctx);
     if (!userId) throw new Error("Unauthorized");
     
-    return await ctx.db.insert("communities", {
+    const communityId = await ctx.db.insert("communities", {
       ...args,
       createdBy: userId,
       membersCount: 1,
       imageUrl: "",
     });
+
+    await ctx.db.insert("community_members", {
+      communityId,
+      userId,
+      role: "admin",
+      joinedAt: Date.now(),
+    });
+
+    return communityId;
   },
 });
 
@@ -45,8 +54,35 @@ export const join = mutation({
     const community = await ctx.db.get(args.id);
     if (!community) throw new Error("Not found");
     
+    const existing = await ctx.db
+      .query("community_members")
+      .withIndex("by_community_user", (q: any) => q.eq("communityId", args.id).eq("userId", userId))
+      .unique();
+      
+    if (existing) return;
+
+    await ctx.db.insert("community_members", {
+      communityId: args.id,
+      userId,
+      role: "member",
+      joinedAt: Date.now(),
+    });
+
     await ctx.db.patch(args.id, {
       membersCount: community.membersCount + 1,
     });
+  },
+});
+
+export const getMemberStatus = query({
+  args: { communityId: v.id("communities") },
+  handler: async (ctx: any, args: any) => {
+    const userId = await auth.getUserId(ctx);
+    if (!userId) return null;
+    
+    return await ctx.db
+      .query("community_members")
+      .withIndex("by_community_user", (q: any) => q.eq("communityId", args.communityId).eq("userId", userId))
+      .unique();
   },
 });

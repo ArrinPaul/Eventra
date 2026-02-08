@@ -88,7 +88,7 @@ export default defineSchema({
     userId: v.id("users"),
     ticketTypeId: v.optional(v.string()),
     ticketNumber: v.string(),
-    status: v.string(),
+    status: v.string(), // confirmed, pending, cancelled, checked-in, refunded
     price: v.number(),
     purchaseDate: v.number(),
     qrCode: v.optional(v.string()),
@@ -108,15 +108,25 @@ export default defineSchema({
   badges: defineTable({
     name: v.string(),
     description: v.string(),
-    imageUrl: v.string(),
+    imageUrl: v.optional(v.string()),
+    icon: v.string(), // emoji or lucide icon name
     criteria: v.string(),
     category: v.string(),
+    xpReward: v.number(),
+    rarity: v.union(v.literal("common"), v.literal("uncommon"), v.literal("rare"), v.literal("epic"), v.literal("legendary")),
   }),
 
   user_badges: defineTable({
     userId: v.id("users"),
     badgeId: v.id("badges"),
     awardedAt: v.number(),
+  }).index("by_user", ["userId"]),
+
+  points_history: defineTable({
+    userId: v.id("users"),
+    points: v.number(),
+    reason: v.string(),
+    createdAt: v.number(),
   }).index("by_user", ["userId"]),
 
   communities: defineTable({
@@ -126,7 +136,15 @@ export default defineSchema({
     createdBy: v.id("users"),
     isPrivate: v.boolean(),
     membersCount: v.number(),
+    category: v.string(),
   }),
+
+  community_members: defineTable({
+    communityId: v.id("communities"),
+    userId: v.id("users"),
+    role: v.string(), // member, moderator, admin
+    joinedAt: v.number(),
+  }).index("by_community", ["communityId"]).index("by_user", ["userId"]).index("by_community_user", ["communityId", "userId"]),
 
   community_posts: defineTable({
     communityId: v.id("communities"),
