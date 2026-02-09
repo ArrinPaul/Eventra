@@ -19,6 +19,7 @@ import {
   Loader2
 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
+import { AIInsightsWidget } from './ai-insights-widget';
 
 export default function AnalyticsDashboard() {
   const [selectedTab, setSelectedTab] = useState('overview');
@@ -31,6 +32,10 @@ export default function AnalyticsDashboard() {
       </div>
     );
   }
+
+  const popularityData = Object.entries(analytics.eventsByCategory || {})
+    .map(([cat, count]) => `${cat}: ${count} events`)
+    .join(', ');
 
   const statCards = [
     { label: 'Total Events', value: analytics.totalEvents, icon: Calendar, color: 'text-cyan-400', bg: 'bg-cyan-500/10' },
@@ -74,6 +79,12 @@ export default function AnalyticsDashboard() {
               </Card>
             ))}
           </div>
+
+          <AIInsightsWidget 
+            sessionPopularityData={popularityData} 
+            title="Platform AI Insights"
+            className="mb-6"
+          />
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Card className="bg-white/5 border-white/10 text-white">

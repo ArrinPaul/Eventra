@@ -27,6 +27,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import { CertificateViewer } from '@/components/certificates/certificate-card';
+import { generateCertificateHtml } from '@/core/utils/certificate-generator';
 
 export function CertificatesClient() {
   const { user } = useAuth();
@@ -37,6 +39,8 @@ export function CertificatesClient() {
   const [verifyNumber, setVerifyNumber] = useState('');
   const [verifyResult, setVerifyResult] = useState<any>(null);
   const [verifying, setVerifying] = useState(false);
+  
+  const [selectedCert, setSelectedCert] = useState<any>(null);
   
   const loading = certificatesRaw === undefined;
 
@@ -218,18 +222,32 @@ Verified by Eventra Platform
                 </div>
 
                 <div className="flex gap-2">
-                  <Button className="flex-1 bg-white text-black hover:bg-gray-200" onClick={() => handleDownload(cert)}>
-                    <Download className="w-4 h-4 mr-2" />
-                    Download
+                  <Button className="flex-1 bg-white text-black hover:bg-gray-200" onClick={() => setSelectedCert(cert)}>
+                    <ExternalLink className="w-4 h-4 mr-2" />
+                    View
                   </Button>
-                  <Button variant="outline" className="border-white/10 aspect-square p-0 w-10" onClick={() => { setVerifyNumber(cert.certificateNumber); }}>
-                    <ExternalLink className="w-4 h-4" />
+                  <Button variant="outline" className="border-white/10 aspect-square p-0 w-10" onClick={() => handleDownload(cert)}>
+                    <Download className="w-4 h-4" />
                   </Button>
                 </div>
               </CardContent>
             </Card>
           ))}
         </div>
+      )}
+
+      {selectedCert && (
+        <CertificateViewer 
+          certificateId={selectedCert.certificateNumber}
+          onClose={() => setSelectedCert(null)}
+          html={generateCertificateHtml({
+            recipientName: user?.name || 'Attendee',
+            eventTitle: selectedCert.event?.title || 'Event',
+            issueDate: format(selectedCert.issueDate, 'MMMM dd, yyyy'),
+            certificateNumber: selectedCert.certificateNumber,
+            personalizedMessage: selectedCert.personalizedMessage
+          })}
+        />
       )}
 
       {/* Verification Badge */}

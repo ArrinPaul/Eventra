@@ -70,3 +70,18 @@ export async function getOrganizerAnalytics(userId: string): Promise<OrganizerAn
     };
   }
 }
+
+/**
+ * Get AI-powered analytics insights for a generic set of event data
+ */
+export async function getAIAnalyticsInsights(sessionPopularity: string): Promise<string> {
+  try {
+    const result = await generateAnalyticsInsights({
+      sessionPopularity
+    });
+    return result.insights;
+  } catch (error) {
+    console.error('AI Analytics error:', error);
+    return "Insights are currently unavailable. Please try again later.";
+  }
+}

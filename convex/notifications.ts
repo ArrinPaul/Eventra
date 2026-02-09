@@ -16,6 +16,22 @@ export const get = query({
   },
 });
 
+export const list = query({
+  args: { paginationOpts: v.any() },
+  handler: async (ctx, args) => {
+    const userId = await auth.getUserId(ctx);
+    if (!userId) {
+      return { page: [], isDone: true, continueCursor: "" };
+    }
+
+    return await ctx.db
+      .query("notifications")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .order("desc")
+      .paginate(args.paginationOpts);
+  },
+});
+
 export const getUnreadCount = query({
   args: {},
   handler: async (ctx) => {

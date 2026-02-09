@@ -35,7 +35,7 @@ export default defineSchema({
     status: v.optional(v.string()),
     myEvents: v.optional(v.array(v.string())),
     wishlist: v.optional(v.array(v.string())),
-    eventRatings: v.optional(v.any()),
+    eventRatings: v.optional(v.record(v.string(), v.number())),
     xp: v.optional(v.number()),
     level: v.optional(v.number()),
     notificationPreferences: v.optional(v.object({
@@ -281,4 +281,29 @@ export default defineSchema({
     metadata: v.optional(v.any()),
     createdAt: v.number(),
   }).index("by_user", ["userId"]).index("by_created", ["createdAt"]),
+
+  ai_chat_sessions: defineTable({
+    userId: v.id("users"),
+    title: v.string(),
+    eventId: v.optional(v.id("events")),
+    createdAt: v.number(),
+    lastActivity: v.number(),
+    context: v.optional(v.object({
+      userRole: v.string(),
+      eventTitle: v.optional(v.string()),
+      currentPage: v.optional(v.string()),
+    })),
+  }).index("by_user", ["userId"]).index("by_last_activity", ["lastActivity"]),
+
+  ai_chat_messages: defineTable({
+    sessionId: v.id("ai_chat_sessions"),
+    role: v.union(v.literal("user"), v.literal("assistant"), v.literal("system")),
+    content: v.string(),
+    createdAt: v.number(),
+    actions: v.optional(v.array(v.object({
+      label: v.string(),
+      action: v.string(),
+      data: v.optional(v.any()),
+    }))),
+  }).index("by_session", ["sessionId"]),
 });

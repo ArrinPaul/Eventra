@@ -45,8 +45,10 @@ export default function BroadcastForm({ recipients }: BroadcastFormProps) {
 
       if (result.success) {
         toast({
-            title: 'Broadcast Sent!',
-            description: `Your message has been (simulated) sent to ${result.sentCount} attendees.`,
+            title: result.provider === 'none' ? 'Broadcast Simulated' : 'Broadcast Sent!',
+            description: result.provider === 'none' 
+              ? `Your message was logged to the console for ${result.sentCount} recipients.`
+              : `Your message has been sent to ${result.sentCount} attendees via ${result.provider}.`,
         });
         form.reset();
       } else {
@@ -65,7 +67,7 @@ export default function BroadcastForm({ recipients }: BroadcastFormProps) {
     <Card className="glass-effect sticky top-20">
         <CardHeader>
             <CardTitle className="font-headline">Broadcast Email</CardTitle>
-            <CardDescription>Send a message to all attendees. This is a simulation and will log to the console.</CardDescription>
+            <CardDescription>Send a message to all selected attendees using the configured email provider.</CardDescription>
         </CardHeader>
         <CardContent>
             <Form {...form}>

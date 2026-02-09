@@ -63,6 +63,31 @@ export const getMessages = query({
   },
 });
 
+export const listMessages = query({
+  args: { roomId: v.id("chat_rooms"), paginationOpts: v.any() },
+  handler: async (ctx, args) => {
+    const results = await ctx.db
+      .query("messages")
+      .withIndex("by_room", (q) => q.eq("roomId", args.roomId))
+      .order("desc")
+      .paginate(args.paginationOpts);
+
+    return {
+      ...results,
+      page: await Promise.all(
+        results.page.map(async (msg) => {
+          const sender = await ctx.db.get(msg.senderId);
+          return {
+            ...msg,
+            senderName: sender?.name || "User",
+            senderImage: sender?.image,
+          };
+        })
+      ),
+    };
+  },
+});
+
 export const sendMessage = mutation({
   args: {
     roomId: v.id("chat_rooms"),

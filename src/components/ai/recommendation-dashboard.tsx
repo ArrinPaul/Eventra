@@ -1,21 +1,26 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Sparkles, TrendingUp, Users, Target, Calendar, BookOpen, Network } from 'lucide-react';
+import { Sparkles, TrendingUp, Users, Target, Calendar, BookOpen, Network, RefreshCw } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
-import { generateEventRecommendations, generateContentRecommendations, generateConnectionRecommendations } from '@/ai/flows/recommendation-engine';
+import { useQuery } from 'convex/react';
+import { api } from '../../../convex/_generated/api';
+import { 
+  getAIRecommendations, 
+  getAIContentRecommendations, 
+  getAIConnectionRecommendations,
+  ContentRecommendation,
+  ConnectionRecommendation
+} from '@/app/actions/ai-recommendations';
+import { cn } from '@/core/utils/utils';
 
-interface RecommendationDashboardProps {
-  className?: string;
-}
-
-interface EventRecommendation {
+interface EventRecommendationEnriched {
   eventId: string;
   title: string;
   type: string;
@@ -30,34 +35,6 @@ interface EventRecommendation {
   duration: number;
 }
 
-interface ContentRecommendation {
-  contentId: string;
-  title: string;
-  type: 'article' | 'video' | 'course' | 'podcast' | 'tutorial' | 'case-study';
-  relevanceScore: number;
-  learningObjectives: string[];
-  personalizedRationale: string;
-  estimatedTime: number;
-  difficulty: 'beginner' | 'intermediate' | 'advanced';
-  author: string;
-}
-
-interface ConnectionRecommendation {
-  userId: string;
-  name: string;
-  role: string;
-  company: string;
-  connectionValue: number;
-  connectionRationale: string;
-  mutualBenefit: {
-    userGains: string[];
-    contactGains: string[];
-  };
-  approachStrategy: string;
-  conversationStarters: string[];
-  successLikelihood: 'high' | 'medium' | 'low';
-}
-
 interface InsightCard {
   title: string;
   value: string | number;
@@ -66,462 +43,278 @@ interface InsightCard {
   icon: React.ReactNode;
 }
 
-export default function AiRecommendationDashboard({ className }: RecommendationDashboardProps) {
+export default function AiRecommendationDashboard() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('events');
   const [loading, setLoading] = useState(false);
-  const [eventRecommendations, setEventRecommendations] = useState<EventRecommendation[]>([]);
+  const [eventRecommendations, setEventRecommendations] = useState<EventRecommendationEnriched[]>([]);
   const [contentRecommendations, setContentRecommendations] = useState<ContentRecommendation[]>([]);
   const [connectionRecommendations, setConnectionRecommendations] = useState<ConnectionRecommendation[]>([]);
   const [insights, setInsights] = useState<InsightCard[]>([]);
 
-  useEffect(() => {
-    if (user) {
-      loadRecommendations();
-    }
-  }, [user]);
+  const events = useQuery(api.events.get) || [];
 
-  const loadRecommendations = async () => {
+  const loadRecommendations = useCallback(async () => {
+    if (!user) return;
     setLoading(true);
     try {
-      // This would typically fetch from your backend APIs
-      // For now, we'll simulate the data structure
-      
-      // Simulate insights
+      const [eventsRes, contentRes, connectionsRes] = await Promise.all([
+        getAIRecommendations(user._id || user.id),
+        getAIContentRecommendations(user._id || user.id),
+        getAIConnectionRecommendations(user._id || user.id)
+      ]);
+
+      // Enrich event recommendations with full event data from Convex
+      const enrichedEvents = eventsRes.recommendations.map(rec => {
+        const fullEvent = events.find((e: any) => e._id === rec.eventId);
+        return {
+          eventId: rec.eventId,
+          title: fullEvent?.title || 'Unknown Event',
+          type: fullEvent?.category || 'General',
+          relevanceScore: rec.relevanceScore,
+          recommendationReason: rec.reason,
+          personalizedPitch: rec.pitch,
+          expectedValue: ['Skill development', 'Networking', 'Industry insights'],
+          networkingOpportunities: ['Meet peers', 'Connect with speakers'],
+          preparationSuggestions: ['Review agenda', 'Prepare questions'],
+          confidenceLevel: rec.confidenceLevel,
+          startTime: new Date(fullEvent?.startDate || Date.now()),
+          duration: 120
+        };
+      });
+
+      setEventRecommendations(enrichedEvents);
+      setContentRecommendations(contentRes);
+      setConnectionRecommendations(connectionsRes);
+
+      // Dynamic insights based on counts
       setInsights([
-        {
-          title: 'Skill Growth',
-          value: '23%',
-          description: 'Increase this month',
-          trend: 'up',
-          icon: <TrendingUp className="w-4 h-4" />
-        },
-        {
-          title: 'Network Size',
-          value: '127',
-          description: 'Active connections',
-          trend: 'up',
-          icon: <Users className="w-4 h-4" />
-        },
-        {
-          title: 'Learning Hours',
-          value: '15.5h',
-          description: 'This week',
-          trend: 'stable',
-          icon: <BookOpen className="w-4 h-4" />
-        },
-        {
-          title: 'Goal Progress',
-          value: '68%',
-          description: 'Quarterly goals',
-          trend: 'up',
-          icon: <Target className="w-4 h-4" />
-        }
+        { title: 'Matches Found', value: enrichedEvents.length + connectionsRes.length, description: 'AI-personalized for you', trend: 'up', icon: <Target className="w-4 h-4" /> },
+        { title: 'Connections', value: connectionsRes.length, description: 'Potential peers', trend: 'up', icon: <Users className="w-4 h-4" /> },
+        { title: 'Content Picks', value: contentRes.length, description: 'Learning resources', trend: 'stable', icon: <BookOpen className="w-4 h-4" /> },
+        { title: 'Events', value: enrichedEvents.length, description: 'Recommended for you', trend: 'up', icon: <Calendar className="w-4 h-4" /> }
       ]);
-
-      // Simulate event recommendations
-      setEventRecommendations([
-        {
-          eventId: '1',
-          title: 'Advanced React Patterns Workshop',
-          type: 'workshop',
-          relevanceScore: 95,
-          recommendationReason: 'Matches your React expertise and learning goals',
-          personalizedPitch: 'Perfect for advancing your frontend architecture skills',
-          expectedValue: ['Advanced patterns', 'Performance optimization', 'Code quality'],
-          networkingOpportunities: ['Senior developers', 'React core team members'],
-          preparationSuggestions: ['Review current React patterns', 'Prepare specific questions'],
-          confidenceLevel: 'high',
-          startTime: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
-          duration: 180
-        },
-        {
-          eventId: '2',
-          title: 'AI in Product Development Panel',
-          type: 'panel',
-          relevanceScore: 88,
-          recommendationReason: 'Aligns with your interest in AI integration',
-          personalizedPitch: 'Learn how to integrate AI into your product development workflow',
-          expectedValue: ['AI strategy', 'Implementation insights', 'Future trends'],
-          networkingOpportunities: ['Product managers', 'AI researchers', 'Tech leaders'],
-          preparationSuggestions: ['Research AI tools', 'Prepare use case questions'],
-          confidenceLevel: 'high',
-          startTime: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
-          duration: 90
-        }
-      ]);
-
-      // Simulate content recommendations
-      setContentRecommendations([
-        {
-          contentId: '1',
-          title: 'Advanced TypeScript Techniques',
-          type: 'course',
-          relevanceScore: 92,
-          learningObjectives: ['Advanced type patterns', 'Performance optimization'],
-          personalizedRationale: 'Build on your current TypeScript knowledge',
-          estimatedTime: 240,
-          difficulty: 'advanced',
-          author: 'TypeScript Expert'
-        },
-        {
-          contentId: '2',
-          title: 'System Design Interview Preparation',
-          type: 'video',
-          relevanceScore: 85,
-          learningObjectives: ['Scalability patterns', 'System architecture'],
-          personalizedRationale: 'Prepare for senior-level technical interviews',
-          estimatedTime: 120,
-          difficulty: 'advanced',
-          author: 'System Design Pro'
-        }
-      ]);
-
-      // Simulate connection recommendations
-      setConnectionRecommendations([
-        {
-          userId: '1',
-          name: 'Sarah Chen',
-          role: 'Senior Product Manager',
-          company: 'TechCorp',
-          connectionValue: 94,
-          connectionRationale: 'Strong alignment in product strategy and AI integration',
-          mutualBenefit: {
-            userGains: ['Product strategy insights', 'AI implementation guidance'],
-            contactGains: ['Technical expertise', 'Development perspectives']
-          },
-          approachStrategy: 'Mention shared interest in AI-driven product development',
-          conversationStarters: [
-            'I noticed your work on AI product integration',
-            'Would love to learn about your approach to product-tech collaboration',
-            'Interested in discussing AI strategy in product development'
-          ],
-          successLikelihood: 'high'
-        },
-        {
-          userId: '2',
-          name: 'Michael Rodriguez',
-          role: 'Tech Lead',
-          company: 'Innovation Labs',
-          connectionValue: 87,
-          connectionRationale: 'Complementary technical skills and leadership experience',
-          mutualBenefit: {
-            userGains: ['Technical leadership insights', 'Architecture guidance'],
-            contactGains: ['Fresh perspectives', 'Collaboration opportunities']
-          },
-          approachStrategy: 'Connect over shared technical challenges and solutions',
-          conversationStarters: [
-            'I see we both work on complex technical architectures',
-            'Would be great to exchange insights on tech leadership',
-            'Interested in discussing scaling challenges'
-          ],
-          successLikelihood: 'high'
-        }
-      ]);
-
     } catch (error) {
       console.error('Error loading recommendations:', error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [user, events]);
+
+  useEffect(() => {
+    loadRecommendations();
+  }, [loadRecommendations]);
 
   const getScoreColor = (score: number) => {
-    if (score >= 90) return 'text-green-600';
-    if (score >= 75) return 'text-blue-600';
-    if (score >= 60) return 'text-orange-600';
-    return 'text-red-600';
+    if (score >= 90) return 'text-green-500';
+    if (score >= 75) return 'text-cyan-400';
+    if (score >= 60) return 'text-blue-400';
+    return 'text-gray-400';
   };
 
   const getConfidenceBadgeColor = (level: string) => {
     switch (level) {
-      case 'high': return 'bg-green-100 text-green-800';
-      case 'medium': return 'bg-yellow-100 text-yellow-800';
-      case 'low': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'high': return 'bg-green-500/20 text-green-400 border-green-500/20';
+      case 'medium': return 'bg-cyan-500/20 text-cyan-400 border-cyan-500/20';
+      case 'low': return 'bg-blue-500/20 text-blue-400 border-blue-500/20';
+      default: return 'bg-white/5 text-gray-400 border-white/10';
     }
   };
 
-  if (loading) {
+  if (loading && eventRecommendations.length === 0) {
     return (
-      <div className="flex items-center justify-center p-12">
-        <div className="text-center">
-          <Sparkles className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-600" />
-          <p className="text-muted-foreground">Generating personalized recommendations...</p>
-        </div>
+      <div className="flex flex-col items-center justify-center p-20 space-y-4">
+        <RefreshCw className="w-10 h-10 animate-spin text-cyan-500" />
+        <p className="text-gray-400">Genie is analyzing your profile to find the best matches...</p>
       </div>
     );
   }
 
   return (
-    <div className={`space-y-6 ${className}`}>
-      {/* AI Insights Overview */}
+    <div className="space-y-8 animate-in fade-in duration-500">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {insights.map((insight, index) => (
-          <Card key={index} className="relative overflow-hidden">
+          <Card key={index} className="bg-white/5 border-white/10 overflow-hidden group hover:border-cyan-500/30 transition-colors">
             <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div className="space-y-2">
-                  <p className="text-sm text-muted-foreground">{insight.title}</p>
-                  <p className="text-2xl font-bold">{insight.value}</p>
-                  <p className="text-xs text-muted-foreground">{insight.description}</p>
-                </div>
-                <div className="flex-shrink-0">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-sm text-gray-400">{insight.title}</p>
+                <div className="p-2 bg-white/5 rounded-lg text-cyan-400 group-hover:scale-110 transition-transform">
                   {insight.icon}
                 </div>
               </div>
-              <div className="absolute top-0 right-0 w-2 h-full bg-gradient-to-b from-blue-500 to-purple-500" />
+              <p className="text-2xl font-bold text-white">{insight.value}</p>
+              <p className="text-xs text-gray-500 mt-1">{insight.description}</p>
             </CardContent>
           </Card>
         ))}
       </div>
 
-      {/* AI-Powered Recommendations */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-blue-600" />
-            <CardTitle>AI-Powered Recommendations</CardTitle>
+      <Card className="bg-[#0f172a]/60 border-white/10 backdrop-blur-md overflow-hidden">
+        <CardHeader className="border-b border-white/5 pb-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="bg-cyan-500/20 p-2 rounded-xl">
+                <Sparkles className="w-5 h-5 text-cyan-400" />
+              </div>
+              <div>
+                <CardTitle className="text-xl">Your Personalized Picks</CardTitle>
+                <p className="text-sm text-gray-400 mt-1">Refined by AI based on your interests and activity</p>
+              </div>
+            </div>
+            <Button variant="outline" size="sm" onClick={loadRecommendations} disabled={loading} className="border-white/10">
+              <RefreshCw className={cn("w-4 h-4 mr-2", loading && "animate-spin")} />
+              Refresh
+            </Button>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-6">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="events" className="flex items-center gap-2">
-                <Calendar className="w-4 h-4" />
+            <TabsList className="bg-white/5 border border-white/10 p-1 mb-8">
+              <TabsTrigger value="events" className="data-[state=active]:bg-cyan-600 data-[state=active]:text-white">
+                <Calendar className="w-4 h-4 mr-2" />
                 Events
               </TabsTrigger>
-              <TabsTrigger value="content" className="flex items-center gap-2">
-                <BookOpen className="w-4 h-4" />
+              <TabsTrigger value="content" className="data-[state=active]:bg-cyan-600 data-[state=active]:text-white">
+                <BookOpen className="w-4 h-4 mr-2" />
                 Learning
               </TabsTrigger>
-              <TabsTrigger value="connections" className="flex items-center gap-2">
-                <Network className="w-4 h-4" />
+              <TabsTrigger value="connections" className="data-[state=active]:bg-cyan-600 data-[state=active]:text-white">
+                <Network className="w-4 h-4 mr-2" />
                 Connections
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="events" className="mt-6">
-              <div className="space-y-4">
-                {eventRecommendations.map((event) => (
-                  <Card key={event.eventId} className="hover:shadow-md transition-shadow">
-                    <CardContent className="p-6">
-                      <div className="flex justify-between items-start mb-4">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <h3 className="font-semibold text-lg">{event.title}</h3>
-                            <Badge variant="outline">{event.type}</Badge>
-                            <Badge className={getConfidenceBadgeColor(event.confidenceLevel)}>
-                              {event.confidenceLevel} confidence
-                            </Badge>
-                          </div>
-                          <p className="text-muted-foreground mb-2">{event.personalizedPitch}</p>
-                          <p className="text-sm text-gray-600 mb-3">{event.recommendationReason}</p>
+            <TabsContent value="events" className="space-y-6">
+              {eventRecommendations.map((event) => (
+                <Card key={event.eventId} className="bg-white/5 border-white/10 hover:border-cyan-500/50 transition-all group overflow-hidden">
+                  <CardContent className="p-6">
+                    <div className="flex flex-col md:flex-row justify-between items-start gap-6">
+                      <div className="flex-1 space-y-4">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <h3 className="font-bold text-xl text-white group-hover:text-cyan-400 transition-colors">{event.title}</h3>
+                          <Badge variant="outline" className="border-white/10 text-gray-400">{event.type}</Badge>
+                          <Badge variant="outline" className={getConfidenceBadgeColor(event.confidenceLevel)}>
+                            {event.confidenceLevel} match
+                          </Badge>
                         </div>
+                        <p className="text-gray-300 italic">"{event.personalizedPitch}"</p>
+                        <p className="text-sm text-gray-400 leading-relaxed">{event.recommendationReason}</p>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                          <div className="space-y-2">
+                            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Key Benefits:</p>
+                            <ul className="text-sm text-gray-400 space-y-1">
+                              {event.expectedValue.map((v, i) => <li key={i} className="flex items-center gap-2"><div className="w-1 h-1 bg-cyan-500 rounded-full" /> {v}</li>)}
+                            </ul>
+                          </div>
+                          <div className="space-y-2">
+                            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Preparation:</p>
+                            <div className="flex flex-wrap gap-2">
+                              {event.preparationSuggestions.map((s, i) => <Badge key={i} variant="secondary" className="bg-white/5 text-[10px]">{s}</Badge>)}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex flex-row md:flex-col items-center md:items-end justify-between md:justify-start w-full md:w-auto gap-4">
                         <div className="text-right">
-                          <div className={`text-2xl font-bold ${getScoreColor(event.relevanceScore)}`}>
+                          <div className={`text-3xl font-black ${getScoreColor(event.relevanceScore)}`}>
                             {event.relevanceScore}%
                           </div>
-                          <p className="text-xs text-muted-foreground">Relevance</p>
+                          <p className="text-[10px] text-gray-500 uppercase tracking-tighter">AI Score</p>
                         </div>
+                        <Button className="bg-cyan-600 hover:bg-cyan-500 text-white shadow-lg shadow-cyan-900/20">
+                          Register Now
+                        </Button>
                       </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </TabsContent>
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                        <div>
-                          <p className="text-sm font-medium mb-2">What You&apos;ll Gain:</p>
-                          <ul className="text-sm text-muted-foreground space-y-1">
-                            {event.expectedValue.map((value, idx) => (
-                              <li key={idx} className="flex items-center gap-2">
-                                <div className="w-1 h-1 bg-blue-500 rounded-full" />
-                                {value}
-                              </li>
-                            ))}
-                          </ul>
+            <TabsContent value="content" className="space-y-6">
+              {contentRecommendations.map((content) => (
+                <Card key={content.contentId} className="bg-white/5 border-white/10 hover:border-cyan-500/50 transition-all overflow-hidden">
+                  <CardContent className="p-6">
+                    <div className="flex justify-between items-start mb-4">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <h3 className="font-bold text-lg text-white">{content.title}</h3>
+                          <Badge variant="outline" className="border-white/10 text-gray-400">{content.type}</Badge>
+                          <Badge variant="outline" className="bg-white/5 text-gray-400 border-white/5">{content.difficulty}</Badge>
                         </div>
-                        <div>
-                          <p className="text-sm font-medium mb-2">Networking Opportunities:</p>
-                          <ul className="text-sm text-muted-foreground space-y-1">
-                            {event.networkingOpportunities.map((opportunity, idx) => (
-                              <li key={idx} className="flex items-center gap-2">
-                                <div className="w-1 h-1 bg-green-500 rounded-full" />
-                                {opportunity}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
+                        <p className="text-sm text-cyan-400/70 mb-2">Curated by {content.author}</p>
+                        <p className="text-gray-400 text-sm leading-relaxed">{content.personalizedRationale}</p>
                       </div>
+                      <div className="text-right ml-4">
+                        <div className={`text-2xl font-bold ${getScoreColor(content.relevanceScore)}`}>
+                          {content.relevanceScore}%
+                        </div>
+                        <p className="text-[10px] text-gray-500 uppercase">Match</p>
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-center mt-6 pt-4 border-t border-white/5">
+                      <div className="flex items-center gap-4 text-xs text-gray-500">
+                        <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {content.estimatedTime} min</span>
+                      </div>
+                      <Button size="sm" className="bg-white/10 hover:bg-white/20 text-white border-0">
+                        Start Learning
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </TabsContent>
 
-                      <div className="mb-4">
-                        <p className="text-sm font-medium mb-2">Preparation Suggestions:</p>
-                        <div className="flex flex-wrap gap-2">
-                          {event.preparationSuggestions.map((suggestion, idx) => (
-                            <Badge key={idx} variant="secondary" className="text-xs">
-                              {suggestion}
+            <TabsContent value="connections" className="space-y-6">
+              {connectionRecommendations.map((connection) => (
+                <Card key={connection.userId} className="bg-white/5 border-white/10 hover:border-cyan-500/50 transition-all overflow-hidden">
+                  <CardContent className="p-6">
+                    <div className="flex flex-col md:flex-row justify-between items-start gap-6">
+                      <div className="flex items-start gap-4 flex-1">
+                        <Avatar className="h-14 w-14 border-2 border-cyan-500/20">
+                          <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${connection.name}`} />
+                          <AvatarFallback className="bg-cyan-500/10 text-cyan-500 font-bold">{connection.name[0]}</AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 space-y-2">
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-bold text-lg text-white">{connection.name}</h3>
+                            <Badge variant="outline" className={getConfidenceBadgeColor(connection.successLikelihood)}>
+                              {connection.successLikelihood} success
                             </Badge>
-                          ))}
-                        </div>
-                      </div>
-
-                      <div className="flex justify-between items-center">
-                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                          <span>{event.startTime.toLocaleDateString()}</span>
-                          <span>{event.duration} minutes</span>
-                        </div>
-                        <div className="flex gap-2">
-                          <Button variant="outline" size="sm">
-                            Learn More
-                          </Button>
-                          <Button size="sm">
-                            Register
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </TabsContent>
-
-            <TabsContent value="content" className="mt-6">
-              <div className="space-y-4">
-                {contentRecommendations.map((content) => (
-                  <Card key={content.contentId} className="hover:shadow-md transition-shadow">
-                    <CardContent className="p-6">
-                      <div className="flex justify-between items-start mb-4">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <h3 className="font-semibold text-lg">{content.title}</h3>
-                            <Badge variant="outline">{content.type}</Badge>
-                            <Badge variant="secondary">{content.difficulty}</Badge>
                           </div>
-                          <p className="text-sm text-gray-600 mb-2">By {content.author}</p>
-                          <p className="text-muted-foreground mb-3">{content.personalizedRationale}</p>
+                          <p className="text-sm text-cyan-400/70">{connection.role} at {connection.company}</p>
+                          <p className="text-gray-400 text-sm italic">"{connection.connectionRationale}"</p>
                         </div>
-                        <div className="text-right">
-                          <div className={`text-2xl font-bold ${getScoreColor(content.relevanceScore)}`}>
-                            {content.relevanceScore}%
+                      </div>
+                      <div className="text-right w-full md:w-auto">
+                        <div className={`text-3xl font-black ${getScoreColor(connection.connectionValue)}`}>
+                          {connection.connectionValue}%
+                        </div>
+                        <p className="text-[10px] text-gray-500 uppercase">Match</p>
+                      </div>
+                    </div>
+
+                    <div className="mt-6 space-y-4 bg-white/5 rounded-xl p-4 border border-white/5">
+                      <p className="text-xs font-semibold text-gray-500 uppercase">Conversation Starters:</p>
+                      <div className="space-y-2">
+                        {connection.conversationStarters.map((starter, idx) => (
+                          <div key={idx} className="bg-white/5 p-2 rounded-lg text-xs text-gray-300 border border-white/5">
+                            "{starter}"
                           </div>
-                          <p className="text-xs text-muted-foreground">Relevance</p>
-                        </div>
+                        ))}
                       </div>
+                    </div>
 
-                      <div className="mb-4">
-                        <p className="text-sm font-medium mb-2">Learning Objectives:</p>
-                        <ul className="text-sm text-muted-foreground space-y-1">
-                          {content.learningObjectives.map((objective, idx) => (
-                            <li key={idx} className="flex items-center gap-2">
-                              <div className="w-1 h-1 bg-blue-500 rounded-full" />
-                              {objective}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-
-                      <div className="flex justify-between items-center">
-                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                          <span>{content.estimatedTime} minutes</span>
-                          <Progress value={0} className="w-20 h-2" />
-                        </div>
-                        <div className="flex gap-2">
-                          <Button variant="outline" size="sm">
-                            Preview
-                          </Button>
-                          <Button size="sm">
-                            Start Learning
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </TabsContent>
-
-            <TabsContent value="connections" className="mt-6">
-              <div className="space-y-4">
-                {connectionRecommendations.map((connection) => (
-                  <Card key={connection.userId} className="hover:shadow-md transition-shadow">
-                    <CardContent className="p-6">
-                      <div className="flex justify-between items-start mb-4">
-                        <div className="flex items-start gap-4 flex-1">
-                          <Avatar>
-                            <AvatarImage src={`/api/placeholder/40/40`} />
-                            <AvatarFallback>{connection.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                          </Avatar>
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                              <h3 className="font-semibold text-lg">{connection.name}</h3>
-                              <Badge className={getConfidenceBadgeColor(connection.successLikelihood)}>
-                                {connection.successLikelihood} success
-                              </Badge>
-                            </div>
-                            <p className="text-sm text-gray-600 mb-2">
-                              {connection.role} at {connection.company}
-                            </p>
-                            <p className="text-muted-foreground mb-3">{connection.connectionRationale}</p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className={`text-2xl font-bold ${getScoreColor(connection.connectionValue)}`}>
-                            {connection.connectionValue}%
-                          </div>
-                          <p className="text-xs text-muted-foreground">Match</p>
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                        <div>
-                          <p className="text-sm font-medium mb-2">You Gain:</p>
-                          <ul className="text-sm text-muted-foreground space-y-1">
-                            {connection.mutualBenefit.userGains.map((gain, idx) => (
-                              <li key={idx} className="flex items-center gap-2">
-                                <div className="w-1 h-1 bg-green-500 rounded-full" />
-                                {gain}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium mb-2">They Gain:</p>
-                          <ul className="text-sm text-muted-foreground space-y-1">
-                            {connection.mutualBenefit.contactGains.map((gain, idx) => (
-                              <li key={idx} className="flex items-center gap-2">
-                                <div className="w-1 h-1 bg-blue-500 rounded-full" />
-                                {gain}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      </div>
-
-                      <div className="mb-4">
-                        <p className="text-sm font-medium mb-2">Conversation Starters:</p>
-                        <div className="space-y-2">
-                          {connection.conversationStarters.map((starter, idx) => (
-                            <div key={idx} className="bg-gray-50 p-2 rounded text-sm">
-                              &quot;{starter}&quot;
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      <div className="flex justify-between items-center">
-                        <div className="text-sm text-muted-foreground">
-                          <p>{connection.approachStrategy}</p>
-                        </div>
-                        <div className="flex gap-2">
-                          <Button variant="outline" size="sm">
-                            View Profile
-                          </Button>
-                          <Button size="sm">
-                            Connect
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+                    <div className="flex justify-between items-center mt-6">
+                      <p className="text-xs text-gray-500 max-w-[60%]">{connection.approachStrategy}</p>
+                      <Button size="sm" className="bg-cyan-600 hover:bg-cyan-500 text-white">
+                        Connect
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
             </TabsContent>
           </Tabs>
         </CardContent>

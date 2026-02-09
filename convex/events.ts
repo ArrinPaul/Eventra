@@ -31,6 +31,16 @@ export const get = query({
   },
 });
 
+export const list = query({
+  args: { paginationOpts: v.any() },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("events")
+      .order("desc")
+      .paginate(args.paginationOpts);
+  },
+});
+
 export const getById = query({
   args: { id: v.id("events") },
   handler: async (ctx, args) => {
@@ -48,6 +58,17 @@ export const getByOrganizer = query({
   },
 });
 
+export const listByOrganizer = query({
+  args: { organizerId: v.id("users"), paginationOpts: v.any() },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("events")
+      .withIndex("by_organizer", (q) => q.eq("organizerId", args.organizerId))
+      .order("desc")
+      .paginate(args.paginationOpts);
+  },
+});
+
 export const getByStatus = query({
   args: { status: v.string() },
   handler: async (ctx, args) => {
@@ -55,6 +76,17 @@ export const getByStatus = query({
       .query("events")
       .withIndex("by_status", (q) => q.eq("status", args.status))
       .collect();
+  },
+});
+
+export const listByStatus = query({
+  args: { status: v.string(), paginationOpts: v.any() },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("events")
+      .withIndex("by_status", (q) => q.eq("status", args.status))
+      .order("desc")
+      .paginate(args.paginationOpts);
   },
 });
 

@@ -58,7 +58,7 @@
 - [x] **Event update mutation is incomplete**: Now supports all 15+ fields including `category`, `type`, `capacity`, `imageUrl`, `isPaid`, `price`, `currency`, `targetAudience`, `agenda`, `speakers`, `waitlistEnabled`, `tags`.
 - [x] **Cascading deletes**: `deleteEvent` now cascades to registrations, tickets, reviews, and certificates.
 - [x] **Event status lifecycle**: Added `cancelEvent`, `completeEvent`, `publishEvent` mutations with attendee notifications.
-- [ ] **Orphaned wizard components**: `wizard/step-1-basic-info.tsx`, `wizard/step-2-date-location.tsx`, and `wizard/types.ts` define a comprehensive schema but are not used by the actual `event-creation-wizard.tsx`. Consolidate or remove.
+- [x] **Orphaned wizard components consolidated**: `EventCreationWizard` now uses multi-step components from `wizard/` with `react-hook-form` and `zod` validation. Integrated AI Assist into Step 1.
 - [x] **Event creation form hardcodes**: `event-form.tsx` now exposes `capacity`, `status`, and `type` as user inputs with full validation.
 
 ### 8.2 Check-In — QR Format Mismatch ✅
@@ -70,8 +70,8 @@
 - [x] **No UI trigger for certificate issuance**: Added `bulkIssue` mutation for organizers. Certificate `issue` prevents duplicates and sends notifications.
 - [x] **Verification portal**: Added `verify` query by certificate number. Certificate client now has working Verify dialog.
 - [x] **Download button**: Certificate listing page now has working download handler (generates text certificate).
-- [ ] **Certificate Manager is a placeholder**: Shows "being migrated to our new system."
-- [ ] **`CertificateViewer` / `CertificatePreview` components never rendered**: Built but not mounted anywhere.
+- [x] **Certificate Manager (`certificate-manager.tsx`) implemented**: Now allows organizers to select events and bulk issue certificates to confirmed attendees. Shows issuance status in real-time.
+- [x] **`CertificateViewer` / `CertificatePreview` components rendered**: Now used in `CertificatesClient` to show high-quality HTML certificates with print/download functionality. Added `certificate-generator.ts` utility.
 
 ### 8.4 Feed/Posts — Broken Community Scoping ✅
 - [x] **`posts.create` hardcodes `communityId: "temp" as any`**: Fixed — now requires real `communityId: v.id("communities")`.
@@ -79,17 +79,18 @@
 - [x] **Infinite likes**: Added `post_likes` table with per-user tracking. Like/unlike toggle implemented.
 
 ### 8.5 AI Features — Dead Wiring
-- [ ] **AI Chatbot (`ai-chatbot.tsx`) calls `/api/ai-chatbot/sessions`**: This API endpoint does not exist. Session persistence fails.
-- [ ] **Recommendation Dashboard uses hardcoded mock data**: Imports AI functions but `loadRecommendations()` returns static data. Wire to real AI flows.
-- [ ] **AI Insights Widget uses local logic**: Not connected to the actual `analytics-insights.ts` AI flow.
-- [ ] **Broadcast Email flow only simulates**: `console.log` instead of real email sending.
+- [x] **AI Chatbot (`ai-chatbot.tsx`) now uses Convex for session persistence**: Implemented `ai_chat_sessions` and `ai_chat_messages` tables. Connected to new `aiChatbotFlow` for context-aware responses.
+- [x] **Recommendation Dashboard now uses real AI flows**: Connected to `getAIRecommendations`, `getAIContentRecommendations`, and `getAIConnectionRecommendations`. Mock data removed.
+- [x] **AI Insights Widget (`ai-insights-widget.tsx`) connected to AI flow**: Now uses `getAIAnalyticsInsights` action to generate real insights based on popularity data. Integrated into Comprehensive Dashboard.
+- [x] **Broadcast Email flow (`broadcast-email.ts`) now sends real emails**: Integrated with SendGrid and Resend providers. Falls back to console log if no provider configured. UI updated to show status.
 
 ### 8.6 Type Safety ✅
 - [x] **Remove `any` types from all Convex functions**: All 13 Convex files now use properly typed `ctx` and `args` (no more `ctx: any`).
 - [x] **`attendeeName`/`attendeeEmail` mismatch**: Made optional in schema, populated from user data during registration.
 - [x] **Legacy type aliases cleaned**: Removed `uid`, `photoURL`, `image` (on Event), `LegacyEvent`, `registeredUsers`, `attendees` from `types/index.ts`. Fixed all frontend references.
 - [x] **Auth context cleaned**: Removed placeholder functions (`login`, `addEventToUser`, `removeEventFromUser`, `refreshUser`) from `auth-context.tsx`.
-- [ ] **Replace `v.any()` in schema**: `location` and `agenda` fields in `events` table still use `v.any()`. Define proper typed schemas.
+- [x] **Replace `v.any()` in schema**: `location` and `agenda` fields in `events` table now use proper typed schemas.
+- [ ] **Fix remaining `v.any()`**: `eventRatings` in `users` and `metadata` in `activity_feed` still use `v.any()`.
 
 > **Session 3 fix**: `v.any()` replaced with typed `locationValidator` (union of string | structured object) and `agendaValidator` (array of typed objects) in `convex/events.ts`. Schema updated.
 
@@ -149,7 +150,7 @@
 - [x] **Connections persistence**: "Connect" button now calls `connections.sendRequest` mutation. Full accept/reject/remove flow.
 - [x] **"Discover All" tab**: Placeholder (coming soon).
 - [x] **"My Connections" tab**: Fully functional — shows accepted connections, pending requests with accept/reject, sent requests with cancel.
-- [ ] **`/matchmaking` route**: Directory exists but has no page file.
+- [x] **`/matchmaking` route**: Dedicated AI matchmaking page implemented with personalized recommendations and strategy.
 
 ### 9.8 Analytics
 - [x] **Comprehensive dashboard is a stub**: Now wired to `events.getAnalytics` query — shows real total events, active events, users, registrations, events by category/status, recent activity stats.

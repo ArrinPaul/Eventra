@@ -1,6 +1,13 @@
 'use server';
 
-import { generateEventRecommendations, EventRecommendationInput } from '@/ai/flows/recommendation-engine';
+import { 
+  generateEventRecommendations, 
+  EventRecommendationInput,
+  generateContentRecommendations,
+  ContentRecommendationInput,
+  generateConnectionRecommendations,
+  ConnectionRecommendationInput
+} from '@/ai/flows/recommendation-engine';
 import type { Event, User } from '@/types';
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "../../../convex/_generated/api";
@@ -22,6 +29,34 @@ export interface AIRecommendationsResult {
     learningPath?: string[];
   };
   error?: string;
+}
+
+export interface ContentRecommendation {
+  contentId: string;
+  title: string;
+  type: 'article' | 'video' | 'course' | 'podcast' | 'tutorial' | 'case-study';
+  relevanceScore: number;
+  learningObjectives: string[];
+  personalizedRationale: string;
+  estimatedTime: number;
+  difficulty: 'beginner' | 'intermediate' | 'advanced';
+  author: string;
+}
+
+export interface ConnectionRecommendation {
+  userId: string;
+  name: string;
+  role: string;
+  company: string;
+  connectionValue: number;
+  connectionRationale: string;
+  mutualBenefit: {
+    userGains: string[];
+    contactGains: string[];
+  };
+  approachStrategy: string;
+  conversationStarters: string[];
+  successLikelihood: 'high' | 'medium' | 'low';
 }
 
 /**
@@ -70,7 +105,6 @@ export async function getAIRecommendations(
 
     // 2. Transform events to the format expected by the AI flow
     const transformedEvents = eventsToProcess.map(event => {
-      // Access extended event properties that may not be on the base Event type
       const eventData = event as Event & { difficulty?: 'advanced' | 'intermediate' | 'beginner' };
       return {
         id: event.id || (event as any)._id,
@@ -85,7 +119,6 @@ export async function getAIRecommendations(
           if (typeof s === 'string') {
             return { name: s, expertise: [] };
           }
-          // Handle Speaker object - expertise is in speakerProfile
           const speakerObj = s as { name?: string; displayName?: string; speakerProfile?: { expertise?: string[] }; expertise?: string[] };
           return {
             name: speakerObj.name || speakerObj.displayName || 'Speaker',
@@ -148,14 +181,118 @@ export async function getAIRecommendations(
 
   } catch (error) {
     console.error('AI Recommendations error:', error);
-    
-    // Return fallback recommendations based on simple matching
     const fallbackRecs = generateFallbackRecommendations(availableEvents || [], userInterests || []);
-    
     return {
       recommendations: fallbackRecs,
       error: 'AI service unavailable, showing smart picks instead'
     };
+  }
+}
+
+/**
+ * Get AI-powered content recommendations for a user
+ */
+export async function getAIContentRecommendations(userId: string): Promise<ContentRecommendation[]> {
+  try {
+    const users = await convex.query(api.users.list) as any[];
+    const user = users.find(u => u._id === userId || u.id === userId);
+    
+    if (!user) return [];
+
+    const result = await generateContentRecommendations({
+      userProfile: {
+        userId,
+        skills: ['React', 'Next.js', 'TypeScript'],
+        interests: user.interests ? user.interests.split(',').map((i: string) => i.trim()) : ['Technology'],
+        learningStyle: 'visual',
+        experienceLevel: 'intermediate',
+        timeAvailability: { dailyLearningTime: 60, preferredSchedule: ['evening'] }
+      },
+      availableContent: [
+        { id: 'c1', title: 'Mastering Convex', type: 'course', topics: ['Convex', 'Database'], difficulty: 'intermediate', estimatedTime: 120, format: 'Video', author: 'Convex Team' },
+        { id: 'c2', title: 'Next.js 15 App Router', type: 'tutorial', topics: ['Next.js', 'React'], difficulty: 'advanced', estimatedTime: 45, format: 'Reading', author: 'Vercel' },
+        { id: 'c3', title: 'AI Integration Strategies', type: 'video', topics: ['AI', 'Product'], difficulty: 'intermediate', estimatedTime: 30, format: 'Video', author: 'Tech Insider' }
+      ],
+      contextualData: { recentlyConsumed: [] }
+    });
+
+    return result.recommendations.map(rec => {
+      const content = [
+        { id: 'c1', title: 'Mastering Convex', type: 'course', author: 'Convex Team', estimatedTime: 120, difficulty: 'intermediate' },
+        { id: 'c2', title: 'Next.js 15 App Router', type: 'tutorial', author: 'Vercel', estimatedTime: 45, difficulty: 'advanced' },
+        { id: 'c3', title: 'AI Integration Strategies', type: 'video', author: 'Tech Insider', estimatedTime: 30, difficulty: 'intermediate' }
+      ].find(c => c.id === rec.contentId)!;
+
+      return {
+        contentId: rec.contentId,
+        title: content.title,
+        type: content.type as any,
+        relevanceScore: rec.relevanceScore,
+        learningObjectives: rec.learningObjectives,
+        personalizedRationale: rec.personalizedRationale,
+        estimatedTime: content.estimatedTime,
+        difficulty: content.difficulty as any,
+        author: content.author
+      };
+    });
+  } catch (error) {
+    console.error("Content recommendation error:", error);
+    return [];
+  }
+}
+
+/**
+ * Get AI-powered connection recommendations for a user
+ */
+export async function getAIConnectionRecommendations(userId: string): Promise<ConnectionRecommendation[]> {
+  try {
+    const allUsers = await convex.query(api.users.list) as any[];
+    const currentUser = allUsers.find(u => u._id === userId || u.id === userId);
+    if (!currentUser) return [];
+
+    const potentialConnectionsRaw = allUsers.filter(u => u._id !== userId && u.onboardingCompleted);
+
+    const result = await generateConnectionRecommendations({
+      userProfile: {
+        userId,
+        professionalGoals: currentUser.interests ? currentUser.interests.split(',') : ['Networking'],
+        networkingObjectives: ['knowledge-sharing'],
+        currentRole: currentUser.designation || 'Professional',
+        industry: currentUser.company || 'Tech',
+        experienceLevel: 'Intermediate',
+        connectionHistory: []
+      },
+      potentialConnections: potentialConnectionsRaw.slice(0, 10).map(u => ({
+        userId: u._id,
+        name: u.name || 'User',
+        role: u.designation || u.role || 'Member',
+        company: u.company || 'Tech',
+        industry: u.interests || 'Technology',
+        expertise: u.interests ? u.interests.split(',') : [],
+        networkingStyle: 'peer',
+        mutualConnections: 0
+      })),
+      contextualSignals: { timingSensitivity: 'flexible' }
+    });
+
+    return result.recommendations.map(rec => {
+      const user = potentialConnectionsRaw.find(u => u._id === rec.userId);
+      return {
+        userId: rec.userId,
+        name: user?.name || 'Unknown',
+        role: user?.designation || user?.role || 'Professional',
+        company: user?.company || '',
+        connectionValue: rec.connectionValue,
+        connectionRationale: rec.connectionRationale,
+        mutualBenefit: rec.mutualBenefit,
+        approachStrategy: rec.approachStrategy,
+        conversationStarters: rec.conversationStarters,
+        successLikelihood: rec.successLikelihood
+      };
+    });
+  } catch (error) {
+    console.error("Connection recommendation error:", error);
+    return [];
   }
 }
 

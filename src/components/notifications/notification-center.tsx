@@ -20,7 +20,7 @@ import {
 } from '@/components/ui/popover';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
-import { useQuery, useMutation } from 'convex/react';
+import { useQuery, useMutation, usePaginatedQuery } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import {
   Bell,
@@ -33,7 +33,8 @@ import {
   Clock,
   MoreHorizontal,
   X,
-  Info
+  Info,
+  Loader2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { formatDistanceToNow } from 'date-fns';
@@ -92,12 +93,18 @@ export function NotificationBell() {
 
 export function NotificationCenter() {
   const router = useRouter();
-  const notifications = useQuery(api.notifications.get) || [];
+  const { results, status, loadMore } = usePaginatedQuery(
+    api.notifications.list,
+    {},
+    { initialNumItems: 10 }
+  );
+  
+  const notifications = results || [];
   const markRead = useMutation(api.notifications.markRead);
   const markAllRead = useMutation(api.notifications.markAllRead);
   const deleteMutation = useMutation(api.notifications.deleteNotification);
 
-  const unreadCount = notifications.filter((n: any) => !n.read).length;
+  const unreadCount = useQuery(api.notifications.getUnreadCount) || 0;
 
   return (
     <div className="container py-8 space-y-6 text-white">
@@ -116,12 +123,19 @@ export function NotificationCenter() {
               </div>
               <div className="flex gap-2">
                 {!n.read && <Button size="sm" variant="ghost" onClick={() => markRead({ id: n._id })}><Check className="w-4 h-4" /></Button>}
-                <Button size="sm" variant="ghost" className="text-red-400" onClick={() => deleteMutation({ id: n._id })}><Trash2 className="w-4 h-4" /></Button>
+                <Button size="sm" variant="ghost" className="text-red-400" onClick={(e) => { e.stopPropagation(); deleteMutation({ id: n._id }); }}><Trash2 className="w-4 h-4" /></Button>
               </div>
             </div>
           ))}
-          {notifications.length === 0 && <div className="p-20 text-center text-gray-500">No notifications found</div>}
+          {notifications.length === 0 && status === "CanLoadMore" && <div className="p-20 text-center text-gray-500">No notifications found</div>}
+          {status === "LoadingFirstPage" && <div className="p-20 text-center"><Loader2 className="h-8 w-8 animate-spin mx-auto text-cyan-500" /></div>}
         </div>
+        
+        {status === "CanLoadMore" && (
+          <div className="p-4 border-t border-white/10 flex justify-center">
+            <Button variant="ghost" size="sm" onClick={() => loadMore(10)}>Load More</Button>
+          </div>
+        )}
       </Card>
     </div>
   );
