@@ -32,6 +32,13 @@ import { Progress } from '@/components/ui/progress';
 import { createCheckoutSession } from '@/app/actions/payments';
 import { EventDiscussionBoard } from './event-discussion-board';
 import { EventReactions } from './event-reactions';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
 
 export default function EventDetailsClient({ eventId }: { eventId: string }) {
   const router = useRouter();
@@ -45,19 +52,38 @@ export default function EventDetailsClient({ eventId }: { eventId: string }) {
   const [registering, setRegistering] = useState(false);
   const [showChatbot, setShowChatbot] = useState(false);
   const [activeTab, setActiveTab] = useState('about');
+  const [showTierSelection, setShowTierSelection] = useState(false);
 
-
-  const handleRegister = async () => {
+  const handleRegister = async (tierName?: string) => {
     if (!user) {
       router.push(`/login?callbackUrl=/events/${eventId}`);
       return;
     }
     
+    // If event has tiers and no tier is selected, show selection
+    if (!tierName && event?.ticketTiers && event.ticketTiers.length > 0) {
+      setShowTierSelection(true);
+      return;
+    }
+    
     setRegistering(true);
+    setShowTierSelection(false);
     try {
-      if (event?.isPaid && event.price && event.price > 0) {
+      // Determine if it's a paid flow
+      let isPaid = event?.isPaid;
+      let price = event?.price;
+      
+      if (tierName && event?.ticketTiers) {
+        const tier = (event.ticketTiers as any[]).find((t: any) => t.name === tierName);
+        if (tier) {
+          isPaid = tier.price > 0;
+          price = tier.price;
+        }
+      }
+
+      if (isPaid && price && price > 0) {
         // Stripe Flow
-        const { url } = await createCheckoutSession(eventId, user._id || user.id);
+        const { url } = await createCheckoutSession(eventId, user._id || user.id, tierName);
         if (url) {
           window.location.href = url;
         } else {
@@ -65,7 +91,7 @@ export default function EventDetailsClient({ eventId }: { eventId: string }) {
         }
       } else {
         // Free Registration Flow
-        await registerMutation({ eventId: eventId as any });
+        await registerMutation({ eventId: eventId as any, tierName });
         toast({ title: 'Registered! 🎉' });
       }
     } catch (e: any) {
@@ -75,6 +101,7 @@ export default function EventDetailsClient({ eventId }: { eventId: string }) {
       setRegistering(false);
     }
   };
+
 
   if (event === undefined) return <div className="flex items-center justify-center min-h-screen text-white">Loading...</div>;
   if (event === null) return <div className="flex items-center justify-center min-h-screen text-white">Event Not Found</div>;
@@ -196,10 +223,17 @@ export default function EventDetailsClient({ eventId }: { eventId: string }) {
                   </div>
                   <Progress value={capacityPercent} className="h-1.5" />
                 </div>
-                <Button className="w-full" size="lg" onClick={handleRegister} disabled={registering || isRegistered || isFull || event.status === 'cancelled'}>
+                <Button className="w-full" size="lg" onClick={() => handleRegister()} disabled={registering || isRegistered || isFull || event.status === 'cancelled'}>
                   {registering ? <Loader2 className="animate-spin" /> : isRegistered ? <CheckCircle className="mr-2" /> : <Ticket className="mr-2" />}
                   {isRegistered ? 'Registered' : isFull ? 'Sold Out' : 'Register Now'}
                 </Button>
+                {isRegistered && (new Date().getTime() > event.startDate) && (
+                  <Button variant="outline" className="w-full mt-3 border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10" asChild>
+                    <Link href={`/events/${eventId}/feedback`}>
+                      <MessageSquare className="mr-2 h-4 w-4" /> Give Feedback
+                    </Link>
+                  </Button>
+                )}
                 {event.waitlistEnabled && isFull && !isRegistered && (
                   <p className="text-xs text-center text-gray-400 mt-2">You&apos;ll be added to the waitlist</p>
                 )}
@@ -209,25 +243,136 @@ export default function EventDetailsClient({ eventId }: { eventId: string }) {
         </div>
       </div>
 
-      {/* AI Chatbot */}
-      {showChatbot ? (
-        <div className="fixed bottom-6 right-6 z-50 w-80 md:w-96">
-          <EventChatbot 
-            event={{
-              id: event._id,
-              title: event.title,
-              description: event.description,
-              date: new Date(event.startDate).toLocaleDateString(),
-              location: typeof event.location === 'string' ? event.location : event.location?.venue?.name,
-              category: event.category,
-              agenda: event.agenda,
-            } as any}
-            onClose={() => setShowChatbot(false)}
-          />
-        </div>
-      ) : (
-        <ChatbotTrigger onClick={() => setShowChatbot(true)} />
-      )}
-    </div>
-  );
-}
+            {/* AI Chatbot */}
+
+            {showChatbot ? (
+
+              <div className="fixed bottom-6 right-6 z-50 w-80 md:w-96">
+
+                <EventChatbot 
+
+                  event={{
+
+                    id: event._id,
+
+                    title: event.title,
+
+                    description: event.description,
+
+                    date: new Date(event.startDate).toLocaleDateString(),
+
+                    location: typeof event.location === 'string' ? event.location : event.location?.venue?.name,
+
+                    category: event.category,
+
+                    agenda: event.agenda,
+
+                  } as any}
+
+                  onClose={() => setShowChatbot(false)}
+
+                />
+
+              </div>
+
+            ) : (
+
+              <ChatbotTrigger onClick={() => setShowChatbot(true)} />
+
+            )}
+
+      
+
+            {/* Tier Selection Dialog */}
+
+            <Dialog open={showTierSelection} onOpenChange={setShowTierSelection}>
+
+              <DialogContent className="bg-[#0f172a] border-white/10 text-white max-w-md">
+
+                <DialogHeader>
+
+                  <DialogTitle>Select Ticket Tier</DialogTitle>
+
+                  <DialogDescription className="text-gray-400">
+
+                    Choose the best option for your experience.
+
+                  </DialogDescription>
+
+                </DialogHeader>
+
+                <div className="space-y-3 py-4">
+
+                  {event.ticketTiers?.map((tier: any) => {
+
+                    const isTierFull = tier.registeredCount >= tier.capacity;
+
+                    return (
+
+                      <button
+
+                        key={tier.name}
+
+                        disabled={isTierFull}
+
+                        onClick={() => handleRegister(tier.name)}
+
+                        className={cn(
+
+                          "w-full p-4 rounded-xl border transition-all text-left flex justify-between items-center group",
+
+                          isTierFull 
+
+                            ? "bg-white/5 border-white/5 opacity-50 cursor-not-allowed" 
+
+                            : "bg-white/5 border-white/10 hover:border-cyan-500/50 hover:bg-white/[0.08]"
+
+                        )}
+
+                      >
+
+                        <div className="flex-1">
+
+                          <div className="flex items-center gap-2">
+
+                            <p className="font-bold text-lg">{tier.name}</p>
+
+                            {isTierFull && <Badge variant="destructive" className="text-[8px] h-4">SOLD OUT</Badge>}
+
+                          </div>
+
+                          {tier.description && <p className="text-xs text-gray-500 mt-1">{tier.description}</p>}
+
+                          <p className="text-[10px] text-gray-600 mt-2">{tier.capacity - tier.registeredCount} spots remaining</p>
+
+                        </div>
+
+                        <div className="text-right ml-4">
+
+                          <p className="text-xl font-black text-cyan-400">
+
+                            {tier.price > 0 ? `${tier.price}` : 'FREE'}
+
+                          </p>
+
+                        </div>
+
+                      </button>
+
+                    );
+
+                  })}
+
+                </div>
+
+              </DialogContent>
+
+            </Dialog>
+
+          </div>
+
+        );
+
+      }
+
+      

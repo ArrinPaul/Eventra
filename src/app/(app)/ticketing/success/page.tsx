@@ -14,6 +14,7 @@ export default function PaymentSuccessPage() {
   const searchParams = useSearchParams();
   const sessionId = searchParams.get('session_id');
   const eventId = searchParams.get('event_id');
+  const tier = searchParams.get('tier');
   
   const [loading, setLoading] = useState(true);
   const registerMutation = useMutation(api.registrations.register);
@@ -23,7 +24,11 @@ export default function PaymentSuccessPage() {
       if (eventId && sessionId) {
         try {
           // Double confirm with Convex registration (mutation handles idempotency)
-          await registerMutation({ eventId: eventId as any, status: 'confirmed' });
+          await registerMutation({ 
+            eventId: eventId as any, 
+            status: 'confirmed',
+            tierName: tier || undefined
+          });
         } catch (e) {
           console.error("Confirmation error:", e);
         } finally {

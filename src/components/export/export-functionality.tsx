@@ -73,7 +73,7 @@ export default function ExportFunctionality() {
         const headers = ['Event', 'Ticket Number', 'Status', 'Purchase Date', 'Price'];
         const csvContent = [
           headers.join(','),
-          ...myTickets.map(t => [
+          ...myTickets.map((t: any) => [
             `"${t.event?.title || 'Unknown'}"`,
             t.ticketNumber,
             t.status,

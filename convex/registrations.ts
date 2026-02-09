@@ -7,7 +7,11 @@ import { auth } from "./auth";
  * Checks capacity, creates ticket, awards XP, sends notification
  */
 export const register = mutation({
-  args: { eventId: v.id("events"), status: v.optional(v.string()) },
+  args: { 
+    eventId: v.id("events"), 
+    status: v.optional(v.string()),
+    tierName: v.optional(v.string())
+  },
   handler: async (ctx, args) => {
     const userId = await auth.getUserId(ctx);
     if (!userId) throw new Error("Unauthorized");
@@ -21,7 +25,7 @@ export const register = mutation({
 
     const existing = await ctx.db
       .query("registrations")
-      .withIndex("by_event_user", (q) => q.eq("eventId", args.eventId).eq("userId", userId))
+      .withIndex("by_event_user", (q: any) => q.eq("eventId", args.eventId).eq("userId", userId))
       .unique();
 
     if (existing) {
@@ -35,7 +39,16 @@ export const register = mutation({
     }
 
     // Capacity enforcement
-    const isFull = event.registeredCount >= event.capacity;
+    let isFull = event.registeredCount >= event.capacity;
+    let selectedTier: any = null;
+
+    if (args.tierName && event.ticketTiers) {
+      selectedTier = (event.ticketTiers as any[]).find((t: any) => t.name === args.tierName);
+      if (selectedTier) {
+        isFull = selectedTier.registeredCount >= selectedTier.capacity;
+      }
+    }
+
     if (isFull && !event.waitlistEnabled) {
       throw new Error("Event is at full capacity");
     }
@@ -54,10 +67,11 @@ export const register = mutation({
       userId,
       ticketNumber,
       status,
-      price: event.price || 0,
+      price: selectedTier ? selectedTier.price : (event.price || 0),
       purchaseDate: Date.now(),
       attendeeName: user?.name || "Attendee",
       attendeeEmail: user?.email || "",
+      ticketTypeId: args.tierName,
     });
 
     const regId = await ctx.db.insert("registrations", {
@@ -69,9 +83,20 @@ export const register = mutation({
     });
 
     if (!isWaitlisted) {
+      // Update global count
       await ctx.db.patch(args.eventId, {
         registeredCount: (event.registeredCount || 0) + 1,
       });
+
+      // Update tier count if applicable
+      if (args.tierName && event.ticketTiers) {
+        const updatedTiers = (event.ticketTiers as any[]).map((t: any) => 
+          t.name === args.tierName 
+            ? { ...t, registeredCount: (t.registeredCount || 0) + 1 }
+            : t
+        );
+        await ctx.db.patch(args.eventId, { ticketTiers: updatedTiers });
+      }
     }
 
     // Award XP
@@ -99,6 +124,18 @@ export const register = mutation({
       createdAt: Date.now(),
       link: `/tickets`,
     });
+
+    // Trigger email confirmation
+    if (status === 'confirmed') {
+      await ctx.db.insert("notifications", {
+        userId,
+        title: "Registration Email",
+        message: `CONFIRMATION_EMAIL:${args.eventId}:${ticketNumber}`,
+        type: "email",
+        read: false,
+        createdAt: Date.now(),
+      });
+    }
 
     return regId;
   },
@@ -220,25 +257,65 @@ export const getByUser = query({
 
 export const confirmPayment = internalMutation({
 
-  args: { eventId: v.id("events"), userId: v.id("users") },
+
+
+  args: { 
+
+
+
+    eventId: v.id("events"), 
+
+
+
+    userId: v.id("users"),
+
+
+
+    tierName: v.optional(v.string())
+
+
+
+  },
+
+
 
   handler: async (ctx, args) => {
 
-    const { eventId, userId } = args;
+
+
+    const { eventId, userId, tierName } = args;
+
+
 
     const event = await ctx.db.get(eventId);
+
+
 
     if (!event) return;
 
 
 
+
+
+
+
     const existing = await ctx.db
+
+
 
       .query("registrations")
 
-      .withIndex("by_event_user", (q) => q.eq("eventId", eventId).eq("userId", userId))
+
+
+      .withIndex("by_event_user", (q: any) => q.eq("eventId", eventId).eq("userId", userId))
+
+
 
       .unique();
+
+
+
+
 
 
 
@@ -246,63 +323,191 @@ export const confirmPayment = internalMutation({
 
 
 
+
+
+
+
     const ticketNumber = `EVT-${eventId.substring(0, 4)}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+
+
 
     const user = await ctx.db.get(userId);
 
 
 
-    const ticketId = await ctx.db.insert("tickets", {
-
-      eventId,
-
-      userId,
-
-      ticketNumber,
-
-      status: "confirmed",
-
-      price: event.price || 0,
-
-      purchaseDate: Date.now(),
-
-      attendeeName: user?.name || "Attendee",
-
-      attendeeEmail: user?.email || "",
-
-    });
 
 
 
-    if (existing) {
 
-      await ctx.db.patch(existing._id, { status: "confirmed", ticketId });
+    let selectedTier: any = null;
 
-    } else {
 
-      await ctx.db.insert("registrations", {
 
-        userId,
+    if (tierName && event.ticketTiers) {
 
-        eventId,
 
-        status: "confirmed",
 
-        registrationDate: Date.now(),
+      selectedTier = (event.ticketTiers as any[]).find((t: any) => t.name === tierName);
 
-        ticketId,
 
-      });
 
     }
 
 
 
+
+
+
+
+    const ticketId = await ctx.db.insert("tickets", {
+
+
+
+      eventId,
+
+
+
+      userId,
+
+
+
+      ticketNumber,
+
+
+
+      status: "confirmed",
+
+
+
+      price: selectedTier ? selectedTier.price : (event.price || 0),
+
+
+
+      purchaseDate: Date.now(),
+
+
+
+      attendeeName: user?.name || "Attendee",
+
+
+
+      attendeeEmail: user?.email || "",
+
+
+
+      ticketTypeId: tierName,
+
+
+
+    });
+
+
+
+
+
+
+
+    if (existing) {
+
+
+
+      await ctx.db.patch(existing._id, { status: "confirmed", ticketId });
+
+
+
+    } else {
+
+
+
+      await ctx.db.insert("registrations", {
+
+
+
+        userId,
+
+
+
+        eventId,
+
+
+
+        status: "confirmed",
+
+
+
+        registrationDate: Date.now(),
+
+
+
+        ticketId,
+
+
+
+      });
+
+
+
+    }
+
+
+
+
+
+
+
     await ctx.db.patch(eventId, {
+
+
 
       registeredCount: (event.registeredCount || 0) + 1,
 
+
+
     });
+
+
+
+
+
+
+
+    // Update tier count if applicable
+
+
+
+    if (tierName && event.ticketTiers) {
+
+
+
+      const updatedTiers = (event.ticketTiers as any[]).map((t: any) => 
+
+
+
+        t.name === tierName 
+
+
+
+          ? { ...t, registeredCount: (t.registeredCount || 0) + 1 }
+
+
+
+          : t
+
+
+
+      );
+
+
+
+      await ctx.db.patch(eventId, { ticketTiers: updatedTiers });
+
+
+
+    }
+
+
+
+
 
 
 
@@ -320,10 +525,32 @@ export const confirmPayment = internalMutation({
 
       createdAt: Date.now(),
 
-      link: `/tickets`,
+            link: `/tickets`,
 
-    });
+          });
 
-  }
+      
 
-});
+          // Trigger email confirmation
+
+          await ctx.db.insert("notifications", {
+
+            userId,
+
+            title: "Registration Email",
+
+            message: `CONFIRMATION_EMAIL:${eventId}:${ticketNumber}`,
+
+            type: "email",
+
+            read: false,
+
+            createdAt: Date.now(),
+
+          });
+
+        }
+
+      });
+
+      

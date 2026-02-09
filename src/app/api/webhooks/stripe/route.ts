@@ -32,6 +32,7 @@ export async function POST(req: NextRequest) {
     
     const eventId = session.metadata?.eventId;
     const userId = session.metadata?.userId;
+    const tierName = session.metadata?.tierName;
 
     if (eventId && userId) {
       // Confirm payment in Convex
@@ -39,6 +40,7 @@ export async function POST(req: NextRequest) {
         await convex.mutation(api.registrations.confirmPayment, {
           eventId: eventId as any,
           userId: userId as any,
+          tierName: tierName || undefined,
         });
       } catch (e) {
         console.error('Failed to confirm payment in Convex:', e);

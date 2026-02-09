@@ -111,10 +111,10 @@
 
 ### 9.2 Ticketing
 - [x] **Payment integration**: Stripe checkout flow implemented for paid events. Includes `createCheckoutSession` action, webhook listener, and payment confirmation logic in Convex. Added `ticketing/success` page.
-- [ ] **Ticket types/tiers**: `ticketTypeId` field in schema never used. No multi-tier (VIP, Early Bird) support.
+- [x] **Ticket types/tiers**: Full multi-tier support implemented. Added `ticketTiers` to `events` table. Updated registration mutation to track tier-specific capacity. Added tier selection UI to `EventDetailsClient`.
 - [x] **Ticket PDF download**: Implemented high-fidelity ticket printing via `window.print()` with dynamic QR code generation. Added "Download PDF" buttons to ticket list and detail dialog.
 - [x] **Ticket cancellation/refund UI**: Backend `cancelTicket` mutation added. Frontend integration pending.
-- [ ] **Email confirmation on registration**: Email templates exist but are never triggered during registration.
+- [x] **Email confirmation on registration**: Implemented automated email triggers in Convex registration mutations. `NotificationWatcher` picks up specialized triggers and calls `/api/send-email` to notify users.
 
 ### 9.3 Chat
 - [x] **Direct messaging**: Added `UserPicker` and enhanced `createRoom` logic to support 1:1 conversations. Users can now search for and start direct chats from the sidebar.
@@ -253,8 +253,8 @@
 - [ ] **Push notifications**: Web Push via service worker.
 
 ### 11.5 Analytics & Insights
-- [ ] **Real-time check-in dashboard**: Live attendee count, check-in rate, heatmap.
-- [ ] **Feedback collection forms**: Custom post-event surveys.
+- [x] **Real-time check-in dashboard**: Added live metrics (checked-in count, rate, remaining) to `CheckInScannerClient`. Now provides organizers with instant feedback on event attendance progress.
+- [x] **Feedback collection forms**: Implemented custom post-event surveys. Organizers can define `feedbackSchema` in events. Attendees can submit multi-factor feedback via `FeedbackForm`. Added `events/[id]/feedback` route.
 - [ ] **Engagement scoring**: Per-user engagement metrics across events.
 - [ ] **Export reports as PDF/CSV**: Downloadable analytics reports.
 - [ ] **A/B testing for event descriptions**: AI-powered variant testing.

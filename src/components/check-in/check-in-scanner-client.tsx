@@ -37,6 +37,8 @@ import { cn, getErrorMessage } from '@/core/utils/utils';
 import { format } from 'date-fns';
 import { Html5Qrcode } from 'html5-qrcode';
 import { useToast } from '@/hooks/use-toast';
+import { Progress } from '@/components/ui/progress';
+import { Activity } from 'lucide-react';
 
 type ScanResult = {
   success: boolean;
@@ -62,6 +64,12 @@ export default function CheckInScannerClient() {
 
   const events: Event[] = (allEventsRaw || []).map((e: any) => ({ ...e, id: e._id }));
   const organizerEvents = events.filter(e => e.organizerId === (user?._id || user?.id) || user?.role === 'admin');
+
+  // Dashboard Queries
+  const registrations = useQuery(api.registrations.getByEvents, selectedEvent ? { eventIds: [selectedEvent as any] } : "skip") || [];
+  const checkInCount = registrations.filter((r: any) => r.checkedIn).length;
+  const totalRegistrations = registrations.length;
+  const checkInRate = totalRegistrations > 0 ? Math.round((checkInCount / totalRegistrations) * 100) : 0;
 
   useEffect(() => {
     if (organizerEvents.length > 0 && !selectedEvent) {
@@ -154,6 +162,46 @@ export default function CheckInScannerClient() {
           </Select>
         </CardContent>
       </Card>
+
+      {/* Real-time Stats Dashboard */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <Card className="bg-white/5 border-white/10 text-white overflow-hidden group hover:border-emerald-500/30 transition-colors">
+          <CardContent className="p-6 relative">
+            <div className="flex justify-between items-start mb-2">
+              <p className="text-[10px] uppercase font-black text-gray-500 tracking-widest">Checked In</p>
+              <UserCheck size={14} className="text-emerald-400" />
+            </div>
+            <p className="text-3xl font-black">{checkInCount} / {totalRegistrations}</p>
+            <div className="mt-4 h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+              <div className="h-full bg-emerald-500 rounded-full transition-all duration-1000" style={{ width: `${checkInRate}%` }} />
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-white/5 border-white/10 text-white group hover:border-cyan-500/30 transition-colors">
+          <CardContent className="p-6">
+            <div className="flex justify-between items-start mb-2">
+              <p className="text-[10px] uppercase font-black text-gray-500 tracking-widest">Check-in Rate</p>
+              <TrendingUp size={14} className="text-cyan-400" />
+            </div>
+            <p className="text-3xl font-black">{checkInRate}%</p>
+            <p className="text-[10px] text-gray-500 mt-1 flex items-center gap-1">
+              <Activity size={10} className="text-cyan-500 animate-pulse" /> Live activity tracking
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-white/5 border-white/10 text-white group hover:border-amber-500/30 transition-all">
+          <CardContent className="p-6">
+            <div className="flex justify-between items-start mb-2">
+              <p className="text-[10px] uppercase font-black text-gray-500 tracking-widest">Pending</p>
+              <Clock size={14} className="text-amber-400" />
+            </div>
+            <p className="text-3xl font-black">{totalRegistrations - checkInCount}</p>
+            <p className="text-[10px] text-gray-500 mt-1">Remaining attendees</p>
+          </CardContent>
+        </Card>
+      </div>
 
       <div className="grid md:grid-cols-2 gap-6">
         <Card className="bg-white/5 border-white/10 text-white">

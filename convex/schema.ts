@@ -88,6 +88,19 @@ export default defineSchema({
     speakers: v.optional(v.array(v.string())),
     waitlistEnabled: v.optional(v.boolean()),
     tags: v.optional(v.array(v.string())),
+    ticketTiers: v.optional(v.array(v.object({
+      name: v.string(),
+      price: v.number(),
+      capacity: v.number(),
+      registeredCount: v.number(),
+      description: v.optional(v.string()),
+    }))),
+    feedbackSchema: v.optional(v.array(v.object({
+      id: v.string(),
+      question: v.string(),
+      type: v.union(v.literal("rating"), v.literal("text"), v.literal("boolean")),
+      required: v.boolean(),
+    }))),
   }).index("by_organizer", ["organizerId"]).index("by_status", ["status"]),
 
   registrations: defineTable({
@@ -219,6 +232,7 @@ export default defineSchema({
     userId: v.id("users"),
     rating: v.number(),
     comment: v.optional(v.string()),
+    responses: v.optional(v.record(v.string(), v.union(v.string(), v.number(), v.boolean()))),
     createdAt: v.number(),
   }).index("by_event", ["eventId"]).index("by_user", ["userId"]),
 

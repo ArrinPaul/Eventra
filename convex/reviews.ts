@@ -7,6 +7,7 @@ export const submit = mutation({
     eventId: v.id("events"),
     rating: v.number(),
     comment: v.optional(v.string()),
+    responses: v.optional(v.record(v.string(), v.union(v.string(), v.number(), v.boolean()))),
   },
   handler: async (ctx, args) => {
     const userId = await auth.getUserId(ctx);
@@ -24,6 +25,7 @@ export const submit = mutation({
       return await ctx.db.patch(existing._id, {
         rating: args.rating,
         comment: args.comment,
+        responses: args.responses,
         createdAt: Date.now(),
       });
     }
@@ -33,6 +35,7 @@ export const submit = mutation({
       userId,
       rating: args.rating,
       comment: args.comment,
+      responses: args.responses,
       createdAt: Date.now(),
     });
   },

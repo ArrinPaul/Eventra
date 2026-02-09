@@ -164,6 +164,13 @@ export const create = mutation({
     speakers: v.optional(v.array(v.string())),
     waitlistEnabled: v.optional(v.boolean()),
     tags: v.optional(v.array(v.string())),
+    ticketTiers: v.optional(v.array(v.object({
+      name: v.string(),
+      price: v.number(),
+      capacity: v.number(),
+      registeredCount: v.number(),
+      description: v.optional(v.string()),
+    }))),
   },
   handler: async (ctx, args) => {
     const eventId = await ctx.db.insert("events", args);
@@ -195,6 +202,13 @@ export const update = mutation({
       waitlistEnabled: v.optional(v.boolean()),
       tags: v.optional(v.array(v.string())),
       coOrganizerIds: v.optional(v.array(v.id("users"))),
+      ticketTiers: v.optional(v.array(v.object({
+        name: v.string(),
+        price: v.number(),
+        capacity: v.number(),
+        registeredCount: v.number(),
+        description: v.optional(v.string()),
+      }))),
     }),
   },
   handler: async (ctx, args) => {
