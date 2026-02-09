@@ -75,7 +75,7 @@ export const listMessages = query({
     return {
       ...results,
       page: await Promise.all(
-        results.page.map(async (msg) => {
+        results.page.map(async (msg: any) => {
           const sender = await ctx.db.get(msg.senderId);
           return {
             ...msg,

@@ -27,7 +27,7 @@ export const getUserBadges = query({
     const badgeMap = new Map(allBadges.map(b => [b._id.toString(), b]));
 
     return userBadges
-      .map(ub => {
+      .map((ub: any) => {
         const badge = badgeMap.get(ub.badgeId.toString());
         return badge ? { ...badge, awardedAt: ub.awardedAt } : null;
       })
@@ -208,7 +208,7 @@ export const getUserChallenges = query({
     const challengeMap = new Map(allChallenges.map(c => [c._id.toString(), c]));
 
     return userChallenges
-      .map(uc => {
+      .map((uc: any) => {
         const challenge = challengeMap.get(uc.challengeId.toString());
         return challenge ? { ...uc, challenge } : null;
       })

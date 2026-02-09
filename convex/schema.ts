@@ -281,7 +281,13 @@ export default defineSchema({
     title: v.string(),
     description: v.optional(v.string()),
     link: v.optional(v.string()),
-    metadata: v.optional(v.any()),
+    metadata: v.optional(v.union(
+      v.object({ eventId: v.id("events"), eventTitle: v.optional(v.string()) }),
+      v.object({ badgeId: v.id("badges"), badgeName: v.optional(v.string()) }),
+      v.object({ postId: v.id("community_posts"), communityId: v.optional(v.id("communities")) }),
+      v.object({ otherUserId: v.id("users") }),
+      v.any() // Fallback
+    )),
     createdAt: v.number(),
   }).index("by_user", ["userId"]).index("by_created", ["createdAt"]),
 

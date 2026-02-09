@@ -249,7 +249,7 @@ export default function AIChatbot({
           sessionId: sessionId!,
           role: 'assistant',
           content: data.message,
-          actions: data.actions,
+          actions: data.actions as any,
         });
       } else {
         throw new Error(data.error || 'Failed to get response');
@@ -379,7 +379,7 @@ export default function AIChatbot({
                     <p className="text-sm max-w-[200px]">Ask anything about Eventra, your schedule, or networking.</p>
                   </div>
                 )}
-                {messages.map((message) => (
+                {messages.map((message: any) => (
                   <div key={message._id} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                     <div className={`flex gap-2 max-w-[85%] ${message.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
                       <div className="flex-shrink-0">
@@ -393,8 +393,8 @@ export default function AIChatbot({
                         <div dangerouslySetInnerHTML={{ __html: formatMessageContent(message.content) }} />
                         {message.actions && message.actions.length > 0 && (
                           <div className="mt-3 flex flex-wrap gap-2">
-                            {message.actions.map((action, index) => (
-                              <Button key={index} variant="secondary" size="xs" onClick={() => executeQuickAction(action.action, action.data)} className="text-[10px] h-7">
+                            {message.actions.map((action: any, index: number) => (
+                              <Button key={index} variant="secondary" size="sm" onClick={() => executeQuickAction(action.action, action.data)} className="text-[10px] h-7">
                                 {action.label}
                               </Button>
                             ))}

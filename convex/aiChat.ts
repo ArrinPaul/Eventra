@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
-import { Doc, Id } from "./_generated/dataModel";
+import { Id } from "./_generated/dataModel";
 import { getAuthUserId } from "@convex-dev/auth/server";
 
 export const getSessions = query({
@@ -11,7 +11,7 @@ export const getSessions = query({
 
     return await ctx.db
       .query("ai_chat_sessions")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .withIndex("by_user", (q: any) => q.eq("userId", userId))
       .order("desc")
       .collect();
   },
@@ -28,7 +28,7 @@ export const getSessionMessages = query({
 
     return await ctx.db
       .query("ai_chat_messages")
-      .withIndex("by_session", (q) => q.eq("sessionId", args.sessionId))
+      .withIndex("by_session", (q: any) => q.eq("sessionId", args.sessionId))
       .order("asc")
       .collect();
   },
@@ -107,7 +107,7 @@ export const deleteSession = mutation({
     // Delete all messages in the session
     const messages = await ctx.db
       .query("ai_chat_messages")
-      .withIndex("by_session", (q) => q.eq("sessionId", args.sessionId))
+      .withIndex("by_session", (q: any) => q.eq("sessionId", args.sessionId))
       .collect();
 
     for (const message of messages) {

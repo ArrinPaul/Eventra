@@ -90,7 +90,7 @@
 - [x] **Legacy type aliases cleaned**: Removed `uid`, `photoURL`, `image` (on Event), `LegacyEvent`, `registeredUsers`, `attendees` from `types/index.ts`. Fixed all frontend references.
 - [x] **Auth context cleaned**: Removed placeholder functions (`login`, `addEventToUser`, `removeEventFromUser`, `refreshUser`) from `auth-context.tsx`.
 - [x] **Replace `v.any()` in schema**: `location` and `agenda` fields in `events` table now use proper typed schemas.
-- [ ] **Fix remaining `v.any()`**: `eventRatings` in `users` and `metadata` in `activity_feed` still use `v.any()`.
+- [x] **Fix remaining `v.any()`**: `eventRatings` in `users` and `metadata` in `activity_feed` now use proper typed schemas.
 
 > **Session 3 fix**: `v.any()` replaced with typed `locationValidator` (union of string | structured object) and `agendaValidator` (array of typed objects) in `convex/events.ts`. Schema updated.
 

@@ -19,6 +19,8 @@ import {
   Sparkles,
   Wand2
 } from 'lucide-react';
+import { cn } from '@/core/utils/utils';
+import { format } from 'date-fns';
 import { eventWizardSchema, defaultEventValues, EventWizardData } from './wizard/types';
 import { Step1BasicInfo } from './wizard/step-1-basic-info';
 import { Step2DateLocation } from './wizard/step-2-date-location';
@@ -69,7 +71,7 @@ export default function EventCreationWizard() {
         title: formData.title,
         eventType: formData.category,
         duration: 2, 
-      });
+      }) as any;
       if (result.success) {
         setValue('description', result.agenda.description || `This ${formData.category} event focuses on ${formData.title}.`);
         setValue('agenda', result.agenda.agenda);

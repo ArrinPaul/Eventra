@@ -53,7 +53,7 @@ export const getByOrganizer = query({
   handler: async (ctx, args) => {
     return await ctx.db
       .query("events")
-      .withIndex("by_organizer", (q) => q.eq("organizerId", args.organizerId))
+      .withIndex("by_organizer", (q: any) => q.eq("organizerId", args.organizerId))
       .collect();
   },
 });
@@ -64,19 +64,19 @@ export const getManagedEvents = query({
     // Collect events where user is main organizer
     const owned = await ctx.db
       .query("events")
-      .withIndex("by_organizer", (q) => q.eq("organizerId", args.userId))
+      .withIndex("by_organizer", (q: any) => q.eq("organizerId", args.userId))
       .collect();
     
     // Collect events where user is co-organizer
     // Note: This requires a full table scan or a separate index if many events
     const coOrganized = await ctx.db
       .query("events")
-      .filter((q) => q.and(
+      .filter((q: any) => q.and(
         q.neq(q.field("organizerId"), args.userId),
         q.neq(q.field("coOrganizerIds"), undefined)
       ))
       .collect()
-      .then(events => events.filter(e => e.coOrganizerIds?.includes(args.userId)));
+      .then((events: any[]) => events.filter(e => e.coOrganizerIds?.includes(args.userId)));
 
     return [...owned, ...coOrganized].sort((a, b) => b.startDate - a.startDate);
   },
@@ -89,12 +89,12 @@ export const getBySpeaker = query({
     // we use a filter. For large datasets, a separate mapping table would be better.
     return await ctx.db
       .query("events")
-      .filter((q) => q.or(
+      .filter((q: any) => q.or(
         q.eq(q.field("status"), "published"),
         q.eq(q.field("status"), "completed")
       ))
       .collect()
-      .then(events => events.filter(e => e.speakers?.includes(args.speakerName)));
+      .then((events: any[]) => events.filter(e => e.speakers?.includes(args.speakerName)));
   },
 });
 
@@ -103,7 +103,7 @@ export const listByOrganizer = query({
   handler: async (ctx, args) => {
     return await ctx.db
       .query("events")
-      .withIndex("by_organizer", (q) => q.eq("organizerId", args.organizerId))
+      .withIndex("by_organizer", (q: any) => q.eq("organizerId", args.organizerId))
       .order("desc")
       .paginate(args.paginationOpts);
   },
@@ -114,7 +114,7 @@ export const getByStatus = query({
   handler: async (ctx, args) => {
     return await ctx.db
       .query("events")
-      .withIndex("by_status", (q) => q.eq("status", args.status))
+      .withIndex("by_status", (q: any) => q.eq("status", args.status))
       .collect();
   },
 });
@@ -124,7 +124,7 @@ export const listByStatus = query({
   handler: async (ctx, args) => {
     return await ctx.db
       .query("events")
-      .withIndex("by_status", (q) => q.eq("status", args.status))
+      .withIndex("by_status", (q: any) => q.eq("status", args.status))
       .order("desc")
       .paginate(args.paginationOpts);
   },
@@ -135,7 +135,7 @@ export const getPublished = query({
   handler: async (ctx) => {
     return await ctx.db
       .query("events")
-      .withIndex("by_status", (q) => q.eq("status", "published"))
+      .withIndex("by_status", (q: any) => q.eq("status", "published"))
       .collect();
   },
 });

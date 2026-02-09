@@ -18,11 +18,15 @@ import {
   TrendingUp,
   Star,
   Zap,
-  Ticket
+  Ticket,
+  Activity
 } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { cn } from '@/core/utils/utils';
+import { useQuery } from 'convex/react';
+import { api } from '../../../convex/_generated/api';
+import { ActivityFeed } from '@/components/feed/activity-feed';
 
 // Placeholder data - in a real app, this would come from props or API
 const FEATURED_EVENTS = [
@@ -77,6 +81,7 @@ const MY_UPCOMING = [
 
 export function AttendeeDashboard() {
   const { user } = useAuth();
+  const registrations = useQuery(api.registrations.getByUser) || [];
 
   if (!user) return null;
 
@@ -302,6 +307,19 @@ export function AttendeeDashboard() {
                   <Link href="/networking">View all suggestions</Link>
                 </Button>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Activity Feed Widget */}
+          <Card className="bg-white/5 border-white/10 backdrop-blur-sm">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg flex items-center gap-2 text-white">
+                <Activity className="h-5 w-5 text-cyan-400" />
+                Live Feed
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="px-2">
+              <ActivityFeed userId={user._id} />
             </CardContent>
           </Card>
         </div>

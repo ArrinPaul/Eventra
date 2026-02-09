@@ -11,6 +11,8 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { use } from 'react';
 import { CoOrganizerManager } from '@/components/organizer/co-organizer-manager';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 export default function EventEditPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);

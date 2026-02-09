@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Sparkles, TrendingUp, Users, Target, Calendar, BookOpen, Network, RefreshCw } from 'lucide-react';
+import { Sparkles, TrendingUp, Users, Target, Calendar, BookOpen, Network, RefreshCw, Clock } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { useQuery } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
