@@ -30,15 +30,15 @@ export function CoOrganizerManager({ eventId, organizerId, coOrganizerIds = [] }
   // To show co-organizer details, we fetch them
   // In a real app, a dedicated query for multiple IDs is better
   const allUsers = useQuery(api.users.list) || [];
-  const coOrganizers = allUsers.filter(u => coOrganizerIds.includes(u._id));
-  const mainOrganizer = allUsers.find(u => u._id === organizerId);
+  const coOrganizers = allUsers.filter((u: any) => coOrganizerIds.includes(u._id));
+  const mainOrganizer = allUsers.find((u: any) => u._id === organizerId);
 
   const handleAddByEmail = async () => {
     if (!email.trim()) return;
     setIsSearching(true);
     try {
       // Find user by email
-      const targetUser = allUsers.find(u => u.email === email.trim());
+      const targetUser = allUsers.find((u: any) => u.email === email.trim());
       
       if (!targetUser) {
         toast({ title: "User not found", description: "No user found with this email address.", variant: "destructive" });
@@ -128,7 +128,7 @@ export function CoOrganizerManager({ eventId, organizerId, coOrganizerIds = [] }
                 No co-organizers added yet.
               </p>
             ) : (
-              coOrganizers.map(co => (
+              coOrganizers.map((co: any) => (
                 <div key={co._id} className="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/5 group">
                   <Avatar className="h-10 w-10">
                     <AvatarImage src={co.image} />

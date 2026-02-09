@@ -45,7 +45,7 @@ export default function ExportFunctionality() {
         const headers = ['Title', 'Category', 'Date', 'Type', 'Capacity', 'Registered'];
         const csvContent = [
           headers.join(','),
-          ...myEvents.map(e => [
+          ...myEvents.map((e: any) => [
             `"${e.title}"`,
             e.category,
             new Date(e.startDate).toLocaleDateString(),

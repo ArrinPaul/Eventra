@@ -17,7 +17,7 @@ export function UserPicker({ onSelect, excludeIds = [] }: UserPickerProps) {
   const [query, setQuery] = useState('');
   const allUsers = useQuery(api.users.list) || [];
   
-  const filteredUsers = allUsers.filter(u => 
+  const filteredUsers = allUsers.filter((u: any) => 
     !excludeIds.includes(u._id) && 
     (u.name?.toLowerCase().includes(query.toLowerCase()) || 
      u.email?.toLowerCase().includes(query.toLowerCase()))
@@ -39,7 +39,7 @@ export function UserPicker({ onSelect, excludeIds = [] }: UserPickerProps) {
         {filteredUsers.length === 0 ? (
           <p className="text-center py-10 text-gray-500 text-sm">No users found.</p>
         ) : (
-          filteredUsers.map(u => (
+          filteredUsers.map((u: any) => (
             <button
               key={u._id}
               onClick={() => onSelect(u._id, u.name || 'User')}

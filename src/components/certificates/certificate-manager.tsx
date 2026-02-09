@@ -40,8 +40,8 @@ export function CertificateManager() {
   
   const bulkIssueMutation = useMutation(api.certificates.bulkIssue);
 
-  const selectedEvent = events.find(e => e._id === selectedEventId);
-  const issuedUserIds = new Set(issuedCertificates.map(c => c.userId));
+  const selectedEvent = events.find((e: any) => e._id === selectedEventId);
+  const issuedUserIds = new Set(issuedCertificates.map((c: any) => c.userId));
   
   const filteredAttendees = attendees.filter((a: any) => 
     a.userName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -87,7 +87,7 @@ export function CertificateManager() {
               {events.length === 0 ? (
                 <p className="text-center py-10 text-gray-500 text-sm">No events found.</p>
               ) : (
-                events.map(event => (
+                events.map((event: any) => (
                   <button
                     key={event._id}
                     onClick={() => setSelectedEventId(event._id)}

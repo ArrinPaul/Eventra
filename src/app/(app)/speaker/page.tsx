@@ -19,18 +19,18 @@ export default function SpeakerDashboard() {
 
   const stats = {
     totalSessions: sessions.length,
-    upcomingSessions: sessions.filter(s => isFuture(new Date(s.startDate))).length,
-    completedSessions: sessions.filter(s => isPast(new Date(s.startDate)) || s.status === 'completed').length,
-    totalAttendees: sessions.reduce((sum, s) => sum + (s.registeredCount || 0), 0),
+    upcomingSessions: sessions.filter((s: any) => isFuture(new Date(s.startDate))).length,
+    completedSessions: sessions.filter((s: any) => isPast(new Date(s.startDate)) || s.status === 'completed').length,
+    totalAttendees: sessions.reduce((sum: number, s: any) => sum + (s.registeredCount || 0), 0),
     averageRating: 4.8, // Fallback as we don't have per-speaker rating aggregation yet
   };
 
   const upcomingSessions = sessions
-    .filter(s => isFuture(new Date(s.startDate)) && s.status === 'published')
-    .sort((a, b) => a.startDate - b.startDate);
+    .filter((s: any) => isFuture(new Date(s.startDate)) && s.status === 'published')
+    .sort((a: any, b: any) => a.startDate - b.startDate);
 
   const speakerActivity = notifications
-    .filter(n => n.message.toLowerCase().includes('session') || n.message.toLowerCase().includes('event'))
+    .filter((n: any) => n.message.toLowerCase().includes('session') || n.message.toLowerCase().includes('event'))
     .slice(0, 5);
 
   if (!user) return <div className="p-20 text-center text-white">Please sign in to view your speaker dashboard.</div>;
@@ -97,7 +97,7 @@ export default function SpeakerDashboard() {
                   <p>No upcoming sessions found.</p>
                 </div>
               ) : (
-                upcomingSessions.map((session) => (
+                upcomingSessions.map((session: any) => (
                   <div key={session._id} className="p-6 hover:bg-white/[0.02] transition-colors group">
                     <div className="flex flex-col md:flex-row justify-between gap-4 mb-4">
                       <div>
@@ -135,7 +135,7 @@ export default function SpeakerDashboard() {
               {speakerActivity.length === 0 ? (
                 <div className="p-10 text-center text-gray-500 text-sm italic">No recent activity</div>
               ) : (
-                speakerActivity.map((activity) => (
+                speakerActivity.map((activity: any) => (
                   <div key={activity._id} className="p-4 hover:bg-white/[0.01]">
                     <p className="text-sm text-gray-300 font-medium">{activity.title}</p>
                     <p className="text-xs text-gray-500 mt-1 line-clamp-2">{activity.message}</p>
