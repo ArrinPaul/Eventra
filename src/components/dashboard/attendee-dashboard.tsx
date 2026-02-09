@@ -27,6 +27,8 @@ import { cn } from '@/core/utils/utils';
 import { useQuery } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import { ActivityFeed } from '@/components/feed/activity-feed';
+import { EngagementMetrics } from './engagement-metrics';
+import { ReferralSystem } from './referral-system';
 
 // Placeholder data - in a real app, this would come from props or API
 const FEATURED_EVENTS = [
@@ -146,6 +148,7 @@ export function AttendeeDashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content Area */}
           <div className="lg:col-span-2 space-y-8">
+            <EngagementMetrics userId={user._id} />
 
             {/* AI Recommendations */}
             <section>
@@ -257,6 +260,8 @@ export function AttendeeDashboard() {
 
         {/* Sidebar Widgets */}
         <div className="space-y-6">
+          <ReferralSystem />
+          
           {/* QR Code Widget */}
           <Card className="bg-gradient-to-b from-white/5 to-white/[0.02] border-cyan-500/20 overflow-hidden backdrop-blur-sm">
             <CardHeader className="pb-2">

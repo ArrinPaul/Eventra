@@ -32,6 +32,7 @@ import { Progress } from '@/components/ui/progress';
 import { createCheckoutSession } from '@/app/actions/payments';
 import { EventDiscussionBoard } from './event-discussion-board';
 import { EventReactions } from './event-reactions';
+import { EventGallery } from './event-gallery';
 import {
   Dialog,
   DialogContent,
@@ -170,6 +171,7 @@ export default function EventDetailsClient({ eventId }: { eventId: string }) {
                         Discussion
                         <Badge variant="secondary" className="h-4 p-0 px-1 text-[8px] bg-white/10 text-gray-400">NEW</Badge>
                       </TabsTrigger>
+                      <TabsTrigger value="photos" className="data-[state=active]:bg-cyan-600">Photos</TabsTrigger>
                     </TabsList>
 
                     <TabsContent value="about" className="space-y-6 animate-in fade-in slide-in-from-bottom-2">
@@ -203,6 +205,10 @@ export default function EventDetailsClient({ eventId }: { eventId: string }) {
 
                     <TabsContent value="discussion">
                       <EventDiscussionBoard eventId={event._id} />
+                    </TabsContent>
+
+                    <TabsContent value="photos">
+                      <EventGallery eventId={event._id} isRegistered={isRegistered} />
                     </TabsContent>
                   </Tabs>
                 </div>

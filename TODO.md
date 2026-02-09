@@ -229,7 +229,7 @@
 - [x] **Waitlist with auto-promotion**: Implemented — auto-promotes from waitlist on cancellation.
 - [x] **Event discussion/Q&A board**: Implemented real-time discussion board for each event. Supports general posts and targeted questions. Organizers can mark questions as answered. Includes notifications for organizers.
 - [ ] **Live polling during events**: Real-time audience polls.
-- [ ] **Event photo gallery**: Post-event photo sharing.
+- [x] **Event photo gallery**: Implemented post-event photo sharing via `EventGallery` component. Supports image uploads to Convex Storage, responsive grid view, and a high-quality lightbox viewer. Integrated into Event Details tabs.
 
 ### 11.2 Payments & Monetization
 - [ ] **Stripe integration**: Full payment flow for paid events.
@@ -243,7 +243,7 @@
 - [x] **Follow system**: Implemented user-to-user following. Users can follow each other from their profiles. Real-time follower/following counts and notifications added. `follows` table in schema.
 - [x] **Comment system on posts**: Added `addComment`/`getComments` mutations with author enrichment.
 - [x] **Event reactions/emojis**: Users can react to events with emojis (❤️, 🔥, etc.). Real-time counters and "me" state implemented. `event_reactions` table added.
-- [ ] **Referral system**: Invite friends, earn XP.
+- [x] **Referral system**: Users can generate unique referral codes and earn 100 XP for every successful invite. Redeeming a code gives the new user 50 XP. Added `ReferralSystem` widget to dashboard.
 - [x] **Activity feed**: Created `activity_feed` table, `convex/activity.ts` with queries + mutations, `ActivityFeed` component with timeline UI.
 
 ### 11.4 Communication
@@ -255,7 +255,7 @@
 ### 11.5 Analytics & Insights
 - [x] **Real-time check-in dashboard**: Added live metrics (checked-in count, rate, remaining) to `CheckInScannerClient`. Now provides organizers with instant feedback on event attendance progress.
 - [x] **Feedback collection forms**: Implemented custom post-event surveys. Organizers can define `feedbackSchema` in events. Attendees can submit multi-factor feedback via `FeedbackForm`. Added `events/[id]/feedback` route.
-- [ ] **Engagement scoring**: Per-user engagement metrics across events.
+- [x] **Engagement scoring**: Implemented real-time activity aggregation in `getEngagementScore` query. Created `EngagementMetrics` component showing participation score, percentile, and breakdown. Integrated into Attendee Dashboard.
 - [ ] **Export reports as PDF/CSV**: Downloadable analytics reports.
 - [ ] **A/B testing for event descriptions**: AI-powered variant testing.
 

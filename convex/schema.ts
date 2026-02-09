@@ -45,7 +45,9 @@ export default defineSchema({
       communityUpdates: v.optional(v.boolean()),
       marketingEmails: v.optional(v.boolean()),
     })),
-  }).index("by_email", ["email"]).index("by_points", ["points"]),
+    referralCode: v.optional(v.string()),
+    referredBy: v.optional(v.string()), // Referral code of the user who referred this user
+  }).index("by_email", ["email"]).index("by_points", ["points"]).index("by_referral_code", ["referralCode"]),
 
   events: defineTable({
     title: v.string(),
@@ -381,4 +383,13 @@ export default defineSchema({
     userId: v.id("users"),
     emoji: v.string(), // "🔥", "❤️", "👍", "😮", "🙌"
   }).index("by_event", ["eventId"]).index("by_user_event", ["userId", "eventId"]),
+
+  event_gallery: defineTable({
+    eventId: v.id("events"),
+    userId: v.id("users"),
+    imageUrl: v.string(),
+    storageId: v.string(),
+    caption: v.optional(v.string()),
+    createdAt: v.number(),
+  }).index("by_event", ["eventId"]),
 });

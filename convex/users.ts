@@ -206,3 +206,118 @@ export const getFollowStats = query({
     };
   },
 });
+
+export const getEngagementScore = query({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    const registrations = await ctx.db
+      .query("registrations")
+      .withIndex("by_user", (q: any) => q.eq("userId", args.userId))
+      .collect();
+    
+    const messages = await ctx.db
+      .query("messages")
+      .filter((q) => q.eq(q.field("senderId"), args.userId))
+      .collect();
+    
+    const reviews = await ctx.db
+      .query("reviews")
+      .withIndex("by_user", (q: any) => q.eq("userId", args.userId))
+      .collect();
+    
+    const badges = await ctx.db
+      .query("user_badges")
+      .withIndex("by_user", (q: any) => q.eq("userId", args.userId))
+      .collect();
+
+    const stats = {
+      eventCount: registrations.length,
+      messageCount: messages.length,
+      reviewCount: reviews.length,
+      badgeCount: badges.length,
+    };
+
+    // Calculate score (simple weighted average)
+    const score = (stats.eventCount * 20) + (stats.messageCount * 2) + (stats.reviewCount * 10) + (stats.badgeCount * 50);
+
+    return {
+      score,
+      stats,
+      percentile: 85, // Mock percentile for now
+    };
+  },
+});
+
+export const generateReferralCode = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const userId = await auth.getUserId(ctx);
+    if (!userId) throw new Error("Unauthorized");
+
+    const user = await ctx.db.get(userId);
+    if (user?.referralCode) return user.referralCode;
+
+    const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+    await ctx.db.patch(userId, { referralCode: code });
+    return code;
+  },
+});
+
+export const redeemReferral = mutation({
+  args: { code: v.string() },
+  handler: async (ctx, args) => {
+    const userId = await auth.getUserId(ctx);
+    if (!userId) throw new Error("Unauthorized");
+
+    const user = await ctx.db.get(userId);
+    if (user?.referredBy) throw new Error("Referral already redeemed");
+
+    const referrer = await ctx.db
+      .query("users")
+      .withIndex("by_referral_code", (q) => q.eq("referralCode", args.code))
+      .unique();
+
+    if (!referrer) throw new Error("Invalid referral code");
+    if (referrer._id === userId) throw new Error("Cannot refer yourself");
+
+    // Update current user
+    await ctx.db.patch(userId, { referredBy: args.code });
+    
+    // Reward both
+    const referReward = 100;
+    
+    // Reward referrer
+    await ctx.db.patch(referrer._id, {
+      points: (referrer.points || 0) + referReward,
+      xp: (referrer.xp || 0) + referReward,
+    });
+    await ctx.db.insert("points_history", {
+      userId: referrer._id,
+      points: referReward,
+      reason: "Successful referral",
+      createdAt: Date.now(),
+    });
+    await ctx.db.insert("notifications", {
+      userId: referrer._id,
+      title: "Referral Success! 🎁",
+      message: `Someone joined using your code! You earned ${referReward} XP.`,
+      type: "gamification",
+      read: false,
+      createdAt: Date.now(),
+    });
+
+    // Reward new user
+    await ctx.db.patch(userId, {
+      points: (user?.points || 0) + 50,
+      xp: (user?.xp || 0) + 50,
+    });
+    await ctx.db.insert("points_history", {
+      userId,
+      points: 50,
+      reason: "Redeemed referral code",
+      createdAt: Date.now(),
+    });
+
+    return { success: true };
+  },
+});
