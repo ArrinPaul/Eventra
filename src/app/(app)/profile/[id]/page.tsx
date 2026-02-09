@@ -9,7 +9,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { BadgeShowcase } from '@/components/gamification/badge-showcase';
-import { Loader2, Mail, MapPin, Briefcase, GraduationCap, Calendar } from 'lucide-react';
+import { Loader2, Mail, MapPin, Briefcase, GraduationCap, Calendar, Users } from 'lucide-react';
+import { FollowButton } from '@/components/shared/follow-button';
 
 export default function UserProfilePage() {
   const params = useParams();
@@ -18,6 +19,7 @@ export default function UserProfilePage() {
 
   const profileUser = useQuery(api.users.getById, userId ? { id: userId as any } : 'skip');
   const stats = useQuery(api.gamification.getProfile, profileUser ? { userId: profileUser._id } : 'skip');
+  const followStats = useQuery(api.users.getFollowStats, profileUser ? { userId: profileUser._id } : 'skip');
 
   if (profileUser === undefined) {
     return (
@@ -61,26 +63,19 @@ export default function UserProfilePage() {
                     {profileUser.role}
                   </Badge>
                 )}
-                {(profileUser as any).company && (
-                  <span className="flex items-center gap-1">
-                    <Briefcase className="h-3.5 w-3.5" />
-                    {(profileUser as any).company}
-                  </span>
-                )}
-                {(profileUser as any).college && (
-                  <span className="flex items-center gap-1">
-                    <GraduationCap className="h-3.5 w-3.5" />
-                    {(profileUser as any).college}
-                  </span>
-                )}
-                {(profileUser as any).country && (
-                  <span className="flex items-center gap-1">
-                    <MapPin className="h-3.5 w-3.5" />
-                    {(profileUser as any).country}
-                  </span>
+                {followStats && (
+                  <div className="flex items-center gap-3 text-xs">
+                    <span className="text-white font-bold">{followStats.followerCount} <span className="text-gray-500 font-normal">followers</span></span>
+                    <span className="text-white font-bold">{followStats.followingCount} <span className="text-gray-500 font-normal">following</span></span>
+                  </div>
                 )}
               </div>
             </div>
+            {!isOwnProfile && profileUser?._id && (
+              <div className="pb-1">
+                <FollowButton userId={profileUser._id} />
+              </div>
+            )}
           </div>
 
           {(profileUser as any).bio && (

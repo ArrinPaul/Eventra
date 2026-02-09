@@ -29,8 +29,9 @@ import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import { EventChatbot, ChatbotTrigger } from '@/components/ai/event-chatbot';
 import { Progress } from '@/components/ui/progress';
-
 import { createCheckoutSession } from '@/app/actions/payments';
+import { EventDiscussionBoard } from './event-discussion-board';
+import { EventReactions } from './event-reactions';
 
 export default function EventDetailsClient({ eventId }: { eventId: string }) {
   const router = useRouter();
@@ -43,6 +44,8 @@ export default function EventDetailsClient({ eventId }: { eventId: string }) {
   
   const [registering, setRegistering] = useState(false);
   const [showChatbot, setShowChatbot] = useState(false);
+  const [activeTab, setActiveTab] = useState('about');
+
 
   const handleRegister = async () => {
     if (!user) {
@@ -129,34 +132,53 @@ export default function EventDetailsClient({ eventId }: { eventId: string }) {
                   <Progress value={capacityPercent} className="h-2" />
                 </div>
 
-                <Separator className="my-8 border-white/10" />
-                <h3 className="font-bold mb-4">About</h3>
-                <p className="text-gray-300 whitespace-pre-wrap">{event.description}</p>
+                <EventReactions eventId={event._id} />
 
-                {/* Agenda */}
-                {event.agenda && Array.isArray(event.agenda) && event.agenda.length > 0 && (
-                  <>
-                    <Separator className="my-8 border-white/10" />
-                    <h3 className="font-bold mb-4">Agenda</h3>
-                    <div className="space-y-3">
-                      {event.agenda.map((item: any, i: number) => (
-                        <div key={i} className="flex gap-4 p-3 rounded-lg bg-white/5 border border-white/10">
-                          {item.startTime && (
-                            <div className="flex items-center gap-1 text-sm text-cyan-400 font-mono shrink-0">
-                              <Clock className="h-3 w-3" />
-                              {item.startTime}{item.endTime ? ` - ${item.endTime}` : ''}
+                <div className="mt-6">
+                  <Tabs value={activeTab} onValueChange={setActiveTab}>
+                    <TabsList className="bg-white/5 border-white/10 text-white p-1 mb-6">
+                      <TabsTrigger value="about" className="data-[state=active]:bg-cyan-600">About</TabsTrigger>
+                      <TabsTrigger value="agenda" className="data-[state=active]:bg-cyan-600">Agenda</TabsTrigger>
+                      <TabsTrigger value="discussion" className="data-[state=active]:bg-cyan-600 flex items-center gap-2">
+                        Discussion
+                        <Badge variant="secondary" className="h-4 p-0 px-1 text-[8px] bg-white/10 text-gray-400">NEW</Badge>
+                      </TabsTrigger>
+                    </TabsList>
+
+                    <TabsContent value="about" className="space-y-6 animate-in fade-in slide-in-from-bottom-2">
+                      <h3 className="font-bold mb-4">About the Event</h3>
+                      <p className="text-gray-300 whitespace-pre-wrap leading-relaxed">{event.description}</p>
+                    </TabsContent>
+
+                    <TabsContent value="agenda" className="space-y-6 animate-in fade-in slide-in-from-bottom-2">
+                      {event.agenda && Array.isArray(event.agenda) && event.agenda.length > 0 ? (
+                        <div className="space-y-3">
+                          {event.agenda.map((item: any, i: number) => (
+                            <div key={i} className="flex gap-4 p-4 rounded-xl bg-white/5 border border-white/10 hover:border-cyan-500/30 transition-colors">
+                              {item.startTime && (
+                                <div className="flex items-center gap-1.5 text-sm text-cyan-400 font-mono shrink-0 pt-1">
+                                  <Clock className="h-3.5 w-3.5" />
+                                  {item.startTime}
+                                </div>
+                              )}
+                              <div>
+                                <p className="font-bold text-lg">{item.title}</p>
+                                {item.speaker && <p className="text-xs text-cyan-400/70 mt-0.5">By {item.speaker}</p>}
+                                {item.description && <p className="text-sm text-gray-400 mt-2">{item.description}</p>}
+                              </div>
                             </div>
-                          )}
-                          <div>
-                            <p className="font-medium">{item.title}</p>
-                            {item.speaker && <p className="text-xs text-gray-400">Speaker: {item.speaker}</p>}
-                            {item.description && <p className="text-sm text-gray-400 mt-1">{item.description}</p>}
-                          </div>
+                          ))}
                         </div>
-                      ))}
-                    </div>
-                  </>
-                )}
+                      ) : (
+                        <div className="text-center py-10 text-gray-500 italic">No agenda items listed yet.</div>
+                      )}
+                    </TabsContent>
+
+                    <TabsContent value="discussion">
+                      <EventDiscussionBoard eventId={event._id} />
+                    </TabsContent>
+                  </Tabs>
+                </div>
               </CardContent>
             </Card>
           </div>

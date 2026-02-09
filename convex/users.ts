@@ -114,3 +114,95 @@ export const search = query({
     ).slice(0, 20);
   },
 });
+
+export const getByEmail = query({
+  args: { email: v.string() },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", args.email))
+      .first();
+  },
+});
+
+export const follow = mutation({
+  args: { followingId: v.id("users") },
+  handler: async (ctx, args) => {
+    const userId = await auth.getUserId(ctx);
+    if (!userId) throw new Error("Unauthorized");
+    if (userId === args.followingId) throw new Error("Cannot follow yourself");
+
+    const existing = await ctx.db
+      .query("follows")
+      .withIndex("by_both", (q) => q.eq("followerId", userId).eq("followingId", args.followingId))
+      .unique();
+
+    if (existing) return;
+
+    await ctx.db.insert("follows", {
+      followerId: userId,
+      followingId: args.followingId,
+      createdAt: Date.now(),
+    });
+
+    // Notify the user
+    const me = await ctx.db.get(userId);
+    await ctx.db.insert("notifications", {
+      userId: args.followingId,
+      title: "New Follower",
+      message: `${me?.name || "Someone"} started following you.`,
+      type: "community",
+      read: false,
+      createdAt: Date.now(),
+      link: `/profile/${userId}`,
+    });
+  },
+});
+
+export const unfollow = mutation({
+  args: { followingId: v.id("users") },
+  handler: async (ctx, args) => {
+    const userId = await auth.getUserId(ctx);
+    if (!userId) throw new Error("Unauthorized");
+
+    const existing = await ctx.db
+      .query("follows")
+      .withIndex("by_both", (q) => q.eq("followerId", userId).eq("followingId", args.followingId))
+      .unique();
+
+    if (existing) {
+      await ctx.db.delete(existing._id);
+    }
+  },
+});
+
+export const getFollowStats = query({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    const currentUserId = await auth.getUserId(ctx);
+    
+    const followers = await ctx.db
+      .query("follows")
+      .withIndex("by_following", (q) => q.eq("followingId", args.userId))
+      .collect();
+    
+    const following = await ctx.db
+      .query("follows")
+      .withIndex("by_follower", (q) => q.eq("followerId", args.userId))
+      .collect();
+
+    const isFollowing = currentUserId 
+      ? await ctx.db
+          .query("follows")
+          .withIndex("by_both", (q) => q.eq("followerId", currentUserId).eq("followingId", args.userId))
+          .unique()
+          .then(f => !!f)
+      : false;
+
+    return {
+      followerCount: followers.length,
+      followingCount: following.length,
+      isFollowing,
+    };
+  },
+});

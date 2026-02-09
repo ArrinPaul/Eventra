@@ -58,6 +58,30 @@ export const getByOrganizer = query({
   },
 });
 
+export const getManagedEvents = query({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    // Collect events where user is main organizer
+    const owned = await ctx.db
+      .query("events")
+      .withIndex("by_organizer", (q) => q.eq("organizerId", args.userId))
+      .collect();
+    
+    // Collect events where user is co-organizer
+    // Note: This requires a full table scan or a separate index if many events
+    const coOrganized = await ctx.db
+      .query("events")
+      .filter((q) => q.and(
+        q.neq(q.field("organizerId"), args.userId),
+        q.neq(q.field("coOrganizerIds"), undefined)
+      ))
+      .collect()
+      .then(events => events.filter(e => e.coOrganizerIds?.includes(args.userId)));
+
+    return [...owned, ...coOrganized].sort((a, b) => b.startDate - a.startDate);
+  },
+});
+
 export const getBySpeaker = query({
   args: { speakerName: v.string() },
   handler: async (ctx, args) => {
@@ -170,10 +194,22 @@ export const update = mutation({
       speakers: v.optional(v.array(v.string())),
       waitlistEnabled: v.optional(v.boolean()),
       tags: v.optional(v.array(v.string())),
+      coOrganizerIds: v.optional(v.array(v.id("users"))),
     }),
   },
   handler: async (ctx, args) => {
     const { id, updates } = args;
+    const userId = await auth.getUserId(ctx);
+    if (!userId) throw new Error("Unauthorized");
+
+    const event = await ctx.db.get(id);
+    if (!event) throw new Error("Event not found");
+
+    const isCoOrganizer = event.coOrganizerIds?.includes(userId);
+    if (event.organizerId !== userId && !isCoOrganizer) {
+      throw new Error("Not authorized to update this event");
+    }
+
     await ctx.db.patch(id, updates);
   },
 });
@@ -181,8 +217,17 @@ export const update = mutation({
 export const cancelEvent = mutation({
   args: { id: v.id("events") },
   handler: async (ctx, args) => {
+    const userId = await auth.getUserId(ctx);
+    if (!userId) throw new Error("Unauthorized");
+
     const event = await ctx.db.get(args.id);
     if (!event) throw new Error("Event not found");
+
+    const isCoOrganizer = event.coOrganizerIds?.includes(userId);
+    if (event.organizerId !== userId && !isCoOrganizer) {
+      throw new Error("Not authorized");
+    }
+
     await ctx.db.patch(args.id, { status: "cancelled" });
     // Notify registered users
     const regs = await ctx.db
@@ -206,6 +251,16 @@ export const cancelEvent = mutation({
 export const completeEvent = mutation({
   args: { id: v.id("events") },
   handler: async (ctx, args) => {
+    const userId = await auth.getUserId(ctx);
+    if (!userId) throw new Error("Unauthorized");
+
+    const event = await ctx.db.get(args.id);
+    if (!event) throw new Error("Event not found");
+
+    if (event.organizerId !== userId && !event.coOrganizerIds?.includes(userId)) {
+      throw new Error("Not authorized");
+    }
+
     await ctx.db.patch(args.id, { status: "completed" });
   },
 });
@@ -213,6 +268,16 @@ export const completeEvent = mutation({
 export const publishEvent = mutation({
   args: { id: v.id("events") },
   handler: async (ctx, args) => {
+    const userId = await auth.getUserId(ctx);
+    if (!userId) throw new Error("Unauthorized");
+
+    const event = await ctx.db.get(args.id);
+    if (!event) throw new Error("Event not found");
+
+    if (event.organizerId !== userId && !event.coOrganizerIds?.includes(userId)) {
+      throw new Error("Not authorized");
+    }
+
     await ctx.db.patch(args.id, { status: "published" });
   },
 });
@@ -220,6 +285,16 @@ export const publishEvent = mutation({
 export const deleteEvent = mutation({
   args: { id: v.id("events") },
   handler: async (ctx, args) => {
+    const userId = await auth.getUserId(ctx);
+    if (!userId) throw new Error("Unauthorized");
+
+    const event = await ctx.db.get(args.id);
+    if (!event) throw new Error("Event not found");
+
+    if (event.organizerId !== userId) {
+      throw new Error("Only the main organizer can delete the event");
+    }
+
     // Cascading delete: remove registrations, tickets, reviews, certificates
     const regs = await ctx.db
       .query("registrations")
@@ -359,5 +434,52 @@ export const autoCompletePastEvents = internalMutation({
       }
     }
     return { completed };
+  },
+});
+
+export const addReaction = mutation({
+  args: { eventId: v.id("events"), emoji: v.string() },
+  handler: async (ctx, args) => {
+    const userId = await auth.getUserId(ctx);
+    if (!userId) throw new Error("Unauthorized");
+
+    const existing = await ctx.db
+      .query("event_reactions")
+      .withIndex("by_user_event", (q) => q.eq("userId", userId).eq("eventId", args.eventId))
+      .filter((q) => q.eq(q.field("emoji"), args.emoji))
+      .unique();
+
+    if (existing) {
+      await ctx.db.delete(existing._id);
+      return;
+    }
+
+    await ctx.db.insert("event_reactions", {
+      userId,
+      eventId: args.eventId,
+      emoji: args.emoji,
+    });
+  },
+});
+
+export const getReactions = query({
+  args: { eventId: v.id("events") },
+  handler: async (ctx, args) => {
+    const reactions = await ctx.db
+      .query("event_reactions")
+      .withIndex("by_event", (q) => q.eq("eventId", args.eventId))
+      .collect();
+
+    const currentUserId = await auth.getUserId(ctx);
+
+    // Group by emoji
+    const grouped: Record<string, { count: number, me: boolean }> = {};
+    reactions.forEach(r => {
+      if (!grouped[r.emoji]) grouped[r.emoji] = { count: 0, me: false };
+      grouped[r.emoji].count++;
+      if (r.userId === currentUserId) grouped[r.emoji].me = true;
+    });
+
+    return grouped;
   },
 });

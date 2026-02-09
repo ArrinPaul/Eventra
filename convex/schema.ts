@@ -338,4 +338,27 @@ export default defineSchema({
     expiresAt: v.optional(v.number()),
     viewCount: v.number(),
   }).index("by_token", ["token"]).index("by_event", ["eventId"]),
+
+  event_discussions: defineTable({
+    eventId: v.id("events"),
+    userId: v.id("users"),
+    content: v.string(),
+    parentMessageId: v.optional(v.id("event_discussions")),
+    likes: v.number(),
+    createdAt: v.number(),
+    isQuestion: v.boolean(),
+    isAnswered: v.optional(v.boolean()),
+  }).index("by_event", ["eventId"]),
+
+  follows: defineTable({
+    followerId: v.id("users"),
+    followingId: v.id("users"),
+    createdAt: v.number(),
+  }).index("by_follower", ["followerId"]).index("by_following", ["followingId"]).index("by_both", ["followerId", "followingId"]),
+
+  event_reactions: defineTable({
+    eventId: v.id("events"),
+    userId: v.id("users"),
+    emoji: v.string(), // "🔥", "❤️", "👍", "😮", "🙌"
+  }).index("by_event", ["eventId"]).index("by_user_event", ["userId", "eventId"]),
 });

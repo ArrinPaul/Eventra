@@ -224,10 +224,10 @@
 - [ ] **Multi-language / i18n support**: Internationalize UI strings.
 - [ ] **Event templates**: Pre-built templates for workshops, conferences, hackathons.
 - [ ] **Recurring events**: Weekly/monthly repeat patterns.
-- [ ] **Co-organizer support**: Multiple organizers per event with shared management.
+- [x] **Co-organizer support**: Multi-organizer management implemented. Owners can add/remove team members by email. Co-organizers can edit event details but not delete the event. Dashboard updated to show co-organized events.
 - [x] **Event cloning**: `cloneEvent` mutation implemented for quick re-creation.
 - [x] **Waitlist with auto-promotion**: Implemented — auto-promotes from waitlist on cancellation.
-- [ ] **Event discussion/Q&A board**: Per-event discussion threads.
+- [x] **Event discussion/Q&A board**: Implemented real-time discussion board for each event. Supports general posts and targeted questions. Organizers can mark questions as answered. Includes notifications for organizers.
 - [ ] **Live polling during events**: Real-time audience polls.
 - [ ] **Event photo gallery**: Post-event photo sharing.
 
@@ -240,9 +240,9 @@
 
 ### 11.3 Social & Engagement
 - [x] **User profiles (public)**: Created `/profile/[id]` route with user info, stats, badges, member since.
-- [ ] **Follow system**: Follow users/organizers for updates.
+- [x] **Follow system**: Implemented user-to-user following. Users can follow each other from their profiles. Real-time follower/following counts and notifications added. `follows` table in schema.
 - [x] **Comment system on posts**: Added `addComment`/`getComments` mutations with author enrichment.
-- [ ] **Event reactions/emojis**: React to event updates.
+- [x] **Event reactions/emojis**: Users can react to events with emojis (❤️, 🔥, etc.). Real-time counters and "me" state implemented. `event_reactions` table added.
 - [ ] **Referral system**: Invite friends, earn XP.
 - [x] **Activity feed**: Created `activity_feed` table, `convex/activity.ts` with queries + mutations, `ActivityFeed` component with timeline UI.
 

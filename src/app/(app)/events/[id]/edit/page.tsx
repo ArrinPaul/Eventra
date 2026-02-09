@@ -10,6 +10,7 @@ import { Loader2, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { use } from 'react';
+import { CoOrganizerManager } from '@/components/organizer/co-organizer-manager';
 
 export default function EventEditPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -38,9 +39,10 @@ export default function EventEditPage({ params }: { params: Promise<{ id: string
     );
   }
 
-  const isOrganizer = user && (user._id === event.organizerId || user.role === 'admin');
+  const isMainOrganizer = user && (user._id === event.organizerId || user.role === 'admin');
+  const isCoOrganizer = user && event.coOrganizerIds?.includes(user._id);
 
-  if (!isOrganizer) {
+  if (!isMainOrganizer && !isCoOrganizer) {
     return (
       <div className="container py-16 text-center text-white">
         <h1 className="text-2xl font-bold">Unauthorized</h1>
@@ -77,7 +79,7 @@ export default function EventEditPage({ params }: { params: Promise<{ id: string
   };
 
   return (
-    <div className="container py-8 max-w-2xl text-white">
+    <div className="container py-8 max-w-4xl mx-auto text-white">
       <div className="flex items-center gap-4 mb-8">
         <Button asChild variant="ghost" size="icon">
           <Link href={`/events/${id}`}>
@@ -85,19 +87,51 @@ export default function EventEditPage({ params }: { params: Promise<{ id: string
           </Link>
         </Button>
         <div>
-          <h1 className="text-3xl font-extrabold tracking-tight">Edit Event</h1>
-          <p className="text-gray-400 mt-1">Update your event details</p>
+          <h1 className="text-3xl font-extrabold tracking-tight">Manage Event</h1>
+          <p className="text-gray-400 mt-1">Configure event details and team members</p>
         </div>
       </div>
 
-      <div className="bg-white/5 border border-white/10 rounded-xl p-6">
-        <EventForm
-          onSave={handleSave}
-          event={{
-            ...event,
-            id: event._id,
-          } as any}
-        />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 space-y-8">
+          <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
+            <h2 className="text-xl font-bold mb-6">Event Details</h2>
+            <EventForm
+              onSave={handleSave}
+              event={{
+                ...event,
+                id: event._id,
+              } as any}
+            />
+          </div>
+        </div>
+
+        <div className="space-y-8">
+          {isMainOrganizer && (
+            <CoOrganizerManager 
+              eventId={event._id}
+              organizerId={event.organizerId}
+              coOrganizerIds={event.coOrganizerIds}
+            />
+          )}
+          
+          <Card className="bg-white/5 border-white/10 text-white">
+            <CardHeader>
+              <CardTitle className="text-lg">Event Status</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-400">Current Status</span>
+                <Badge variant="outline" className="capitalize border-cyan-500/30 text-cyan-400">
+                  {event.status}
+                </Badge>
+              </div>
+              <p className="text-xs text-gray-500">
+                You can change the event status in the main form. Published events are visible to all users.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );
