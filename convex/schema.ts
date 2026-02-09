@@ -134,6 +134,7 @@ export default defineSchema({
     checkInStatus: v.optional(v.string()),
     attendeeName: v.optional(v.string()),
     attendeeEmail: v.optional(v.string()),
+    stripePaymentId: v.optional(v.string()),
   }).index("by_user", ["userId"]).index("by_event", ["eventId"]).index("by_ticket_number", ["ticketNumber"]),
 
   notifications: defineTable({

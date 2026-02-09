@@ -271,7 +271,11 @@ export const confirmPayment = internalMutation({
 
 
 
-    tierName: v.optional(v.string())
+    tierName: v.optional(v.string()),
+
+
+
+    stripePaymentId: v.optional(v.string())
 
 
 
@@ -283,7 +287,7 @@ export const confirmPayment = internalMutation({
 
 
 
-    const { eventId, userId, tierName } = args;
+    const { eventId, userId, tierName, stripePaymentId } = args;
 
 
 
@@ -396,6 +400,10 @@ export const confirmPayment = internalMutation({
 
 
       ticketTypeId: tierName,
+
+
+
+      stripePaymentId,
 
 
 

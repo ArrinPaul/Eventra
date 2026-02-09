@@ -13,7 +13,7 @@ export const getMyFeed = query({
     const limit = args.limit || 50;
     return await ctx.db
       .query("activity_feed")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .withIndex("by_user", (q: any) => q.eq("userId", userId))
       .order("desc")
       .take(limit);
   },
@@ -28,7 +28,7 @@ export const getUserFeed = query({
     const limit = args.limit || 20;
     return await ctx.db
       .query("activity_feed")
-      .withIndex("by_user", (q) => q.eq("userId", args.userId))
+      .withIndex("by_user", (q: any) => q.eq("userId", args.userId))
       .order("desc")
       .take(limit);
   },
@@ -48,7 +48,7 @@ export const getGlobalFeed = query({
 
     // Enrich with user info
     return await Promise.all(
-      items.map(async (item) => {
+      items.map(async (item: any) => {
         const user = await ctx.db.get(item.userId);
         return {
           ...item,

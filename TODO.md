@@ -233,7 +233,7 @@
 
 ### 11.2 Payments & Monetization
 - [ ] **Stripe integration**: Full payment flow for paid events.
-- [ ] **Refund management**: Automated and manual refund workflows.
+- [x] **Refund management**: Implemented automated refund flow. `processTicketCancellation` action handles Stripe refunds via `stripePaymentId` and updates Convex state to `refunded`. Cancellation UI added to `MyTicketsClient`.
 - [ ] **Discount/promo codes**: Coupon system for event registration.
 - [ ] **Revenue dashboard**: Financial analytics for organizers.
 - [ ] **Invoice generation**: Automatic invoices for paid tickets.

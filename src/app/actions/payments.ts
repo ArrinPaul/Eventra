@@ -63,3 +63,41 @@ export async function createCheckoutSession(eventId: string, userId: string, tie
     throw new Error(error.message || 'Failed to create payment session');
   }
 }
+
+export async function refundPayment(paymentIntentId: string) {
+  try {
+    const refund = await stripe.refunds.create({
+      payment_intent: paymentIntentId,
+    });
+    return { success: true, refundId: refund.id };
+  } catch (error: any) {
+    console.error('Stripe refund error:', error);
+    throw new Error(error.message || 'Failed to process refund');
+  }
+}
+
+/**
+ * Handle full cancellation flow: Stripe refund + Convex update
+ */
+export async function processTicketCancellation(ticketId: string, stripePaymentId?: string) {
+  try {
+    let status = 'cancelled';
+    
+    if (stripePaymentId) {
+      await refundPayment(stripePaymentId);
+      status = 'refunded';
+    }
+
+    // Since we're in a server action, we need a way to call Convex mutation
+    // We can't use useMutation here. We use ConvexHttpClient.
+    await convex.mutation(api.tickets.cancelTicket, { 
+      ticketId: ticketId as any, 
+      status 
+    });
+
+    return { success: true, status };
+  } catch (error: any) {
+    console.error('Cancellation error:', error);
+    throw new Error(error.message || 'Failed to cancel ticket');
+  }
+}

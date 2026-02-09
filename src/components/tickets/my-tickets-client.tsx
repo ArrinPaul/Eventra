@@ -25,10 +25,20 @@ import {
   Share2,
   CheckCircle2,
   Loader2,
+  MoreVertical,
+  XCircle
 } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { format, isPast, isFuture, isToday } from 'date-fns';
 import Link from 'next/link';
 import { QRCodeSVG } from 'qrcode.react';
+import { useToast } from '@/hooks/use-toast';
+import { processTicketCancellation } from '@/app/actions/payments';
 
 const getTicketEventDate = (ticket: EventTicket): Date => {
   if (ticket.event?.startDate) return new Date(ticket.event.startDate);
@@ -47,17 +57,27 @@ function TicketStatusBadge({ status }: { status: EventTicket['status'] }) {
   return <Badge variant="outline" className={config.className}>{config.label}</Badge>;
 }
 
-function TicketCard({ ticket, onViewTicket, onPrint }: { ticket: EventTicket; onViewTicket: (ticket: EventTicket) => void; onPrint: (ticket: EventTicket) => void; }) {
+function TicketCard({ ticket, onViewTicket, onPrint, onCancel }: { 
+  ticket: EventTicket; 
+  onViewTicket: (ticket: EventTicket) => void; 
+  onPrint: (ticket: EventTicket) => void;
+  onCancel: (ticket: EventTicket) => void;
+}) {
   const eventDate = getTicketEventDate(ticket);
+  const isCancellable = ticket.status !== 'cancelled' && ticket.status !== 'refunded' && !isPast(eventDate);
+
   return (
-    <Card className="bg-white/5 border-white/10 text-white overflow-hidden">
+    <Card className="bg-white/5 border-white/10 text-white overflow-hidden group hover:border-white/20 transition-all">
       <CardContent className="p-5">
         <div className="flex gap-4">
           <div className="w-24 h-24 rounded-lg bg-cyan-900/20 flex items-center justify-center">
             {ticket.event?.imageUrl ? <img src={ticket.event.imageUrl} className="w-full h-full object-cover rounded-lg" alt="" /> : <Ticket size={32} />}
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="font-bold truncate">{ticket.event?.title || 'Event'}</h3>
+            <div className="flex justify-between items-start">
+              <h3 className="font-bold truncate">{ticket.event?.title || 'Event'}</h3>
+              <TicketStatusBadge status={ticket.status} />
+            </div>
             <div className="text-xs text-gray-400 mt-2 space-y-1">
               <p className="flex items-center gap-1"><Calendar size={12} /> {format(eventDate, 'EEE, MMM d, yyyy')}</p>
               <p className="flex items-center gap-1"><QrCode size={12} /> {ticket.ticketNumber}</p>
@@ -65,9 +85,25 @@ function TicketCard({ ticket, onViewTicket, onPrint }: { ticket: EventTicket; on
           </div>
         </div>
         <div className="flex gap-2 mt-4">
-          <Button size="sm" className="flex-[2]" onClick={() => onViewTicket(ticket)}>View QR</Button>
-          <Button size="sm" variant="outline" className="flex-1" onClick={() => onPrint(ticket)}><Download className="h-4 w-4" /></Button>
-          <Button size="sm" variant="outline" asChild className="flex-1"><Link href={`/events/${ticket.eventId}`}>Details</Link></Button>
+          <Button size="sm" className="flex-[2] bg-cyan-600 hover:bg-cyan-500" onClick={() => onViewTicket(ticket)}>View QR</Button>
+          <Button size="sm" variant="outline" className="flex-1 border-white/10" onClick={() => onPrint(ticket)}><Download className="h-4 w-4" /></Button>
+          
+          {isCancellable && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="sm" variant="ghost" className="h-9 w-9 p-0 hover:bg-white/10"><MoreVertical className="h-4 w-4" /></Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="bg-gray-900 border-white/10 text-white">
+                <DropdownMenuItem 
+                  onClick={() => onCancel(ticket)}
+                  className="text-red-400 focus:text-red-400 focus:bg-red-400/10 cursor-pointer"
+                >
+                  <XCircle className="w-4 h-4 mr-2" /> 
+                  {ticket.price > 0 ? 'Cancel & Refund' : 'Cancel Registration'}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
       </CardContent>
     </Card>
@@ -76,12 +112,39 @@ function TicketCard({ ticket, onViewTicket, onPrint }: { ticket: EventTicket; on
 
 export default function MyTicketsClient() {
   const { user } = useAuth();
+  const { toast } = useToast();
   const allTicketsRaw = useQuery(api.tickets.getByUserId, user ? { userId: (user._id || user.id) as any } : "skip");
   const [selectedTicket, setSelectedTicket] = useState<EventTicket | null>(null);
   const [activeTab, setActiveTab] = useState('upcoming');
+  const [cancellingId, setCancellingId] = useState<string | null>(null);
 
   const loading = allTicketsRaw === undefined;
   const tickets: EventTicket[] = (allTicketsRaw || []).map((t: any) => ({ ...t, id: t._id }));
+
+  const handleCancel = async (ticket: EventTicket) => {
+    const confirmMsg = ticket.price > 0 
+      ? `Are you sure you want to cancel and request a refund for "${ticket.event?.title}"?`
+      : `Are you sure you want to cancel your registration for "${ticket.event?.title}"?`;
+    
+    if (!confirm(confirmMsg)) return;
+
+    setCancellingId(ticket.id);
+    try {
+      const result = await processTicketCancellation(ticket.id, (ticket as any).stripePaymentId);
+      if (result.success) {
+        toast({ 
+          title: result.status === 'refunded' ? "Refund Processed" : "Ticket Cancelled",
+          description: result.status === 'refunded' 
+            ? "Your refund has been initiated and your ticket is now void."
+            : "Your registration has been cancelled."
+        });
+      }
+    } catch (e: any) {
+      toast({ title: "Cancellation Failed", description: e.message, variant: "destructive" });
+    } finally {
+      setCancellingId(null);
+    }
+  };
 
   const handlePrint = (ticket: EventTicket) => {
     const printWindow = window.open('', '_blank');
@@ -175,7 +238,10 @@ export default function MyTicketsClient() {
           <TabsTrigger value="past">Past</TabsTrigger>
         </TabsList>
         <TabsContent value="upcoming" className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {filterTickets('upcoming').map(t => <TicketCard key={t.id} ticket={t} onViewTicket={setSelectedTicket} onPrint={handlePrint} />)}
+          {filterTickets('upcoming').map(t => <TicketCard key={t.id} ticket={t} onViewTicket={setSelectedTicket} onPrint={handlePrint} onCancel={handleCancel} />)}
+        </TabsContent>
+        <TabsContent value="past" className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {filterTickets('past').map(t => <TicketCard key={t.id} ticket={t} onViewTicket={setSelectedTicket} onPrint={handlePrint} onCancel={handleCancel} />)}
         </TabsContent>
       </Tabs>
 

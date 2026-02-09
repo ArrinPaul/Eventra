@@ -167,7 +167,7 @@ export const checkInTicket = mutation({
  * Cancel (refund) a ticket
  */
 export const cancelTicket = mutation({
-  args: { ticketId: v.id("tickets") },
+  args: { ticketId: v.id("tickets"), status: v.optional(v.string()) },
   handler: async (ctx, args) => {
     const userId = await auth.getUserId(ctx);
     if (!userId) throw new Error("Unauthorized");
@@ -179,7 +179,8 @@ export const cancelTicket = mutation({
       throw new Error("Ticket already cancelled");
     }
 
-    await ctx.db.patch(args.ticketId, { status: "cancelled" });
+    const newStatus = args.status || "cancelled";
+    await ctx.db.patch(args.ticketId, { status: newStatus as any });
 
     // Cancel linked registration
     const reg = await ctx.db
@@ -187,7 +188,7 @@ export const cancelTicket = mutation({
       .withIndex("by_event_user", (q) => q.eq("eventId", ticket.eventId).eq("userId", userId))
       .unique();
     if (reg) {
-      await ctx.db.patch(reg._id, { status: "cancelled" });
+      await ctx.db.patch(reg._id, { status: newStatus });
     }
 
     // Decrement event count
