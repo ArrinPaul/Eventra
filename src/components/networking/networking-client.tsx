@@ -37,6 +37,7 @@ export default function NetworkingClient() {
   const [result, setResult] = useState<MatchmakingResult | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
 
+  const allUsers = useQuery(api.users.list) || [];
   const connections = useQuery(api.connections.getMyConnections) || [];
   const sendConnectionRequest = useMutation(api.connections.sendRequest);
   const respondToRequest = useMutation(api.connections.respondToRequest);
@@ -163,11 +164,50 @@ export default function NetworkingClient() {
           )}
         </TabsContent>
 
-        <TabsContent value="discover">
-           <div className="py-20 text-center text-gray-500 border border-white/10 rounded-lg">
-            <Users size={48} className="mx-auto mb-4 opacity-20" />
-            <p>Discover feature is coming soon.</p>
+        <TabsContent value="discover" className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {allUsers
+              .filter(u => u._id !== user?._id && 
+                (u.name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                 u.interests?.toLowerCase().includes(searchTerm.toLowerCase())))
+              .slice(0, 12)
+              .map((u: any) => (
+                <Card key={u._id} className="bg-white/5 border-white/10 hover:border-cyan-500/30 transition-all group">
+                  <CardContent className="p-6">
+                    <div className="flex items-center gap-4 mb-4">
+                      <Avatar className="h-12 w-12 border border-white/10">
+                        <AvatarImage src={u.image} />
+                        <AvatarFallback className="bg-cyan-500/10 text-cyan-500">{u.name?.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-bold text-white truncate">{u.name}</h3>
+                        <p className="text-xs text-gray-500 truncate">{u.role || 'Member'}</p>
+                      </div>
+                    </div>
+                    <p className="text-xs text-gray-400 line-clamp-2 mb-4 h-8 italic">
+                      {u.bio || u.interests || 'No bio provided yet.'}
+                    </p>
+                    <Button 
+                      className="w-full bg-white/5 hover:bg-cyan-600 hover:text-white border-white/10 text-gray-300" 
+                      onClick={() => handleConnect(u._id)}
+                      disabled={connections.some((c: any) => c.otherUser?._id === u._id)}
+                    >
+                      {connections.some((c: any) => c.otherUser?._id === u._id) ? (
+                        <><Check className="w-4 h-4 mr-2" /> Connected</>
+                      ) : (
+                        <><UserPlus className="w-4 h-4 mr-2" /> Connect</>
+                      )}
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
           </div>
+          {allUsers.length === 0 && (
+            <div className="py-20 text-center text-gray-500 border border-white/10 rounded-lg">
+              <Users size={48} className="mx-auto mb-4 opacity-20" />
+              <p>No other members found to connect with yet.</p>
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent value="connections" className="space-y-6">

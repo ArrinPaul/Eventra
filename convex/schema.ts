@@ -68,6 +68,7 @@ export default defineSchema({
     category: v.string(),
     status: v.string(),
     organizerId: v.id("users"),
+    coOrganizerIds: v.optional(v.array(v.id("users"))),
     organizationId: v.optional(v.string()),
     imageUrl: v.optional(v.string()),
     capacity: v.number(),
@@ -192,7 +193,7 @@ export default defineSchema({
     eventId: v.optional(v.id("events")),
     participants: v.array(v.id("users")),
     lastMessageAt: v.optional(v.number()),
-  }).index("by_event", ["eventId"]).index("by_type", ["type"]),
+  }).index("by_event", ["eventId"]).index("by_type", ["type"]).index("by_participants", ["participants"]),
 
   messages: defineTable({
     roomId: v.id("chat_rooms"),
@@ -308,4 +309,33 @@ export default defineSchema({
       data: v.optional(v.any()),
     }))),
   }).index("by_session", ["sessionId"]),
+
+  automations: defineTable({
+    userId: v.id("users"),
+    name: v.string(),
+    description: v.string(),
+    triggerType: v.string(),
+    triggerConfig: v.any(),
+    actions: v.array(v.object({
+      id: v.string(),
+      type: v.string(),
+      config: v.any(),
+      delay: v.optional(v.number()),
+    })),
+    isActive: v.boolean(),
+    runCount: v.number(),
+    successCount: v.number(),
+    errorCount: v.number(),
+    lastRun: v.optional(v.number()),
+    n8nWebhookUrl: v.optional(v.string()),
+  }).index("by_user", ["userId"]),
+
+  shared_reports: defineTable({
+    eventId: v.id("events"),
+    token: v.string(),
+    createdBy: v.id("users"),
+    createdAt: v.number(),
+    expiresAt: v.optional(v.number()),
+    viewCount: v.number(),
+  }).index("by_token", ["token"]).index("by_event", ["eventId"]),
 });

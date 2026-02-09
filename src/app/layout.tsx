@@ -3,6 +3,7 @@ import './globals.css';
 import { Providers } from '@/components/providers';
 import { Toaster } from '@/components/ui/toaster';
 import FloatingAiChat from '@/components/chat/floating-ai-chat';
+import { NotificationWatcher } from '@/components/notifications/notification-watcher';
 import { Outfit, Inter } from 'next/font/google';
 import { baseMetadata, viewport as seoViewport, generateOrganizationSchema } from '@/core/services/seo';
 
@@ -49,6 +50,7 @@ export default function RootLayout({
         <Providers>
           {children}
           <Toaster />
+          <NotificationWatcher />
           <FloatingAiChat />
         </Providers>
       </body>

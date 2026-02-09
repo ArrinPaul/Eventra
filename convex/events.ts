@@ -58,6 +58,22 @@ export const getByOrganizer = query({
   },
 });
 
+export const getBySpeaker = query({
+  args: { speakerName: v.string() },
+  handler: async (ctx, args) => {
+    // Note: Since speakers is an array of strings and not indexed for searching within, 
+    // we use a filter. For large datasets, a separate mapping table would be better.
+    return await ctx.db
+      .query("events")
+      .filter((q) => q.or(
+        q.eq(q.field("status"), "published"),
+        q.eq(q.field("status"), "completed")
+      ))
+      .collect()
+      .then(events => events.filter(e => e.speakers?.includes(args.speakerName)));
+  },
+});
+
 export const listByOrganizer = query({
   args: { organizerId: v.id("users"), paginationOpts: v.any() },
   handler: async (ctx, args) => {
@@ -111,6 +127,7 @@ export const create = mutation({
     category: v.string(),
     status: v.string(),
     organizerId: v.id("users"),
+    coOrganizerIds: v.optional(v.array(v.id("users"))),
     imageUrl: v.optional(v.string()),
     capacity: v.number(),
     registeredCount: v.number(),
@@ -254,13 +271,13 @@ export const getAttendees = query({
       .collect();
 
     const userIds = regs.map((r) => r.userId);
-    const attendees = [];
-    for (const uid of userIds) {
-      const user = await ctx.db.get(uid);
-      const reg = regs.find((r) => r.userId === uid);
-      if (user) attendees.push({ ...user, registrationStatus: reg?.status });
-    }
-    return attendees;
+    const users = await Promise.all(userIds.map((uid) => ctx.db.get(uid)));
+    const userMap = new Map(users.filter((u): u is NonNullable<typeof u> => u !== null).map(u => [u._id.toString(), u]));
+
+    return regs.map(reg => {
+      const user = userMap.get(reg.userId.toString());
+      return user ? { ...user, registrationStatus: reg.status } : null;
+    }).filter((u): u is NonNullable<typeof u> => u !== null);
   },
 });
 

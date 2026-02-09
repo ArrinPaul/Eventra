@@ -23,12 +23,15 @@ export const getUserBadges = query({
       .withIndex("by_user", (q) => q.eq("userId", args.userId))
       .collect();
 
-    const badges = [];
-    for (const ub of userBadges) {
-      const badge = await ctx.db.get(ub.badgeId);
-      if (badge) badges.push({ ...badge, awardedAt: ub.awardedAt });
-    }
-    return badges;
+    const allBadges = await ctx.db.query("badges").collect();
+    const badgeMap = new Map(allBadges.map(b => [b._id.toString(), b]));
+
+    return userBadges
+      .map(ub => {
+        const badge = badgeMap.get(ub.badgeId.toString());
+        return badge ? { ...badge, awardedAt: ub.awardedAt } : null;
+      })
+      .filter((b): b is NonNullable<typeof b> => b !== null);
   },
 });
 
@@ -133,6 +136,7 @@ async function checkBadgeTriggers(ctx: any, userId: any, totalPoints: number) {
         type: "gamification",
         read: false,
         createdAt: Date.now(),
+        link: `/gamification`,
       });
     }
   }
@@ -171,6 +175,7 @@ export const awardBadge = mutation({
       type: "gamification",
       read: false,
       createdAt: Date.now(),
+      link: `/gamification`,
     });
   },
 });
@@ -199,12 +204,15 @@ export const getUserChallenges = query({
       .withIndex("by_user", (q) => q.eq("userId", userId))
       .collect();
 
-    const enriched = [];
-    for (const uc of userChallenges) {
-      const challenge = await ctx.db.get(uc.challengeId);
-      if (challenge) enriched.push({ ...uc, challenge });
-    }
-    return enriched;
+    const allChallenges = await ctx.db.query("challenges").collect();
+    const challengeMap = new Map(allChallenges.map(c => [c._id.toString(), c]));
+
+    return userChallenges
+      .map(uc => {
+        const challenge = challengeMap.get(uc.challengeId.toString());
+        return challenge ? { ...uc, challenge } : null;
+      })
+      .filter((c): c is NonNullable<typeof c> => c !== null);
   },
 });
 

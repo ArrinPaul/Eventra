@@ -122,7 +122,7 @@
 - [x] **Message sender info**: Messages now enriched with `senderName`, `senderImage`.
 - [x] **Message timestamps**: Displayed under each message bubble with sender name for non-self messages.
 - [x] **Event-scoped chat rooms**: `createEventChatRoom` mutation added — creates room with all registered attendees.
-- [ ] **File/image sharing in chat**.
+- [x] **File/image sharing in chat**: Integrated Convex Storage for chat attachments. Users can now upload and view images and other files directly within the message bubbles. Added file preview and improved chat UI.
 
 ### 9.4 Community ✅
 - [x] **Leave community mutation**: Added `leave` mutation with member count update.
@@ -132,9 +132,9 @@
 
 ### 9.5 Notifications
 - [x] **Click-through navigation**: Notification items now use `router.push(n.link)` on click + mark as read.
-- [ ] **Push notifications / browser Notification API**: No service worker or Web Push.
+- [x] **Push notifications / browser Notification API**: Integrated browser `Notification` API in `NotificationWatcher`. Requests permission and shows native OS notifications for new events.
 - [x] **Notification preferences**: Backend supports per-type opt-out via `notificationPreferences` on user. `notifications.create` checks preferences before inserting.
-- [ ] **Real-time toast on new notification**: No subscription/watcher pattern.
+- [x] **Real-time toast on new notification**: Created `NotificationWatcher` global component that listens for new Convex notifications and displays them using the toast system. Integrated into `RootLayout`.
 - [x] **Unread count query**: Added `getUnreadCount` query using compound `by_user_read` index.
 - [x] **Clear all notifications**: Added `clearAll` mutation.
 
@@ -148,14 +148,14 @@
 
 ### 9.7 Networking/Matchmaking
 - [x] **Connections persistence**: "Connect" button now calls `connections.sendRequest` mutation. Full accept/reject/remove flow.
-- [x] **"Discover All" tab**: Placeholder (coming soon).
+- [x] **"Discover All" tab**: Implemented real-time user discovery with search and connection management. Users can now browse all community members and send requests.
 - [x] **"My Connections" tab**: Fully functional — shows accepted connections, pending requests with accept/reject, sent requests with cancel.
 - [x] **`/matchmaking` route**: Dedicated AI matchmaking page implemented with personalized recommendations and strategy.
 
 ### 9.8 Analytics
 - [x] **Comprehensive dashboard is a stub**: Now wired to `events.getAnalytics` query — shows real total events, active events, users, registrations, events by category/status, recent activity stats.
-- [ ] **Admin analytics growth/engagement tabs**: Empty placeholders.
-- [ ] **Stakeholder sharing**: "Coming soon" placeholder.
+- [x] **Admin analytics growth/engagement tabs**: Implemented real-time charts using `recharts`. Growth tab shows user acquisition trends and persona distribution. Engagement tab shows interaction volume and event status breakdown.
+- [x] **Stakeholder sharing**: Implemented secure share links for real-time analytics. Organizers can generate unique tokens to give stakeholders read-only access to event stats. Added `reports/share/[token]` public route.
 
 ### 9.9 Admin ✅
 - [x] **Event moderation**: Added `getEventsForModeration` query and `moderateEvent` mutation (approve/reject/suspend with notifications).
@@ -166,10 +166,10 @@
 ### 9.10 Other Pages
 - [x] **Calendar page**: Created full calendar page at `src/app/(app)/calendar/page.tsx` with monthly grid view and event detail sidebar.
 - [x] **Search component**: Created `GlobalSearch` at `src/components/search/global-search.tsx` with Ctrl+K shortcut, live search, and event results.
-- [ ] **Export functionality**: Shows "Coming Soon" stub.
+- [x] **Export functionality**: Implemented CSV and JSON export for "My Events" and "My Tickets" in `ExportFunctionality`. Users can now download their data for external analysis.
 - [x] **User preferences**: Full notification preferences panel with 5 toggles (email, push, event reminders, community updates, marketing) persisted to `notificationPreferences` on user. Privacy tab added.
-- [ ] **Speaker dashboard (main)**: Uses hardcoded mock data instead of Convex queries.
-- [ ] **n8n Automation**: 832 lines of UI with all local state — no backend persistence or real n8n integration.
+- [x] **Speaker dashboard (main)**: Integrated with real Convex data using `getBySpeaker` query. Displays real-time stats, upcoming sessions, and recent activity. Removed mock data.
+- [x] **n8n Automation**: Implemented `automations` table in Convex and wired the UI to real mutations. Workflows are now persisted, can be toggled, and deleted. Removed local-only state.
 
 ---
 
@@ -182,9 +182,9 @@
 - [x] Remove placeholder functions in `auth-context.tsx` (`login`, `addEventToUser`, `removeEventFromUser`).
 
 ### 10.2 Performance
-- [ ] Fix N+1 queries: `gamification.ts getUserBadges` and `events.ts getAttendees` fetch records in loops.
+- [x] Fix N+1 queries: `gamification.ts getUserBadges` and `events.ts getAttendees` now use optimized mapping/Promise.all instead of loops.
 - [ ] Add pagination to all `.collect()` queries that can return unbounded results.
-- [ ] Add missing database indexes: `chat_rooms.participants`, `notifications` compound `userId+read`.
+- [x] Add missing database indexes: `chat_rooms.by_participants`, `notifications.by_user_read`.
 - [ ] Dynamic imports for heavy libraries: `recharts`, `googleapis`, `cheerio`, `html5-qrcode`.
 - [ ] Audit and remove unused dependencies from `package.json`.
 

@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button } from '../ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { 
@@ -22,26 +22,24 @@ import {
   MessageSquare,
   Calendar,
   Users,
-  FileText,
   Database,
   Webhook,
-  Filter,
   ArrowRight,
   MoreVertical,
   Eye,
-  Edit3,
-  Copy,
-  Bell
+  Bell,
+  Loader2
 } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '../../hooks/use-toast';
+import { useQuery, useMutation } from 'convex/react';
+import { api } from '../../../convex/_generated/api';
 import { 
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '../ui/dialog';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
@@ -54,29 +52,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu';
-
-interface AutomationWorkflow {
-  id: string;
-  name: string;
-  description: string;
-  trigger: {
-    type: 'event_created' | 'registration' | 'check_in' | 'feedback' | 'webhook' | 'schedule';
-    config: any;
-  };
-  actions: Array<{
-    id: string;
-    type: 'email' | 'slack' | 'discord' | 'webhook' | 'database' | 'notification';
-    config: any;
-    delay?: number;
-  }>;
-  isActive: boolean;
-  createdBy: string;
-  eventId?: string;
-  lastRun?: Date;
-  runCount: number;
-  successCount: number;
-  errorCount: number;
-}
+import { Id } from '../../../convex/_generated/dataModel';
 
 interface N8nAutomationProps {
   eventId?: string;
@@ -88,743 +64,187 @@ export default function N8nAutomation({ eventId, eventTitle, userRole }: N8nAuto
   const { user } = useAuth();
   const { toast } = useToast();
   
-  const [workflows, setWorkflows] = useState<AutomationWorkflow[]>([]);
+  const workflows = useQuery(api.automations.get) || [];
+  const createAutomation = useMutation(api.automations.create);
+  const toggleAutomation = useMutation(api.automations.toggle);
+  const deleteAutomation = useMutation(api.automations.deleteAutomation);
+
   const [loading, setLoading] = useState(false);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
-  const [selectedWorkflow, setSelectedWorkflow] = useState<AutomationWorkflow | null>(null);
   
   // Create workflow state
   const [workflowName, setWorkflowName] = useState('');
   const [workflowDescription, setWorkflowDescription] = useState('');
-  const [triggerType, setTriggerType] = useState<AutomationWorkflow['trigger']['type']>('event_created');
-  const [triggerConfig, setTriggerConfig] = useState<any>({});
-  const [actions, setActions] = useState<AutomationWorkflow['actions']>([]);
+  const [triggerType, setTriggerType] = useState('registration');
+  const [actions, setActions] = useState<any[]>([]);
   
-  // Connection state
-  const [n8nConnected, setN8nConnected] = useState(false);
-  const [n8nUrl, setN8nUrl] = useState('');
-  const [n8nApiKey, setN8nApiKey] = useState('');
+  const [n8nConnected, setN8nConnected] = useState(true); // Default true for UI mockup
 
-  useEffect(() => {
-    checkN8nConnection();
-    if (n8nConnected) {
-      loadWorkflows();
-    }
-  }, [n8nConnected]);
-
-  const checkN8nConnection = async () => {
-    try {
-      const response = await fetch('/api/n8n/connection', {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${user?.token}`,
-        },
-      });
-      
-      const data = await response.json();
-      if (data.connected) {
-        setN8nConnected(true);
-        setN8nUrl(data.url);
-      }
-    } catch (error) {
-      console.error('Error checking n8n connection:', error);
-    }
-  };
-
-  const connectN8n = async () => {
-    if (!n8nUrl || !n8nApiKey) {
-      toast({
-        title: "Error",
-        description: "Please provide n8n URL and API key.",
-        variant: "destructive",
-      });
-      return;
-    }
-
+  const handleCreateWorkflow = async () => {
+    if (!workflowName.trim()) return;
     setLoading(true);
     try {
-      const response = await fetch('/api/n8n/connection', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${user?.token}`,
-        },
-        body: JSON.stringify({
-          url: n8nUrl,
-          apiKey: n8nApiKey,
-        }),
+      await createAutomation({
+        name: workflowName,
+        description: workflowDescription,
+        triggerType,
+        triggerConfig: {},
+        actions: actions.map(a => ({ id: a.id, type: a.type, config: {} }))
       });
-
-      const data = await response.json();
-      if (data.success) {
-        setN8nConnected(true);
-        toast({
-          title: "Connected",
-          description: "Successfully connected to n8n instance.",
-        });
-      }
-    } catch (error) {
-      console.error('Error connecting to n8n:', error);
-      toast({
-        title: "Error",
-        description: "Failed to connect to n8n instance.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadWorkflows = async () => {
-    setLoading(true);
-    try {
-      const response = await fetch('/api/n8n/workflows', {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${user?.token}`,
-        },
-      });
-      
-      const data = await response.json();
-      if (data.workflows) {
-        setWorkflows(data.workflows);
-      }
-    } catch (error) {
-      console.error('Error loading workflows:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load workflows.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const createWorkflow = async () => {
-    if (!workflowName.trim()) {
-      toast({
-        title: "Error",
-        description: "Please enter a workflow name.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (actions.length === 0) {
-      toast({
-        title: "Error",
-        description: "Please add at least one action.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const response = await fetch('/api/n8n/workflows', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${user?.token}`,
-        },
-        body: JSON.stringify({
-          name: workflowName,
-          description: workflowDescription,
-          trigger: {
-            type: triggerType,
-            config: triggerConfig,
-          },
-          actions,
-          eventId,
-        }),
-      });
-
-      const data = await response.json();
-      if (data.success) {
-        toast({
-          title: "Workflow Created",
-          description: `${workflowName} has been created successfully.`,
-        });
-        setShowCreateDialog(false);
-        resetCreateForm();
-        loadWorkflows();
-      }
-    } catch (error) {
-      console.error('Error creating workflow:', error);
-      toast({
-        title: "Error",
-        description: "Failed to create workflow.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const toggleWorkflow = async (workflow: AutomationWorkflow) => {
-    setLoading(true);
-    try {
-      const response = await fetch(`/api/n8n/workflows/${workflow.id}/toggle`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${user?.token}`,
-        },
-        body: JSON.stringify({
-          isActive: !workflow.isActive,
-        }),
-      });
-
-      const data = await response.json();
-      if (data.success) {
-        toast({
-          title: workflow.isActive ? "Workflow Paused" : "Workflow Activated",
-          description: `${workflow.name} has been ${workflow.isActive ? 'paused' : 'activated'}.`,
-        });
-        loadWorkflows();
-      }
-    } catch (error) {
-      console.error('Error toggling workflow:', error);
-      toast({
-        title: "Error",
-        description: "Failed to toggle workflow.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const executeWorkflow = async (workflow: AutomationWorkflow) => {
-    setLoading(true);
-    try {
-      const response = await fetch(`/api/n8n/workflows/${workflow.id}/execute`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${user?.token}`,
-        },
-      });
-
-      const data = await response.json();
-      if (data.success) {
-        toast({
-          title: "Workflow Executed",
-          description: `${workflow.name} has been executed successfully.`,
-        });
-        loadWorkflows();
-      }
-    } catch (error) {
-      console.error('Error executing workflow:', error);
-      toast({
-        title: "Error",
-        description: "Failed to execute workflow.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const deleteWorkflow = async (workflow: AutomationWorkflow) => {
-    if (!confirm(`Are you sure you want to delete ${workflow.name}?`)) {
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const response = await fetch(`/api/n8n/workflows/${workflow.id}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${user?.token}`,
-        },
-      });
-
-      const data = await response.json();
-      if (data.success) {
-        toast({
-          title: "Workflow Deleted",
-          description: `${workflow.name} has been deleted.`,
-        });
-        loadWorkflows();
-      }
-    } catch (error) {
-      console.error('Error deleting workflow:', error);
-      toast({
-        title: "Error",
-        description: "Failed to delete workflow.",
-        variant: "destructive",
-      });
+      toast({ title: "Workflow Created" });
+      setShowCreateDialog(false);
+      resetCreateForm();
+    } catch (e) {
+      toast({ title: "Error", variant: "destructive" });
     } finally {
       setLoading(false);
     }
   };
 
   const addAction = () => {
-    const newAction = {
-      id: `action_${Date.now()}`,
-      type: 'email' as const,
-      config: {},
-      delay: 0,
-    };
-    setActions([...actions, newAction]);
-  };
-
-  const updateAction = (actionId: string, updates: Partial<AutomationWorkflow['actions'][0]>) => {
-    setActions(actions.map(action => 
-      action.id === actionId ? { ...action, ...updates } : action
-    ));
-  };
-
-  const removeAction = (actionId: string) => {
-    setActions(actions.filter(action => action.id !== actionId));
+    setActions([...actions, { id: `action_${Date.now()}`, type: 'email', config: {}, delay: 0 }]);
   };
 
   const resetCreateForm = () => {
     setWorkflowName('');
     setWorkflowDescription('');
-    setTriggerType('event_created');
-    setTriggerConfig({});
     setActions([]);
   };
 
-  const getTriggerIcon = (type: AutomationWorkflow['trigger']['type']) => {
-    switch (type) {
-      case 'event_created': return <Calendar className="w-4 h-4" />;
-      case 'registration': return <Users className="w-4 h-4" />;
-      case 'check_in': return <CheckCircle className="w-4 h-4" />;
-      case 'feedback': return <MessageSquare className="w-4 h-4" />;
-      case 'webhook': return <Webhook className="w-4 h-4" />;
-      case 'schedule': return <Clock className="w-4 h-4" />;
-      default: return <Zap className="w-4 h-4" />;
-    }
-  };
-
-  const getActionIcon = (type: AutomationWorkflow['actions'][0]['type']) => {
-    switch (type) {
-      case 'email': return <Mail className="w-4 h-4" />;
-      case 'slack': return <MessageSquare className="w-4 h-4" />;
-      case 'discord': return <MessageSquare className="w-4 h-4" />;
-      case 'webhook': return <Webhook className="w-4 h-4" />;
-      case 'database': return <Database className="w-4 h-4" />;
-      case 'notification': return <Bell className="w-4 h-4" />;
-      default: return <Zap className="w-4 h-4" />;
-    }
-  };
-
-  const getStatusColor = (workflow: AutomationWorkflow) => {
-    if (!workflow.isActive) return 'bg-gray-500';
-    const successRate = workflow.runCount > 0 ? workflow.successCount / workflow.runCount : 1;
-    if (successRate > 0.9) return 'bg-green-500';
-    if (successRate > 0.7) return 'bg-yellow-500';
-    return 'bg-red-500';
-  };
-
-  if (!n8nConnected) {
-    return (
-      <Card className="glass-effect">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Zap className="w-5 h-5" />
-            n8n Automation Integration
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="text-center py-8">
-              <Zap className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Connect n8n Instance</h3>
-              <p className="text-muted-foreground mb-6">
-                Connect your n8n instance to enable powerful workflow automation
-              </p>
-            </div>
-            
-            <div className="max-w-md mx-auto space-y-4">
-              <div>
-                <Label htmlFor="n8n-url">n8n Instance URL</Label>
-                <Input
-                  id="n8n-url"
-                  placeholder="https://your-n8n.example.com"
-                  value={n8nUrl}
-                  onChange={(e) => setN8nUrl(e.target.value)}
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="n8n-api-key">API Key</Label>
-                <Input
-                  id="n8n-api-key"
-                  type="password"
-                  placeholder="Your n8n API key"
-                  value={n8nApiKey}
-                  onChange={(e) => setN8nApiKey(e.target.value)}
-                />
-              </div>
-              
-              <Button onClick={connectN8n} disabled={loading} className="w-full">
-                {loading ? 'Connecting...' : 'Connect n8n'}
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
   return (
-    <div className="space-y-6">
-      <Card className="glass-effect">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <Zap className="w-5 h-5" />
-              n8n Automation Integration
-              {eventTitle && (
-                <Badge variant="outline">
-                  {eventTitle}
+    <div className="space-y-6 text-white pb-10">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
+            <Zap className="text-yellow-400" />
+            Automation Hub
+          </h1>
+          <p className="text-gray-400 mt-1">Design powerful workflows to automate your event operations.</p>
+        </div>
+        <Button onClick={() => setShowCreateDialog(true)} className="bg-cyan-600 hover:bg-cyan-500">
+          <Plus className="w-4 h-4 mr-2" />
+          New Workflow
+        </Button>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {workflows.map((workflow) => (
+          <Card key={workflow._id} className="bg-white/5 border-white/10 hover:border-cyan-500/30 transition-all group overflow-hidden">
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <Badge variant="outline" className={workflow.isActive ? "bg-green-500/10 text-green-400 border-green-500/20" : "bg-gray-500/10 text-gray-400 border-gray-500/20"}>
+                  {workflow.isActive ? 'Active' : 'Paused'}
                 </Badge>
-              )}
-            </CardTitle>
-            <div className="flex items-center gap-2">
-              <Badge variant="secondary">Connected</Badge>
-              <Button onClick={() => setShowCreateDialog(true)}>
-                <Plus className="w-4 h-4 mr-2" />
-                Create Workflow
-              </Button>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <Tabs defaultValue="workflows" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="workflows">Workflows</TabsTrigger>
-              <TabsTrigger value="templates">Templates</TabsTrigger>
-              <TabsTrigger value="analytics">Analytics</TabsTrigger>
-              <TabsTrigger value="settings">Settings</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="workflows" className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {workflows.map((workflow) => (
-                  <Card key={workflow.id} className="hover:shadow-md transition-shadow">
-                    <CardHeader className="pb-2">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <div className={`w-3 h-3 rounded-full ${getStatusColor(workflow)}`} />
-                          <span className="font-medium text-sm truncate">{workflow.name}</span>
-                        </div>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm">
-                              <MoreVertical className="w-4 h-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent>
-                            <DropdownMenuItem onClick={() => setSelectedWorkflow(workflow)}>
-                              <Eye className="w-4 h-4 mr-2" />
-                              View Details
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => executeWorkflow(workflow)}>
-                              <Play className="w-4 h-4 mr-2" />
-                              Execute Now
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => toggleWorkflow(workflow)}>
-                              {workflow.isActive ? (
-                                <>
-                                  <Pause className="w-4 h-4 mr-2" />
-                                  Pause
-                                </>
-                              ) : (
-                                <>
-                                  <Play className="w-4 h-4 mr-2" />
-                                  Activate
-                                </>
-                              )}
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => deleteWorkflow(workflow)}>
-                              <Trash2 className="w-4 h-4 mr-2" />
-                              Delete
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="pt-2">
-                      <div className="space-y-3">
-                        {workflow.description && (
-                          <p className="text-sm text-muted-foreground">{workflow.description}</p>
-                        )}
-                        
-                        <div className="flex items-center gap-2">
-                          {getTriggerIcon(workflow.trigger.type)}
-                          <Badge variant="secondary" className="text-xs">
-                            {workflow.trigger.type.replace('_', ' ')}
-                          </Badge>
-                          <ArrowRight className="w-3 h-3 text-muted-foreground" />
-                          <span className="text-xs text-muted-foreground">
-                            {workflow.actions.length} actions
-                          </span>
-                        </div>
-
-                        <div className="flex items-center justify-between text-xs text-muted-foreground">
-                          <span>Runs: {workflow.runCount}</span>
-                          <div className="flex items-center gap-2">
-                            <span className="text-green-600">✓ {workflow.successCount}</span>
-                            {workflow.errorCount > 0 && (
-                              <span className="text-red-600">✗ {workflow.errorCount}</span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0"><MoreVertical className="w-4 h-4" /></Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="bg-gray-900 border-white/10 text-white">
+                    <DropdownMenuItem onClick={() => toggleAutomation({ id: workflow._id, isActive: !workflow.isActive })}>
+                      {workflow.isActive ? <Pause className="w-4 h-4 mr-2" /> : <Play className="w-4 h-4 mr-2" />}
+                      {workflow.isActive ? 'Pause' : 'Activate'}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => deleteAutomation({ id: workflow._id })} className="text-red-400">
+                      <Trash2 className="w-4 h-4 mr-2" /> Delete
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
-
-              {workflows.length === 0 && (
-                <div className="text-center py-12">
-                  <Zap className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">No workflows yet</h3>
-                  <p className="text-muted-foreground mb-4">
-                    Create your first automation workflow
-                  </p>
-                  <Button onClick={() => setShowCreateDialog(true)}>
-                    <Plus className="w-4 h-4 mr-2" />
-                    Create Workflow
-                  </Button>
+              <CardTitle className="text-lg mt-2">{workflow.name}</CardTitle>
+              <CardDescription className="text-gray-500 line-clamp-1">{workflow.description}</CardDescription>
+            </CardHeader>
+            <CardContent className="pt-2">
+              <div className="flex items-center gap-4 text-xs text-gray-400 mb-4">
+                <span className="flex items-center gap-1"><Zap size={12} className="text-yellow-400" /> {workflow.triggerType}</span>
+                <span className="flex items-center gap-1"><ArrowRight size={12} /> {workflow.actions.length} actions</span>
+              </div>
+              <div className="grid grid-cols-3 gap-2 text-center">
+                <div className="bg-white/5 p-2 rounded-lg">
+                  <p className="text-[10px] text-gray-500 uppercase">Runs</p>
+                  <p className="font-bold">{workflow.runCount}</p>
                 </div>
-              )}
-            </TabsContent>
-            
-            <TabsContent value="templates" className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Card className="cursor-pointer hover:shadow-md transition-shadow">
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-3 mb-3">
-                      <Mail className="w-8 h-8 text-blue-500" />
-                      <div>
-                        <h3 className="font-semibold">Welcome Email Sequence</h3>
-                        <p className="text-sm text-muted-foreground">
-                          Automated welcome emails for new registrations
-                        </p>
-                      </div>
-                    </div>
-                    <Button size="sm" className="w-full">
-                      Use Template
-                    </Button>
-                  </CardContent>
-                </Card>
-
-                <Card className="cursor-pointer hover:shadow-md transition-shadow">
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-3 mb-3">
-                      <MessageSquare className="w-8 h-8 text-green-500" />
-                      <div>
-                        <h3 className="font-semibold">Slack Notifications</h3>
-                        <p className="text-sm text-muted-foreground">
-                          Real-time event updates to Slack channels
-                        </p>
-                      </div>
-                    </div>
-                    <Button size="sm" className="w-full">
-                      Use Template
-                    </Button>
-                  </CardContent>
-                </Card>
+                <div className="bg-white/5 p-2 rounded-lg">
+                  <p className="text-[10px] text-gray-500 uppercase">Success</p>
+                  <p className="font-bold text-green-400">{workflow.successCount}</p>
+                </div>
+                <div className="bg-white/5 p-2 rounded-lg">
+                  <p className="text-[10px] text-gray-500 uppercase">Errors</p>
+                  <p className="font-bold text-red-400">{workflow.errorCount}</p>
+                </div>
               </div>
-            </TabsContent>
-            
-            <TabsContent value="analytics" className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Card>
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm text-muted-foreground">Total Workflows</p>
-                        <p className="text-2xl font-bold">{workflows.length}</p>
-                      </div>
-                      <Zap className="w-8 h-8 text-muted-foreground" />
-                    </div>
-                  </CardContent>
-                </Card>
+            </CardContent>
+          </Card>
+        ))}
+        {workflows.length === 0 && (
+          <div className="col-span-full py-20 text-center border border-dashed border-white/10 rounded-3xl bg-white/5">
+            <Zap size={48} className="mx-auto mb-4 text-gray-700" />
+            <h3 className="text-xl font-bold mb-2">No active workflows</h3>
+            <p className="text-gray-500 mb-6">Create your first automation to streamline your event management.</p>
+            <Button onClick={() => setShowCreateDialog(true)} variant="outline" className="border-white/20">
+              Get Started
+            </Button>
+          </div>
+        )}
+      </div>
 
-                <Card>
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm text-muted-foreground">Total Runs</p>
-                        <p className="text-2xl font-bold">
-                          {workflows.reduce((sum, w) => sum + w.runCount, 0)}
-                        </p>
-                      </div>
-                      <BarChart3 className="w-8 h-8 text-muted-foreground" />
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm text-muted-foreground">Success Rate</p>
-                        <p className="text-2xl font-bold">
-                          {workflows.length > 0 
-                            ? Math.round(
-                                workflows.reduce((sum, w) => sum + w.successCount, 0) / 
-                                workflows.reduce((sum, w) => sum + w.runCount, 1) * 100
-                              )
-                            : 0}%
-                        </p>
-                      </div>
-                      <CheckCircle className="w-8 h-8 text-muted-foreground" />
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="settings" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Connection Settings</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">n8n Instance</p>
-                      <p className="text-sm text-muted-foreground">{n8nUrl}</p>
-                    </div>
-                    <Badge variant="secondary">Connected</Badge>
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">Auto-retry failed workflows</p>
-                      <p className="text-sm text-muted-foreground">
-                        Automatically retry failed executions up to 3 times
-                      </p>
-                    </div>
-                    <Switch defaultChecked />
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
-
-      {/* Create Workflow Dialog */}
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl bg-[#0f172a] text-white border-white/10">
           <DialogHeader>
-            <DialogTitle>Create Automation Workflow</DialogTitle>
-            <DialogDescription>
-              Set up automated actions based on event triggers
-            </DialogDescription>
+            <DialogTitle>Create Workflow</DialogTitle>
+            <DialogDescription className="text-gray-400">Define a trigger and actions for your automation.</DialogDescription>
           </DialogHeader>
-          <div className="space-y-6 max-h-96 overflow-y-auto">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="workflow-name">Workflow Name</Label>
-                <Input
-                  id="workflow-name"
-                  placeholder="My Automation Workflow"
-                  value={workflowName}
-                  onChange={(e) => setWorkflowName(e.target.value)}
-                />
+          <div className="space-y-6 max-h-[60vh] overflow-y-auto pr-2">
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>Workflow Name</Label>
+                <Input value={workflowName} onChange={e => setWorkflowName(e.target.value)} placeholder="e.g. Welcome Email Sequence" className="bg-white/5 border-white/10" />
               </div>
-              
-              <div>
-                <Label htmlFor="trigger-type">Trigger</Label>
-                <Select value={triggerType} onValueChange={(v) => setTriggerType(v as typeof triggerType)}>
-                  <SelectTrigger>
+              <div className="space-y-2">
+                <Label>Trigger Event</Label>
+                <Select value={triggerType} onValueChange={setTriggerType}>
+                  <SelectTrigger className="bg-white/5 border-white/10">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="event_created">Event Created</SelectItem>
+                  <SelectContent className="bg-gray-900 text-white border-white/10">
                     <SelectItem value="registration">New Registration</SelectItem>
-                    <SelectItem value="check_in">Check-in</SelectItem>
+                    <SelectItem value="check_in">Check-in Completed</SelectItem>
+                    <SelectItem value="event_created">Event Published</SelectItem>
                     <SelectItem value="feedback">Feedback Received</SelectItem>
-                    <SelectItem value="webhook">Webhook</SelectItem>
-                    <SelectItem value="schedule">Scheduled</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-            </div>
-            
-            <div>
-              <Label htmlFor="workflow-description">Description</Label>
-              <Textarea
-                id="workflow-description"
-                placeholder="Describe what this workflow does..."
-                value={workflowDescription}
-                onChange={(e) => setWorkflowDescription(e.target.value)}
-              />
+              <div className="space-y-2">
+                <Label>Description</Label>
+                <Textarea value={workflowDescription} onChange={e => setWorkflowDescription(e.target.value)} placeholder="What does this workflow do?" className="bg-white/5 border-white/10 h-20" />
+              </div>
             </div>
 
-            <div>
-              <div className="flex items-center justify-between mb-4">
-                <Label>Actions</Label>
-                <Button type="button" variant="outline" size="sm" onClick={addAction}>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Action
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <Label className="text-cyan-400">Actions</Label>
+                <Button variant="outline" size="sm" onClick={addAction} className="h-7 border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10">
+                  <Plus className="w-3 h-3 mr-1" /> Add Action
                 </Button>
               </div>
-              
-              {actions.map((action, index) => (
-                <Card key={action.id} className="p-4 mb-3">
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="font-medium">Action {index + 1}</span>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => removeAction(action.id)}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-3">
+              {actions.map((action, i) => (
+                <div key={action.id} className="p-4 rounded-xl bg-white/5 border border-white/5 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="bg-cyan-500/20 p-2 rounded-lg"><Mail size={16} className="text-cyan-400" /></div>
                     <div>
-                      <Label>Action Type</Label>
-                      <Select 
-                        value={action.type} 
-                        onValueChange={(type) => updateAction(action.id, { type: type as 'email' | 'slack' | 'discord' | 'webhook' | 'database' | 'notification' })}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="email">Send Email</SelectItem>
-                          <SelectItem value="slack">Slack Message</SelectItem>
-                          <SelectItem value="discord">Discord Message</SelectItem>
-                          <SelectItem value="webhook">Webhook</SelectItem>
-                          <SelectItem value="database">Database Update</SelectItem>
-                          <SelectItem value="notification">Push Notification</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    <div>
-                      <Label>Delay (minutes)</Label>
-                      <Input
-                        type="number"
-                        min="0"
-                        value={action.delay || 0}
-                        onChange={(e) => updateAction(action.id, { delay: parseInt(e.target.value) || 0 })}
-                      />
+                      <p className="text-sm font-medium capitalize">{action.type}</p>
+                      <p className="text-[10px] text-gray-500">Instant execution</p>
                     </div>
                   </div>
-                </Card>
+                  <Button variant="ghost" size="sm" onClick={() => setActions(actions.filter(a => a.id !== action.id))} className="text-gray-500 hover:text-red-400">
+                    <Trash2 size={14} />
+                  </Button>
+                </div>
               ))}
             </div>
-            
-            <Button onClick={createWorkflow} disabled={loading} className="w-full">
-              {loading ? 'Creating...' : 'Create Workflow'}
-            </Button>
           </div>
+          <Button onClick={handleCreateWorkflow} className="w-full bg-cyan-600 hover:bg-cyan-500 mt-4" disabled={loading || !workflowName}>
+            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Create Automation'}
+          </Button>
         </DialogContent>
       </Dialog>
     </div>

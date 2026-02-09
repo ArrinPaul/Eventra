@@ -203,11 +203,43 @@ export const getDashboardStats = query({
         acc[role] = (acc[role] ?? 0) + 1;
         return acc;
       }, {} as Record<string, number>),
-      eventsByStatus: events.reduce((acc, e) => {
-        const status = e.status ?? "draft";
-        acc[status] = (acc[status] ?? 0) + 1;
-        return acc;
-      }, {} as Record<string, number>),
-    };
-  },
-});
+            eventsByStatus: events.reduce((acc, e) => {
+              const status = e.status ?? "draft";
+              acc[status] = (acc[status] ?? 0) + 1;
+              return acc;
+            }, {} as Record<string, number>),
+          };
+        },
+      });
+      
+      export const getDetailedAnalytics = query({
+        args: {},
+        handler: async (ctx) => {
+          if (!(await isAdmin(ctx))) throw new Error("Unauthorized");
+      
+          const users = await ctx.db.query("users").collect();
+          const registrations = await ctx.db.query("registrations").collect();
+          const messages = await ctx.db.query("messages").collect();
+          const badges = await ctx.db.query("user_badges").collect();
+      
+          // Group users by month
+          const usersByMonth: Record<string, number> = {};
+          users.forEach(u => {
+            const month = new Date(u._creationTime).toLocaleString('default', { month: 'short' });
+            usersByMonth[month] = (usersByMonth[month] || 0) + 1;
+          });
+      
+          // Activity distribution
+          const engagement = {
+            messages: messages.length,
+            registrations: registrations.length,
+            badgesEarned: badges.length,
+          };
+      
+          return {
+            growthData: Object.entries(usersByMonth).map(([name, value]) => ({ name, value })),
+            engagement,
+          };
+        }
+      });
+      
