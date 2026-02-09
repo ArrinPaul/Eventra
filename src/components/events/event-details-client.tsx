@@ -30,6 +30,8 @@ import { api } from '../../../convex/_generated/api';
 import { EventChatbot, ChatbotTrigger } from '@/components/ai/event-chatbot';
 import { Progress } from '@/components/ui/progress';
 
+import { createCheckoutSession } from '@/app/actions/payments';
+
 export default function EventDetailsClient({ eventId }: { eventId: string }) {
   const router = useRouter();
   const { user, updateUser } = useAuth();
@@ -47,12 +49,25 @@ export default function EventDetailsClient({ eventId }: { eventId: string }) {
       router.push(`/login?callbackUrl=/events/${eventId}`);
       return;
     }
+    
     setRegistering(true);
     try {
-      await registerMutation({ eventId: eventId as any });
-      toast({ title: 'Registered! 🎉' });
-    } catch (e) {
-      toast({ title: 'Registration Failed', variant: 'destructive' });
+      if (event?.isPaid && event.price && event.price > 0) {
+        // Stripe Flow
+        const { url } = await createCheckoutSession(eventId, user._id || user.id);
+        if (url) {
+          window.location.href = url;
+        } else {
+          throw new Error("Failed to create checkout session");
+        }
+      } else {
+        // Free Registration Flow
+        await registerMutation({ eventId: eventId as any });
+        toast({ title: 'Registered! 🎉' });
+      }
+    } catch (e: any) {
+      console.error(e);
+      toast({ title: 'Registration Failed', description: e.message || "Please try again", variant: 'destructive' });
     } finally {
       setRegistering(false);
     }

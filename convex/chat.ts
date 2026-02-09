@@ -92,6 +92,8 @@ export const sendMessage = mutation({
   args: {
     roomId: v.id("chat_rooms"),
     content: v.string(),
+    fileUrl: v.optional(v.string()),
+    fileType: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const userId = await auth.getUserId(ctx);
@@ -103,6 +105,8 @@ export const sendMessage = mutation({
       content: args.content,
       sentAt: Date.now(),
       readBy: [userId],
+      fileUrl: args.fileUrl,
+      fileType: args.fileType,
     });
 
     await ctx.db.patch(args.roomId, {
@@ -135,7 +139,7 @@ export const markMessagesRead = mutation({
 export const createRoom = mutation({
   args: {
     name: v.optional(v.string()),
-    type: v.string(),
+    type: v.union(v.literal("group"), v.literal("direct"), v.literal("event")),
     participants: v.array(v.id("users")),
     eventId: v.optional(v.id("events")),
   },
@@ -145,10 +149,12 @@ export const createRoom = mutation({
 
     // For direct messages, check if room already exists
     if (args.type === "direct" && args.participants.length === 2) {
-      const rooms = await ctx.db.query("chat_rooms").collect();
+      const rooms = await ctx.db.query("chat_rooms")
+        .withIndex("by_type", (q) => q.eq("type", "direct"))
+        .collect();
+      
       const existing = rooms.find(
         (r) =>
-          r.type === "direct" &&
           r.participants.length === 2 &&
           r.participants.includes(args.participants[0]) &&
           r.participants.includes(args.participants[1])
@@ -161,6 +167,7 @@ export const createRoom = mutation({
       type: args.type,
       participants: args.participants,
       eventId: args.eventId,
+      lastMessageAt: Date.now(),
     });
   },
 });

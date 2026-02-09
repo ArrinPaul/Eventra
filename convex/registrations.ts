@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { mutation, query, internalMutation } from "./_generated/server";
 import { auth } from "./auth";
 
 /**
@@ -7,7 +7,7 @@ import { auth } from "./auth";
  * Checks capacity, creates ticket, awards XP, sends notification
  */
 export const register = mutation({
-  args: { eventId: v.id("events") },
+  args: { eventId: v.id("events"), status: v.optional(v.string()) },
   handler: async (ctx, args) => {
     const userId = await auth.getUserId(ctx);
     if (!userId) throw new Error("Unauthorized");
@@ -24,7 +24,15 @@ export const register = mutation({
       .withIndex("by_event_user", (q) => q.eq("eventId", args.eventId).eq("userId", userId))
       .unique();
 
-    if (existing) return existing._id;
+    if (existing) {
+      if (existing.status === 'pending' && args.status === 'confirmed') {
+         // Upgrade pending to confirmed if called from webhook/success
+         await ctx.db.patch(existing._id, { status: 'confirmed' });
+         if (existing.ticketId) await ctx.db.patch(existing.ticketId, { status: 'confirmed' });
+         return existing._id;
+      }
+      return existing._id;
+    }
 
     // Capacity enforcement
     const isFull = event.registeredCount >= event.capacity;
@@ -33,7 +41,9 @@ export const register = mutation({
     }
 
     const isWaitlisted = isFull && event.waitlistEnabled;
-    const status = isWaitlisted ? "waitlisted" : "confirmed";
+    const status = args.status || (isWaitlisted ? "waitlisted" : "confirmed");
+
+    // ... (rest of registration logic)
 
     // Get user info for ticket
     const user = await ctx.db.get(userId);
@@ -185,13 +195,135 @@ export const getByEvents = query({
 });
 
 export const getByUser = query({
+
   args: {},
+
   handler: async (ctx) => {
+
     const userId = await auth.getUserId(ctx);
+
     if (!userId) return [];
+
     return await ctx.db
+
       .query("registrations")
+
       .withIndex("by_user", (q) => q.eq("userId", userId))
+
       .collect();
+
   },
+
+});
+
+
+
+export const confirmPayment = internalMutation({
+
+  args: { eventId: v.id("events"), userId: v.id("users") },
+
+  handler: async (ctx, args) => {
+
+    const { eventId, userId } = args;
+
+    const event = await ctx.db.get(eventId);
+
+    if (!event) return;
+
+
+
+    const existing = await ctx.db
+
+      .query("registrations")
+
+      .withIndex("by_event_user", (q) => q.eq("eventId", eventId).eq("userId", userId))
+
+      .unique();
+
+
+
+    if (existing && existing.status === 'confirmed') return;
+
+
+
+    const ticketNumber = `EVT-${eventId.substring(0, 4)}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+
+    const user = await ctx.db.get(userId);
+
+
+
+    const ticketId = await ctx.db.insert("tickets", {
+
+      eventId,
+
+      userId,
+
+      ticketNumber,
+
+      status: "confirmed",
+
+      price: event.price || 0,
+
+      purchaseDate: Date.now(),
+
+      attendeeName: user?.name || "Attendee",
+
+      attendeeEmail: user?.email || "",
+
+    });
+
+
+
+    if (existing) {
+
+      await ctx.db.patch(existing._id, { status: "confirmed", ticketId });
+
+    } else {
+
+      await ctx.db.insert("registrations", {
+
+        userId,
+
+        eventId,
+
+        status: "confirmed",
+
+        registrationDate: Date.now(),
+
+        ticketId,
+
+      });
+
+    }
+
+
+
+    await ctx.db.patch(eventId, {
+
+      registeredCount: (event.registeredCount || 0) + 1,
+
+    });
+
+
+
+    await ctx.db.insert("notifications", {
+
+      userId,
+
+      title: "Payment Confirmed! 🎉",
+
+      message: `Your payment for "${event.title}" was successful. Your ticket: ${ticketNumber}`,
+
+      type: "event",
+
+      read: false,
+
+      createdAt: Date.now(),
+
+      link: `/tickets`,
+
+    });
+
+  }
+
 });

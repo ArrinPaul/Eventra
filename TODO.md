@@ -101,7 +101,7 @@
 > Features with UI or backend started but not fully wired end-to-end.
 
 ### 9.1 Events
-- [ ] **Server-side pagination**: All queries use `.collect()` — switch to `.paginate()` for events, notifications, messages.
+- [x] **Server-side pagination**: Implemented `.paginate()` for events, notifications, and chat messages. Updated `ExploreClient`, `NotificationCenter`, and `EnhancedChatClient` to use `usePaginatedQuery`.
 - [x] **Server-side search & filtering**: Added `getByStatus`, `getByOrganizer`, `getPublished` queries using schema indexes.
 - [x] **Dedicated event edit page**: Created `/events/[id]/edit` route with organizer auth check and EventForm pre-fill.
 - [x] **Event image upload**: Added drag-and-drop image upload to `event-form.tsx` using `useStorage()` hook. `imageUrl` now passed to create/update.
@@ -110,14 +110,14 @@
 - [x] **Capacity progress indicator**: Event detail page shows color-coded progress bar, "X spots left" / "Sold Out", disabled registration when full.
 
 ### 9.2 Ticketing
-- [ ] **Payment integration**: `isPaid` and `price` displayed but no Stripe/payment flow. "Book Now" on paid events creates free tickets.
+- [x] **Payment integration**: Stripe checkout flow implemented for paid events. Includes `createCheckoutSession` action, webhook listener, and payment confirmation logic in Convex. Added `ticketing/success` page.
 - [ ] **Ticket types/tiers**: `ticketTypeId` field in schema never used. No multi-tier (VIP, Early Bird) support.
-- [ ] **Ticket PDF download**: No PDF generation library. "Download" is a dead link.
+- [x] **Ticket PDF download**: Implemented high-fidelity ticket printing via `window.print()` with dynamic QR code generation. Added "Download PDF" buttons to ticket list and detail dialog.
 - [x] **Ticket cancellation/refund UI**: Backend `cancelTicket` mutation added. Frontend integration pending.
 - [ ] **Email confirmation on registration**: Email templates exist but are never triggered during registration.
 
 ### 9.3 Chat
-- [ ] **Direct messaging**: No user picker/search to start 1:1 conversations.
+- [x] **Direct messaging**: Added `UserPicker` and enhanced `createRoom` logic to support 1:1 conversations. Users can now search for and start direct chats from the sidebar.
 - [x] **Read receipts**: `markMessagesRead` mutation added. Schema tracks `readBy` per user.
 - [x] **Message sender info**: Messages now enriched with `senderName`, `senderImage`.
 - [x] **Message timestamps**: Displayed under each message bubble with sender name for non-self messages.

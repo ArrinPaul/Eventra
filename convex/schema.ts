@@ -192,7 +192,7 @@ export default defineSchema({
     eventId: v.optional(v.id("events")),
     participants: v.array(v.id("users")),
     lastMessageAt: v.optional(v.number()),
-  }).index("by_event", ["eventId"]),
+  }).index("by_event", ["eventId"]).index("by_type", ["type"]),
 
   messages: defineTable({
     roomId: v.id("chat_rooms"),
@@ -200,6 +200,8 @@ export default defineSchema({
     content: v.string(),
     sentAt: v.number(),
     readBy: v.array(v.id("users")),
+    fileUrl: v.optional(v.string()),
+    fileType: v.optional(v.string()),
   }).index("by_room", ["roomId"]),
 
   files: defineTable({
