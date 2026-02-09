@@ -103,6 +103,13 @@ export default defineSchema({
       type: v.union(v.literal("rating"), v.literal("text"), v.literal("boolean")),
       required: v.boolean(),
     }))),
+    isRecurring: v.optional(v.boolean()),
+    recurrenceRule: v.optional(v.object({
+      frequency: v.union(v.literal("daily"), v.literal("weekly"), v.literal("monthly")),
+      interval: v.number(),
+      endDate: v.optional(v.number()),
+    })),
+    parentEventId: v.optional(v.id("events")), // To link instances to original series
   }).index("by_organizer", ["organizerId"]).index("by_status", ["status"]),
 
   registrations: defineTable({
@@ -392,4 +399,33 @@ export default defineSchema({
     caption: v.optional(v.string()),
     createdAt: v.number(),
   }).index("by_event", ["eventId"]),
+
+  event_templates: defineTable({
+    name: v.string(),
+    description: v.string(),
+    category: v.string(),
+    defaultCapacity: v.number(),
+    suggestedAgenda: v.optional(v.array(v.object({
+      title: v.string(),
+      duration: v.number(), // minutes
+      description: v.optional(v.string()),
+    }))),
+    icon: v.string(),
+  }),
+
+  event_polls: defineTable({
+    eventId: v.id("events"),
+    question: v.string(),
+    options: v.array(v.string()),
+    isActive: v.boolean(),
+    createdAt: v.number(),
+    createdBy: v.id("users"),
+  }).index("by_event", ["eventId"]),
+
+  poll_responses: defineTable({
+    pollId: v.id("event_polls"),
+    userId: v.id("users"),
+    optionIndex: v.number(),
+    createdAt: v.number(),
+  }).index("by_poll", ["pollId"]).index("by_user_poll", ["userId", "pollId"]),
 });

@@ -222,13 +222,13 @@
 
 ### 11.1 Event Experience
 - [ ] **Multi-language / i18n support**: Internationalize UI strings.
-- [ ] **Event templates**: Pre-built templates for workshops, conferences, hackathons.
-- [ ] **Recurring events**: Weekly/monthly repeat patterns.
+- [x] **Event templates**: Implemented `event_templates` table and seeding logic. Organizers can now start from pre-built structures for workshops, conferences, and meetups. Includes suggested agendas and capacities.
+- [x] **Recurring events**: Implemented recurrence schema and basic logic in `events` table. Mutations updated to support `recurrenceRule`. Foundation for automated series generation complete.
 - [x] **Co-organizer support**: Multi-organizer management implemented. Owners can add/remove team members by email. Co-organizers can edit event details but not delete the event. Dashboard updated to show co-organized events.
 - [x] **Event cloning**: `cloneEvent` mutation implemented for quick re-creation.
 - [x] **Waitlist with auto-promotion**: Implemented — auto-promotes from waitlist on cancellation.
 - [x] **Event discussion/Q&A board**: Implemented real-time discussion board for each event. Supports general posts and targeted questions. Organizers can mark questions as answered. Includes notifications for organizers.
-- [ ] **Live polling during events**: Real-time audience polls.
+- [x] **Live polling during events**: Implemented real-time polling system with `event_polls` and `poll_responses`. Organizers can create/toggle polls. Attendees see live results as they vote. Integrated into event tabs.
 - [x] **Event photo gallery**: Implemented post-event photo sharing via `EventGallery` component. Supports image uploads to Convex Storage, responsive grid view, and a high-quality lightbox viewer. Integrated into Event Details tabs.
 
 ### 11.2 Payments & Monetization

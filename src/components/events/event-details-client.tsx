@@ -33,6 +33,7 @@ import { createCheckoutSession } from '@/app/actions/payments';
 import { EventDiscussionBoard } from './event-discussion-board';
 import { EventReactions } from './event-reactions';
 import { EventGallery } from './event-gallery';
+import { EventPolls } from './event-polls';
 import {
   Dialog,
   DialogContent,
@@ -172,6 +173,10 @@ export default function EventDetailsClient({ eventId }: { eventId: string }) {
                         <Badge variant="secondary" className="h-4 p-0 px-1 text-[8px] bg-white/10 text-gray-400">NEW</Badge>
                       </TabsTrigger>
                       <TabsTrigger value="photos" className="data-[state=active]:bg-cyan-600">Photos</TabsTrigger>
+                      <TabsTrigger value="polls" className="data-[state=active]:bg-cyan-600 flex items-center gap-2">
+                        Polls
+                        <div className="h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse" />
+                      </TabsTrigger>
                     </TabsList>
 
                     <TabsContent value="about" className="space-y-6 animate-in fade-in slide-in-from-bottom-2">
@@ -209,6 +214,10 @@ export default function EventDetailsClient({ eventId }: { eventId: string }) {
 
                     <TabsContent value="photos">
                       <EventGallery eventId={event._id} isRegistered={isRegistered} />
+                    </TabsContent>
+
+                    <TabsContent value="polls">
+                      <EventPolls eventId={event._id} isOrganizer={!!isOrganizer} />
                     </TabsContent>
                   </Tabs>
                 </div>

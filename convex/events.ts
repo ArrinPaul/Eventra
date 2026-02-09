@@ -171,6 +171,13 @@ export const create = mutation({
       registeredCount: v.number(),
       description: v.optional(v.string()),
     }))),
+    isRecurring: v.optional(v.boolean()),
+    recurrenceRule: v.optional(v.object({
+      frequency: v.union(v.literal("daily"), v.literal("weekly"), v.literal("monthly")),
+      interval: v.number(),
+      endDate: v.optional(v.number()),
+    })),
+    parentEventId: v.optional(v.id("events")),
   },
   handler: async (ctx, args) => {
     const eventId = await ctx.db.insert("events", args);
@@ -209,6 +216,12 @@ export const update = mutation({
         registeredCount: v.number(),
         description: v.optional(v.string()),
       }))),
+      isRecurring: v.optional(v.boolean()),
+      recurrenceRule: v.optional(v.object({
+        frequency: v.union(v.literal("daily"), v.literal("weekly"), v.literal("monthly")),
+        interval: v.number(),
+        endDate: v.optional(v.number()),
+      })),
     }),
   },
   handler: async (ctx, args) => {
