@@ -229,7 +229,7 @@
 - [x] **Event cloning**: `cloneEvent` mutation implemented for quick re-creation.
 - [x] **Waitlist with auto-promotion**: Implemented — auto-promotes from waitlist on cancellation.
 - [x] **Event discussion/Q&A board**: Implemented real-time discussion board for each event. Supports general posts and targeted questions. Organizers can mark questions as answered. Includes notifications for organizers.
-- [x] **Live polling during events**: Implemented real-time polling system with `event_polls` and `poll_responses`. Organizers can create/toggle polls. Attendees see live results as they vote. Integrated into event tabs.
+- [x] **Live polling during events**: Fully functional real-time polling system. Organizers can create, toggle, and restart polls. Attendees see live result updates and can vote in real-time. Integrated into event tabs.
 - [x] **Event photo gallery**: Implemented post-event photo sharing via `EventGallery` component. Supports image uploads to Convex Storage, responsive grid view, and a high-quality lightbox viewer. Integrated into Event Details tabs.
 
 ### 11.2 Payments & Monetization
@@ -237,12 +237,12 @@
 - [x] **Refund management**: Implemented automated refund flow. `processTicketCancellation` action handles Stripe refunds via `stripePaymentId` and updates Convex state to `refunded`. Cancellation UI added to `MyTicketsClient`.
 - [x] **Discount/promo codes**: Full system implemented. Includes `discount_codes` table, validation logic, Stripe integration for discounted checkouts, and UI for organizers to create and users to apply codes.
 - [x] **Revenue dashboard**: Full financial analytics for organizers implemented. Includes total revenue, daily trends, event breakdown, and tier distribution with real-time charts.
-- [ ] **Invoice generation**: Automatic invoices for paid tickets.
+- [x] **Invoice generation**: Professional HTML/Print invoice generation implemented. Users can download invoices for paid tickets directly from their dashboard.
 
 ### 11.3 Social & Engagement
 - [x] **User profiles (public)**: Created `/profile/[id]` route with user info, stats, badges, member since.
 - [x] **Follow system**: Implemented user-to-user following. Users can follow each other from their profiles. Real-time follower/following counts and notifications added. `follows` table in schema.
-- [x] **Comment system on posts**: Added `addComment`/`getComments` mutations with author enrichment.
+- [x] **Comment system on posts**: Fully implemented Backend + Frontend. Added `addComment`/`getComments` mutations and updated `list` with enrichment. Frontend features interactive `CommentSection` with real-time updates.
 - [x] **Event reactions/emojis**: Users can react to events with emojis (❤️, 🔥, etc.). Real-time counters and "me" state implemented. `event_reactions` table added.
 - [x] **Referral system**: Users can generate unique referral codes and earn 100 XP for every successful invite. Redeeming a code gives the new user 50 XP. Added `ReferralSystem` widget to dashboard.
 - [x] **Activity feed**: Created `activity_feed` table, `convex/activity.ts` with queries + mutations, `ActivityFeed` component with timeline UI.
@@ -270,7 +270,7 @@
 - [ ] **Accessibility audit**: WCAG 2.1 AA compliance (ARIA labels, keyboard nav, screen reader).
 
 ### 11.7 AI Enhancements
-- [ ] **AI-powered event summarization**: Auto-generate post-event summaries.
+- [x] **AI-powered event summarization**: Implemented `eventSummarizerFlow` via Genkit. Organizers can generate professional post-event summaries with highlights and takeaways based on event data and attendee feedback.
 - [ ] **Smart scheduling**: AI suggests optimal event times based on audience availability.
 - [ ] **Chatbot memory**: Persist conversation context across sessions.
 - [ ] **AI moderation**: Auto-flag inappropriate content in community posts.

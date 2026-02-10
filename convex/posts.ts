@@ -5,16 +5,33 @@ import { auth } from "./auth";
 export const list = query({
   args: {},
   handler: async (ctx) => {
+    const userId = await auth.getUserId(ctx);
     const posts = await ctx.db.query("community_posts").order("desc").collect();
     // Enrich with author info
     const enriched = [];
     for (const post of posts) {
       const author = await ctx.db.get(post.authorId);
+      const commentCount = (await ctx.db
+        .query("comments")
+        .withIndex("by_post", (q) => q.eq("postId", post._id))
+        .collect()).length;
+      
+      let meLiked = false;
+      if (userId) {
+        const like = await ctx.db
+          .query("post_likes")
+          .withIndex("by_user_post", (q) => q.eq("userId", userId).eq("postId", post._id))
+          .unique();
+        meLiked = !!like;
+      }
+
       enriched.push({
         ...post,
         authorName: author?.name || "Anonymous",
         authorImage: author?.image,
         authorRole: author?.role,
+        commentCount,
+        meLiked,
       });
     }
     return enriched;

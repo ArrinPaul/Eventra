@@ -39,6 +39,7 @@ import Link from 'next/link';
 import { QRCodeSVG } from 'qrcode.react';
 import { useToast } from '@/hooks/use-toast';
 import { processTicketCancellation } from '@/app/actions/payments';
+import { FileText } from 'lucide-react';
 
 const getTicketEventDate = (ticket: EventTicket): Date => {
   if (ticket.event?.startDate) return new Date(ticket.event.startDate);
@@ -57,11 +58,12 @@ function TicketStatusBadge({ status }: { status: EventTicket['status'] }) {
   return <Badge variant="outline" className={config.className}>{config.label}</Badge>;
 }
 
-function TicketCard({ ticket, onViewTicket, onPrint, onCancel }: { 
+function TicketCard({ ticket, onViewTicket, onPrint, onCancel, onDownloadInvoice }: { 
   ticket: EventTicket; 
   onViewTicket: (ticket: EventTicket) => void; 
   onPrint: (ticket: EventTicket) => void;
   onCancel: (ticket: EventTicket) => void;
+  onDownloadInvoice: (ticket: EventTicket) => void;
 }) {
   const eventDate = getTicketEventDate(ticket);
   const isCancellable = ticket.status !== 'cancelled' && ticket.status !== 'refunded' && !isPast(eventDate);
@@ -86,8 +88,12 @@ function TicketCard({ ticket, onViewTicket, onPrint, onCancel }: {
         </div>
         <div className="flex gap-2 mt-4">
           <Button size="sm" className="flex-[2] bg-cyan-600 hover:bg-cyan-500" onClick={() => onViewTicket(ticket)}>View QR</Button>
-          <Button size="sm" variant="outline" className="flex-1 border-white/10" onClick={() => onPrint(ticket)}><Download className="h-4 w-4" /></Button>
+          <Button size="sm" variant="outline" className="flex-1 border-white/10" title="Download Ticket" onClick={() => onPrint(ticket)}><Download className="h-4 w-4" /></Button>
           
+          {ticket.price > 0 && (
+            <Button size="sm" variant="outline" className="flex-1 border-white/10" title="Download Invoice" onClick={() => onDownloadInvoice(ticket)}><FileText className="h-4 w-4" /></Button>
+          )}
+
           {isCancellable && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -144,6 +150,94 @@ export default function MyTicketsClient() {
     } finally {
       setCancellingId(null);
     }
+  };
+
+  const handleDownloadInvoice = (ticket: EventTicket) => {
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
+
+    const eventDate = getTicketEventDate(ticket);
+    const purchaseDate = new Date(ticket.purchaseDate);
+    
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Invoice - ${ticket.ticketNumber}</title>
+          <style>
+            body { font-family: sans-serif; padding: 40px; color: #333; line-height: 1.6; }
+            .invoice-box { max-width: 800px; margin: auto; padding: 30px; border: 1px solid #eee; box-shadow: 0 0 10px rgba(0, 0, 0, .15); }
+            .header { display: flex; justify-content: space-between; border-bottom: 2px solid #333; padding-bottom: 20px; margin-bottom: 20px; }
+            .logo { font-size: 28px; font-weight: bold; color: #06b6d4; }
+            .details { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-bottom: 40px; }
+            .table { width: 100%; border-collapse: collapse; margin-bottom: 40px; }
+            .table th { background: #f8fafc; text-align: left; padding: 12px; border-bottom: 2px solid #eee; }
+            .table td { padding: 12px; border-bottom: 1px solid #eee; }
+            .total { text-align: right; font-size: 20px; font-weight: bold; }
+            .footer { margin-top: 50px; text-align: center; color: #999; font-size: 12px; border-top: 1px solid #eee; padding-top: 20px; }
+            @media print { .no-print { display: none; } }
+          </style>
+        </head>
+        <body>
+          <div class="invoice-box">
+            <div class="header">
+              <div class="logo">EVENTRA</div>
+              <div style="text-align: right">
+                <h1 style="margin: 0; font-size: 24px;">INVOICE</h1>
+                <p style="margin: 0; color: #666;">#INV-${ticket.ticketNumber}</p>
+              </div>
+            </div>
+            
+            <div class="details">
+              <div>
+                <h3 style="margin-bottom: 10px;">Billed To:</h3>
+                <p style="margin: 0;"><strong>${ticket.attendeeName || user?.name || 'Customer'}</strong></p>
+                <p style="margin: 0;">${ticket.attendeeEmail || user?.email || ''}</p>
+              </div>
+              <div style="text-align: right">
+                <h3 style="margin-bottom: 10px;">Details:</h3>
+                <p style="margin: 0;">Date: ${format(purchaseDate, 'PPP')}</p>
+                <p style="margin: 0;">Payment: Stripe Card</p>
+              </div>
+            </div>
+
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Description</th>
+                  <th>Tier</th>
+                  <th style="text-align: right">Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>
+                    <strong>${ticket.event?.title || 'Event Registration'}</strong><br/>
+                    <small>${format(eventDate, 'PPP')}</small>
+                  </td>
+                  <td>${ticket.ticketTypeId || 'Standard'}</td>
+                  <td style="text-align: right">$${ticket.price.toFixed(2)}</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div class="total">
+              Total Amount: $${ticket.price.toFixed(2)}
+            </div>
+
+            <div class="footer">
+              <p>Thank you for your purchase! For support, contact help@eventra.app</p>
+              <p>Eventra Platform • 123 Event Street, Silicon Valley, CA</p>
+            </div>
+          </div>
+          <script>
+            window.onload = function() {
+              setTimeout(() => { window.print(); window.close(); }, 500);
+            }
+          </script>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
   };
 
   const handlePrint = (ticket: EventTicket) => {
@@ -238,10 +332,10 @@ export default function MyTicketsClient() {
           <TabsTrigger value="past">Past</TabsTrigger>
         </TabsList>
         <TabsContent value="upcoming" className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {filterTickets('upcoming').map(t => <TicketCard key={t.id} ticket={t} onViewTicket={setSelectedTicket} onPrint={handlePrint} onCancel={handleCancel} />)}
+          {filterTickets('upcoming').map(t => <TicketCard key={t.id} ticket={t} onViewTicket={setSelectedTicket} onPrint={handlePrint} onCancel={handleCancel} onDownloadInvoice={handleDownloadInvoice} />)}
         </TabsContent>
         <TabsContent value="past" className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {filterTickets('past').map(t => <TicketCard key={t.id} ticket={t} onViewTicket={setSelectedTicket} onPrint={handlePrint} onCancel={handleCancel} />)}
+          {filterTickets('past').map(t => <TicketCard key={t.id} ticket={t} onViewTicket={setSelectedTicket} onPrint={handlePrint} onCancel={handleCancel} onDownloadInvoice={handleDownloadInvoice} />)}
         </TabsContent>
       </Tabs>
 

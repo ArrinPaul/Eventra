@@ -45,6 +45,9 @@ import {
 import { Input } from '@/components/ui/input';
 import { Tag } from 'lucide-react';
 
+import { generateEventSummary } from '@/app/actions/event-insights';
+import { Sparkles, MessageSquare } from 'lucide-react';
+
 export default function EventDetailsClient({ eventId }: { eventId: string }) {
   const router = useRouter();
   const { user, updateUser } = useAuth();
@@ -61,6 +64,24 @@ export default function EventDetailsClient({ eventId }: { eventId: string }) {
   const [discountCode, setDiscountCode] = useState('');
   const [isValidatingDiscount, setIsValidatingDiscount] = useState(false);
   const [appliedDiscount, setAppliedDiscount] = useState<any>(null);
+  const [generatingSummary, setGeneratingSummary] = useState(false);
+
+  const handleGenerateSummary = async () => {
+    setGeneratingSummary(true);
+    try {
+      const result = await generateEventSummary(eventId);
+      if (result.success) {
+        toast({ title: 'Summary generated! ✨', description: 'View it in the About tab.' });
+        setActiveTab('about');
+      } else {
+        throw new Error(result.error);
+      }
+    } catch (e: any) {
+      toast({ title: 'Generation failed', description: e.message, variant: 'destructive' });
+    } finally {
+      setGeneratingSummary(false);
+    }
+  };
 
   const validateDiscount = useQuery(api.discounts.validate, { 
     code: discountCode, 
@@ -215,7 +236,33 @@ export default function EventDetailsClient({ eventId }: { eventId: string }) {
                     </TabsList>
 
                     <TabsContent value="about" className="space-y-6 animate-in fade-in slide-in-from-bottom-2">
-                      <h3 className="font-bold mb-4">About the Event</h3>
+                      {event.summary && (
+                        <div className="p-6 bg-cyan-500/5 border border-cyan-500/20 rounded-2xl space-y-4">
+                          <h3 className="text-lg font-bold flex items-center gap-2 text-cyan-400">
+                            <Sparkles className="h-5 w-5" />
+                            Event Summary
+                          </h3>
+                          <div className="text-gray-300 whitespace-pre-wrap leading-relaxed">
+                            {event.summary}
+                          </div>
+                        </div>
+                      )}
+                      
+                      <div className="flex justify-between items-center">
+                        <h3 className="font-bold">About the Event</h3>
+                        {isOrganizer && (new Date().getTime() > event.endDate) && !event.summary && (
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10"
+                            onClick={handleGenerateSummary}
+                            disabled={generatingSummary}
+                          >
+                            {generatingSummary ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Sparkles className="h-4 w-4 mr-2" />}
+                            Generate AI Summary
+                          </Button>
+                        )}
+                      </div>
                       <p className="text-gray-300 whitespace-pre-wrap leading-relaxed">{event.description}</p>
                     </TabsContent>
 

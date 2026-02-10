@@ -15,6 +15,7 @@ import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/core/utils/utils';
+import { CommentSection } from './comment-section';
 
 export default function FeedClient() {
   const { user } = useAuth();
@@ -27,6 +28,11 @@ export default function FeedClient() {
   const [showCreatePost, setShowCreatePost] = useState(false);
   const [newPostContent, setNewPostContent] = useState('');
   const [loading, setLoading] = useState(false);
+  const [expandedComments, setExpandedComments] = useState<Record<string, boolean>>({});
+
+  const toggleComments = (postId: string) => {
+    setExpandedComments(prev => ({ ...prev, [postId]: !prev[postId] }));
+  };
 
   const handleCreatePost = async () => {
     if (!newPostContent.trim()) return;
@@ -63,17 +69,38 @@ export default function FeedClient() {
           <Card key={post._id} className="bg-white/5 border-white/10 text-white">
             <CardContent className="p-6">
               <div className="flex gap-3 mb-4">
-                <Avatar><AvatarFallback>U</AvatarFallback></Avatar>
+                <Avatar>
+                  <AvatarImage src={post.authorImage} />
+                  <AvatarFallback>{post.authorName?.charAt(0) || 'U'}</AvatarFallback>
+                </Avatar>
                 <div>
-                  <p className="font-bold">User</p>
+                  <p className="font-bold">{post.authorName || 'User'}</p>
                   <p className="text-xs text-gray-500">{new Date(post.createdAt).toLocaleDateString()}</p>
                 </div>
               </div>
               <p className="text-gray-200 whitespace-pre-wrap">{post.content}</p>
               <div className="flex gap-6 mt-6 pt-4 border-t border-white/10">
-                <Button variant="ghost" size="sm" onClick={() => handleLike(post._id)} className="gap-2"><Heart size={16} /> {post.likes}</Button>
-                <Button variant="ghost" size="sm" className="gap-2"><MessageCircle size={16} /> 0</Button>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => handleLike(post._id)} 
+                  className={cn("gap-2 hover:bg-pink-500/10 hover:text-pink-400", post.meLiked && "text-pink-500")}
+                >
+                  <Heart size={16} fill={post.meLiked ? "currentColor" : "none"} /> {post.likes}
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => toggleComments(post._id)}
+                  className={cn("gap-2 hover:bg-cyan-500/10 hover:text-cyan-400", expandedComments[post._id] && "text-cyan-400")}
+                >
+                  <MessageCircle size={16} /> {post.commentCount || 0}
+                </Button>
               </div>
+
+              {expandedComments[post._id] && (
+                <CommentSection postId={post._id} />
+              )}
             </CardContent>
           </Card>
         ))}
