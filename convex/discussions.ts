@@ -5,6 +5,7 @@ import { auth } from "./auth";
 export const listByEvent = query({
   args: { eventId: v.id("events") },
   handler: async (ctx, args) => {
+    const userId = await auth.getUserId(ctx);
     const messages = await ctx.db
       .query("event_discussions")
       .withIndex("by_event", (q) => q.eq("eventId", args.eventId))
@@ -14,11 +15,22 @@ export const listByEvent = query({
     const enriched = [];
     for (const msg of messages) {
       const user = await ctx.db.get(msg.userId);
+      
+      let meLiked = false;
+      if (userId) {
+        const like = await ctx.db
+          .query("discussion_likes")
+          .withIndex("by_user_discussion", (q) => q.eq("userId", userId).eq("discussionId", msg._id))
+          .unique();
+        meLiked = !!like;
+      }
+
       enriched.push({
         ...msg,
         authorName: user?.name || "Anonymous",
         authorImage: user?.image,
         authorRole: user?.role || "attendee",
+        meLiked,
       });
     }
     return enriched;
@@ -67,9 +79,32 @@ export const create = mutation({
 export const like = mutation({
   args: { id: v.id("event_discussions") },
   handler: async (ctx, args) => {
+    const userId = await auth.getUserId(ctx);
+    if (!userId) throw new Error("Unauthorized");
+
+    const existing = await ctx.db
+      .query("discussion_likes")
+      .withIndex("by_user_discussion", (q) => q.eq("userId", userId).eq("discussionId", args.id))
+      .unique();
+
     const msg = await ctx.db.get(args.id);
-    if (!msg) return;
-    await ctx.db.patch(args.id, { likes: msg.likes + 1 });
+    if (!msg) throw new Error("Message not found");
+
+    if (existing) {
+      // Unlike
+      await ctx.db.delete(existing._id);
+      await ctx.db.patch(args.id, { likes: Math.max(0, msg.likes - 1) });
+      return { liked: false };
+    } else {
+      // Like
+      await ctx.db.insert("discussion_likes", {
+        discussionId: args.id,
+        userId,
+        createdAt: Date.now(),
+      });
+      await ctx.db.patch(args.id, { likes: msg.likes + 1 });
+      return { liked: true };
+    }
   },
 });
 

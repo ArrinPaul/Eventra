@@ -2,6 +2,7 @@ import { v } from "convex/values";
 import { mutation, query, internalMutation } from "./_generated/server";
 import { auth } from "./auth";
 import { internal } from "./_generated/api";
+import { awardPointsInternal } from "./gamification";
 
 export const getByEventId = query({
   args: { eventId: v.id("events") },
@@ -142,53 +143,39 @@ export const checkInTicket = mutation({
     }
 
     // Award XP for check-in
-    const user = await ctx.db.get(ticket.userId);
-    if (user) {
-      await ctx.db.patch(user._id, {
-        points: (user.points || 0) + 100,
-        xp: (user.xp || 0) + 100,
-        checkedIn: true,
-      });
+    const event = await ctx.db.get(ticket.eventId);
+    await awardPointsInternal(
+      ctx,
+      ticket.userId,
+      100,
+      `Checked in to ${event?.title || "an event"}`,
+      `/events/${ticket.eventId}`
+    );
 
-      await ctx.db.insert("points_history", {
-        userId: user._id,
-        points: 100,
-        reason: "Event Check-in",
-        createdAt: Date.now(),
-      });
+    await ctx.db.patch(ticket.userId, { checkedIn: true });
 
-      // Notification
-      const event = await ctx.db.get(ticket.eventId);
-      await ctx.db.insert("notifications", {
-        userId: user._id,
-        title: "Checked In! ✅",
-        message: `You've been checked in to "${event?.title || "the event"}". Enjoy!`,
-        type: "event",
-        read: false,
-        createdAt: Date.now(),
-      });
+    // Notification
+    await ctx.db.insert("notifications", {
+      userId: ticket.userId,
+      title: "Checked In! ✅",
+      message: `You've been checked in to "${event?.title || "the event"}". Enjoy!`,
+      type: "event",
+      read: false,
+      createdAt: Date.now(),
+    });
 
-      await ctx.db.insert("activity_feed", {
-        userId: user._id,
-        type: "check_in",
-        title: `Checked in to ${event?.title || "an event"}`,
-        createdAt: Date.now(),
-        link: `/events/${ticket.eventId}`,
-      });
+    // Trigger Webhook
+    await ctx.scheduler.runAfter(0, internal.webhooks.trigger, {
+      eventType: "checkin.completed",
+      eventId: ticket.eventId,
+      payload: { userId: ticket.userId, ticketNumber: ticket.ticketNumber, attendeeName: ticket.attendeeName },
+    });
 
-      // Trigger Webhook
-      await ctx.scheduler.runAfter(0, internal.webhooks.trigger, {
-        eventType: "checkin.completed",
-        eventId: ticket.eventId,
-        payload: { userId: user._id, ticketNumber: ticket.ticketNumber, attendeeName: ticket.attendeeName },
-      });
-
-      // Trigger Challenge Progress
-      await ctx.scheduler.runAfter(0, api.gamification.triggerChallengeProgress, {
-        userId: user._id,
-        type: "attendance",
-      });
-    }
+    // Trigger Challenge Progress
+    await ctx.scheduler.runAfter(0, api.gamification.triggerChallengeProgress, {
+      userId: ticket.userId,
+      type: "attendance",
+    });
 
     return { success: true, ticket };
   },

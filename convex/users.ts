@@ -2,6 +2,7 @@ import { mutation, query } from "./_generated/server";
 import { auth } from "./auth";
 import { v } from "convex/values";
 import { calculateLevel } from "./utils";
+import { awardPointsInternal } from "./gamification";
 
 export const viewer = query({
   args: {},
@@ -297,18 +298,16 @@ export const redeemReferral = mutation({
     
     // Reward both
     const referReward = 100;
+    const newJoinReward = 50;
     
     // Reward referrer
-    await ctx.db.patch(referrer._id, {
-      points: (referrer.points || 0) + referReward,
-      xp: (referrer.xp || 0) + referReward,
-    });
-    await ctx.db.insert("points_history", {
-      userId: referrer._id,
-      points: referReward,
-      reason: "Successful referral",
-      createdAt: Date.now(),
-    });
+    await awardPointsInternal(
+      ctx,
+      referrer._id,
+      referReward,
+      "Successful referral bonus"
+    );
+
     await ctx.db.insert("notifications", {
       userId: referrer._id,
       title: "Referral Success! 🎁",
@@ -319,16 +318,12 @@ export const redeemReferral = mutation({
     });
 
     // Reward new user
-    await ctx.db.patch(userId, {
-      points: (user?.points || 0) + 50,
-      xp: (user?.xp || 0) + 50,
-    });
-    await ctx.db.insert("points_history", {
+    await awardPointsInternal(
+      ctx,
       userId,
-      points: 50,
-      reason: "Redeemed referral code",
-      createdAt: Date.now(),
-    });
+      newJoinReward,
+      "Redeemed referral code"
+    );
 
     return { success: true };
   },

@@ -74,29 +74,62 @@ export const addPoints = mutation({
     }
     // If callerId is null, allow system-level calls (e.g., from internal mutations)
     
-    const user = await ctx.db.get(args.userId);
-    if (!user) throw new Error("User not found");
-
-    const currentPoints = user.points ?? 0;
-    const newPoints = currentPoints + args.points;
-    const currentXp = (user.xp ?? 0) + args.points;
-    const newLevel = calculateLevel(currentXp);
-
-    await ctx.db.patch(args.userId, { points: newPoints, xp: currentXp, level: newLevel });
-
-    await ctx.db.insert("points_history", {
-      userId: args.userId,
-      points: args.points,
-      reason: args.reason ?? "Points awarded",
-      createdAt: Date.now(),
-    });
-
-    // Check for automatic badge triggers
-    await checkBadgeTriggers(ctx, args.userId, newPoints);
-
-    return { newPoints, newLevel };
+    return await awardPointsInternal(
+      ctx, 
+      args.userId, 
+      args.points, 
+      args.reason ?? "Points awarded manually by admin"
+    );
   },
 });
+
+/**
+ * Internal helper to award points/XP, log history, and check for badges.
+ * Use this instead of manual DB patches to ensure the gamification loop is consistent.
+ */
+export async function awardPointsInternal(
+  ctx: any, 
+  userId: any, 
+  points: number, 
+  reason: string,
+  link?: string
+) {
+  const user = await ctx.db.get(userId);
+  if (!user) return;
+
+  const currentPoints = user.points ?? 0;
+  const newPoints = currentPoints + points;
+  const currentXp = (user.xp ?? 0) + points;
+  const newLevel = calculateLevel(currentXp);
+
+  await ctx.db.patch(userId, { 
+    points: newPoints, 
+    xp: currentXp, 
+    level: newLevel 
+  });
+
+  await ctx.db.insert("points_history", {
+    userId,
+    points,
+    reason,
+    createdAt: Date.now(),
+  });
+
+  // Log to Activity Feed for social proof
+  await ctx.db.insert("activity_feed", {
+    userId,
+    type: "points_earned",
+    title: `Earned ${points} XP`,
+    description: reason,
+    link: link,
+    createdAt: Date.now(),
+  });
+
+  // Check for automatic badge triggers
+  await checkBadgeTriggers(ctx, userId, newPoints);
+
+  return { newPoints, newLevel };
+}
 
 /**
  * Check and award automatic badges based on milestones
@@ -310,22 +343,13 @@ export const updateChallengeProgress = mutation({
     });
 
     if (isComplete && challenge?.xpReward) {
-      // Award points on completion
-      const user = await ctx.db.get(userId);
-      if (user) {
-        const currentPoints = user.points ?? 0;
-        const newPoints = currentPoints + challenge.xpReward;
-        const currentXp = (user.xp ?? 0) + challenge.xpReward;
-        const newLevel = calculateLevel(currentXp);
-        await ctx.db.patch(userId, { points: newPoints, xp: currentXp, level: newLevel });
-
-        await ctx.db.insert("points_history", {
-          userId,
-          points: challenge.xpReward,
-          reason: `Completed challenge: ${challenge.title}`,
-          createdAt: Date.now(),
-        });
-      }
+      await awardPointsInternal(
+        ctx,
+        userId,
+        challenge.xpReward,
+        `Completed challenge: ${challenge.title}`,
+        `/gamification`
+      );
     }
   },
 });
@@ -363,46 +387,13 @@ export const triggerChallengeProgress = mutation({
       });
 
       if (isComplete && challenge.xpReward) {
-        // Award XP on completion
-        const user = await ctx.db.get(args.userId);
-        if (user) {
-          const currentPoints = user.points ?? 0;
-          const newPoints = currentPoints + challenge.xpReward;
-          const currentXp = (user.xp ?? 0) + challenge.xpReward;
-          const newLevel = calculateLevel(currentXp);
-          
-          await ctx.db.patch(args.userId, { 
-            points: newPoints, 
-            xp: currentXp, 
-            level: newLevel 
-          });
-
-          await ctx.db.insert("points_history", {
-            userId: args.userId,
-            points: challenge.xpReward,
-            reason: `Completed challenge: ${challenge.title}`,
-            createdAt: Date.now(),
-          });
-
-          await ctx.db.insert("notifications", {
-            userId: args.userId,
-            title: "Challenge Completed! 🏆",
-            message: `You've completed the "${challenge.title}" challenge and earned ${challenge.xpReward} XP!`,
-            type: "gamification",
-            read: false,
-            createdAt: Date.now(),
-            link: `/gamification`,
-          });
-
-          await ctx.db.insert("activity_feed", {
-            userId: args.userId,
-            type: "challenge_completed",
-            title: `Completed ${challenge.title} challenge`,
-            description: `Earned ${challenge.xpReward} XP`,
-            createdAt: Date.now(),
-            link: `/gamification`,
-          });
-        }
+        await awardPointsInternal(
+          ctx,
+          args.userId,
+          challenge.xpReward,
+          `Completed challenge: ${challenge.title}`,
+          `/gamification`
+        );
       }
     }
   },

@@ -2,6 +2,7 @@ import { v } from "convex/values";
 import { mutation, query, internalMutation } from "./_generated/server";
 import { auth } from "./auth";
 import { internal } from "./_generated/api";
+import { awardPointsInternal } from "./gamification";
 
 /**
  * Register for an event
@@ -126,17 +127,13 @@ export const register = mutation({
     }
 
     // Award XP
-    await ctx.db.patch(userId, {
-      points: (user?.points || 0) + 50,
-      xp: (user?.xp || 0) + 50,
-    });
-
-    await ctx.db.insert("points_history", {
+    await awardPointsInternal(
+      ctx,
       userId,
-      points: 50,
-      reason: `Registered for event: ${event.title}`,
-      createdAt: Date.now(),
-    });
+      50,
+      `Registered for event: ${event.title}`,
+      `/events/${args.eventId}`
+    );
 
     // Send notification
     await ctx.db.insert("notifications", {
@@ -149,16 +146,6 @@ export const register = mutation({
       read: false,
       createdAt: Date.now(),
       link: `/tickets`,
-    });
-
-    // Log to Activity Feed
-    await ctx.db.insert("activity_feed", {
-      userId,
-      type: "registration",
-      title: `Registered for ${event.title}`,
-      description: isWaitlisted ? "Joined the waitlist" : "Ticket confirmed",
-      createdAt: Date.now(),
-      link: `/events/${args.eventId}`,
     });
 
     // Trigger email confirmation

@@ -182,7 +182,7 @@ export default defineSchema({
     isPrivate: v.boolean(),
     membersCount: v.number(),
     category: v.string(),
-  }),
+  }).searchIndex("search_name", { searchField: "name" }),
 
   community_members: defineTable({
     communityId: v.id("communities"),
@@ -390,6 +390,12 @@ export default defineSchema({
     isQuestion: v.boolean(),
     isAnswered: v.optional(v.boolean()),
   }).index("by_event", ["eventId"]),
+
+  discussion_likes: defineTable({
+    discussionId: v.id("event_discussions"),
+    userId: v.id("users"),
+    createdAt: v.number(),
+  }).index("by_discussion", ["discussionId"]).index("by_user_discussion", ["userId", "discussionId"]),
 
   follows: defineTable({
     followerId: v.id("users"),

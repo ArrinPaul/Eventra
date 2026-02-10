@@ -6,12 +6,12 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { 
   Plus, Heart, MessageCircle, Share2, Loader2, Search, MoreVertical, Edit2, Trash2
 } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
-import { useQuery, useMutation } from 'convex/react';
+import { useQuery, useMutation, usePaginatedQuery } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/core/utils/utils';
@@ -27,7 +27,12 @@ export default function FeedClient() {
   const { user } = useAuth();
   const { toast } = useToast();
   
-  const postsRaw = useQuery(api.posts.list) || [];
+  const { results: postsRaw, status, loadMore } = usePaginatedQuery(
+    api.posts.list,
+    {},
+    { initialNumItems: 10 }
+  );
+  
   const createPostMutation = useMutation(api.posts.create);
   const updatePostMutation = useMutation(api.posts.update);
   const deletePostMutation = useMutation(api.posts.deletePost);
@@ -177,6 +182,22 @@ export default function FeedClient() {
             </CardContent>
           </Card>
         ))}
+
+        {status === "CanLoadMore" && (
+          <Button 
+            variant="ghost" 
+            className="w-full text-gray-400 hover:text-white" 
+            onClick={() => loadMore(10)}
+          >
+            Load More
+          </Button>
+        )}
+        
+        {status === "LoadingMore" && (
+          <div className="flex justify-center py-4">
+            <Loader2 className="h-6 w-6 animate-spin text-cyan-500" />
+          </div>
+        )}
       </div>
 
       {/* Create Post Dialog */}

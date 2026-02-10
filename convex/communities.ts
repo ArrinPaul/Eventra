@@ -3,9 +3,22 @@ import { mutation, query } from "./_generated/server";
 import { auth } from "./auth";
 
 export const list = query({
-  args: {},
-  handler: async (ctx) => {
-    return await ctx.db.query("communities").collect();
+  args: { 
+    paginationOpts: v.paginationOpts(),
+    search: v.optional(v.string())
+  },
+  handler: async (ctx, args) => {
+    if (args.search) {
+      return await ctx.db
+        .query("communities")
+        .withSearchIndex("search_name", (q) => q.search("name", args.search!))
+        .paginate(args.paginationOpts);
+    }
+    
+    return await ctx.db
+      .query("communities")
+      .order("desc")
+      .paginate(args.paginationOpts);
   },
 });
 
@@ -187,5 +200,74 @@ export const getMembers = query({
       if (user) enriched.push({ ...m, name: user.name, image: user.image, email: user.email });
     }
     return enriched;
+  },
+});
+
+export const updateMemberRole = mutation({
+  args: {
+    communityId: v.id("communities"),
+    userId: v.id("users"),
+    role: v.union(v.literal("admin"), v.literal("member")),
+  },
+  handler: async (ctx, args) => {
+    const callerId = await auth.getUserId(ctx);
+    if (!callerId) throw new Error("Unauthorized");
+
+    const community = await ctx.db.get(args.communityId);
+    if (!community) throw new Error("Community not found");
+
+    // Only community creator can promote/demote
+    if (community.createdBy !== callerId) {
+      throw new Error("Only the community creator can manage roles");
+    }
+
+    const membership = await ctx.db
+      .query("community_members")
+      .withIndex("by_community_user", (q) => q.eq("communityId", args.communityId).eq("userId", args.userId))
+      .unique();
+
+    if (!membership) throw new Error("User is not a member");
+
+    await ctx.db.patch(membership._id, { role: args.role });
+  },
+});
+
+export const removeMember = mutation({
+  args: {
+    communityId: v.id("communities"),
+    userId: v.id("users"),
+  },
+  handler: async (ctx, args) => {
+    const callerId = await auth.getUserId(ctx);
+    if (!callerId) throw new Error("Unauthorized");
+
+    const community = await ctx.db.get(args.communityId);
+    if (!community) throw new Error("Community not found");
+
+    // Only creator or admin can remove members
+    const callerMembership = await ctx.db
+      .query("community_members")
+      .withIndex("by_community_user", (q) => q.eq("communityId", args.communityId).eq("userId", callerId))
+      .unique();
+
+    if (community.createdBy !== callerId && callerMembership?.role !== "admin") {
+      throw new Error("Not authorized to remove members");
+    }
+
+    if (args.userId === community.createdBy) {
+      throw new Error("Cannot remove the community creator");
+    }
+
+    const membership = await ctx.db
+      .query("community_members")
+      .withIndex("by_community_user", (q) => q.eq("communityId", args.communityId).eq("userId", args.userId))
+      .unique();
+
+    if (!membership) return;
+
+    await ctx.db.delete(membership._id);
+    await ctx.db.patch(args.communityId, {
+      membersCount: Math.max(0, community.membersCount - 1),
+    });
   },
 });

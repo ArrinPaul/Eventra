@@ -9,10 +9,10 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { 
-  Users, MessageSquare, Plus, Search, ChevronRight, Lock
+  Users, MessageSquare, Plus, Search, ChevronRight, Lock, Loader2
 } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
-import { useQuery, useMutation } from 'convex/react';
+import { useQuery, useMutation, usePaginatedQuery } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import { useToast } from '@/hooks/use-toast';
 
@@ -20,10 +20,15 @@ export function CommunityListClient() {
   const { user } = useAuth();
   const { toast } = useToast();
   
-  const communitiesRaw = useQuery(api.communities.list) || [];
+  const [searchTerm, setSearchTerm] = useState('');
+  const { results: communitiesRaw, status, loadMore } = usePaginatedQuery(
+    api.communities.list,
+    { search: searchTerm || undefined },
+    { initialNumItems: 12 }
+  );
+  
   const createCommunityMutation = useMutation(api.communities.create);
   
-  const [searchTerm, setSearchTerm] = useState('');
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [loading, setLoading] = useState(false);
   
@@ -33,10 +38,6 @@ export function CommunityListClient() {
     category: 'General',
     isPrivate: false
   });
-
-  const filteredCommunities = communitiesRaw.filter((c: any) => 
-    c.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   const handleCreateCommunity = async () => {
     if (!newCommunity.name.trim()) return;
@@ -62,22 +63,32 @@ export function CommunityListClient() {
 
       <div className="relative mb-8">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4" />
-        <Input placeholder="Search..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="pl-10 bg-white/5 border-white/10" />
+        <Input 
+          placeholder="Search communities..." 
+          value={searchTerm} 
+          onChange={e => setSearchTerm(e.target.value)} 
+          className="pl-10 bg-white/5 border-white/10" 
+        />
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {filteredCommunities.map((c: any) => (
+        {communitiesRaw.map((c: any) => (
           <Link key={c._id} href={`/community/${c._id}`}>
-            <Card className="bg-white/5 border-white/10 hover:bg-white/10 transition-colors cursor-pointer text-white">
+            <Card className="bg-white/5 border-white/10 hover:bg-white/10 transition-colors cursor-pointer text-white h-full flex flex-col">
               <CardHeader>
                 <div className="flex justify-between items-start">
-                  <CardTitle>{c.name}</CardTitle>
+                  <CardTitle className="line-clamp-1">{c.name}</CardTitle>
                   <Badge variant="secondary">{c.category}</Badge>
                 </div>
-                <CardDescription className="text-gray-400">{c.description}</CardDescription>
+                <CardDescription className="text-gray-400 line-clamp-2">{c.description}</CardDescription>
               </CardHeader>
-              <CardContent className="flex items-center justify-between text-sm text-gray-500">
-                <div className="flex gap-4"><div className="flex items-center gap-1"><Users size={14} /> {c.membersCount}</div></div>
+              <CardContent className="mt-auto pt-4 border-t border-white/5 flex items-center justify-between text-sm text-gray-500">
+                <div className="flex gap-4">
+                  <div className="flex items-center gap-1">
+                    <Users size={14} /> {c.membersCount}
+                  </div>
+                  {c.isPrivate && <Lock size={14} className="text-amber-500" />}
+                </div>
                 <ChevronRight size={16} />
               </CardContent>
             </Card>
@@ -85,16 +96,22 @@ export function CommunityListClient() {
         ))}
       </div>
 
-      <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-        <DialogContent className="bg-gray-900 border-white/10 text-white">
-          <DialogHeader><DialogTitle>New Community</DialogTitle></DialogHeader>
-          <div className="space-y-4">
-            <Input placeholder="Name" value={newCommunity.name} onChange={e => setNewCommunity({...newCommunity, name: e.target.value})} className="bg-white/5 border-white/10" />
-            <Textarea placeholder="Description" value={newCommunity.description} onChange={e => setNewCommunity({...newCommunity, description: e.target.value})} className="bg-white/5 border-white/10" />
-          </div>
-          <DialogFooter><Button onClick={handleCreateCommunity} disabled={loading}>{loading ? 'Creating...' : 'Create'}</Button></DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
-  );
-}
+      {communitiesRaw.length === 0 && status !== "LoadingFirstPage" && (
+        <div className="py-20 text-center text-gray-500 border border-dashed border-white/10 rounded-lg">
+          No communities found.
+        </div>
+      )}
+
+      {status === "CanLoadMore" && (
+        <div className="mt-8 flex justify-center">
+          <Button variant="outline" onClick={() => loadMore(12)} className="border-white/10">
+            Load More
+          </Button>
+        </div>
+      )}
+
+      {(status === "LoadingMore" || status === "LoadingFirstPage") && (
+        <div className="mt-8 flex justify-center">
+          <Loader2 className="h-6 w-6 animate-spin text-cyan-500" />
+        </div>
+      )}

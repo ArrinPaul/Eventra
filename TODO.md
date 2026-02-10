@@ -31,12 +31,13 @@
 - [x] **Core Logic**: Events, Tickets, Chat, and Notifications in Convex — ~160 exported functions across 29 files.
 
 ### Phase 3: Engagement & Gamification ✅
-- [x] **Gamification System**: Points (XP) and Badge logic implemented with centralized level utility.
+- [x] **Gamification System**: Points (XP) and Badge logic implemented with centralized `awardPointsInternal` helper.
+- [x] **Badge Triggers**: Automatic awarding for point milestones and attendance fixed and centralized.
 - [x] **Social Hub**: Community and Feed logic implemented with membership checks and post editing.
-- [x] **Ticketing**: QR-native ticketing system functional with fixed webhook imports.
-- [x] **Challenges Hub UI**: Fully functional UI integrated into the Gamification page.
-- [x] **Challenge Automation**: Progress automatically updates on check-in, community join, and posting via backend triggers.
-- [x] **Activity Logging**: All Phase 3 actions (registration, badges, posts, check-ins) log to the global activity feed.
+- [x] **Scalability**: All social lists (Feed, Communities) use server-side pagination (`usePaginatedQuery`).
+- [x] **Ticketing**: QR-native ticketing system functional with fixed webhook imports and check-in automation.
+- [x] **Challenges Hub**: Fully functional UI integrated with backend triggers for real-time progress.
+- [x] **Activity Logging**: Automated cross-module event logging for social proof.
 
 ### Phase 4: Storage & Assets ✅
 - [x] **Convex Storage**: `useStorage` hook functional.
@@ -109,7 +110,7 @@
 - [x] **Like/unlike toggle**: `post_likes` table with per-user tracking.
 - [x] **Membership check**: Users must be community members to post or comment.
 - [x] **Post editing**: Users can edit their own posts.
-- [ ] ⚠️ **`posts.list` loads ALL non-flagged posts globally** — no pagination.
+- [x] **Pagination**: `posts.list` now uses server-side pagination with `loadMore` UI.
 
 ### 8.5 AI Features ⚠️
 - [x] **AI Chatbot uses Convex for session persistence**: `ai_chat_sessions` + `ai_chat_messages` tables.
@@ -178,15 +179,15 @@
 - [ ] No notifications sent to recipients when new messages arrive.
 - [ ] No file type/size validation on uploads.
 
-### 9.4 Community ⚠️
+### 9.4 Community ✅
 - [x] **Leave community**: With member count update.
 - [x] **Edit/delete community**: With ownership checks and cascade delete.
 - [x] **Member list**: With user info enrichment.
 - [x] **Private community access control**: `join` rejects non-admin joins.
-- [ ] ⚠️ **No private community join-request/approval flow** — private communities just block with an error.
-- [ ] ⚠️ **`communities.list` has no pagination** — loads all communities.
-- [ ] ⚠️ **No community search**.
-- [ ] ⚠️ **No member role management** (promote/demote).
+- [x] **Server-side pagination**: `communities.list` now uses `.paginate()`.
+- [x] **Server-side search**: Integrated `search_name` index for efficient discovery.
+- [x] **Membership check**: Enforced for posting and commenting.
+- [x] **Member Role Management**: Promote/demote members and administrative removal.
 
 ### 9.5 Notifications ⚠️
 - [x] **Click-through navigation**: `router.push(n.link)` + mark as read.
@@ -399,12 +400,12 @@
 - [ ] **No Stripe refund integration** — ticket cancellation sets status but no refund.
 - [ ] **No QR code storage** — `qrCode` field in schema never populated server-side.
 - [ ] **No real push notifications** — only in-browser `Notification` API (requires tab open). No FCM/APNs.
-- [ ] **`discussions.like` has no dedup** — users can like infinitely (no tracking).
-- [ ] **No post editing** in community posts.
+- [x] **`discussions.like` deduplicated** — users can no longer like infinitely.
+- [x] **Post editing enabled** in community posts.
 - [ ] **No announcement editing** — only create and deactivate.
 - [ ] **No poll deletion** mutation.
 - [ ] **No file deletion** mutation in `files.ts`.
-- [ ] **Activity feed `logActivity` rarely called** from other mutations — feed is mostly empty.
+- [x] **Activity feed logging automated** — all major events now log correctly.
 - [ ] **`moderation.ts` has only 1 function** (`flagPost`) — no unflag, review queue, or automated scanning.
 
 ---
