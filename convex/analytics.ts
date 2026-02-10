@@ -53,3 +53,69 @@ export const getSharedReport = query({
     };
   },
 });
+
+export const getOrganizerRevenue = query({
+  args: { organizerId: v.optional(v.id("users")) },
+  handler: async (ctx, args) => {
+    const userId = await auth.getUserId(ctx);
+    if (!userId) throw new Error("Unauthorized");
+    
+    const targetId = args.organizerId || userId;
+    
+    // 1. Get all events for this organizer
+    const events = await ctx.db
+      .query("events")
+      .withIndex("by_organizer", (q) => q.eq("organizerId", targetId))
+      .collect();
+    
+    const eventIds = events.map(e => e._id);
+    
+    // 2. Get all tickets for these events
+    let totalRevenue = 0;
+    const revenueByEvent = [];
+    const revenueByTier: Record<string, number> = {};
+    const dailyRevenue: Record<string, number> = {};
+
+    for (const event of events) {
+      const tickets = await ctx.db
+        .query("tickets")
+        .withIndex("by_event", (q) => q.eq("eventId", event._id))
+        .collect();
+      
+      const confirmedTickets = tickets.filter(t => t.status === "confirmed" || t.status === "refunded");
+      
+      let eventRevenue = 0;
+      for (const ticket of confirmedTickets) {
+        if (ticket.status === "confirmed") {
+          const price = ticket.price || 0;
+          eventRevenue += price;
+          totalRevenue += price;
+          
+          // By Tier
+          const tier = ticket.ticketTypeId || "Standard";
+          revenueByTier[tier] = (revenueByTier[tier] || 0) + price;
+          
+          // By Day
+          const dateStr = new Date(ticket.purchaseDate).toISOString().split('T')[0];
+          dailyRevenue[dateStr] = (dailyRevenue[dateStr] || 0) + price;
+        }
+      }
+      
+      revenueByEvent.push({
+        eventId: event._id,
+        title: event.title,
+        revenue: eventRevenue,
+        ticketCount: confirmedTickets.length,
+      });
+    }
+
+    return {
+      totalRevenue,
+      revenueByEvent: revenueByEvent.sort((a, b) => b.revenue - a.revenue),
+      revenueByTier,
+      dailyRevenue: Object.entries(dailyRevenue)
+        .map(([date, amount]) => ({ date, amount }))
+        .sort((a, b) => a.date.localeCompare(b.date)),
+    };
+  },
+});

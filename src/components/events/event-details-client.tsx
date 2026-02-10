@@ -34,6 +34,7 @@ import { EventDiscussionBoard } from './event-discussion-board';
 import { EventReactions } from './event-reactions';
 import { EventGallery } from './event-gallery';
 import { EventPolls } from './event-polls';
+import { AnnouncementBanner } from './announcement-banner';
 import {
   Dialog,
   DialogContent,
@@ -167,6 +168,7 @@ export default function EventDetailsClient({ eventId }: { eventId: string }) {
       <div className="container -mt-20 relative z-10">
         <div className="grid lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-6">
+            <AnnouncementBanner eventId={event._id} />
             <Card className="bg-white/5 border-white/10 text-white">
               <CardContent className="p-8">
                 <div className="flex items-center gap-2 mb-4">

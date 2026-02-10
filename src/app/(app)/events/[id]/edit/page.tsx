@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { use } from 'react';
 import { CoOrganizerManager } from '@/components/organizer/co-organizer-manager';
+import { AnnouncementManager } from '@/components/organizer/announcement-manager';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 
@@ -109,6 +110,8 @@ export default function EventEditPage({ params }: { params: Promise<{ id: string
         </div>
 
         <div className="space-y-8">
+          <AnnouncementManager eventId={event._id} />
+          
           {isMainOrganizer && (
             <CoOrganizerManager 
               eventId={event._id}

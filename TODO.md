@@ -236,7 +236,7 @@
 - [ ] **Stripe integration**: Full payment flow for paid events.
 - [x] **Refund management**: Implemented automated refund flow. `processTicketCancellation` action handles Stripe refunds via `stripePaymentId` and updates Convex state to `refunded`. Cancellation UI added to `MyTicketsClient`.
 - [x] **Discount/promo codes**: Full system implemented. Includes `discount_codes` table, validation logic, Stripe integration for discounted checkouts, and UI for organizers to create and users to apply codes.
-- [ ] **Revenue dashboard**: Financial analytics for organizers.
+- [x] **Revenue dashboard**: Full financial analytics for organizers implemented. Includes total revenue, daily trends, event breakdown, and tier distribution with real-time charts.
 - [ ] **Invoice generation**: Automatic invoices for paid tickets.
 
 ### 11.3 Social & Engagement
@@ -249,7 +249,7 @@
 
 ### 11.4 Communication
 - [x] **Email notifications on key events**: Full system implemented via `NotificationWatcher`. Supports registration confirmation, certificate ready, and event reminders.
-- [ ] **In-app announcement banners**: Organizer broadcasts visible to all attendees.
+- [x] **In-app announcement banners**: Real-time broadcast system implemented. Organizers can send info/warning/urgent banners to all attendees. Includes expiration logic and live UI updates on event pages.
 - [ ] **SMS notifications** (via Twilio): For critical reminders.
 - [ ] **Push notifications**: Web Push via service worker.
 
@@ -257,7 +257,7 @@
 - [x] **Real-time check-in dashboard**: Added live metrics (checked-in count, rate, remaining) to `CheckInScannerClient`. Now provides organizers with instant feedback on event attendance progress.
 - [x] **Feedback collection forms**: Implemented custom post-event surveys. Organizers can define `feedbackSchema` in events. Attendees can submit multi-factor feedback via `FeedbackForm`. Added `events/[id]/feedback` route.
 - [x] **Engagement scoring**: Implemented real-time activity aggregation in `getEngagementScore` query. Created `EngagementMetrics` component showing participation score, percentile, and breakdown. Integrated into Attendee Dashboard.
-- [ ] **Export reports as PDF/CSV**: Downloadable analytics reports.
+- [x] **Export reports as PDF/CSV**: Implemented generic `ExportButton` for analytics data. Supports CSV and JSON formats. Integrated into Revenue Dashboard.
 - [ ] **A/B testing for event descriptions**: AI-powered variant testing.
 
 ### 11.6 Platform & Infrastructure

@@ -448,4 +448,14 @@ export default defineSchema({
     expiryDate: v.optional(v.number()),
     isActive: v.boolean(),
   }).index("by_code", ["code"]).index("by_event", ["eventId"]),
+
+  announcements: defineTable({
+    eventId: v.id("events"),
+    organizerId: v.id("users"),
+    content: v.string(),
+    type: v.union(v.literal("info"), v.literal("warning"), v.literal("urgent")),
+    isActive: v.boolean(),
+    createdAt: v.number(),
+    expiresAt: v.optional(v.number()),
+  }).index("by_event", ["eventId"]),
 });

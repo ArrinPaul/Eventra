@@ -23,6 +23,8 @@ import { Input } from '@/components/ui/input';
 import { format } from 'date-fns';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { RevenueDashboard } from '@/components/organizer/revenue-dashboard';
 
 export default function OrganizerDashboard() {
   const { user } = useAuth();
@@ -31,6 +33,7 @@ export default function OrganizerDashboard() {
   const deleteEventMutation = useMutation(api.events.deleteEvent);
   
   const [searchTerm, setSearchTerm] = useState('');
+  const [activeTab, setActiveTab] = useState('events');
 
   const filteredEvents = managedEvents.filter((e: any) => 
     e.title.toLowerCase().includes(searchTerm.toLowerCase())
@@ -38,6 +41,7 @@ export default function OrganizerDashboard() {
 
   const totalRegistrations = managedEvents.reduce((sum: number, e: any) => sum + (e.registeredCount || 0), 0);
   const activeEvents = managedEvents.filter((e: any) => e.status === 'published').length;
+  // Fallback for revenue if stats hasn't loaded in RevenueDashboard yet
   const totalRevenue = managedEvents.reduce((sum: number, e: any) => sum + (e.isPaid ? (e.price || 0) * (e.registeredCount || 0) : 0), 0);
 
   const handleDelete = async (id: string) => {
@@ -95,68 +99,84 @@ export default function OrganizerDashboard() {
         </Card>
       </div>
 
-      <Card className="bg-white/5 border-white/10 text-white">
-        <CardHeader>
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <CardTitle>My Events</CardTitle>
-              <CardDescription className="text-gray-400">You are managing {managedEvents.length} events</CardDescription>
-            </div>
-            <div className="relative w-full md:w-64">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
-              <Input 
-                placeholder="Search events..." 
-                className="pl-9 bg-white/5 border-white/10"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {filteredEvents.map((event: any) => {
-              const isOwner = event.organizerId === (user?._id || user?.id);
-              return (
-                <div key={event._id} className="flex items-center justify-between p-4 bg-white/5 rounded-lg border border-white/10 group hover:border-cyan-500/50 transition-colors">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-lg bg-cyan-900/20 flex flex-col items-center justify-center text-cyan-400 border border-cyan-500/20">
-                      <span className="text-[10px] font-bold uppercase">{format(event.startDate, 'MMM')}</span>
-                      <span className="text-lg font-bold leading-none">{format(event.startDate, 'dd')}</span>
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-bold">{event.title}</h3>
-                        {!isOwner && <Badge variant="secondary" className="text-[8px] h-4 py-0 bg-purple-500/20 text-purple-400 border-purple-500/30">CO-ORG</Badge>}
-                      </div>
-                      <div className="flex items-center gap-3 text-xs text-gray-400 mt-1">
-                        <span className="flex items-center gap-1"><Users size={12} /> {event.registeredCount || 0}</span>
-                        <span className="flex items-center gap-1"><Badge variant="outline" className="text-[10px] py-0">{event.status}</Badge></span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Button variant="ghost" size="icon" className="h-8 w-8" asChild><Link href={`/events/${event._id}`}><ArrowUpRight size={16} /></Link></Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8" asChild><Link href={`/events/${event._id}/edit`}><Edit size={16} /></Link></Button>
-                    {isOwner && (
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-red-400 hover:text-red-300 hover:bg-red-400/10" onClick={() => handleDelete(event._id)}><Trash2 size={16} /></Button>
-                    )}
-                  </div>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <TabsList className="bg-white/5 border-white/10">
+          <TabsTrigger value="events" className="data-[state=active]:bg-cyan-600">My Events</TabsTrigger>
+          <TabsTrigger value="revenue" className="data-[state=active]:bg-cyan-600">Revenue Analytics</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="events">
+          <Card className="bg-white/5 border-white/10 text-white">
+            <CardHeader>
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                  <CardTitle>My Events</CardTitle>
+                  <CardDescription className="text-gray-400">You are managing {managedEvents.length} events</CardDescription>
                 </div>
-              );
-            })}
-            {filteredEvents.length === 0 && (
-              <div className="text-center py-20 text-gray-500 border border-dashed border-white/10 rounded-lg">
-                <Calendar size={48} className="mx-auto mb-4 opacity-20" />
-                <p>No events found. Start by creating your first event!</p>
-                <Button variant="link" asChild className="text-cyan-400 mt-2">
-                  <Link href="/events/create">Create New Event</Link>
-                </Button>
+                <div className="relative w-full md:w-64">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+                  <Input 
+                    placeholder="Search events..." 
+                    className="pl-9 bg-white/5 border-white/10"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
               </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {filteredEvents.map((event: any) => {
+                  const isOwner = event.organizerId === (user?._id || user?.id);
+                  return (
+                    <div key={event._id} className="flex items-center justify-between p-4 bg-white/5 rounded-lg border border-white/10 group hover:border-cyan-500/50 transition-colors">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-lg bg-cyan-900/20 flex flex-col items-center justify-center text-cyan-400 border border-cyan-500/20">
+                          <span className="text-[10px] font-bold uppercase">{format(event.startDate, 'MMM')}</span>
+                          <span className="text-lg font-bold leading-none">{format(event.startDate, 'dd')}</span>
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-bold">{event.title}</h3>
+                            {!isOwner && <Badge variant="secondary" className="text-[8px] h-4 py-0 bg-purple-500/20 text-purple-400 border-purple-500/30">CO-ORG</Badge>}
+                          </div>
+                          <div className="flex items-center gap-3 text-xs text-gray-400 mt-1">
+                            <span className="flex items-center gap-1"><Users size={12} /> {event.registeredCount || 0}</span>
+                            <span className="flex items-center gap-1"><Badge variant="outline" className="text-[10px] py-0">{event.status}</Badge></span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Button variant="ghost" size="icon" className="h-8 w-8" asChild><Link href={`/events/${event._id}`}><ArrowUpRight size={16} /></Link></Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8" asChild><Link href={`/events/${event._id}/edit`}><Edit size={16} /></Link></Button>
+                        {isOwner && (
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-red-400 hover:text-red-300 hover:bg-red-400/10" onClick={() => handleDelete(event._id)}><Trash2 size={16} /></Button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+                {filteredEvents.length === 0 && (
+                  <div className="text-center py-20 text-gray-500 border border-dashed border-white/10 rounded-lg">
+                    <Calendar size={48} className="mx-auto mb-4 opacity-20" />
+                    <p>No events found. Start by creating your first event!</p>
+                    <Button variant="link" asChild className="text-cyan-400 mt-2">
+                      <Link href="/events/create">Create New Event</Link>
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="revenue">
+          <RevenueDashboard />
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}
     </div>
   );
 }
