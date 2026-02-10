@@ -99,6 +99,14 @@ export const register = mutation({
       if (code) await ctx.db.patch(args.discountId, { usedCount: code.usedCount + 1 });
     }
 
+    if (status === 'confirmed') {
+      await ctx.scheduler.runAfter(0, internal.webhooks.trigger, {
+        eventType: "registration.created",
+        eventId: args.eventId,
+        payload: { userId, ticketNumber, registrationId: regId },
+      });
+    }
+
     if (!isWaitlisted) {
       // Update global count
       await ctx.db.patch(args.eventId, {

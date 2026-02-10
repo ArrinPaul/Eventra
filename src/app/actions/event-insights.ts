@@ -1,6 +1,7 @@
 'use server';
 
 import { eventSummarizerFlow } from '@/ai/flows/event-summarizer';
+import { socialMediaPostFlow } from '@/ai/flows/ai-social-posts';
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "../../../convex/_generated/api";
 
@@ -26,20 +27,10 @@ export async function generateEventSummary(eventId: string) {
     });
 
     // 4. Update event with summary
-    // Since we're in a server action, we need a way to call Convex mutation
-    // We'll use a new mutation for this
     await convex.mutation(api.events.update, {
       id: eventId as any,
       updates: {
-        summary: result.summary + "
-
-Highlights:
-" + result.highlights.map(h => `- ${h}`).join('
-') + "
-
-Key Takeaways:
-" + result.keyTakeaways.map(t => `- ${t}`).join('
-')
+        summary: result.summary + "\n\nHighlights:\n" + result.highlights.map(h => `- ${h}`).join('\n') + "\n\nKey Takeaways:\n" + result.keyTakeaways.map(t => `- ${t}`).join('\n')
       }
     });
 
@@ -47,5 +38,31 @@ Key Takeaways:
   } catch (error: any) {
     console.error('Event summarization error:', error);
     return { success: false, error: error.message || 'Failed to generate summary' };
+  }
+}
+
+export async function generateSocialMediaPosts(eventId: string) {
+  try {
+    const event = await convex.query(api.events.getById, { id: eventId as any });
+    if (!event) throw new Error('Event not found');
+
+    const locationDisplay = typeof event.location === 'string'
+      ? event.location
+      : event.location?.venue
+        ? (typeof event.location.venue === 'string' ? event.location.venue : event.location.venue?.name ?? '')
+        : '';
+
+    const result = await socialMediaPostFlow({
+      title: event.title,
+      description: event.description,
+      category: event.category,
+      startDate: event.startDate,
+      location: locationDisplay,
+    });
+
+    return { success: true, posts: result.posts };
+  } catch (error: any) {
+    console.error('Social post generation error:', error);
+    return { success: false, error: error.message || 'Failed to generate posts' };
   }
 }

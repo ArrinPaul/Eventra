@@ -256,6 +256,14 @@ export const cancelEvent = mutation({
     }
 
     await ctx.db.patch(args.id, { status: "cancelled" });
+    
+    // Trigger Webhook
+    await ctx.scheduler.runAfter(0, internal.webhooks.trigger, {
+      eventType: "event.cancelled",
+      eventId: args.id,
+      payload: { title: event.title, organizerId: event.organizerId },
+    });
+
     // Notify registered users
     const regs = await ctx.db
       .query("registrations")

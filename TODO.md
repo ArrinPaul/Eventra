@@ -261,8 +261,8 @@
 - [ ] **A/B testing for event descriptions**: AI-powered variant testing.
 
 ### 11.6 Platform & Infrastructure
-- [ ] **PWA enhancements**: Offline support, install prompt, background sync.
-- [ ] **Webhook system**: Notify external systems on events (registration, check-in).
+- [x] **PWA enhancements**: Full PWA support implemented. Includes `manifest.json`, service worker (`sw.js`) for static asset caching, and a dedicated `/offline` fallback page for better connectivity resilience.
+- [x] **Webhook system**: Outbound webhook system implemented. Organizers can configure target URLs for events like `registration.created`, `checkin.completed`, and `event.cancelled`. Includes a management UI in the event editor.
 - [ ] **API rate limiting (production)**: Redis-backed via Upstash.
 - [ ] **Multi-tenant / white-label**: Organization-scoped branding.
 - [x] **Audit log**: `audit_log` table tracks all admin actions with user attribution.
@@ -275,4 +275,4 @@
 - [ ] **Chatbot memory**: Persist conversation context across sessions.
 - [ ] **AI moderation**: Auto-flag inappropriate content in community posts.
 - [ ] **Predictive attendance**: ML-based prediction of event attendance rates.
-- [ ] **AI-generated social media posts**: Auto-create promotional content for events.
+- [x] **AI-generated social media posts**: Implemented `socialMediaPostFlow` to generate platform-specific promo content (X, LinkedIn, Instagram). Includes a `SocialPostGenerator` component for organizers.

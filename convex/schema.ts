@@ -459,4 +459,14 @@ export default defineSchema({
     createdAt: v.number(),
     expiresAt: v.optional(v.number()),
   }).index("by_event", ["eventId"]),
+
+  webhooks: defineTable({
+    eventId: v.optional(v.id("events")), // If null, platform-wide
+    userId: v.id("users"),
+    url: v.string(),
+    secret: v.string(),
+    events: v.array(v.union(v.literal("registration.created"), v.literal("checkin.completed"), v.literal("event.cancelled"))),
+    isActive: v.boolean(),
+    createdAt: v.number(),
+  }).index("by_user", ["userId"]).index("by_event", ["eventId"]),
 });

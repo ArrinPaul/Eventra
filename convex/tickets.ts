@@ -157,6 +157,13 @@ export const checkInTicket = mutation({
         read: false,
         createdAt: Date.now(),
       });
+
+      // Trigger Webhook
+      await ctx.scheduler.runAfter(0, internal.webhooks.trigger, {
+        eventType: "checkin.completed",
+        eventId: ticket.eventId,
+        payload: { userId: user._id, ticketNumber: ticket.ticketNumber, attendeeName: ticket.attendeeName },
+      });
     }
 
     return { success: true, ticket };
