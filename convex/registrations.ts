@@ -255,25 +255,54 @@ export const getByEvents = query({
 });
 
 export const getByUser = query({
-
   args: {},
-
   handler: async (ctx) => {
-
     const userId = await auth.getUserId(ctx);
-
     if (!userId) return [];
 
-    return await ctx.db
-
+    const regs = await ctx.db
       .query("registrations")
-
       .withIndex("by_user", (q) => q.eq("userId", userId))
-
       .collect();
 
+    // Enrich with ticket info
+    const enriched = [];
+    for (const reg of regs) {
+      if (reg.ticketId) {
+        const ticket = await ctx.db.get(reg.ticketId);
+        enriched.push({ ...reg, ticketNumber: ticket?.ticketNumber });
+      } else {
+        enriched.push(reg);
+      }
+    }
+    return enriched;
   },
+});
 
+export const getUpcoming = query({
+  args: {},
+  handler: async (ctx) => {
+    const userId = await auth.getUserId(ctx);
+    if (!userId) return [];
+
+    const regs = await ctx.db
+      .query("registrations")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .collect();
+
+    const now = Date.now();
+    const enriched = [];
+
+    for (const reg of regs) {
+      const event = await ctx.db.get(reg.eventId);
+      // Only include upcoming or live events
+      if (event && (event.endDate > now)) {
+        enriched.push({ ...reg, event });
+      }
+    }
+
+    return enriched.sort((a, b) => (a.event?.startDate || 0) - (b.event?.startDate || 0));
+  },
 });
 
 

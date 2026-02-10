@@ -176,64 +176,57 @@ interface CertificateViewerProps {
 export function CertificateViewer({ html, certificateId, onClose }: CertificateViewerProps) {
   const printRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+  const [isGenerating, setIsGenerating] = useState(false);
 
   const handleDownloadPDF = async () => {
-    try {
-      // Create a new window for printing
-      const printWindow = window.open('', '_blank');
-      if (!printWindow) {
-        toast({
-          title: 'Error',
-          description: 'Please allow popups to download the certificate',
-          variant: 'destructive',
-        });
-        return;
-      }
+    if (!printRef.current) return;
+    
+    setIsGenerating(true);
+    toast({
+      title: 'Generating PDF...',
+      description: 'Please wait while we prepare your certificate.',
+    });
 
-      printWindow.document.write(`
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <title>Certificate</title>
-          <style>
-            @media print {
-              body { margin: 0; padding: 0; }
-              @page { size: landscape; margin: 0; }
-            }
-            body {
-              display: flex;
-              justify-content: center;
-              align-items: center;
-              min-height: 100vh;
-              margin: 0;
-              background: #f5f5f5;
-            }
-          </style>
-        </head>
-        <body>
-          ${html}
-          <script>
-            window.onload = function() {
-              window.print();
-              window.onafterprint = function() { window.close(); }
-            }
-          </script>
-        </body>
-        </html>
-      `);
-      printWindow.document.close();
+    try {
+      const { jsPDF } = await import('jspdf');
+      const html2canvas = (await import('html2canvas')).default;
+
+      // Force high resolution for the capture
+      const canvas = await html2canvas(printRef.current, {
+        scale: 3, // Higher scale for better quality
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff',
+      });
+
+      const imgData = canvas.toDataURL('image/png');
+      
+      // A4 Landscape dimensions in mm
+      const pdf = new jsPDF({
+        orientation: 'landscape',
+        unit: 'mm',
+        format: 'a4',
+      });
+
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+
+      pdf.addImage(imgData, 'PNG', 0, 0, pageWidth, pageHeight);
+      pdf.save(`certificate-${certificateId}.pdf`);
 
       toast({
-        title: 'Success',
-        description: 'Certificate ready for download/print',
+        title: 'Success!',
+        description: 'Certificate downloaded successfully.',
       });
     } catch (error) {
-      console.error('Download error:', error);
+      console.error('PDF generation error:', error);
       toast({
         title: 'Error',
-        description: 'Failed to prepare certificate for download',
+        description: 'Failed to generate PDF. Please try again.',
         variant: 'destructive',
       });
+    } finally {
+      setIsGenerating(false);
     }
   };
 
@@ -265,9 +258,13 @@ export function CertificateViewer({ html, certificateId, onClose }: CertificateV
         <div className="sticky top-0 bg-background border-b p-4 flex items-center justify-between">
           <h2 className="text-lg font-semibold">Certificate Preview</h2>
           <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={handleDownloadPDF}>
-              <Download className="h-4 w-4 mr-2" />
-              Download PDF
+            <Button variant="outline" onClick={handleDownloadPDF} disabled={isGenerating}>
+              {isGenerating ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Download className="h-4 w-4 mr-2" />
+              )}
+              {isGenerating ? 'Generating...' : 'Download PDF'}
             </Button>
             <Button variant="outline" onClick={handleShare}>
               <Share2 className="h-4 w-4 mr-2" />

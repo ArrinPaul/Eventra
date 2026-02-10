@@ -328,3 +328,34 @@ export const redeemReferral = mutation({
     return { success: true };
   },
 });
+
+export const getRecommended = query({
+  args: { limit: v.optional(v.number()) },
+  handler: async (ctx, args) => {
+    const userId = await auth.getUserId(ctx);
+    if (!userId) return [];
+
+    const currentUser = await ctx.db.get(userId);
+    if (!currentUser) return [];
+
+    const limit = args.limit || 5;
+    const userInterests = currentUser.interests?.split(',').map(i => i.trim().toLowerCase()) || [];
+
+    // Simple recommendation: users with at least one common interest
+    const allUsers = await ctx.db.query("users")
+      .filter(q => q.and(
+        q.neq(q.field("_id"), userId),
+        q.eq(q.field("onboardingCompleted"), true)
+      ))
+      .take(100);
+
+    return allUsers
+      .map(u => {
+        const interests = u.interests?.split(',').map(i => i.trim().toLowerCase()) || [];
+        const commonCount = interests.filter(i => userInterests.includes(i)).length;
+        return { ...u, commonCount };
+      })
+      .sort((a, b) => b.commonCount - a.commonCount)
+      .slice(0, limit);
+  },
+});

@@ -117,7 +117,7 @@ export const join = mutation({
     if (!community) throw new Error("Not found");
 
     if (community.isPrivate) {
-      throw new Error("This community is private. Request access from the admin.");
+      throw new Error("This community is private. Use requestJoin instead.");
     }
 
     const existing = await ctx.db
@@ -143,6 +143,122 @@ export const join = mutation({
     await ctx.scheduler.runAfter(0, (api as any).gamification.triggerChallengeProgress, {
       userId,
       type: "social",
+    });
+  },
+});
+
+export const requestJoin = mutation({
+  args: { communityId: v.id("communities") },
+  handler: async (ctx, args) => {
+    const userId = await auth.getUserId(ctx);
+    if (!userId) throw new Error("Unauthorized");
+
+    const existing = await ctx.db
+      .query("community_join_requests")
+      .withIndex("by_community_user", (q) => q.eq("communityId", args.communityId).eq("userId", userId))
+      .unique();
+
+    if (existing) {
+      if (existing.status === 'pending') return;
+      if (existing.status === 'approved') return;
+      // If rejected, they can try again or we can block them. For now, allow retry.
+      await ctx.db.delete(existing._id);
+    }
+
+    await ctx.db.insert("community_join_requests", {
+      communityId: args.communityId,
+      userId,
+      status: "pending",
+      createdAt: Date.now(),
+    });
+
+    // Notify creator
+    const community = await ctx.db.get(args.communityId);
+    if (community) {
+      await ctx.db.insert("notifications", {
+        userId: community.createdBy,
+        title: "New Join Request",
+        message: `Someone wants to join your community "${community.name}".`,
+        type: "community",
+        read: false,
+        createdAt: Date.now(),
+        link: `/community/${args.communityId}/manage`,
+      });
+    }
+  },
+});
+
+export const getJoinRequests = query({
+  args: { communityId: v.id("communities") },
+  handler: async (ctx, args) => {
+    const userId = await auth.getUserId(ctx);
+    if (!userId) return [];
+
+    const community = await ctx.db.get(args.communityId);
+    if (!community || community.createdBy !== userId) {
+      throw new Error("Unauthorized");
+    }
+
+    const requests = await ctx.db
+      .query("community_join_requests")
+      .withIndex("by_community", (q) => q.eq("communityId", args.communityId))
+      .filter((q) => q.eq(q.field("status"), "pending"))
+      .collect();
+
+    const enriched = [];
+    for (const req of requests) {
+      const user = await ctx.db.get(req.userId);
+      if (user) {
+        enriched.push({ ...req, userName: user.name, userImage: user.image });
+      }
+    }
+    return enriched;
+  },
+});
+
+export const respondToJoinRequest = mutation({
+  args: { 
+    requestId: v.id("community_join_requests"), 
+    action: v.union(v.literal("approved"), v.literal("rejected")) 
+  },
+  handler: async (ctx, args) => {
+    const callerId = await auth.getUserId(ctx);
+    if (!callerId) throw new Error("Unauthorized");
+
+    const req = await ctx.db.get(args.requestId);
+    if (!req) throw new Error("Request not found");
+
+    const community = await ctx.db.get(req.communityId);
+    if (!community || community.createdBy !== callerId) {
+      throw new Error("Unauthorized");
+    }
+
+    await ctx.db.patch(args.requestId, { status: args.action });
+
+    if (args.action === "approved") {
+      await ctx.db.insert("community_members", {
+        communityId: req.communityId,
+        userId: req.userId,
+        role: "member",
+        joinedAt: Date.now(),
+      });
+
+      await ctx.db.patch(req.communityId, {
+        membersCount: community.membersCount + 1,
+      });
+    }
+
+    // Notify user
+    await ctx.db.insert("notifications", {
+      userId: req.userId,
+      title: args.action === "approved" ? "Request Approved! 🎉" : "Request Rejected",
+      message: args.action === "approved" 
+        ? `You've been accepted into "${community.name}".`
+        : `Your request to join "${community.name}" was not approved.`,
+      type: "community",
+      read: false,
+      createdAt: Date.now(),
+      link: args.action === "approved" ? `/community/${req.communityId}` : undefined,
     });
   },
 });

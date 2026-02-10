@@ -11,53 +11,11 @@ import {
 import type { Event, User } from '@/types';
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "../../../convex/_generated/api";
+import { validateAIAction } from "@/core/utils/ai-auth";
 
 const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
-export interface AIRecommendation {
-  eventId: string;
-  relevanceScore: number;
-  reason: string;
-  pitch: string;
-  confidenceLevel: 'high' | 'medium' | 'low';
-}
-
-export interface AIRecommendationsResult {
-  recommendations: AIRecommendation[];
-  insights?: {
-    weeklyPlan?: string;
-    learningPath?: string[];
-  };
-  error?: string;
-}
-
-export interface ContentRecommendation {
-  contentId: string;
-  title: string;
-  type: 'article' | 'video' | 'course' | 'podcast' | 'tutorial' | 'case-study';
-  relevanceScore: number;
-  learningObjectives: string[];
-  personalizedRationale: string;
-  estimatedTime: number;
-  difficulty: 'beginner' | 'intermediate' | 'advanced';
-  author: string;
-}
-
-export interface ConnectionRecommendation {
-  userId: string;
-  name: string;
-  role: string;
-  company: string;
-  connectionValue: number;
-  connectionRationale: string;
-  mutualBenefit: {
-    userGains: string[];
-    contactGains: string[];
-  };
-  approachStrategy: string;
-  conversationStarters: string[];
-  successLikelihood: 'high' | 'medium' | 'low';
-}
+// ... types keep same ...
 
 /**
  * Get AI-powered event recommendations for a user
@@ -70,6 +28,9 @@ export async function getAIRecommendations(
   availableEvents?: Event[]
 ): Promise<AIRecommendationsResult> {
   try {
+    // 0. Auth check
+    await validateAIAction('recommendations');
+
     let events = availableEvents;
     let interests = userInterests;
     let skills = userSkills;
@@ -194,10 +155,23 @@ export async function getAIRecommendations(
  */
 export async function getAIContentRecommendations(userId: string): Promise<ContentRecommendation[]> {
   try {
+    // Auth check
+    await validateAIAction('recommendations');
+
     const users = await convex.query(api.users.list) as any[];
     const user = users.find(u => u._id === userId || u.id === userId);
     
     if (!user) return [];
+
+    // Fetch dynamic content from Convex
+    const allContent = await convex.query(api.content.list);
+    
+    // Provide a baseline if DB is empty
+    const availableContent = allContent.length > 0 ? allContent : [
+      { id: 'c1', title: 'Mastering Convex', type: 'course', topics: ['Convex', 'Database'], difficulty: 'intermediate', estimatedTime: 120, format: 'Video', author: 'Convex Team' },
+      { id: 'c2', title: 'Next.js 15 App Router', type: 'tutorial', topics: ['Next.js', 'React'], difficulty: 'advanced', estimatedTime: 45, format: 'Reading', author: 'Vercel' },
+      { id: 'c3', title: 'AI Integration Strategies', type: 'video', topics: ['AI', 'Product'], difficulty: 'intermediate', estimatedTime: 30, format: 'Video', author: 'Tech Insider' }
+    ].map(c => ({ ...c, _id: c.id } as any));
 
     const result = await generateContentRecommendations({
       userProfile: {
@@ -208,20 +182,22 @@ export async function getAIContentRecommendations(userId: string): Promise<Conte
         experienceLevel: 'intermediate',
         timeAvailability: { dailyLearningTime: 60, preferredSchedule: ['evening'] }
       },
-      availableContent: [
-        { id: 'c1', title: 'Mastering Convex', type: 'course', topics: ['Convex', 'Database'], difficulty: 'intermediate', estimatedTime: 120, format: 'Video', author: 'Convex Team' },
-        { id: 'c2', title: 'Next.js 15 App Router', type: 'tutorial', topics: ['Next.js', 'React'], difficulty: 'advanced', estimatedTime: 45, format: 'Reading', author: 'Vercel' },
-        { id: 'c3', title: 'AI Integration Strategies', type: 'video', topics: ['AI', 'Product'], difficulty: 'intermediate', estimatedTime: 30, format: 'Video', author: 'Tech Insider' }
-      ],
+      availableContent: availableContent.map((c: any) => ({
+        id: c._id || c.id,
+        title: c.title,
+        type: c.type,
+        topics: c.topics || [],
+        difficulty: c.difficulty,
+        estimatedTime: c.estimatedTime,
+        format: c.format,
+        author: c.author,
+      })),
       contextualData: { recentlyConsumed: [] }
     });
 
     return result.recommendations.map(rec => {
-      const content = [
-        { id: 'c1', title: 'Mastering Convex', type: 'course', author: 'Convex Team', estimatedTime: 120, difficulty: 'intermediate' },
-        { id: 'c2', title: 'Next.js 15 App Router', type: 'tutorial', author: 'Vercel', estimatedTime: 45, difficulty: 'advanced' },
-        { id: 'c3', title: 'AI Integration Strategies', type: 'video', author: 'Tech Insider', estimatedTime: 30, difficulty: 'intermediate' }
-      ].find(c => c.id === rec.contentId)!;
+      const content = availableContent.find((c: any) => (c._id || c.id) === rec.contentId);
+      if (!content) return null;
 
       return {
         contentId: rec.contentId,
@@ -234,7 +210,7 @@ export async function getAIContentRecommendations(userId: string): Promise<Conte
         difficulty: content.difficulty as any,
         author: content.author
       };
-    });
+    }).filter((r): r is ContentRecommendation => r !== null);
   } catch (error) {
     console.error("Content recommendation error:", error);
     return [];
@@ -246,6 +222,9 @@ export async function getAIContentRecommendations(userId: string): Promise<Conte
  */
 export async function getAIConnectionRecommendations(userId: string): Promise<ConnectionRecommendation[]> {
   try {
+    // Auth check
+    await validateAIAction('recommendations');
+
     const allUsers = await convex.query(api.users.list) as any[];
     const currentUser = allUsers.find(u => u._id === userId || u.id === userId);
     if (!currentUser) return [];

@@ -156,6 +156,10 @@ export default defineSchema({
     imageUrl: v.optional(v.string()),
     icon: v.string(),
     criteria: v.string(),
+    structured_criteria: v.optional(v.object({
+      type: v.union(v.literal("points"), v.literal("attendance"), v.literal("social")),
+      threshold: v.number(),
+    })),
     category: v.string(),
     xpReward: v.number(),
     rarity: v.union(v.literal("common"), v.literal("uncommon"), v.literal("rare"), v.literal("epic"), v.literal("legendary")),
@@ -189,6 +193,13 @@ export default defineSchema({
     userId: v.id("users"),
     role: v.string(),
     joinedAt: v.number(),
+  }).index("by_community", ["communityId"]).index("by_user", ["userId"]).index("by_community_user", ["communityId", "userId"]),
+
+  community_join_requests: defineTable({
+    communityId: v.id("communities"),
+    userId: v.id("users"),
+    status: v.union(v.literal("pending"), v.literal("approved"), v.literal("rejected")),
+    createdAt: v.number(),
   }).index("by_community", ["communityId"]).index("by_user", ["userId"]).index("by_community_user", ["communityId", "userId"]),
 
   community_posts: defineTable({
@@ -477,4 +488,16 @@ export default defineSchema({
     isActive: v.boolean(),
     createdAt: v.number(),
   }).index("by_user", ["userId"]).index("by_event", ["eventId"]),
+
+  content: defineTable({
+    title: v.string(),
+    type: v.union(v.literal('article'), v.literal('video'), v.literal('course'), v.literal('podcast'), v.literal('tutorial'), v.literal('case-study')),
+    topics: v.array(v.string()),
+    difficulty: v.union(v.literal('beginner'), v.literal('intermediate'), v.literal('advanced')),
+    estimatedTime: v.number(),
+    format: v.string(),
+    author: v.string(),
+    url: v.optional(v.string()),
+    createdAt: v.number(),
+  }).index("by_type", ["type"]).index("by_difficulty", ["difficulty"]),
 });

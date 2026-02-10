@@ -101,8 +101,18 @@ export function getUserInterests(user: User | null): string[] {
   return user.interests.split(',').map(s => s.trim());
 }
 
-export function getUserSkills(_user: User | null): string[] {
-  return [];
+export function getUserSkills(user: User | null): string[] {
+  if (!user) return [];
+  // For now, extract from interests or provide based on role
+  const interests = getUserInterests(user);
+  const roleSkills: Record<string, string[]> = {
+    'student': ['learning', 'collaboration'],
+    'professional': ['leadership', 'networking'],
+    'organizer': ['event management', 'planning'],
+    'speaker': ['public speaking', 'presentation'],
+  };
+  
+  return [...interests, ...(roleSkills[user.role] || [])];
 }
 
 export function getUserAttendedEvents(user: User | null): string[] {

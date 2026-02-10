@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { answerQuestion } from '@/ai/flows/event-knowledge-bot';
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "../../../../../convex/_generated/api";
+import { withRateLimit, rateLimitConfigs } from '@/core/utils/rate-limit';
+import { validateAIRequest } from '@/core/utils/ai-auth';
 
 const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
@@ -10,8 +12,12 @@ function getErrorMessage(error: unknown): string {
   return 'An unexpected error occurred';
 }
 
-export async function POST(request: NextRequest) {
+async function chatHandler(request: NextRequest) {
   try {
+    // 1. Auth check
+    const auth = await validateAIRequest(request, 'chatbot');
+    if (auth.error) return auth.error;
+
     const body = await request.json();
     const { question, agenda, eventId } = body;
 
@@ -69,4 +75,6 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+export const POST = withRateLimit(chatHandler, rateLimitConfigs.ai);
 

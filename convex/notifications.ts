@@ -3,8 +3,8 @@ import { mutation, query } from "./_generated/server";
 import { auth } from "./auth";
 
 export const get = query({
-  args: {},
-  handler: async (ctx) => {
+  args: { limit: v.optional(v.number()) },
+  handler: async (ctx, args) => {
     const userId = await auth.getUserId(ctx);
     if (!userId) return [];
 
@@ -12,12 +12,12 @@ export const get = query({
       .query("notifications")
       .withIndex("by_user", (q) => q.eq("userId", userId))
       .order("desc")
-      .collect();
+      .take(args.limit || 50);
   },
 });
 
 export const list = query({
-  args: { paginationOpts: v.any() },
+  args: { paginationOpts: v.paginationOpts() },
   handler: async (ctx, args) => {
     const userId = await auth.getUserId(ctx);
     if (!userId) {
@@ -50,6 +50,13 @@ export const getUnreadCount = query({
 export const markRead = mutation({
   args: { id: v.id("notifications") },
   handler: async (ctx, args) => {
+    const userId = await auth.getUserId(ctx);
+    if (!userId) throw new Error("Unauthorized");
+
+    const notification = await ctx.db.get(args.id);
+    if (!notification) throw new Error("Notification not found");
+    if (notification.userId !== userId) throw new Error("Not authorized");
+
     await ctx.db.patch(args.id, { read: true });
   },
 });
@@ -57,6 +64,13 @@ export const markRead = mutation({
 export const deleteNotification = mutation({
   args: { id: v.id("notifications") },
   handler: async (ctx, args) => {
+    const userId = await auth.getUserId(ctx);
+    if (!userId) throw new Error("Unauthorized");
+
+    const notification = await ctx.db.get(args.id);
+    if (!notification) throw new Error("Notification not found");
+    if (notification.userId !== userId) throw new Error("Not authorized");
+
     await ctx.db.delete(args.id);
   },
 });

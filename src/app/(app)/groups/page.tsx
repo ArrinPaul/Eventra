@@ -1,5 +1,5 @@
-import { GroupsClient } from '@/components/groups/groups-client';
+import { redirect } from 'next/navigation';
 
 export default function GroupsPage() {
-  return <GroupsClient />;
+  redirect('/community');
 }

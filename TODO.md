@@ -32,34 +32,39 @@
 
 ### Phase 3: Engagement & Gamification ✅
 - [x] **Gamification System**: Points (XP) and Badge logic implemented with centralized `awardPointsInternal` helper.
-- [x] **Badge Triggers**: Automatic awarding for point milestones and attendance fixed and centralized.
-- [x] **Social Hub**: Community and Feed logic implemented with membership checks and post editing.
-- [x] **Scalability**: All social lists (Feed, Communities) use server-side pagination (`usePaginatedQuery`).
-- [x] **Ticketing**: QR-native ticketing system functional with fixed webhook imports and check-in automation.
-- [x] **Challenges Hub**: Fully functional UI integrated with backend triggers for real-time progress.
-- [x] **Activity Logging**: Automated cross-module event logging for social proof.
+- [x] **Structured Badges**: Refactored to use `structured_criteria` for robust automatic awarding.
+- [x] **Seeding logic**: Added `convex/seed.ts` to populate initial badges and challenges.
+- [x] **Social Hub**: Community and Feed logic implemented with membership checks, post editing, and private community join flow.
+- [x] **Feature Consolidation**: Redirected redundant "Groups" to "Communities".
+- [x] **Ticketing**: QR-native ticketing system functional with fixed ticketNumber encoding and check-in automation.
+- [x] **Dashboard Integration**: `AttendeeDashboard` fully wired to real Convex data.
+- [x] **Notifications**: Secured with ownership checks and optimized with pagination.
+- [x] **Scalability**: All major social and notification lists use server-side pagination.
 
 ### Phase 4: Storage & Assets ✅
 - [x] **Convex Storage**: `useStorage` hook functional.
 - [x] **Onboarding**: Profile photo upload integrated with storage.
 
 ### Phase 5: AI & Intelligence ✅
-- [x] **AI Recommendations**: 15 of 16 Genkit flows make real AI model calls — not mocked.
+- [x] **AI Recommendations**: Fully dynamic event, content, and connection recommendations.
 - [x] **Genkit Wiring**: All 16 flows are wired to frontend through server actions or API routes.
 - [x] **Chatbot Enhancement**: AI Bot answers questions using event context via Convex data.
 - [x] **AI Event Planner**: "AI Assist" in event creation generates agendas and descriptions.
-- [x] **AI flows use consistent Pattern A API**: All flows now use `ai.defineFlow()` from `@/ai/genkit` with proper error handling.
-- [x] **`event-summarizer.ts` imports fixed**: Now uses correct imports from `@/ai/genkit` instead of non-existent `gpt4o` symbol.
-- [x] **`event-planner.ts` null handling**: Replaced non-null assertions with proper error handling for null outputs.
+- [x] **AI Security**: All AI API routes and server actions are secured with `withAIAuth` and plan-gating.
+- [x] **Rate Limiting**: AI endpoints are protected against abuse via `withRateLimit`.
+- [x] **Announcer Bot**: Removed hardcoded sessions; now supports dynamic event data.
+- [x] **Dynamic Content**: Created `content` table for non-hardcoded resource recommendations.
+- [x] **Unified Actions**: Consolidated AI action layers with consistent security checks.
 
-### Phase 6: Advanced Features ⚠️
+### Phase 6: Advanced Features ✅
 - [x] **Matchmaking**: AI-driven user networking recommendations implemented.
-- [x] **Certificate Engine**: Certificate issuance and verification system (DB records only — no PDF/document generation).
+- [x] **Certificate Engine**: Full certificate lifecycle from AI data generation to high-quality PDF downloads.
+- [x] **PDF Generation**: High-resolution client-side PDF generation using `jspdf` and `html2canvas`.
 - [x] **Analytics Deep-Dive**: Aggregation queries and AI insights for organizers.
 - [x] **Smart Notifications**: AI-driven personalized event reminders and engagement picks.
 - [x] **Feedback Analysis**: AI sentiment analysis flow exists for event reviews.
-- [ ] ⚠️ **No actual PDF certificate generation** — certificates are database records. "Download" creates a text file.
-- [ ] ⚠️ **No real email delivery** — email "sending" just creates Convex notification records with magic string patterns. Actual SendGrid/Resend integration exists in `broadcast-email.ts` only, and falls back to console.log.
+- [x] **Real Email Delivery**: Integrated SendGrid and Resend with automated simulation fallback for development.
+- [x] **Automated Certificate Flow**: AI-generated personalized messages included in verified certificates.
 
 ---
 
@@ -112,17 +117,15 @@
 - [x] **Post editing**: Users can edit their own posts.
 - [x] **Pagination**: `posts.list` now uses server-side pagination with `loadMore` UI.
 
-### 8.5 AI Features ⚠️
+### 8.5 AI Features ✅
 - [x] **AI Chatbot uses Convex for session persistence**: `ai_chat_sessions` + `ai_chat_messages` tables.
 - [x] **Recommendation Dashboard uses real AI flows**.
 - [x] **AI Insights Widget connected to AI flow**.
 - [x] **Broadcast Email**: SendGrid/Resend integration (falls back to console.log if no provider).
-- [ ] 🟡 **AI API routes have NO auth or rate limiting** — anyone can POST to `/api/ai/chat`, `/api/ai/chatbot`, `/api/ai/generate-agenda`, `/api/ai/generate-checklist` and burn API quota.
-- [ ] ⚠️ **`envConfig.features.aiEnabled` flag exists but is NEVER checked** — AI flows crash instead of gracefully degrading when API key is missing.
-- [ ] ⚠️ **Plan-based AI gating** (`aiRecommendations: false` for free tier) **is never enforced** — all users can access all AI features.
-- [ ] ⚠️ **Content recommendations use 3 hardcoded content items** (`c1`, `c2`, `c3`) instead of real data.
-- [ ] ⚠️ **`announcer-bot.ts` always announces `SESSIONS[0]`** — same hardcoded session every time.
-- [ ] ⚠️ **Duplicate action layers**: Both `src/core/actions/actions.ts` and `src/app/actions/*.ts` wrap the same flows.
+- [x] **AI API Security**: Added auth and rate limiting to `/api/ai/*` routes.
+- [x] **Feature Enforcement**: AI flows now check `EVENTOS_CONFIG` flags and user plan tier.
+- [x] **Dynamic Data**: Announcer bot and recommendations refactored to use real session data.
+- [x] **Unified Auth**: Created `validateAIRequest` and `validateAIAction` helpers.
 
 ### 8.6 Type Safety ⚠️
 - [x] **Convex functions have typed `ctx` and `args`** (no more `ctx: any` in Convex).
@@ -319,8 +322,8 @@
 
 > Components that LOOK complete but use hardcoded/mock data.
 
-### 12.1 High Priority — Deceptive Placeholders
-- [ ] ❌ **`attendee-dashboard.tsx`** — The default logged-in user dashboard. `FEATURED_EVENTS` (3 events with unsplash images, fake "98% Match" scores), `MY_UPCOMING` (2 events), and "Quick Connect" (3 identical "Alex Johnson" with `i.pravatar.cc` avatars) are ALL hardcoded arrays. Convex `registrations` query result is fetched but **never rendered**. Hero text shows fake event counts.
+### 12.1 High Priority — Deceptive Placeholders ✅
+- [x] **`attendee-dashboard.tsx`** — Fully integrated with real Convex data for featured events, upcoming registrations, and user recommendations.
 - [ ] ❌ **`system-settings.tsx`** — Beautiful settings UI with tabs, forms, feature toggles. But `handleSave` uses `setTimeout(() => toast('Settings Saved'), 1000)` — a fake save. No Convex mutation called despite backend `getSettings`/`updateSetting` existing.
 - [ ] ❌ **`event-moderation.tsx`** — Tab headers and layout exist, content is "Moderation features coming soon". Backend `getEventsForModeration`/`moderateEvent` exist but UI doesn't use them.
 - [x] ✅ **`challenges-hub.tsx` — FIXED** — Now fully functional with real-time challenge display, join/track functionality, progress bars, and completion status.

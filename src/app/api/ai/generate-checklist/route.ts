@@ -1,13 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateChecklist } from '@/ai/flows/event-planner';
+import { withRateLimit, rateLimitConfigs } from '@/core/utils/rate-limit';
+import { validateAIRequest } from '@/core/utils/ai-auth';
 
 function getErrorMessage(error: unknown): string {
   if (error instanceof Error) return error.message;
   return 'An unexpected error occurred';
 }
 
-export async function POST(request: NextRequest) {
+async function checklistHandler(request: NextRequest) {
   try {
+    // 1. Auth check
+    const auth = await validateAIRequest(request, 'automation');
+    if (auth.error) return auth.error;
+
     const body = await request.json();
     const { eventType, title, description, duration, attendeeCount, goals } = body;
 
@@ -38,3 +44,5 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+export const POST = withRateLimit(checklistHandler, rateLimitConfigs.ai);

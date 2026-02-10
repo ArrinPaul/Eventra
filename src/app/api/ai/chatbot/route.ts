@@ -2,11 +2,17 @@ import { NextRequest, NextResponse } from 'next/server';
 import { aiChatbotFlow } from '@/ai/flows/ai-chatbot-flow';
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "../../../../../convex/_generated/api";
+import { withRateLimit, rateLimitConfigs } from '@/core/utils/rate-limit';
+import { validateAIRequest } from '@/core/utils/ai-auth';
 
 const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
-export async function POST(request: NextRequest) {
+async function chatbotHandler(request: NextRequest) {
   try {
+    // 1. Auth & Feature Check
+    const auth = await validateAIRequest(request, 'chatbot');
+    if (auth.error) return auth.error;
+
     const body = await request.json();
     const { message, sessionId, context, history } = body;
 
@@ -37,7 +43,7 @@ export async function POST(request: NextRequest) {
       message,
       history: history || [],
       context: {
-        userRole: context?.userRole,
+        userRole: context?.userRole || auth.userRole,
         eventTitle: context?.eventTitle,
         eventDetails: eventDetails,
         currentPage: context?.currentPage,
@@ -60,3 +66,5 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+export const POST = withRateLimit(chatbotHandler, rateLimitConfigs.ai);

@@ -147,25 +147,27 @@ async function checkBadgeTriggers(ctx: any, userId: any, totalPoints: number) {
     .query("registrations")
     .withIndex("by_user", (q: any) => q.eq("userId", userId))
     .collect();
-  const confirmedCount = registrations.filter((r: any) => r.status === "confirmed").length;
+  const confirmedCount = registrations.filter((r: any) => r.status === "confirmed" || r.checkedIn).length;
 
   for (const badge of badges) {
     if (earnedBadgeIds.has(badge._id.toString())) continue;
 
     let shouldAward = false;
-    const criteria = badge.criteria?.toLowerCase() ?? "";
-
-    // Points-based triggers
-    if (criteria.includes("100 points") && totalPoints >= 100) shouldAward = true;
-    if (criteria.includes("500 points") && totalPoints >= 500) shouldAward = true;
-    if (criteria.includes("1000 points") && totalPoints >= 1000) shouldAward = true;
-
-    // Attendance-based triggers
-    if (criteria.includes("first event") && confirmedCount >= 1) shouldAward = true;
-    if (criteria.includes("5 events") && confirmedCount >= 5) shouldAward = true;
-    if (criteria.includes("10 events") && confirmedCount >= 10) shouldAward = true;
-    if (criteria.includes("attend 5") && confirmedCount >= 5) shouldAward = true;
-    if (criteria.includes("attend 10") && confirmedCount >= 10) shouldAward = true;
+    
+    if (badge.structured_criteria) {
+      const { type, threshold } = badge.structured_criteria;
+      if (type === "points" && totalPoints >= threshold) shouldAward = true;
+      if (type === "attendance" && confirmedCount >= threshold) shouldAward = true;
+    } else {
+      // Fallback to legacy string matching for safety
+      const criteria = badge.criteria?.toLowerCase() ?? "";
+      if (criteria.includes("100 points") && totalPoints >= 100) shouldAward = true;
+      if (criteria.includes("500 points") && totalPoints >= 500) shouldAward = true;
+      if (criteria.includes("1000 points") && totalPoints >= 1000) shouldAward = true;
+      if (criteria.includes("first event") && confirmedCount >= 1) shouldAward = true;
+      if (criteria.includes("5 events") && confirmedCount >= 5) shouldAward = true;
+      if (criteria.includes("10 events") && confirmedCount >= 10) shouldAward = true;
+    }
 
     if (shouldAward) {
       await ctx.db.insert("user_badges", {
