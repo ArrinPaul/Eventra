@@ -24,13 +24,13 @@ export const getUsers = query({
     let users = await ctx.db.query("users").collect();
 
     if (args.role && args.role !== "all") {
-      users = users.filter((u) => u.role === args.role);
+      users = users.filter((u: any) => u.role === args.role);
     }
 
     if (args.search) {
       const search = args.search.toLowerCase();
       users = users.filter(
-        (u) =>
+        (u: any) =>
           u.name?.toLowerCase().includes(search) ||
           u.email?.toLowerCase().includes(search)
       );
@@ -80,7 +80,7 @@ export const getEventsForModeration = query({
 
     let events = await ctx.db.query("events").order("desc").collect();
     if (args.status && args.status !== "all") {
-      events = events.filter((e) => e.status === args.status);
+      events = events.filter((e: any) => e.status === args.status);
     }
     return events;
   },
@@ -197,13 +197,13 @@ export const getDashboardStats = query({
       totalUsers: users.length,
       totalEvents: events.length,
       totalRegistrations: registrations.length,
-      activeEvents: events.filter((e) => e.status === "published").length,
-      usersByRole: users.reduce((acc, u) => {
+      activeEvents: events.filter((e: any) => e.status === "published").length,
+      usersByRole: users.reduce((acc: any, u: any) => {
         const role = u.role ?? "attendee";
         acc[role] = (acc[role] ?? 0) + 1;
         return acc;
       }, {} as Record<string, number>),
-            eventsByStatus: events.reduce((acc, e) => {
+            eventsByStatus: events.reduce((acc: any, e: any) => {
               const status = e.status ?? "draft";
               acc[status] = (acc[status] ?? 0) + 1;
               return acc;
@@ -224,7 +224,7 @@ export const getDashboardStats = query({
       
           // Group users by month
           const usersByMonth: Record<string, number> = {};
-          users.forEach(u => {
+          users.forEach((u: any) => {
             const month = new Date(u._creationTime).toLocaleString('default', { month: 'short' });
             usersByMonth[month] = (usersByMonth[month] || 0) + 1;
           });

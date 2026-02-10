@@ -47,7 +47,8 @@ export default defineSchema({
     })),
     referralCode: v.optional(v.string()),
     referredBy: v.optional(v.string()), // Referral code of the user who referred this user
-  }).index("by_email", ["email"]).index("by_points", ["points"]).index("by_referral_code", ["referralCode"]),
+  }).index("by_email", ["email"]).index("by_points", ["points"]).index("by_referral_code", ["referralCode"]).index("by_role_points", ["role", "points"])
+    .searchIndex("search_name", { searchField: "name" }),
 
   events: defineTable({
     title: v.string(),
@@ -110,7 +111,8 @@ export default defineSchema({
       endDate: v.optional(v.number()),
     })),
     parentEventId: v.optional(v.id("events")), // To link instances to original series
-  }).index("by_organizer", ["organizerId"]).index("by_status", ["status"]),
+  }).index("by_organizer", ["organizerId"]).index("by_status", ["status"]).index("by_status_endDate", ["status", "endDate"])
+    .searchIndex("search_title", { searchField: "title" }),
 
   registrations: defineTable({
     userId: v.id("users"),
@@ -227,6 +229,12 @@ export default defineSchema({
     fileUrl: v.optional(v.string()),
     fileType: v.optional(v.string()),
   }).index("by_room", ["roomId"]),
+
+  room_members: defineTable({
+    roomId: v.id("chat_rooms"),
+    userId: v.id("users"),
+    lastReadAt: v.number(),
+  }).index("by_user", ["userId"]).index("by_room", ["roomId"]).index("by_user_room", ["userId", "roomId"]),
 
   files: defineTable({
     storageId: v.string(),

@@ -452,13 +452,17 @@ export const autoCompletePastEvents = internalMutation({
   args: {},
   handler: async (ctx) => {
     const now = Date.now();
-    const events = await ctx.db.query("events").collect();
+    const events = await ctx.db
+      .query("events")
+      .withIndex("by_status_endDate", (q) => 
+        q.eq("status", "published").lt("endDate", now)
+      )
+      .collect();
+    
     let completed = 0;
     for (const event of events) {
-      if (event.status === "published" && event.endDate && event.endDate < now) {
-        await ctx.db.patch(event._id, { status: "completed" });
-        completed++;
-      }
+      await ctx.db.patch(event._id, { status: "completed" });
+      completed++;
     }
     return { completed };
   },

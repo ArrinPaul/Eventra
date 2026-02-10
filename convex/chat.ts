@@ -8,12 +8,16 @@ export const getRooms = query({
     const userId = await auth.getUserId(ctx);
     if (!userId) return [];
 
-    const rooms = await ctx.db.query("chat_rooms").collect();
-    const myRooms = rooms.filter((r) => r.participants.includes(userId));
+    const memberships = await ctx.db
+      .query("room_members")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .collect();
 
-    // Enrich with participant names and unread count
     const enriched = [];
-    for (const room of myRooms) {
+    for (const membership of memberships) {
+      const room = await ctx.db.get(membership.roomId);
+      if (!room) continue;
+
       const participantNames = [];
       for (const pid of room.participants) {
         if (pid !== userId) {
@@ -21,15 +25,21 @@ export const getRooms = query({
           if (user) participantNames.push(user.name || "User");
         }
       }
-      // Get unread count
-      const messages = await ctx.db
+
+      // Get unread count using lastReadAt
+      const unreadMessages = await ctx.db
         .query("messages")
         .withIndex("by_room", (q) => q.eq("roomId", room._id))
+        .filter((q) => q.gt(q.field("sentAt"), membership.lastReadAt))
         .collect();
-      const unreadCount = messages.filter(
-        (m) => !m.readBy.includes(userId) && m.senderId !== userId
-      ).length;
-      const lastMessage = messages.length > 0 ? messages[messages.length - 1] : null;
+      
+      const unreadCount = unreadMessages.filter(m => m.senderId !== userId).length;
+      
+      const lastMessage = await ctx.db
+        .query("messages")
+        .withIndex("by_room", (q) => q.eq("roomId", room._id))
+        .order("desc")
+        .first();
 
       enriched.push({
         ...room,
@@ -38,7 +48,8 @@ export const getRooms = query({
         lastMessagePreview: lastMessage?.content?.substring(0, 50),
       });
     }
-    return enriched;
+    // Sort by last message time or creation time
+    return enriched.sort((a, b) => (b.lastMessageAt || 0) - (a.lastMessageAt || 0));
   },
 });
 
@@ -99,19 +110,29 @@ export const sendMessage = mutation({
     const userId = await auth.getUserId(ctx);
     if (!userId) throw new Error("Unauthorized");
 
+    const now = Date.now();
     await ctx.db.insert("messages", {
       roomId: args.roomId,
       senderId: userId,
       content: args.content,
-      sentAt: Date.now(),
+      sentAt: now,
       readBy: [userId],
       fileUrl: args.fileUrl,
       fileType: args.fileType,
     });
 
     await ctx.db.patch(args.roomId, {
-      lastMessageAt: Date.now(),
+      lastMessageAt: now,
     });
+
+    // Update sender's lastReadAt
+    const membership = await ctx.db
+      .query("room_members")
+      .withIndex("by_user_room", (q) => q.eq("userId", userId).eq("roomId", args.roomId))
+      .unique();
+    if (membership) {
+      await ctx.db.patch(membership._id, { lastReadAt: now });
+    }
   },
 });
 
@@ -121,10 +142,21 @@ export const markMessagesRead = mutation({
     const userId = await auth.getUserId(ctx);
     if (!userId) return;
 
+    const membership = await ctx.db
+      .query("room_members")
+      .withIndex("by_user_room", (q) => q.eq("userId", userId).eq("roomId", args.roomId))
+      .unique();
+
+    if (membership) {
+      await ctx.db.patch(membership._id, { lastReadAt: Date.now() });
+    }
+
+    // Legacy support: also update messages readBy if needed, but lastReadAt is primary now
     const messages = await ctx.db
       .query("messages")
       .withIndex("by_room", (q) => q.eq("roomId", args.roomId))
-      .collect();
+      .order("desc")
+      .take(50); // Just update recent ones
 
     for (const msg of messages) {
       if (!msg.readBy.includes(userId)) {
@@ -162,13 +194,24 @@ export const createRoom = mutation({
       if (existing) return existing._id;
     }
 
-    return await ctx.db.insert("chat_rooms", {
+    const roomId = await ctx.db.insert("chat_rooms", {
       name: args.name,
       type: args.type,
       participants: args.participants,
       eventId: args.eventId,
       lastMessageAt: Date.now(),
     });
+
+    // Create memberships
+    for (const pid of args.participants) {
+      await ctx.db.insert("room_members", {
+        roomId,
+        userId: pid,
+        lastReadAt: Date.now(),
+      });
+    }
+
+    return roomId;
   },
 });
 
@@ -192,11 +235,23 @@ export const createEventChatRoom = mutation({
       .collect();
     const participants = [event.organizerId, ...regs.map((r) => r.userId)];
 
-    return await ctx.db.insert("chat_rooms", {
+    const roomId = await ctx.db.insert("chat_rooms", {
       name: event.title,
       type: "event",
       participants,
       eventId: args.eventId,
+      lastMessageAt: Date.now(),
     });
+
+    // Create memberships
+    for (const pid of participants) {
+      await ctx.db.insert("room_members", {
+        roomId,
+        userId: pid,
+        lastReadAt: Date.now(),
+      });
+    }
+
+    return roomId;
   },
 });

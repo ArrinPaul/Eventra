@@ -35,10 +35,9 @@ import {
 } from 'lucide-react';
 import { cn, getErrorMessage } from '@/core/utils/utils';
 import { format } from 'date-fns';
-import { Html5Qrcode } from 'html5-qrcode';
 import { useToast } from '@/hooks/use-toast';
 import { Progress } from '@/components/ui/progress';
-import { Activity } from 'lucide-react';
+import { Activity, TrendingUp, Clock } from 'lucide-react';
 
 type ScanResult = {
   success: boolean;
@@ -60,7 +59,7 @@ export default function CheckInScannerClient() {
   const [manualSearch, setManualSearch] = useState('');
   const [soundEnabled, setSoundEnabled] = useState(true);
   
-  const scannerRef = useRef<Html5Qrcode | null>(null);
+  const scannerRef = useRef<any>(null);
 
   const events: Event[] = (allEventsRaw || []).map((e: any) => ({ ...e, id: e._id }));
   const organizerEvents = events.filter(e => e.organizerId === (user?._id || user?.id) || user?.role === 'admin');
@@ -105,6 +104,7 @@ export default function CheckInScannerClient() {
 
   const startScanner = useCallback(async () => {
     try {
+      const { Html5Qrcode } = await import('html5-qrcode');
       const html5QrCode = new Html5Qrcode("qr-reader");
       scannerRef.current = html5QrCode;
       await html5QrCode.start(
@@ -118,6 +118,7 @@ export default function CheckInScannerClient() {
       );
       setScanning(true);
     } catch (err) {
+      console.error(err);
       toast({ title: 'Camera Error', variant: 'destructive' });
     }
   }, [toast]);

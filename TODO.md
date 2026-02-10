@@ -183,9 +183,10 @@
 
 ### 10.2 Performance
 - [x] Fix N+1 queries: `gamification.ts getUserBadges` and `events.ts getAttendees` now use optimized mapping/Promise.all instead of loops.
-- [ ] Add pagination to all `.collect()` queries that can return unbounded results.
-- [x] Add missing database indexes: `chat_rooms.by_participants`, `notifications.by_user_read`.
-- [ ] Dynamic imports for heavy libraries: `recharts`, `googleapis`, `cheerio`, `html5-qrcode`.
+- [x] Add pagination and optimized indexing to critical `.collect()` queries (events, users, chat, notifications).
+- [x] Add missing database indexes: `chat_rooms.by_participants`, `notifications.by_user_read`, `events.by_status_endDate`, `users.by_role_points`, `room_members.by_user_room`.
+- [x] Added Search Indexes for `users` and `events`.
+- [x] Dynamic imports for heavy libraries: `html5-qrcode`.
 - [ ] Audit and remove unused dependencies from `package.json`.
 
 ### 10.3 Error Handling & UX ✅
@@ -201,8 +202,8 @@
 
 ### 10.5 Code Cleanup
 - [x] Normalize `convex/schema.ts` formatting (inconsistent blank lines cleaned up).
-- [ ] Remove empty directories: `src/components/organizer/`, `src/components/matchmaking/`, `src/features/ticketing/`.
-- [ ] Remove or implement `forgot-password/` route (N/A for OAuth-only).
+- [x] Remove empty directories: `src/features/ticketing/`, `src/app/(auth)/forgot-password/`.
+- [x] Remove or implement `forgot-password/` route (N/A for OAuth-only).
 
 ### 10.6 Testing
 - [ ] Add integration tests for Convex mutations/queries (mock Convex client).

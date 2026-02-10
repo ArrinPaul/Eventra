@@ -94,10 +94,14 @@ export const list = query({
 export const getLeaderboard = query({
   args: { limit: v.optional(v.number()) },
   handler: async (ctx, args) => {
-    const users = await ctx.db.query("users").collect();
+    const users = await ctx.db
+      .query("users")
+      .withIndex("by_points")
+      .order("desc")
+      .take(100); // Take 100 to filter out admins/organizers and still have enough for the limit
+    
     return users
       .filter((u) => u.role !== "admin" && u.role !== "organizer")
-      .sort((a, b) => (b.points || 0) - (a.points || 0))
       .slice(0, args.limit || 50);
   },
 });
@@ -105,13 +109,10 @@ export const getLeaderboard = query({
 export const search = query({
   args: { query: v.string() },
   handler: async (ctx, args) => {
-    const users = await ctx.db.query("users").collect();
-    const q = args.query.toLowerCase();
-    return users.filter(
-      (u) =>
-        u.name?.toLowerCase().includes(q) ||
-        u.email?.toLowerCase().includes(q)
-    ).slice(0, 20);
+    return await ctx.db
+      .query("users")
+      .withSearchIndex("search_name", (q) => q.search("name", args.query))
+      .take(20);
   },
 });
 
