@@ -1,6 +1,7 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { mutation, query, internalMutation } from "./_generated/server";
 import { auth } from "./auth";
+import { internal } from "./_generated/api";
 
 export const getByEventId = query({
   args: { eventId: v.id("events") },
@@ -52,6 +53,15 @@ export const createTicket = mutation({
     attendeeEmail: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    // Only allow admin or system to create tickets directly
+    const callerId = await auth.getUserId(ctx);
+    if (callerId) {
+      const caller = await ctx.db.get(callerId);
+      if (!caller || caller.role !== "admin") {
+        throw new Error("Unauthorized: Only admins can create tickets manually");
+      }
+    }
+    
     return await ctx.db.insert("tickets", {
       ...args,
       purchaseDate: Date.now(),
@@ -158,11 +168,25 @@ export const checkInTicket = mutation({
         createdAt: Date.now(),
       });
 
+      await ctx.db.insert("activity_feed", {
+        userId: user._id,
+        type: "check_in",
+        title: `Checked in to ${event?.title || "an event"}`,
+        createdAt: Date.now(),
+        link: `/events/${ticket.eventId}`,
+      });
+
       // Trigger Webhook
       await ctx.scheduler.runAfter(0, internal.webhooks.trigger, {
         eventType: "checkin.completed",
         eventId: ticket.eventId,
         payload: { userId: user._id, ticketNumber: ticket.ticketNumber, attendeeName: ticket.attendeeName },
+      });
+
+      // Trigger Challenge Progress
+      await ctx.scheduler.runAfter(0, api.gamification.triggerChallengeProgress, {
+        userId: user._id,
+        type: "attendance",
       });
     }
 

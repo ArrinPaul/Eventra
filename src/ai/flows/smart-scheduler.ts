@@ -1,9 +1,7 @@
-import { defineFlow } from '@genkit-ai/next';
-import { googleai } from '@genkit-ai/googleai';
-import { z } from 'zod';
-import { generate } from '@genkit-ai/ai';
+import { ai } from '@/ai/genkit';
+import { z } from 'genkit';
 
-export const smartSchedulerFlow = defineFlow(
+export const smartSchedulerFlow = ai.defineFlow(
   {
     name: 'smartSchedulerFlow',
     inputSchema: z.object({
@@ -40,8 +38,7 @@ export const smartSchedulerFlow = defineFlow(
       Provide a "strategy" summarizing the logic used for these picks.
     `;
 
-    const { output } = await generate({
-      model: googleai('gemini-1.5-flash'),
+    const { output } = await ai.generate({
       prompt,
       output: {
         schema: z.object({

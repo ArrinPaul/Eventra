@@ -1,6 +1,20 @@
 # Eventra — Comprehensive Roadmap & Audit
 
-> Last audited: Session 3 — All features below updated
+> Last audited: **Session 5 (Phase 3 Deep Implementation)** — Every feature verified against actual source code  
+> Audit date: February 10, 2026  
+> Methodology: Verified UI integration, backend automation, security auth checks, and cross-module event logging.
+
+---
+
+## Audit Legend
+
+| Symbol | Meaning |
+|--------|---------|
+| ✅ | Fully implemented and working |
+| ⚠️ | Partially implemented — has gaps, hardcoded data, or missing pieces |
+| ❌ | Placeholder/stub — UI exists but no real functionality |
+| 🔴 | Build-breaking or runtime-crashing bug |
+| 🟡 | Security vulnerability or data integrity issue |
 
 ---
 
@@ -12,31 +26,39 @@
 - [x] **Page Audit**: Deleted broken/legacy routes.
 
 ### Phase 2: Convex Backend Core ✅
-- [x] **Unified Schema**: 13+ tables defined in `convex/schema.ts`.
-- [x] **Convex Auth**: Google OAuth integration complete.
-- [x] **Core Logic**: Events, Tickets, Chat, and Notifications in Convex.
+- [x] **Unified Schema**: 30+ tables defined in `convex/schema.ts` with validators and indexes.
+- [x] **Convex Auth**: Google OAuth integration complete (Google-only, no email/password).
+- [x] **Core Logic**: Events, Tickets, Chat, and Notifications in Convex — ~160 exported functions across 29 files.
 
 ### Phase 3: Engagement & Gamification ✅
-- [x] **Gamification System**: Points (XP) and Badge logic implemented.
-- [x] **Social Hub**: Community and Feed logic implemented.
-- [x] **Ticketing**: QR-native ticketing system functional.
+- [x] **Gamification System**: Points (XP) and Badge logic implemented with centralized level utility.
+- [x] **Social Hub**: Community and Feed logic implemented with membership checks and post editing.
+- [x] **Ticketing**: QR-native ticketing system functional with fixed webhook imports.
+- [x] **Challenges Hub UI**: Fully functional UI integrated into the Gamification page.
+- [x] **Challenge Automation**: Progress automatically updates on check-in, community join, and posting via backend triggers.
+- [x] **Activity Logging**: All Phase 3 actions (registration, badges, posts, check-ins) log to the global activity feed.
 
 ### Phase 4: Storage & Assets ✅
 - [x] **Convex Storage**: `useStorage` hook functional.
 - [x] **Onboarding**: Profile photo upload integrated with storage.
 
 ### Phase 5: AI & Intelligence ✅
-- [x] **AI Recommendations**: Connected `ai-recommendations.ts` action to Convex `events` query.
-- [x] **Genkit Wiring**: Wired Genkit flows (Recommendations, Chatbot, Matchmaking, Planner) to Convex data.
-- [x] **Chatbot Enhancement**: Upgraded AI Bot to answer questions about specific events using Convex data.
-- [x] **AI Event Planner**: Added "AI Assist" in event creation to generate agendas and descriptions.
+- [x] **AI Recommendations**: 15 of 16 Genkit flows make real AI model calls — not mocked.
+- [x] **Genkit Wiring**: All 16 flows are wired to frontend through server actions or API routes.
+- [x] **Chatbot Enhancement**: AI Bot answers questions using event context via Convex data.
+- [x] **AI Event Planner**: "AI Assist" in event creation generates agendas and descriptions.
+- [x] **AI flows use consistent Pattern A API**: All flows now use `ai.defineFlow()` from `@/ai/genkit` with proper error handling.
+- [x] **`event-summarizer.ts` imports fixed**: Now uses correct imports from `@/ai/genkit` instead of non-existent `gpt4o` symbol.
+- [x] **`event-planner.ts` null handling**: Replaced non-null assertions with proper error handling for null outputs.
 
-### Phase 6: Advanced Features ✅
+### Phase 6: Advanced Features ⚠️
 - [x] **Matchmaking**: AI-driven user networking recommendations implemented.
-- [x] **Certificate Engine**: AI-powered certificate issuance and verification system.
-- [x] **Analytics Deep-Dive**: Advanced aggregation queries and AI insights for organizers.
+- [x] **Certificate Engine**: Certificate issuance and verification system (DB records only — no PDF/document generation).
+- [x] **Analytics Deep-Dive**: Aggregation queries and AI insights for organizers.
 - [x] **Smart Notifications**: AI-driven personalized event reminders and engagement picks.
-- [x] **Feedback Analysis**: Real-time AI sentiment analysis for event reviews.
+- [x] **Feedback Analysis**: AI sentiment analysis flow exists for event reviews.
+- [ ] ⚠️ **No actual PDF certificate generation** — certificates are database records. "Download" creates a text file.
+- [ ] ⚠️ **No real email delivery** — email "sending" just creates Convex notification records with magic string patterns. Actual SendGrid/Resend integration exists in `broadcast-email.ts` only, and falls back to console.log.
 
 ---
 
@@ -49,155 +71,424 @@
 
 ---
 
-## Phase 8: Critical Bug Fixes & Completion Gaps ✅
+## Phase 8: Critical Bug Fixes & Completion Gaps
 
 > Features that exist but are broken or have critical logic errors.
 
-### 8.1 Events — Core Gaps
-- [x] **Capacity enforcement on registration**: `registrations.register` now checks `event.capacity` — throws "Event is at full capacity" when full. Supports waitlist auto-promote.
-- [x] **Event update mutation is incomplete**: Now supports all 15+ fields including `category`, `type`, `capacity`, `imageUrl`, `isPaid`, `price`, `currency`, `targetAudience`, `agenda`, `speakers`, `waitlistEnabled`, `tags`.
-- [x] **Cascading deletes**: `deleteEvent` now cascades to registrations, tickets, reviews, and certificates.
-- [x] **Event status lifecycle**: Added `cancelEvent`, `completeEvent`, `publishEvent` mutations with attendee notifications.
-- [x] **Orphaned wizard components consolidated**: `EventCreationWizard` now uses multi-step components from `wizard/` with `react-hook-form` and `zod` validation. Integrated AI Assist into Step 1.
-- [x] **Event creation form hardcodes**: `event-form.tsx` now exposes `capacity`, `status`, and `type` as user inputs with full validation.
+### 8.1 Events — Core Gaps ✅
+- [x] **Capacity enforcement on registration**: `registrations.register` checks `event.capacity`, supports waitlist auto-promote.
+- [x] **Event update mutation**: Supports all 15+ fields.
+- [x] **Cascading deletes**: `deleteEvent` cascades to registrations, tickets, reviews, and certificates.
+- [x] **Event status lifecycle**: `cancelEvent`, `completeEvent`, `publishEvent` mutations with notifications.
+- [x] **Event creation wizard**: Multi-step with `react-hook-form` + `zod` + AI Assist.
+- [x] **Event creation form**: Exposes `capacity`, `status`, and `type` with validation.
 
-### 8.2 Check-In — QR Format Mismatch ✅
-- [x] **QR data format conflict**: `/check-in` now encodes plain `ticketNumber` string (matching scanner expectation). Unified format.
-- [x] **Attendee self check-in is broken**: Removed broken `checkInUser()` call. Check-in page now shows real ticket data from Convex.
-- [x] **Scanner scopes to selected event**: `checkInTicket` mutation now accepts optional `eventId` and validates ticket belongs to that event.
+**⚠️ Remaining Issues Found in Audit:**
+- [ ] 🔴 **`events.create` has NO auth check** — unauthenticated users can create events.
+- [ ] 🟡 **`events.create` accepts `registeredCount` from client** — should be forced to 0 server-side.
+- [ ] ⚠️ **`events.get` returns ALL events with no limit** — will break at scale (loads entire table).
+- [ ] ⚠️ **`events.getAnalytics` does 4 full table scans** (events, registrations, users, reviews) — severe performance issue.
+- [ ] 🔴 **Missing `internal` import in `convex/events.ts`** — `internal.webhooks.trigger` will throw `ReferenceError` at runtime.
 
-### 8.3 Certificates — Unreachable Features
-- [x] **No UI trigger for certificate issuance**: Added `bulkIssue` mutation for organizers. Certificate `issue` prevents duplicates and sends notifications.
-- [x] **Verification portal**: Added `verify` query by certificate number. Certificate client now has working Verify dialog.
-- [x] **Download button**: Certificate listing page now has working download handler (generates text certificate).
-- [x] **Certificate Manager (`certificate-manager.tsx`) implemented**: Now allows organizers to select events and bulk issue certificates to confirmed attendees. Shows issuance status in real-time.
-- [x] **`CertificateViewer` / `CertificatePreview` components rendered**: Now used in `CertificatesClient` to show high-quality HTML certificates with print/download functionality. Added `certificate-generator.ts` utility.
+### 8.2 Check-In — QR Format ✅
+- [x] **QR data format unified**: `/check-in` encodes plain `ticketNumber` string.
+- [x] **Check-in page shows real ticket data** from Convex.
+- [x] **Scanner scopes to selected event**: `checkInTicket` validates ticket belongs to event.
 
-### 8.4 Feed/Posts — Broken Community Scoping ✅
-- [x] **`posts.create` hardcodes `communityId: "temp" as any`**: Fixed — now requires real `communityId: v.id("communities")`.
-- [x] **Author info not shown**: `posts.list` and `posts.listByCommunity` now return `authorName`, `authorImage`, `authorRole`.
-- [x] **Infinite likes**: Added `post_likes` table with per-user tracking. Like/unlike toggle implemented.
+### 8.3 Certificates ⚠️
+- [x] **Bulk issue mutation**: `bulkIssue` for organizers with dedup.
+- [x] **Verification portal**: `verify` query by certificate number.
+- [x] **Certificate Manager UI**: Select event → see attendees → bulk issue.
+- [ ] ⚠️ **No PDF/document generation** — certificates are DB records only. Download produces a text file.
+- [ ] 🟡 **`certificates.issue` has no auth check** — any caller can issue certificates to any user.
+- [ ] ⚠️ **Certificate IDs use `Math.random()`** — not collision-resistant for production.
 
-### 8.5 AI Features — Dead Wiring
-- [x] **AI Chatbot (`ai-chatbot.tsx`) now uses Convex for session persistence**: Implemented `ai_chat_sessions` and `ai_chat_messages` tables. Connected to new `aiChatbotFlow` for context-aware responses.
-- [x] **Recommendation Dashboard now uses real AI flows**: Connected to `getAIRecommendations`, `getAIContentRecommendations`, and `getAIConnectionRecommendations`. Mock data removed.
-- [x] **AI Insights Widget (`ai-insights-widget.tsx`) connected to AI flow**: Now uses `getAIAnalyticsInsights` action to generate real insights based on popularity data. Integrated into Comprehensive Dashboard.
-- [x] **Broadcast Email flow (`broadcast-email.ts`) now sends real emails**: Integrated with SendGrid and Resend providers. Falls back to console log if no provider configured. UI updated to show status.
+### 8.4 Feed/Posts ✅
+- [x] **Community-scoped posts**: `posts.create` requires real `communityId`.
+- [x] **Author info shown**: `posts.list` returns `authorName`, `authorImage`, `authorRole`.
+- [x] **Like/unlike toggle**: `post_likes` table with per-user tracking.
+- [x] **Membership check**: Users must be community members to post or comment.
+- [x] **Post editing**: Users can edit their own posts.
+- [ ] ⚠️ **`posts.list` loads ALL non-flagged posts globally** — no pagination.
 
-### 8.6 Type Safety ✅
-- [x] **Remove `any` types from all Convex functions**: All 13 Convex files now use properly typed `ctx` and `args` (no more `ctx: any`).
-- [x] **`attendeeName`/`attendeeEmail` mismatch**: Made optional in schema, populated from user data during registration.
-- [x] **Legacy type aliases cleaned**: Removed `uid`, `photoURL`, `image` (on Event), `LegacyEvent`, `registeredUsers`, `attendees` from `types/index.ts`. Fixed all frontend references.
-- [x] **Auth context cleaned**: Removed placeholder functions (`login`, `addEventToUser`, `removeEventFromUser`, `refreshUser`) from `auth-context.tsx`.
-- [x] **Replace `v.any()` in schema**: `location` and `agenda` fields in `events` table now use proper typed schemas.
-- [x] **Fix remaining `v.any()`**: `eventRatings` in `users` and `metadata` in `activity_feed` now use proper typed schemas.
+### 8.5 AI Features ⚠️
+- [x] **AI Chatbot uses Convex for session persistence**: `ai_chat_sessions` + `ai_chat_messages` tables.
+- [x] **Recommendation Dashboard uses real AI flows**.
+- [x] **AI Insights Widget connected to AI flow**.
+- [x] **Broadcast Email**: SendGrid/Resend integration (falls back to console.log if no provider).
+- [ ] 🟡 **AI API routes have NO auth or rate limiting** — anyone can POST to `/api/ai/chat`, `/api/ai/chatbot`, `/api/ai/generate-agenda`, `/api/ai/generate-checklist` and burn API quota.
+- [ ] ⚠️ **`envConfig.features.aiEnabled` flag exists but is NEVER checked** — AI flows crash instead of gracefully degrading when API key is missing.
+- [ ] ⚠️ **Plan-based AI gating** (`aiRecommendations: false` for free tier) **is never enforced** — all users can access all AI features.
+- [ ] ⚠️ **Content recommendations use 3 hardcoded content items** (`c1`, `c2`, `c3`) instead of real data.
+- [ ] ⚠️ **`announcer-bot.ts` always announces `SESSIONS[0]`** — same hardcoded session every time.
+- [ ] ⚠️ **Duplicate action layers**: Both `src/core/actions/actions.ts` and `src/app/actions/*.ts` wrap the same flows.
 
-> **Session 3 fix**: `v.any()` replaced with typed `locationValidator` (union of string | structured object) and `agendaValidator` (array of typed objects) in `convex/events.ts`. Schema updated.
+### 8.6 Type Safety ⚠️
+- [x] **Convex functions have typed `ctx` and `args`** (no more `ctx: any` in Convex).
+- [x] **Schema uses typed validators** for `location` and `agenda`.
+- [x] **Legacy type aliases cleaned** from `types/index.ts`.
+- [x] **Auth context placeholder functions removed**.
+- [ ] ⚠️ **`files.ts` still uses `any` for ctx and args** — bypasses type safety.
+- [ ] ⚠️ **`Event.location` typed as `any` in `types/index.ts`** — schema is typed but TypeScript types aren't.
+- [ ] ⚠️ **`Event.agenda` typed as `any[]` in `types/index.ts`** — same gap.
+- [ ] ⚠️ **`getUserSkills()` in `types/index.ts` is a stub** — always returns `[]`.
+- [ ] ⚠️ **`updateUser` in auth hooks accepts `data: any`** — no type safety on user updates.
 
 ---
 
-## Phase 9: Feature Completion — Partially Implemented ⚠️
+## Phase 9: Feature Completion — Deep Audit Results
 
-> Features with UI or backend started but not fully wired end-to-end.
+> Every feature below has been verified by reading actual source code.
 
-### 9.1 Events
-- [x] **Server-side pagination**: Implemented `.paginate()` for events, notifications, and chat messages. Updated `ExploreClient`, `NotificationCenter`, and `EnhancedChatClient` to use `usePaginatedQuery`.
-- [x] **Server-side search & filtering**: Added `getByStatus`, `getByOrganizer`, `getPublished` queries using schema indexes.
-- [x] **Dedicated event edit page**: Created `/events/[id]/edit` route with organizer auth check and EventForm pre-fill.
-- [x] **Event image upload**: Added drag-and-drop image upload to `event-form.tsx` using `useStorage()` hook. `imageUrl` now passed to create/update.
-- [x] **Waitlist system**: Backend fully implemented — capacity check + waitlist auto-promote on cancellation.
-- [x] **Auto-complete past events**: Convex cron job (`convex/crons.ts`) runs hourly to mark past published events as `completed`.
-- [x] **Capacity progress indicator**: Event detail page shows color-coded progress bar, "X spots left" / "Sold Out", disabled registration when full.
+### 9.1 Events ✅
+- [x] **Server-side pagination**: `.paginate()` for events, notifications, chat.
+- [x] **Server-side search & filtering**: `getByStatus`, `getByOrganizer`, `getPublished` with indexes.
+- [x] **Event edit page**: `/events/[id]/edit` with organizer auth and EventForm pre-fill.
+- [x] **Event image upload**: Drag-and-drop with `useStorage()` hook.
+- [x] **Waitlist system**: Backend fully implemented with auto-promote.
+- [x] **Auto-complete past events**: Cron job runs hourly.
+- [x] **Capacity progress indicator**: Color-coded progress bar on event detail.
 
-### 9.2 Ticketing
-- [x] **Payment integration**: Stripe checkout flow implemented for paid events. Includes `createCheckoutSession` action, webhook listener, and payment confirmation logic in Convex. Added `ticketing/success` page.
-- [x] **Ticket types/tiers**: Full multi-tier support implemented. Added `ticketTiers` to `events` table. Updated registration mutation to track tier-specific capacity. Added tier selection UI to `EventDetailsClient`.
-- [x] **Ticket PDF download**: Implemented high-fidelity ticket printing via `window.print()` with dynamic QR code generation. Added "Download PDF" buttons to ticket list and detail dialog.
-- [x] **Ticket cancellation/refund UI**: Backend `cancelTicket` mutation added. Frontend integration pending.
-- [x] **Email confirmation on registration**: Implemented automated email triggers in Convex registration mutations. `NotificationWatcher` picks up specialized triggers and calls `/api/send-email` to notify users.
+**⚠️ Issues:**
+- [ ] `getManagedEvents` and `getBySpeaker` do full table scans with in-memory filtering — no index support for array contains.
+- [ ] `cloneEvent` exists in backend but no UI button to trigger it.
 
-### 9.3 Chat
-- [x] **Direct messaging**: Added `UserPicker` and enhanced `createRoom` logic to support 1:1 conversations. Users can now search for and start direct chats from the sidebar.
-- [x] **Read receipts**: `markMessagesRead` mutation added. Schema tracks `readBy` per user.
-- [x] **Message sender info**: Messages now enriched with `senderName`, `senderImage`.
-- [x] **Message timestamps**: Displayed under each message bubble with sender name for non-self messages.
-- [x] **Event-scoped chat rooms**: `createEventChatRoom` mutation added — creates room with all registered attendees.
-- [x] **File/image sharing in chat**: Integrated Convex Storage for chat attachments. Users can now upload and view images and other files directly within the message bubbles. Added file preview and improved chat UI.
+### 9.2 Ticketing ⚠️
+- [x] **Payment integration**: Stripe checkout flow, webhook listener, payment confirmation.
+- [x] **Ticket types/tiers**: Multi-tier support in schema, registration, and UI.
+- [x] **Ticket display with QR**: Real QR code generation via `qrcode.react`.
+- [x] **Ticket cancellation**: Backend `cancelTicket` mutation exists.
+- [x] **Email confirmation triggers**: Notification records created on registration.
+- [ ] 🔴 **Missing `internal` import in `convex/tickets.ts`** — `internal.webhooks.trigger` throws `ReferenceError` at runtime.
+- [ ] ⚠️ **No Stripe refund integration** — `cancelTicket` sets status but doesn't initiate Stripe refund.
+- [ ] ⚠️ **`qrCode` schema field is never populated** — QR codes are generated client-side only, not stored.
+- [ ] 🟡 **`createTicket` has no auth check** — accepts raw `userId` from any caller.
 
-### 9.4 Community ✅
-- [x] **Leave community mutation**: Added `leave` mutation with member count update.
-- [x] **Edit/delete community**: Added `update` and `deleteCommunity` mutations with ownership checks.
-- [x] **Member list**: Added `getMembers` query with user info enrichment.
-- [x] **Private community access control**: `join` now checks `isPrivate` flag and rejects non-admin joins.
+### 9.3 Chat ✅
+- [x] **Direct messaging**: `UserPicker` + `createRoom` with DM dedup.
+- [x] **Read receipts**: `markMessagesRead` with `lastReadAt` tracking.
+- [x] **Message sender info**: Enriched with `senderName`, `senderImage`.
+- [x] **Message timestamps**: Displayed per message.
+- [x] **Event-scoped chat rooms**: `createEventChatRoom` mutation.
+- [x] **File/image sharing**: Convex Storage for chat attachments.
 
-### 9.5 Notifications
-- [x] **Click-through navigation**: Notification items now use `router.push(n.link)` on click + mark as read.
-- [x] **Push notifications / browser Notification API**: Integrated browser `Notification` API in `NotificationWatcher`. Requests permission and shows native OS notifications for new events.
-- [x] **Notification preferences**: Backend supports per-type opt-out via `notificationPreferences` on user. `notifications.create` checks preferences before inserting.
-- [x] **Real-time toast on new notification**: Created `NotificationWatcher` global component that listens for new Convex notifications and displays them using the toast system. Integrated into `RootLayout`.
-- [x] **Unread count query**: Added `getUnreadCount` query using compound `by_user_read` index.
-- [x] **Clear all notifications**: Added `clearAll` mutation.
+**⚠️ Issues:**
+- [ ] DM room dedup loads ALL direct rooms into memory — not scalable.
+- [ ] `getMessages` loads ALL messages for a room (no pagination) — `listMessages` (paginated) also exists but both are exported.
+- [ ] No notifications sent to recipients when new messages arrive.
+- [ ] No file type/size validation on uploads.
+
+### 9.4 Community ⚠️
+- [x] **Leave community**: With member count update.
+- [x] **Edit/delete community**: With ownership checks and cascade delete.
+- [x] **Member list**: With user info enrichment.
+- [x] **Private community access control**: `join` rejects non-admin joins.
+- [ ] ⚠️ **No private community join-request/approval flow** — private communities just block with an error.
+- [ ] ⚠️ **`communities.list` has no pagination** — loads all communities.
+- [ ] ⚠️ **No community search**.
+- [ ] ⚠️ **No member role management** (promote/demote).
+
+### 9.5 Notifications ⚠️
+- [x] **Click-through navigation**: `router.push(n.link)` + mark as read.
+- [x] **Browser Notification API**: `NotificationWatcher` requests permission and shows native OS notifications.
+- [x] **Notification preferences**: Backend per-type opt-out check.
+- [x] **Real-time toast**: `NotificationWatcher` global component.
+- [x] **Unread count**: `getUnreadCount` with `by_user_read` index.
+- [x] **Clear all**: `clearAll` mutation.
+- [ ] ⚠️ **`notifications.get` loads ALL user notifications** with no limit — grows unbounded.
+- [ ] 🟡 **`deleteNotification` has no ownership check** — any user can delete any notification by ID.
+- [ ] ⚠️ **No real push notification service** (FCM, etc.) — only in-browser `Notification` API which requires the tab to be open.
 
 ### 9.6 Gamification ✅
-- [x] **Points awarding mutation**: Added standalone `addPoints` mutation with XP tracking.
-- [x] **Automatic badge triggers**: `checkBadgeTriggers` auto-awards badges for points milestones (100/500/1000) and attendance counts (1/5/10 events).
-- [x] **Level-up logic**: XP-to-level formula implemented (`Math.floor(points / 500) + 1`).
-- [x] **Challenges system**: Added `challenges` + `user_challenges` tables, `getChallenges`, `getUserChallenges`, `joinChallenge`, `updateChallengeProgress` mutations.
-- [x] **Badge Showcase**: Fully functional — fetches user badges via `getUserBadges`, shows rarity-colored cards with icon, XP, date.
-- [x] **Leaderboard query**: Fixed client to use clean data (removed `photoURL` legacy). Server-side `getLeaderboard` query added.
+- [x] **Points awarding**: `addPoints` with XP tracking and badge triggers.
+- [x] **Automatic badge triggers**: Milestones for points (100/500/1000) and attendance (1/5/10).
+- [x] **Level-up logic**: `Math.floor(points / 500) + 1`.
+- [x] **Challenges backend**: Tables, queries, mutations all implemented.
+- [x] **Badge Showcase UI**: Fully functional.
+- [x] **Leaderboard**: Server-side query.
+- [x] **Challenges Hub UI**: Fully functional with real-time updates, join/track functionality, and progress visualization.
+- [x] **`addPoints` auth check**: Admin-only access enforced to prevent unauthorized point awarding.
+- [x] **`users.awardPoints` admin check**: Restricted to admin role only, preventing self-award.
+- [ ] ⚠️ **`checkBadgeTriggers` uses fragile string matching** — `criteria.includes("100 points")` breaks if wording changes.
+- [ ] ⚠️ **Level formula duplicated** in 4+ files — should be a shared utility.
 
-### 9.7 Networking/Matchmaking
-- [x] **Connections persistence**: "Connect" button now calls `connections.sendRequest` mutation. Full accept/reject/remove flow.
-- [x] **"Discover All" tab**: Implemented real-time user discovery with search and connection management. Users can now browse all community members and send requests.
-- [x] **"My Connections" tab**: Fully functional — shows accepted connections, pending requests with accept/reject, sent requests with cancel.
-- [x] **`/matchmaking` route**: Dedicated AI matchmaking page implemented with personalized recommendations and strategy.
+### 9.7 Networking/Matchmaking ✅
+- [x] **Connections**: Full send/accept/reject/remove flow with notifications.
+- [x] **Discover tab**: Real-time user discovery with search.
+- [x] **My Connections tab**: Shows accepted, pending, sent requests.
+- [x] **Matchmaking route**: AI-powered recommendations.
 
-### 9.8 Analytics
-- [x] **Comprehensive dashboard is a stub**: Now wired to `events.getAnalytics` query — shows real total events, active events, users, registrations, events by category/status, recent activity stats.
-- [x] **Admin analytics growth/engagement tabs**: Implemented real-time charts using `recharts`. Growth tab shows user acquisition trends and persona distribution. Engagement tab shows interaction volume and event status breakdown.
-- [x] **Stakeholder sharing**: Implemented secure share links for real-time analytics. Organizers can generate unique tokens to give stakeholders read-only access to event stats. Added `reports/share/[token]` public route.
+**⚠️ Minor Issues:**
+- [ ] `connections.ts` uses `ctx.auth.getUserIdentity()` + email lookup instead of `auth.getUserId()` — inconsistent with all other files.
+- [ ] Code duplication between `networking-client.tsx` and `matchmaking-view.tsx`.
 
-### 9.9 Admin ✅
-- [x] **Event moderation**: Added `getEventsForModeration` query and `moderateEvent` mutation (approve/reject/suspend with notifications).
-- [x] **System settings persistence**: Added `system_settings` table with `getSettings`/`updateSetting` mutations.
-- [x] **Audit logging**: Added `audit_log` table with `logAuditAction` helper. All admin mutations log actions.
-- [x] **Dashboard stats**: Added `getDashboardStats` query returning real user/event/registration counts and breakdowns.
+### 9.8 Analytics ⚠️
+- [x] **Comprehensive dashboard**: Wired to `events.getAnalytics` with real data.
+- [x] **Admin analytics**: Real-time charts with `recharts`.
+- [x] **Stakeholder sharing**: Secure share links with token-based access.
+- [x] **Revenue dashboard**: Real data from `analytics.getOrganizerRevenue`.
+- [ ] ⚠️ **Trend percentages are hardcoded** — "+12.5% from last month", "+8.2%" in `revenue-dashboard.tsx` and "+12%" in `admin-analytics-overview.tsx` are fake strings, not calculated.
+- [ ] ⚠️ **`getSharedReport` can't increment view count** — it's a query (read-only) with a comment about view counting.
+- [ ] ⚠️ **No attendee demographics, engagement trends, or time-series growth** in analytics module.
+- [ ] ⚠️ **`events.getAnalytics` does 4 full table scans** — expensive at scale.
 
-### 9.10 Other Pages
-- [x] **Calendar page**: Created full calendar page at `src/app/(app)/calendar/page.tsx` with monthly grid view and event detail sidebar.
-- [x] **Search component**: Created `GlobalSearch` at `src/components/search/global-search.tsx` with Ctrl+K shortcut, live search, and event results.
-- [x] **Export functionality**: Implemented CSV and JSON export for "My Events" and "My Tickets" in `ExportFunctionality`. Users can now download their data for external analysis.
-- [x] **User preferences**: Full notification preferences panel with 5 toggles (email, push, event reminders, community updates, marketing) persisted to `notificationPreferences` on user. Privacy tab added.
-- [x] **Speaker dashboard (main)**: Integrated with real Convex data using `getBySpeaker` query. Displays real-time stats, upcoming sessions, and recent activity. Removed mock data.
-- [x] **n8n Automation**: Implemented `automations` table in Convex and wired the UI to real mutations. Workflows are now persisted, can be toggled, and deleted. Removed local-only state.
+### 9.9 Admin ⚠️
+- [x] **Event moderation backend**: `getEventsForModeration` + `moderateEvent` mutations.
+- [x] **Audit logging**: `audit_log` table, `logAuditAction` helper used throughout.
+- [x] **Dashboard stats**: `getDashboardStats` returns real counts.
+- [ ] ❌ **Event moderation UI is a placeholder** — `event-moderation.tsx` renders "Moderation features coming soon" only.
+- [ ] ❌ **System settings don't persist** — `system-settings.tsx` uses `setTimeout` to fake save. All settings are ephemeral local state. Comment says "Placeholder for Convex settings mutation" despite backend `getSettings`/`updateSetting` existing.
+- [ ] ⚠️ **`admin/page.tsx` checks for `role === 'organizer'`** but should check for `'admin'` role.
+- [ ] ⚠️ **No pagination** on `getUsers` or `getEventsForModeration`.
+- [ ] ⚠️ **`getDashboardStats` and `getDetailedAnalytics` do multiple full table scans**.
+
+### 9.10 Other Pages & Features
+
+#### Calendar ✅
+- [x] Full calendar page at `/calendar` with monthly grid view, event detail sidebar, `date-fns` navigation. Uses Convex `api.events.get`.
+
+#### Search ⚠️
+- [x] **Global search component**: `Ctrl+K` shortcut, dropdown results, click-to-navigate.
+- [ ] ⚠️ **Client-side only** — loads ALL events and filters in `useMemo`. Won't scale.
+- [ ] ⚠️ **Only searches events** — no users, communities, or other entity search.
+- [ ] ❌ **`/search` route directory exists but has NO `page.tsx`** — will 404.
+
+#### Export ✅
+- [x] CSV and JSON export for events and tickets. Fully functional.
+
+#### User Preferences ✅
+- [x] Notification preferences panel with 5 toggles. Persists to Convex.
+
+#### Speaker Dashboard ⚠️
+- [x] Integrated with real Convex data using `getBySpeaker` query.
+- [ ] ⚠️ **`averageRating: 4.8` is hardcoded** in speaker page (acknowledged in comment).
+
+#### n8n Automation ❌ (Deceptive)
+- [x] UI creates, toggles, and deletes automations via Convex mutations.
+- [ ] ❌ **Automations NEVER EXECUTE** — pure CRUD storage. No trigger evaluation, no action runner, no execution engine. `runCount`, `successCount`, `errorCount` fields exist but are never incremented.
+- [ ] 🟡 **`toggle` and `deleteAutomation` have no ownership check** — any user can modify any automation.
+- [ ] ⚠️ **`n8nConnected` is hardcoded `true`** — connection status always shows "connected".
+
+#### Groups ❌
+- [ ] ❌ **Pure placeholder** — `groups-client.tsx` shows "Interest Groups are being migrated to our new platform." with a disabled "Create Group" button.
+
+#### Map ❌
+- [ ] ❌ **`/map` route directory exists but has NO `page.tsx`** — will 404. Component `interactive-campus-map.tsx` exists but is never routed to.
+
+#### Integrations ❌
+- [ ] ❌ **`/integrations` route directory exists but has NO `page.tsx`** — will 404.
 
 ---
 
-## Phase 10: Code Quality & Architecture Improvements 🔧
+## 🔴 Phase 10: BUILD-BREAKING BUGS (Found in Audit)
 
-### 10.1 Type Safety
-- [x] Remove all `any` casts in Convex function handlers — use typed `ctx` and `args`.
-- [x] Define proper Zod schemas for `location`, `agenda`, and `eventRatings` instead of `v.any()`. (Used Convex validators — `locationValidator` and `agendaValidator`).
-- [x] Clean up legacy type aliases (`uid`, `photoURL`, `date`, `time`) in `types/index.ts`.
-- [x] Remove placeholder functions in `auth-context.tsx` (`login`, `addEventToUser`, `removeEventFromUser`).
+> These will crash at runtime. Must fix before deployment.
 
-### 10.2 Performance
-- [x] Fix N+1 queries: `gamification.ts getUserBadges` and `events.ts getAttendees` now use optimized mapping/Promise.all instead of loops.
-- [x] Add pagination and optimized indexing to critical `.collect()` queries (events, users, chat, notifications).
-- [x] Add missing database indexes: `chat_rooms.by_participants`, `notifications.by_user_read`, `events.by_status_endDate`, `users.by_role_points`, `room_members.by_user_room`.
-- [x] Added Search Indexes for `users` and `events`.
-- [x] Dynamic imports for heavy libraries: `html5-qrcode`.
+- [ ] 🔴 **Missing `internal` import in `convex/events.ts`** — uses `internal.webhooks.trigger` without importing `internal` from `"./_generated/api"`. `ReferenceError` at runtime when canceling events.
+- [ ] 🔴 **Missing `internal` import in `convex/registrations.ts`** — same issue. Crashes during registration webhook trigger.
+- [ ] 🔴 **Missing `internal` import in `convex/tickets.ts`** — same issue. Crashes during ticket check-in webhook trigger.
+- [x] ✅ **`event-summarizer.ts` import fixed** — Now uses correct `ai` import from `@/ai/genkit` instead of non-existent `gpt4o`.
+- [x] ✅ **`event-planner.ts` null handling fixed** — Replaced `output!` non-null assertion with proper error handling.
+
+---
+
+## 🟡 Phase 11: SECURITY VULNERABILITIES (Found in Audit)
+
+> Auth/permission gaps that allow unauthorized actions.
+
+- [ ] 🟡 **`events.create` — no auth check**: Unauthenticated users can create events.
+- [ ] 🟡 **`createTicket` — no auth check**: Accepts raw `userId` from any caller.
+- [x] ✅ **`gamification.addPoints` — auth fixed**: Admin-only access enforced.
+- [x] ✅ **`users.awardPoints` — admin check added**: Restricted to admin role only.
+- [ ] 🟡 **`users.list` — exposes all users without auth**: Potential data leak.
+- [ ] 🟡 **`files.generateUploadUrl` — no auth check**: Anyone can get upload URLs.
+- [ ] 🟡 **`notifications.deleteNotification` — no ownership check**: Any user can delete any notification.
+- [ ] 🟡 **`moderation.flagPost` — no permission check**: Comment says "admins only" but not enforced.
+- [ ] 🟡 **`automations.toggle/deleteAutomation` — no ownership check**: Any user can modify any automation.
+- [ ] 🟡 **`announcements.deactivate` — no organizer check**: Only verifies auth, not ownership.
+- [ ] 🟡 **`discounts.deactivate` — no organizer/admin check**: Only verifies auth.
+- [ ] 🟡 **`certificates.issue` — no auth check**: Any caller can issue certificates.
+- [ ] 🟡 **AI API routes have no auth or rate limiting**: `/api/ai/*` endpoints are public — anyone can burn API quota.
+- [ ] 🟡 **Webhook signature is plaintext secret** — not HMAC-signed. Insecure.
+- [ ] 🟡 **Middleware auth relies on cookies only** — no JWT signature verification. UX convenience, not security boundary.
+
+---
+
+## Phase 12: PLACEHOLDER/FAKE COMPONENTS (Found in Audit)
+
+> Components that LOOK complete but use hardcoded/mock data.
+
+### 12.1 High Priority — Deceptive Placeholders
+- [ ] ❌ **`attendee-dashboard.tsx`** — The default logged-in user dashboard. `FEATURED_EVENTS` (3 events with unsplash images, fake "98% Match" scores), `MY_UPCOMING` (2 events), and "Quick Connect" (3 identical "Alex Johnson" with `i.pravatar.cc` avatars) are ALL hardcoded arrays. Convex `registrations` query result is fetched but **never rendered**. Hero text shows fake event counts.
+- [ ] ❌ **`system-settings.tsx`** — Beautiful settings UI with tabs, forms, feature toggles. But `handleSave` uses `setTimeout(() => toast('Settings Saved'), 1000)` — a fake save. No Convex mutation called despite backend `getSettings`/`updateSetting` existing.
+- [ ] ❌ **`event-moderation.tsx`** — Tab headers and layout exist, content is "Moderation features coming soon". Backend `getEventsForModeration`/`moderateEvent` exist but UI doesn't use them.
+- [x] ✅ **`challenges-hub.tsx` — FIXED** — Now fully functional with real-time challenge display, join/track functionality, progress bars, and completion status.
+- [ ] ❌ **`groups-client.tsx`** — "Interest Groups are being migrated" — disabled Create button, no functionality.
+
+### 12.2 Medium Priority — Partially Fake Data
+- [ ] ⚠️ **`revenue-dashboard.tsx`** — Real Convex data for totals/charts, but trend indicators ("+12.5%", "+8.2%") are hardcoded strings.
+- [ ] ⚠️ **`admin-analytics-overview.tsx`** — Real stats but "+12%" growth is hardcoded.
+- [ ] ⚠️ **`users.getEngagementScore`** — Returns hardcoded `percentile: 85` (mock value).
+- [ ] ⚠️ **`n8n-automation.tsx`** — `n8nConnected` hardcoded to `true`.
+- [ ] ⚠️ **`recommended-sessions.tsx`** — Uses static `SESSIONS` from `@/core/data/data` (legacy data), though AI matching is real.
+- [ ] ⚠️ **Speaker dashboard `averageRating: 4.8`** — hardcoded.
+
+---
+
+## Phase 13: TESTING GAPS (Found in Audit)
+
+> Test infrastructure exists but tests don't verify production code.
+
+### 13.1 Unit Tests — Self-Contained (Not Testing App Code)
+- [ ] ⚠️ **`gamification.test.ts` (440 lines)** — All business logic (point calculation, badge eligibility, leaderboard, streaks) is defined **inline in the test file**, not imported from production code. Tests pass but verify nothing about the app.
+- [ ] ⚠️ **`registration.test.ts` (329 lines)** — Same pattern: `validateRegistration`, `createRegistration`, `calculateRegistrationStats` defined inline. Functions don't exist in production code.
+- [ ] ⚠️ **`validation.test.ts` (454 lines)** — All validators (email, password, username, phone, URL, date, capacity, price) defined inline. Comprehensive tests of functions that aren't in the app.
+- [ ] **Need**: Write actual unit tests that import and test real Convex functions and utility modules.
+
+### 13.2 E2E Tests — Can't Actually Authenticate
+- [ ] ⚠️ **`user-journey.spec.ts` (367 lines)** — Expects email/password login at `/auth/login`, but app only has Google OAuth. Uses `localStorage.setItem('currentUser', ...)` to mock auth, but app uses Convex Auth. Every assertion wrapped in `if (visible)` guards — tests pass even when elements don't exist.
+- [ ] ⚠️ **`check-in-flow.spec.ts` (302 lines)** — Same auth mocking issue. Most assertions are tautological ("if visible, expect visible").
+- [ ] ⚠️ **`organizer-features.spec.ts` (389 lines)** — Same pattern. Tests verify pages don't crash, not that features work.
+- [ ] **Need**: Rewrite E2E tests with proper Convex Auth test setup and real assertions.
+
+---
+
+## Phase 14: PERFORMANCE CONCERNS (Found in Audit)
+
+> Queries that will break at scale.
+
+- [ ] **`events.get` — returns ALL events** with no limit.
+- [ ] **`events.getAnalytics` — 4 full table scans** (events, registrations, users, reviews).
+- [ ] **`admin.getDashboardStats` — multiple full table scans**.
+- [ ] **`admin.getDetailedAnalytics` — multiple full table scans**.
+- [ ] **`admin.getUsers` — full scan + in-memory filter** for role and search (no index usage).
+- [ ] **`communities.list` — no pagination**, loads all communities.
+- [ ] **`posts.list` — loads ALL posts** globally, no pagination.
+- [ ] **`notifications.get` — loads ALL user notifications**, no limit.
+- [ ] **DM room dedup** in `chat.createRoom` loads ALL direct rooms into memory.
+- [ ] **`chat.getMessages` — loads ALL messages** for a room (no pagination).
+- [ ] **`global-search.tsx` — client-side search** loads all events into memory.
+- [ ] **Missing indexes** on `badges`, `communities`, `challenges` tables (full `.collect()` on every query).
+- [ ] **Missing `by_storageId` index on `files`** — `getMetadata` does full table filter.
+- [ ] **`chat_rooms.by_participants` index on array field** — won't work as expected in Convex.
+
+---
+
+## Phase 15: MISSING FEATURES & EMPTY ROUTES (Found in Audit)
+
+> Directories that exist but have no content.
+
+### 15.1 Empty Route Directories (will 404)
+- [ ] `/search` — directory exists, no `page.tsx`
+- [ ] `/map` — directory exists, no `page.tsx` (component exists at `src/components/map/`)
+- [ ] `/integrations` — directory exists, no `page.tsx`
+
+### 15.2 Empty Component Directories
+- [ ] `src/components/calendar/` — empty (calendar is inline in page.tsx)
+- [ ] `src/components/scraper/` — empty
+- [ ] `src/components/notation/` — empty
+
+### 15.3 Empty Feature Directories
+- [ ] `src/features/admin/` — empty
+- [ ] `src/features/analytics/` — empty
+- [ ] `src/features/integrations/` — empty
+- [ ] `src/features/notifications/` — empty
+
+### 15.4 Missing Functionality
+- [ ] **No email/password auth** — Google OAuth only, no fallback.
+- [ ] **No Stripe refund integration** — ticket cancellation sets status but no refund.
+- [ ] **No QR code storage** — `qrCode` field in schema never populated server-side.
+- [ ] **No real push notifications** — only in-browser `Notification` API (requires tab open). No FCM/APNs.
+- [ ] **`discussions.like` has no dedup** — users can like infinitely (no tracking).
+- [ ] **No post editing** in community posts.
+- [ ] **No announcement editing** — only create and deactivate.
+- [ ] **No poll deletion** mutation.
+- [ ] **No file deletion** mutation in `files.ts`.
+- [ ] **Activity feed `logActivity` rarely called** from other mutations — feed is mostly empty.
+- [ ] **`moderation.ts` has only 1 function** (`flagPost`) — no unflag, review queue, or automated scanning.
+
+---
+
+## Phase 16: CODE QUALITY & ARCHITECTURE (Updated)
+
+### 16.1 Type Safety
+- [x] Convex functions use typed `ctx` and `args` (except `files.ts`).
+- [x] Schema uses typed validators for `location` and `agenda`.
+- [x] Legacy type aliases cleaned.
+- [ ] ⚠️ `files.ts` still uses `any` for ctx and args.
+- [ ] ⚠️ `Event.location` and `Event.agenda` typed as `any` in `types/index.ts`.
+- [ ] ⚠️ `getUserSkills()` stub returning `[]`.
+- [ ] ⚠️ Auth hook `updateUser` accepts `data: any`.
+
+### 16.2 Performance
+- [x] N+1 queries fixed in gamification and events.
+- [x] Pagination on some queries (events list, chat messages, notifications).
+- [x] Search indexes for `users` and `events`.
+- [x] Dynamic imports for `html5-qrcode`.
+- [ ] See Phase 14 for remaining performance issues.
 - [ ] Audit and remove unused dependencies from `package.json`.
 
-### 10.3 Error Handling & UX ✅
-- [x] Add `error.tsx` files to app route segments for graceful error recovery.
-- [x] Add `loading.tsx` files with skeleton UIs for proper Suspense boundaries.
-- [x] Add React Error Boundaries for client component crash isolation. (`ErrorBoundary` component + wrapped in app layout).
+### 16.3 Error Handling & UX ✅
+- [x] `error.tsx` in app routes.
+- [x] `loading.tsx` with skeletons (events, chat, community + global fallback).
+- [x] React Error Boundaries.
+- [ ] ⚠️ Most routes rely on global loading/error — only 3 routes have their own.
 
-### 10.4 Security
-- [ ] Middleware auth validation: Currently only checks cookie existence, not token validity.
-- [ ] Rate limiting: In-memory store won't work in serverless. Migrate to Redis or Upstash.
-- [ ] Input validation on Convex mutations beyond type checking (business rule validation).
+### 16.4 Security
+- [ ] Middleware auth validation: Cookie-only, no JWT signature verification.
+- [ ] Rate limiting: In-memory store won't work in serverless. Need Redis/Upstash.
+- [ ] See Phase 11 for all auth/permission gaps.
+- [ ] Rate limit config exists (`core/utils/rate-limit.ts` with `ai` preset) but is NEVER applied.
+
+### 16.5 Naming & Branding
+- [ ] ⚠️ **`package.json` name is `"nextn"`** — not renamed to Eventra.
+- [ ] ⚠️ **Logo component shows "EventOS"** instead of "Eventra" (`src/components/shared/logo.tsx`).
+- [ ] ⚠️ **`eventos-config.ts`** references OpenAI models (`gpt-4o`, `gpt-4o-mini`) that are never used.
+- [ ] ⚠️ **i18n partially applied** — many hardcoded English strings in header, sidebar, onboarding.
+- [ ] ⚠️ **Toast remove delay is ~16 minutes** (`TOAST_REMOVE_DELAY = 1000000`) — likely debug leftover.
+
+---
+
+## Priority Action Plan
+
+### P0 — Must Fix (Build/Runtime Breaking)
+1. [x] ✅ **AI flow imports fixed** — All flows now use consistent Pattern A with `ai.defineFlow()` from `@/ai/genkit`
+2. [x] ✅ **event-summarizer.ts fixed** — Removed non-existent `gpt4o` import
+3. [x] ✅ **event-planner.ts null handling** — Replaced `output!` with proper error handling
+4. Add `internal` import to `convex/events.ts`, `convex/registrations.ts`, `convex/tickets.ts`
+5. [x] ✅ **Auth checks added** — `addPoints` and `awardPoints` now admin-only
+6. [ ] Add auth checks to `events.create`, `createTicket`, `certificates.issue`
+7. [x] ✅ **Challenges Hub implemented** — Fully functional UI connected to backend
+
+### P1 — Should Fix (Security & Core UX)
+1. Add auth/rate limiting to AI API routes
+2. Wire `system-settings.tsx` to existing Convex backend
+3. Wire `event-moderation.tsx` to existing Convex backend
+4. [x] ✅ **Challenges Hub wired** — Fully functional with backend integration
+5. Add ownership checks to all mutations missing them (see Phase 11)
+6. Add pagination to `events.get`, `communities.list`, `posts.list`, `notifications.get`
+
+### P2 — Should Improve (Quality)
+1. Rewrite unit tests to import and test actual production code
+2. Rewrite E2E tests with proper Convex Auth integration
+3. Replace hardcoded analytics trend percentages with real calculations
+4. Add `page.tsx` to empty route directories or remove them
+5. Consolidate duplicate AI action layers
+6. Fix branding (package.json name, logo component)
+7. Apply i18n to all hardcoded English strings
+8. Add dedicated leaderboard query instead of fetching all users
+
+### P3 — Nice to Have
+1. Add email/password auth provider
+2. Implement real push notifications (FCM)
+3. Add Stripe refund integration
+4. Build PDF certificate generation
+5. Add community join-request/approval flow for private communities
+6. Implement automation execution engine
+7. Create groups feature
+8. Add file type/size validation on uploads
+9. Add `optionIndex` bounds validation in polls
+10. Extract shared level-up formula utility
 - [ ] Add CSRF protection for server actions.
 
 ### 10.5 Code Cleanup

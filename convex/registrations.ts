@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query, internalMutation } from "./_generated/server";
 import { auth } from "./auth";
+import { internal } from "./_generated/api";
 
 /**
  * Register for an event
@@ -148,6 +149,16 @@ export const register = mutation({
       read: false,
       createdAt: Date.now(),
       link: `/tickets`,
+    });
+
+    // Log to Activity Feed
+    await ctx.db.insert("activity_feed", {
+      userId,
+      type: "registration",
+      title: `Registered for ${event.title}`,
+      description: isWaitlisted ? "Joined the waitlist" : "Ticket confirmed",
+      createdAt: Date.now(),
+      link: `/events/${args.eventId}`,
     });
 
     // Trigger email confirmation

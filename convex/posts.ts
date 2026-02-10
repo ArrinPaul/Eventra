@@ -3,17 +3,18 @@ import { mutation, query } from "./_generated/server";
 import { auth } from "./auth";
 
 export const list = query({
-  args: {},
-  handler: async (ctx) => {
+  args: { paginationOpts: v.paginationOpts() },
+  handler: async (ctx, args) => {
     const userId = await auth.getUserId(ctx);
-    const posts = await ctx.db
+    const results = await ctx.db
       .query("community_posts")
       .filter((q) => q.neq(q.field("isFlagged"), true))
       .order("desc")
-      .collect();
+      .paginate(args.paginationOpts);
+
     // Enrich with author info
     const enriched = [];
-    for (const post of posts) {
+    for (const post of results.page) {
       const author = await ctx.db.get(post.authorId);
       const commentCount = (await ctx.db
         .query("comments")
@@ -38,7 +39,8 @@ export const list = query({
         meLiked,
       });
     }
-    return enriched;
+    
+    return { ...results, page: enriched };
   },
 });
 
@@ -79,6 +81,13 @@ export const create = mutation({
     const userId = await auth.getUserId(ctx);
     if (!userId) throw new Error("Unauthorized");
 
+    // Check membership
+    const membership = await ctx.db
+      .query("community_members")
+      .withIndex("by_community_user", (q) => q.eq("communityId", args.communityId).eq("userId", userId))
+      .unique();
+    if (!membership) throw new Error("You must be a member of this community to post");
+
     const postId = await ctx.db.insert("community_posts", {
       communityId: args.communityId,
       authorId: userId,
@@ -88,7 +97,44 @@ export const create = mutation({
       createdAt: Date.now(),
     });
 
+    // Log to Activity Feed
+    const community = await ctx.db.get(args.communityId);
+    await ctx.db.insert("activity_feed", {
+      userId,
+      type: "post_created",
+      title: "Shared a new post",
+      description: community ? `In ${community.name}` : undefined,
+      createdAt: Date.now(),
+      link: `/community/${args.communityId}`,
+    });
+
+    // Trigger Challenge Progress
+    const { api } = await import("./_generated/api");
+    await ctx.scheduler.runAfter(0, (api as any).gamification.triggerChallengeProgress, {
+      userId,
+      type: "engagement",
+    });
+
     return postId;
+  },
+});
+
+export const update = mutation({
+  args: {
+    id: v.id("community_posts"),
+    content: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const userId = await auth.getUserId(ctx);
+    if (!userId) throw new Error("Unauthorized");
+
+    const post = await ctx.db.get(args.id);
+    if (!post) throw new Error("Post not found");
+    if (post.authorId !== userId) throw new Error("Not your post");
+
+    await ctx.db.patch(args.id, {
+      content: args.content,
+    });
   },
 });
 
@@ -191,6 +237,17 @@ export const addComment = mutation({
   handler: async (ctx, args) => {
     const userId = await auth.getUserId(ctx);
     if (!userId) throw new Error("Unauthorized");
+
+    const post = await ctx.db.get(args.postId);
+    if (!post) throw new Error("Post not found");
+
+    // Check membership
+    const membership = await ctx.db
+      .query("community_members")
+      .withIndex("by_community_user", (q) => q.eq("communityId", post.communityId).eq("userId", userId))
+      .unique();
+    if (!membership) throw new Error("You must be a member of this community to comment");
+
     return await ctx.db.insert("comments", {
       postId: args.postId,
       authorId: userId,

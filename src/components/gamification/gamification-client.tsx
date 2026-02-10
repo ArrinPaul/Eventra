@@ -4,12 +4,13 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Trophy, Star, Zap, Target, History, Award, Loader2 } from 'lucide-react';
+import { Trophy, Star, Zap, Target, History, Award, Loader2, ListChecks } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { useQuery } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/core/utils/utils';
+import { ChallengesHub } from './challenges-hub';
 
 export function GamificationClient() {
   const { user } = useAuth();
@@ -48,6 +49,7 @@ export function GamificationClient() {
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList className="bg-white/5 border-white/10 text-white">
           <TabsTrigger value="overview" className="gap-2"><Target size={16} /> Overview</TabsTrigger>
+          <TabsTrigger value="challenges" className="gap-2"><ListChecks size={16} /> Challenges</TabsTrigger>
           <TabsTrigger value="badges" className="gap-2"><Award size={16} /> Badges</TabsTrigger>
           <TabsTrigger value="history" className="gap-2"><History size={16} /> History</TabsTrigger>
         </TabsList>
@@ -95,6 +97,10 @@ export function GamificationClient() {
               </CardContent>
             </Card>
           </div>
+        </TabsContent>
+
+        <TabsContent value="challenges">
+          <ChallengesHub />
         </TabsContent>
 
         <TabsContent value="badges">

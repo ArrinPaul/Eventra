@@ -91,7 +91,11 @@ Return a well-structured, professional agenda that event organizers can use dire
       },
     });
 
-    return llmResponse.output!;
+    if (!llmResponse.output) {
+      throw new Error('Failed to generate event agenda');
+    }
+    
+    return llmResponse.output;
   }
 );
 
@@ -156,7 +160,11 @@ Create 15-25 actionable checklist items that cover all critical aspects of ${eve
       },
     });
 
-    return llmResponse.output!;
+    if (!llmResponse.output) {
+      throw new Error('Failed to generate event checklist');
+    }
+    
+    return llmResponse.output;
   }
 );
 

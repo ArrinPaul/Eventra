@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { 
-  Plus, Heart, MessageCircle, Share2, Loader2, Search
+  Plus, Heart, MessageCircle, Share2, Loader2, Search, MoreVertical, Edit2, Trash2
 } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { useQuery, useMutation } from 'convex/react';
@@ -16,6 +16,12 @@ import { api } from '../../../convex/_generated/api';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/core/utils/utils';
 import { CommentSection } from './comment-section';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 export default function FeedClient() {
   const { user } = useAuth();
@@ -23,10 +29,15 @@ export default function FeedClient() {
   
   const postsRaw = useQuery(api.posts.list) || [];
   const createPostMutation = useMutation(api.posts.create);
+  const updatePostMutation = useMutation(api.posts.update);
+  const deletePostMutation = useMutation(api.posts.deletePost);
   const likePostMutation = useMutation(api.posts.like);
   
   const [showCreatePost, setShowCreatePost] = useState(false);
+  const [showEditPost, setShowEditPost] = useState(false);
+  const [editingPost, setEditingPost] = useState<any>(null);
   const [newPostContent, setNewPostContent] = useState('');
+  const [editPostContent, setEditPostContent] = useState('');
   const [loading, setLoading] = useState(false);
   const [expandedComments, setExpandedComments] = useState<Record<string, boolean>>({});
 
@@ -38,14 +49,46 @@ export default function FeedClient() {
     if (!newPostContent.trim()) return;
     setLoading(true);
     try {
-      await createPostMutation({ content: newPostContent });
+      // Note: This requires a communityId. For the global feed, we'll use a default community if needed,
+      // but usually the feed is scoped. For now, assuming first community or platform feed.
+      const communities = await (window as any).Convex.query(api.communities.list);
+      const defaultCommunityId = communities?.[0]?._id;
+      
+      if (!defaultCommunityId) throw new Error("No community found to post to");
+
+      await createPostMutation({ content: newPostContent, communityId: defaultCommunityId });
       setShowCreatePost(false);
       setNewPostContent('');
       toast({ title: 'Posted successfully' });
-    } catch (e) {
-      toast({ title: 'Failed to post', variant: 'destructive' });
+    } catch (e: any) {
+      toast({ title: 'Failed to post', description: e.message, variant: 'destructive' });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleUpdatePost = async () => {
+    if (!editPostContent.trim() || !editingPost) return;
+    setLoading(true);
+    try {
+      await updatePostMutation({ id: editingPost._id, content: editPostContent });
+      setShowEditPost(false);
+      setEditingPost(null);
+      toast({ title: 'Post updated' });
+    } catch (e: any) {
+      toast({ title: 'Update failed', variant: 'destructive' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeletePost = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this post?')) return;
+    try {
+      await deletePostMutation({ id: id as any });
+      toast({ title: 'Post deleted' });
+    } catch (e) {
+      toast({ title: 'Delete failed', variant: 'destructive' });
     }
   };
 
@@ -68,15 +111,45 @@ export default function FeedClient() {
         {postsRaw.map((post: any) => (
           <Card key={post._id} className="bg-white/5 border-white/10 text-white">
             <CardContent className="p-6">
-              <div className="flex gap-3 mb-4">
-                <Avatar>
-                  <AvatarImage src={post.authorImage} />
-                  <AvatarFallback>{post.authorName?.charAt(0) || 'U'}</AvatarFallback>
-                </Avatar>
-                <div>
-                  <p className="font-bold">{post.authorName || 'User'}</p>
-                  <p className="text-xs text-gray-500">{new Date(post.createdAt).toLocaleDateString()}</p>
+              <div className="flex justify-between items-start mb-4">
+                <div className="flex gap-3">
+                  <Avatar>
+                    <AvatarImage src={post.authorImage} />
+                    <AvatarFallback>{post.authorName?.charAt(0) || 'U'}</AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="font-bold">{post.authorName || 'User'}</p>
+                    <p className="text-xs text-gray-500">{new Date(post.createdAt).toLocaleDateString()}</p>
+                  </div>
                 </div>
+
+                {user?._id === post.authorId && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-white/10">
+                        <MoreVertical size={16} />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="bg-gray-900 border-white/10 text-white">
+                      <DropdownMenuItem 
+                        onClick={() => {
+                          setEditingPost(post);
+                          setEditPostContent(post.content);
+                          setShowEditPost(true);
+                        }}
+                        className="cursor-pointer"
+                      >
+                        <Edit2 className="w-4 h-4 mr-2" /> Edit
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        onClick={() => handleDeletePost(post._id)}
+                        className="cursor-pointer text-red-400 focus:text-red-400 focus:bg-red-400/10"
+                      >
+                        <Trash2 className="w-4 h-4 mr-2" /> Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
               </div>
               <p className="text-gray-200 whitespace-pre-wrap">{post.content}</p>
               <div className="flex gap-6 mt-6 pt-4 border-t border-white/10">
@@ -106,12 +179,25 @@ export default function FeedClient() {
         ))}
       </div>
 
+      {/* Create Post Dialog */}
       <Dialog open={showCreatePost} onOpenChange={setShowCreatePost}>
         <DialogContent className="bg-gray-900 border-white/10 text-white">
           <DialogHeader><DialogTitle>Create Post</DialogTitle></DialogHeader>
           <Textarea value={newPostContent} onChange={e => setNewPostContent(e.target.value)} placeholder="Share something..." className="bg-white/5 border-white/10" rows={4} />
           <DialogFooter>
             <Button onClick={handleCreatePost} disabled={loading}>{loading ? 'Posting...' : 'Post'}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Post Dialog */}
+      <Dialog open={showEditPost} onOpenChange={setShowEditPost}>
+        <DialogContent className="bg-gray-900 border-white/10 text-white">
+          <DialogHeader><DialogTitle>Edit Post</DialogTitle></DialogHeader>
+          <Textarea value={editPostContent} onChange={e => setEditPostContent(e.target.value)} placeholder="Update your post..." className="bg-white/5 border-white/10" rows={4} />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowEditPost(false)} disabled={loading}>Cancel</Button>
+            <Button onClick={handleUpdatePost} disabled={loading}>{loading ? 'Saving...' : 'Save Changes'}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

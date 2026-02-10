@@ -1,9 +1,7 @@
-import { defineFlow } from '@genkit-ai/next';
-import { googleai } from '@genkit-ai/googleai';
-import { z } from 'zod';
-import { generate } from '@genkit-ai/ai';
+import { ai } from '@/ai/genkit';
+import { z } from 'genkit';
 
-export const predictiveAttendanceFlow = defineFlow(
+export const predictiveAttendanceFlow = ai.defineFlow(
   {
     name: 'predictiveAttendanceFlow',
     inputSchema: z.object({
@@ -44,8 +42,7 @@ export const predictiveAttendanceFlow = defineFlow(
       Provide 3 insights into why you predicted this and 2 recommendations to improve attendance.
     `;
 
-    const { output } = await generate({
-      model: googleai('gemini-1.5-flash'),
+    const { output } = await ai.generate({
       prompt,
       output: {
         schema: z.object({

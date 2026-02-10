@@ -124,6 +124,13 @@ export const join = mutation({
     await ctx.db.patch(args.id, {
       membersCount: community.membersCount + 1,
     });
+
+    // Trigger Challenge Progress
+    const { api } = await import("./_generated/api");
+    await ctx.scheduler.runAfter(0, (api as any).gamification.triggerChallengeProgress, {
+      userId,
+      type: "social",
+    });
   },
 });
 

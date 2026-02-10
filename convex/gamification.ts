@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { auth } from "./auth";
+import { calculateLevel } from "./utils";
 
 /**
  * Get all badge definitions
@@ -54,6 +55,7 @@ export const getPointsHistory = query({
 
 /**
  * Standalone addPoints mutation – awards XP, updates level, logs history
+ * ADMIN ONLY - Manual point awarding for system/admin purposes
  */
 export const addPoints = mutation({
   args: {
@@ -62,13 +64,23 @@ export const addPoints = mutation({
     reason: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    // Auth check: Only admins or the system can award points manually
+    const callerId = await auth.getUserId(ctx);
+    if (callerId) {
+      const caller = await ctx.db.get(callerId);
+      if (!caller || caller.role !== "admin") {
+        throw new Error("Unauthorized: Only admins can award points manually");
+      }
+    }
+    // If callerId is null, allow system-level calls (e.g., from internal mutations)
+    
     const user = await ctx.db.get(args.userId);
     if (!user) throw new Error("User not found");
 
     const currentPoints = user.points ?? 0;
     const newPoints = currentPoints + args.points;
     const currentXp = (user.xp ?? 0) + args.points;
-    const newLevel = Math.floor(currentXp / 500) + 1;
+    const newLevel = calculateLevel(currentXp);
 
     await ctx.db.patch(args.userId, { points: newPoints, xp: currentXp, level: newLevel });
 
@@ -138,12 +150,22 @@ async function checkBadgeTriggers(ctx: any, userId: any, totalPoints: number) {
         createdAt: Date.now(),
         link: `/gamification`,
       });
+
+      await ctx.db.insert("activity_feed", {
+        userId,
+        type: "badge_earned",
+        title: `Earned the ${badge.name} badge!`,
+        description: badge.description,
+        createdAt: Date.now(),
+        link: `/gamification`,
+      });
     }
   }
 }
 
 /**
  * Award a badge to a user (manual)
+ * ADMIN ONLY - Manual badge awarding
  */
 export const awardBadge = mutation({
   args: {
@@ -151,6 +173,14 @@ export const awardBadge = mutation({
     badgeId: v.id("badges"),
   },
   handler: async (ctx, args) => {
+    // Auth check: Only admins can award badges manually
+    const callerId = await auth.getUserId(ctx);
+    if (!callerId) throw new Error("Unauthorized");
+    const caller = await ctx.db.get(callerId);
+    if (!caller || caller.role !== "admin") {
+      throw new Error("Unauthorized: Only admins can award badges manually");
+    }
+    
     const existing = await ctx.db
       .query("user_badges")
       .withIndex("by_user", (q) => q.eq("userId", args.userId))
@@ -174,6 +204,15 @@ export const awardBadge = mutation({
       message: `You've earned the ${badge.name} badge!`,
       type: "gamification",
       read: false,
+      createdAt: Date.now(),
+      link: `/gamification`,
+    });
+
+    await ctx.db.insert("activity_feed", {
+      userId: args.userId,
+      type: "badge_earned",
+      title: `Earned the ${badge.name} badge!`,
+      description: badge.description,
       createdAt: Date.now(),
       link: `/gamification`,
     });
@@ -277,7 +316,7 @@ export const updateChallengeProgress = mutation({
         const currentPoints = user.points ?? 0;
         const newPoints = currentPoints + challenge.xpReward;
         const currentXp = (user.xp ?? 0) + challenge.xpReward;
-        const newLevel = Math.floor(currentXp / 500) + 1;
+        const newLevel = calculateLevel(currentXp);
         await ctx.db.patch(userId, { points: newPoints, xp: currentXp, level: newLevel });
 
         await ctx.db.insert("points_history", {
@@ -286,6 +325,84 @@ export const updateChallengeProgress = mutation({
           reason: `Completed challenge: ${challenge.title}`,
           createdAt: Date.now(),
         });
+      }
+    }
+  },
+});
+
+/**
+ * Internal mutation to update challenge progress based on event triggers
+ * (e.g., attending an event, posting in a community)
+ */
+export const triggerChallengeProgress = mutation({
+  args: {
+    userId: v.id("users"),
+    type: v.string(), // "attendance", "engagement", "social"
+    increment: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const userChallenges = await ctx.db
+      .query("user_challenges")
+      .withIndex("by_user", (q) => q.eq("userId", args.userId))
+      .filter((q) => q.eq(q.field("completed"), false))
+      .collect();
+
+    if (userChallenges.length === 0) return;
+
+    for (const uc of userChallenges) {
+      const challenge = await ctx.db.get(uc.challengeId);
+      if (!challenge || challenge.type !== args.type) continue;
+
+      const newProgress = uc.progress + (args.increment || 1);
+      const isComplete = newProgress >= (challenge.target ?? 1);
+
+      await ctx.db.patch(uc._id, {
+        progress: newProgress,
+        completed: isComplete,
+        completedAt: isComplete ? Date.now() : undefined,
+      });
+
+      if (isComplete && challenge.xpReward) {
+        // Award XP on completion
+        const user = await ctx.db.get(args.userId);
+        if (user) {
+          const currentPoints = user.points ?? 0;
+          const newPoints = currentPoints + challenge.xpReward;
+          const currentXp = (user.xp ?? 0) + challenge.xpReward;
+          const newLevel = calculateLevel(currentXp);
+          
+          await ctx.db.patch(args.userId, { 
+            points: newPoints, 
+            xp: currentXp, 
+            level: newLevel 
+          });
+
+          await ctx.db.insert("points_history", {
+            userId: args.userId,
+            points: challenge.xpReward,
+            reason: `Completed challenge: ${challenge.title}`,
+            createdAt: Date.now(),
+          });
+
+          await ctx.db.insert("notifications", {
+            userId: args.userId,
+            title: "Challenge Completed! 🏆",
+            message: `You've completed the "${challenge.title}" challenge and earned ${challenge.xpReward} XP!`,
+            type: "gamification",
+            read: false,
+            createdAt: Date.now(),
+            link: `/gamification`,
+          });
+
+          await ctx.db.insert("activity_feed", {
+            userId: args.userId,
+            type: "challenge_completed",
+            title: `Completed ${challenge.title} challenge`,
+            description: `Earned ${challenge.xpReward} XP`,
+            createdAt: Date.now(),
+            link: `/gamification`,
+          });
+        }
       }
     }
   },
@@ -308,7 +425,7 @@ export const getProfile = query({
     ).length;
 
     const xp = (user as any).xp || (user as any).points || 0;
-    const level = Math.floor(xp / 500) + 1;
+    const level = calculateLevel(xp);
 
     return {
       xp,

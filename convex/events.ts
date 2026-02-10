@@ -1,6 +1,7 @@
 import { query, mutation, internalMutation } from "./_generated/server";
 import { v } from "convex/values";
 import { auth } from "./auth";
+import { internal } from "./_generated/api";
 
 const locationValidator = v.optional(v.union(
   v.string(),

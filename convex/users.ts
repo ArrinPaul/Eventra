@@ -1,6 +1,7 @@
 import { mutation, query } from "./_generated/server";
 import { auth } from "./auth";
 import { v } from "convex/values";
+import { calculateLevel } from "./utils";
 
 export const viewer = query({
   args: {},
@@ -52,15 +53,25 @@ export const update = mutation({
   },
 });
 
+/**
+ * Self-award points - DEPRECATED
+ * This allows users to award themselves points which is a security issue.
+ * Use gamification.addPoints with admin auth instead.
+ */
 export const awardPoints = mutation({
   args: { points: v.number(), reason: v.optional(v.string()) },
   handler: async (ctx, args) => {
     const userId = await auth.getUserId(ctx);
     if (!userId) throw new Error("Not authenticated");
+    
+    // Security check: Only allow admins to use this function
     const user = await ctx.db.get(userId);
+    if (!user || user.role !== "admin") {
+      throw new Error("Unauthorized: Only admins can award points");
+    }
     if (!user) throw new Error("User not found");
     const currentXp = (user.xp || 0) + args.points;
-    const newLevel = Math.floor(currentXp / 500) + 1;
+    const newLevel = calculateLevel(currentXp);
     await ctx.db.patch(userId, {
       points: (user.points || 0) + args.points,
       xp: currentXp,

@@ -1,9 +1,7 @@
-import { defineFlow } from '@genkit-ai/next';
-import { googleai } from '@genkit-ai/googleai';
-import { z } from 'zod';
-import { generate } from '@genkit-ai/ai';
+import { ai } from '@/ai/genkit';
+import { z } from 'genkit';
 
-export const socialMediaPostFlow = defineFlow(
+export const socialMediaPostFlow = ai.defineFlow(
   {
     name: 'socialMediaPostFlow',
     inputSchema: z.object({
@@ -39,8 +37,7 @@ export const socialMediaPostFlow = defineFlow(
       Include relevant hashtags for each.
     `;
 
-    const { output } = await generate({
-      model: googleai('gemini-1.5-flash'),
+    const { output } = await ai.generate({
       prompt,
       output: {
         schema: z.object({

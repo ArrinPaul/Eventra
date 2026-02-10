@@ -1,9 +1,7 @@
-import { defineFlow } from '@genkit-ai/next';
-import { gpt4o, googleai } from '@genkit-ai/googleai';
-import { z } from 'zod';
-import { generate } from '@genkit-ai/ai';
+import { ai } from '@/ai/genkit';
+import { z } from 'genkit';
 
-export const eventSummarizerFlow = defineFlow(
+export const eventSummarizerFlow = ai.defineFlow(
   {
     name: 'eventSummarizerFlow',
     inputSchema: z.object({
@@ -28,15 +26,13 @@ export const eventSummarizerFlow = defineFlow(
       Attendees: ${input.attendeeCount}
       
       Feedback from attendees:
-      ${input.feedback?.join('
-') || 'No specific feedback provided.'}
+      ${input.feedback?.join('\n') || 'No specific feedback provided.'}
       
       The summary should be engaging, informative, and suitable for sharing with stakeholders or on social media.
       Include a general summary paragraph, 3-5 key highlights, and 3 key takeaways.
     `;
 
-    const { output } = await generate({
-      model: googleai('gemini-1.5-flash'),
+    const { output } = await ai.generate({
       prompt,
       output: {
         schema: z.object({
