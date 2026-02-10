@@ -10,7 +10,8 @@ export const register = mutation({
   args: { 
     eventId: v.id("events"), 
     status: v.optional(v.string()),
-    tierName: v.optional(v.string())
+    tierName: v.optional(v.string()),
+    discountId: v.optional(v.id("discount_codes"))
   },
   handler: async (ctx, args) => {
     const userId = await auth.getUserId(ctx);
@@ -33,10 +34,21 @@ export const register = mutation({
          // Upgrade pending to confirmed if called from webhook/success
          await ctx.db.patch(existing._id, { status: 'confirmed' });
          if (existing.ticketId) await ctx.db.patch(existing.ticketId, { status: 'confirmed' });
+         
+         // If discount was applied, increment it now
+         if (args.discountId) {
+           const code = await ctx.db.get(args.discountId);
+           if (code) await ctx.db.patch(args.discountId, { usedCount: code.usedCount + 1 });
+         }
+
          return existing._id;
       }
       return existing._id;
     }
+
+    // Capacity enforcement
+    // ...
+    // (I need to keep the code in between, so I'll be more precise)
 
     // Capacity enforcement
     let isFull = event.registeredCount >= event.capacity;
@@ -81,6 +93,11 @@ export const register = mutation({
       registrationDate: Date.now(),
       ticketId,
     });
+
+    if (args.discountId && status === 'confirmed') {
+      const code = await ctx.db.get(args.discountId);
+      if (code) await ctx.db.patch(args.discountId, { usedCount: code.usedCount + 1 });
+    }
 
     if (!isWaitlisted) {
       // Update global count

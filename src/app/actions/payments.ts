@@ -11,7 +11,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
-export async function createCheckoutSession(eventId: string, userId: string, tierName?: string) {
+export async function createCheckoutSession(eventId: string, userId: string, tierName?: string, discountCode?: string) {
   try {
     // 1. Get event details
     const event = await convex.query(api.events.getById, { id: eventId as any });
@@ -30,7 +30,29 @@ export async function createCheckoutSession(eventId: string, userId: string, tie
 
     if (!price || price <= 0) throw new Error('Event or tier is free');
 
-    // 2. Create Stripe Checkout Session
+    // 2. Validate Discount Code if provided
+    let discountAmount = 0;
+    let appliedCodeId = null;
+
+    if (discountCode) {
+      const validation = await convex.query(api.discounts.validate, { 
+        code: discountCode, 
+        eventId: eventId as any 
+      });
+
+      if (validation.valid && validation.value) {
+        if (validation.type === 'percentage') {
+          discountAmount = (price * validation.value) / 100;
+        } else {
+          discountAmount = validation.value;
+        }
+        appliedCodeId = validation.id;
+      }
+    }
+
+    const finalPrice = Math.max(0, price - discountAmount);
+
+    // 3. Create Stripe Checkout Session
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: [
@@ -42,18 +64,19 @@ export async function createCheckoutSession(eventId: string, userId: string, tie
               description: description,
               images: event.imageUrl ? [event.imageUrl] : [],
             },
-            unit_amount: Math.round(price * 100), // Stripe expects cents
+            unit_amount: Math.round(finalPrice * 100), // Stripe expects cents
           },
           quantity: 1,
         },
       ],
       mode: 'payment',
-      success_url: `${envConfig.siteUrl}/ticketing/success?session_id={CHECKOUT_SESSION_ID}&event_id=${eventId}${tierName ? `&tier=${encodeURIComponent(tierName)}` : ''}`,
+      success_url: `${envConfig.siteUrl}/ticketing/success?session_id={CHECKOUT_SESSION_ID}&event_id=${eventId}${tierName ? `&tier=${encodeURIComponent(tierName)}` : ''}${appliedCodeId ? `&discountId=${appliedCodeId}` : ''}`,
       cancel_url: `${envConfig.siteUrl}/events/${eventId}`,
       metadata: {
         eventId,
         userId,
         tierName: tierName || "",
+        discountId: appliedCodeId || "",
       },
     });
 

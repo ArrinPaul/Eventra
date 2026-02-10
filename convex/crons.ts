@@ -10,4 +10,10 @@ crons.interval(
   internal.events.autoCompletePastEvents
 );
 
+crons.daily(
+  "send event reminders",
+  { hourUTC: 4, minuteUTC: 0 }, // 4 AM UTC
+  internal.reminders.checkAndSendReminders
+);
+
 export default crons;

@@ -35,6 +35,16 @@ export const issue = mutation({
       link: `/certificates`,
     });
 
+    // Email Trigger
+    await ctx.db.insert("notifications", {
+      userId: args.userId,
+      title: "Certificate Email",
+      message: `CERTIFICATE_EMAIL:${args.eventId}:${args.certificateNumber}`,
+      type: "email",
+      read: false,
+      createdAt: Date.now(),
+    });
+
     return certId;
   },
 });
@@ -83,6 +93,17 @@ export const bulkIssue = mutation({
         createdAt: Date.now(),
         link: `/certificates`,
       });
+
+      // Email Trigger
+      await ctx.db.insert("notifications", {
+        userId: reg.userId,
+        title: "Certificate Email",
+        message: `CERTIFICATE_EMAIL:${args.eventId}:${certNumber}`,
+        type: "email",
+        read: false,
+        createdAt: Date.now(),
+      });
+
       issued++;
     }
 

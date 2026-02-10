@@ -36,10 +36,20 @@ export function NotificationWatcher() {
       const isRecent = Date.now() - newest.createdAt < 60000;
       
       if (isRecent) {
-        // Special case: Email confirmation trigger
-        if (newest.type === 'email' && newest.message.startsWith('CONFIRMATION_EMAIL:')) {
-          handleEmailTrigger(newest);
-          return;
+        // Special case: Email triggers
+        if (newest.type === 'email') {
+          if (newest.message.startsWith('CONFIRMATION_EMAIL:')) {
+            handleEmailTrigger(newest, 'confirmation');
+            return;
+          }
+          if (newest.message.startsWith('CERTIFICATE_EMAIL:')) {
+            handleEmailTrigger(newest, 'certificate');
+            return;
+          }
+          if (newest.message.startsWith('REMINDER_EMAIL:')) {
+            handleEmailTrigger(newest, 'reminder');
+            return;
+          }
         }
 
         // 1. Show Toast
@@ -61,7 +71,7 @@ export function NotificationWatcher() {
     }
   }, [latestNotification, toast]);
 
-  const handleEmailTrigger = async (notif: any) => {
+  const handleEmailTrigger = async (notif: any, type: 'confirmation' | 'certificate' | 'reminder') => {
     if (!user?.email) return;
     
     // Mark as read immediately to prevent multiple triggers
@@ -69,33 +79,71 @@ export function NotificationWatcher() {
 
     try {
       const parts = notif.message.split(':');
-      const ticketNumber = parts[2];
+      let subject = '';
+      let html = '';
+
+      if (type === 'confirmation') {
+        const ticketNumber = parts[2];
+        subject = `Registration Confirmed! - ${ticketNumber}`;
+        html = `
+          <div style="font-family: sans-serif; padding: 20px; color: #333;">
+            <h1 style="color: #06b6d4;">Registration Confirmed! 🎉</h1>
+            <p>Hello ${user.name || 'Attendee'},</p>
+            <p>Your registration for the event has been successfully confirmed.</p>
+            <div style="background: #f8fafc; padding: 15px; border-radius: 10px; margin: 20px 0;">
+              <p><strong>Ticket Number:</strong> ${ticketNumber}</p>
+              <p><strong>Status:</strong> Confirmed</p>
+            </div>
+            <p>You can view and download your full ticket in the Eventra app.</p>
+            <br/>
+            <p>See you there!</p>
+            <p>The Eventra Team</p>
+          </div>
+        `;
+      } else if (type === 'certificate') {
+        const certNumber = parts[2];
+        subject = `Your Certificate is Ready! 🏆`;
+        html = `
+          <div style="font-family: sans-serif; padding: 20px; color: #333;">
+            <h1 style="color: #06b6d4;">Congratulations! 🏆</h1>
+            <p>Hello ${user.name || 'Attendee'},</p>
+            <p>You have successfully completed the event, and your certificate of participation is now available.</p>
+            <div style="background: #f8fafc; padding: 15px; border-radius: 10px; margin: 20px 0;">
+              <p><strong>Certificate ID:</strong> ${certNumber}</p>
+            </div>
+            <p>You can download it from your profile under "Certificates".</p>
+            <br/>
+            <p>Best regards,</p>
+            <p>The Eventra Team</p>
+          </div>
+        `;
+      } else if (type === 'reminder') {
+        const eventTitle = parts[2];
+        subject = `Reminder: ${eventTitle} is starting soon! ⏰`;
+        html = `
+          <div style="font-family: sans-serif; padding: 20px; color: #333;">
+            <h1 style="color: #06b6d4;">Event Reminder ⏰</h1>
+            <p>Hello ${user.name || 'Attendee'},</p>
+            <p>This is a friendly reminder that <strong>"${eventTitle}"</strong> is starting soon.</p>
+            <p>Make sure you have your ticket ready for check-in!</p>
+            <br/>
+            <p>See you soon,</p>
+            <p>The Eventra Team</p>
+          </div>
+        `;
+      }
       
       await fetch('/api/send-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           to: user.email,
-          subject: `Registration Confirmed! - ${ticketNumber}`,
-          html: `
-            <div style="font-family: sans-serif; padding: 20px; color: #333;">
-              <h1 style="color: #06b6d4;">Registration Confirmed! 🎉</h1>
-              <p>Hello ${user.name || 'Attendee'},</p>
-              <p>Your registration for the event has been successfully confirmed.</p>
-              <div style="background: #f8fafc; padding: 15px; border-radius: 10px; margin: 20px 0;">
-                <p><strong>Ticket Number:</strong> ${ticketNumber}</p>
-                <p><strong>Status:</strong> Confirmed</p>
-              </div>
-              <p>You can view and download your full ticket in the Eventra app.</p>
-              <br/>
-              <p>See you there!</p>
-              <p>The Eventra Team</p>
-            </div>
-          `
+          subject: subject,
+          html: html
         })
       });
     } catch (e) {
-      console.error("Failed to send confirmation email:", e);
+      console.error("Failed to send email:", e);
     }
   };
 

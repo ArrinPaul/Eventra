@@ -41,6 +41,8 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Tag } from 'lucide-react';
 
 export default function EventDetailsClient({ eventId }: { eventId: string }) {
   const router = useRouter();
@@ -55,6 +57,32 @@ export default function EventDetailsClient({ eventId }: { eventId: string }) {
   const [showChatbot, setShowChatbot] = useState(false);
   const [activeTab, setActiveTab] = useState('about');
   const [showTierSelection, setShowTierSelection] = useState(false);
+  const [discountCode, setDiscountCode] = useState('');
+  const [isValidatingDiscount, setIsValidatingDiscount] = useState(false);
+  const [appliedDiscount, setAppliedDiscount] = useState<any>(null);
+
+  const validateDiscount = useQuery(api.discounts.validate, { 
+    code: discountCode, 
+    eventId: eventId as any 
+  });
+
+  const handleApplyDiscount = () => {
+    if (!discountCode) return;
+    setIsValidatingDiscount(true);
+    // The query automatically updates, we just check the result
+    if (validateDiscount?.valid) {
+      setAppliedDiscount(validateDiscount);
+      toast({ title: 'Discount applied! 🎫' });
+    } else {
+      setAppliedDiscount(null);
+      toast({ 
+        title: 'Invalid code', 
+        description: validateDiscount?.message || 'Please check the code and try again',
+        variant: 'destructive' 
+      });
+    }
+    setIsValidatingDiscount(false);
+  };
 
   const handleRegister = async (tierName?: string) => {
     if (!user) {
@@ -85,7 +113,12 @@ export default function EventDetailsClient({ eventId }: { eventId: string }) {
 
       if (isPaid && price && price > 0) {
         // Stripe Flow
-        const { url } = await createCheckoutSession(eventId, user._id || user.id, tierName);
+        const { url } = await createCheckoutSession(
+          eventId, 
+          user._id || user.id, 
+          tierName, 
+          appliedDiscount ? discountCode : undefined
+        );
         if (url) {
           window.location.href = url;
         } else {
@@ -228,8 +261,53 @@ export default function EventDetailsClient({ eventId }: { eventId: string }) {
             <Card className="bg-white/5 border-white/10 text-white">
               <CardContent className="p-6">
                 <div className="text-center mb-4">
-                  <p className="text-3xl font-bold">{event.isPaid ? `$${event.price}` : 'Free'}</p>
+                  <p className="text-3xl font-bold">
+                    {appliedDiscount ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <span className="line-through text-gray-500 text-xl">
+                          ${event.price}
+                        </span>
+                        <span className="text-green-400">
+                          ${Math.max(0, (event.price || 0) - (appliedDiscount.type === 'percentage' ? ((event.price || 0) * appliedDiscount.value / 100) : appliedDiscount.value))}
+                        </span>
+                      </span>
+                    ) : (
+                      event.isPaid ? `$${event.price}` : 'Free'
+                    )}
+                  </p>
                 </div>
+
+                {/* Discount Code Input */}
+                {event.isPaid && !isRegistered && (
+                  <div className="mb-4 space-y-2">
+                    <div className="flex gap-2">
+                      <div className="relative flex-1">
+                        <Tag className="absolute left-3 top-1/2 -translate-y-1/2 h-3 w-3 text-gray-400" />
+                        <Input 
+                          placeholder="Promo code" 
+                          value={discountCode}
+                          onChange={(e) => setDiscountCode(e.target.value)}
+                          className="pl-8 h-9 text-xs bg-white/5 border-white/10"
+                        />
+                      </div>
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="h-9 border-white/10"
+                        onClick={handleApplyDiscount}
+                        disabled={!discountCode || registering}
+                      >
+                        Apply
+                      </Button>
+                    </div>
+                    {appliedDiscount && (
+                      <p className="text-[10px] text-green-400 flex items-center gap-1">
+                        <CheckCircle className="h-3 w-3" /> Code applied successfully!
+                      </p>
+                    )}
+                  </div>
+                )}
+
                 {/* Capacity mini bar */}
                 <div className="mb-4">
                   <div className="flex items-center justify-between text-xs text-gray-400 mb-1">
@@ -316,69 +394,143 @@ export default function EventDetailsClient({ eventId }: { eventId: string }) {
 
                 </DialogHeader>
 
-                <div className="space-y-3 py-4">
+                                <div className="space-y-3 py-4">
 
-                  {event.ticketTiers?.map((tier: any) => {
+                                  {/* Discount input inside dialog if not already applied */}
 
-                    const isTierFull = tier.registeredCount >= tier.capacity;
+                                  {!appliedDiscount && (
 
-                    return (
+                                     <div className="flex gap-2 mb-4">
 
-                      <button
+                                      <Input 
 
-                        key={tier.name}
+                                        placeholder="Enter promo code" 
 
-                        disabled={isTierFull}
+                                        value={discountCode}
 
-                        onClick={() => handleRegister(tier.name)}
+                                        onChange={(e) => setDiscountCode(e.target.value)}
 
-                        className={cn(
+                                        className="bg-white/5 border-white/10"
 
-                          "w-full p-4 rounded-xl border transition-all text-left flex justify-between items-center group",
+                                      />
 
-                          isTierFull 
+                                      <Button onClick={handleApplyDiscount} variant="outline">Apply</Button>
 
-                            ? "bg-white/5 border-white/5 opacity-50 cursor-not-allowed" 
+                                    </div>
 
-                            : "bg-white/5 border-white/10 hover:border-cyan-500/50 hover:bg-white/[0.08]"
+                                  )}
 
-                        )}
+                                  {appliedDiscount && (
 
-                      >
+                                    <div className="bg-green-500/10 border border-green-500/20 p-2 rounded-lg flex justify-between items-center mb-4">
 
-                        <div className="flex-1">
+                                      <p className="text-xs text-green-400 flex items-center gap-1">
 
-                          <div className="flex items-center gap-2">
+                                        <Tag className="h-3 w-3" /> Code <strong>{discountCode.toUpperCase()}</strong> applied
 
-                            <p className="font-bold text-lg">{tier.name}</p>
+                                      </p>
 
-                            {isTierFull && <Badge variant="destructive" className="text-[8px] h-4">SOLD OUT</Badge>}
+                                      <Button variant="ghost" size="sm" className="h-6 text-xs text-gray-400" onClick={() => {setAppliedDiscount(null); setDiscountCode('');}}>Remove</Button>
 
-                          </div>
+                                    </div>
 
-                          {tier.description && <p className="text-xs text-gray-500 mt-1">{tier.description}</p>}
+                                  )}
 
-                          <p className="text-[10px] text-gray-600 mt-2">{tier.capacity - tier.registeredCount} spots remaining</p>
+                
 
-                        </div>
+                                  {event.ticketTiers?.map((tier: any) => {
 
-                        <div className="text-right ml-4">
+                                    const isTierFull = tier.registeredCount >= tier.capacity;
 
-                          <p className="text-xl font-black text-cyan-400">
+                                    
 
-                            {tier.price > 0 ? `${tier.price}` : 'FREE'}
+                                    let finalTierPrice = tier.price;
 
-                          </p>
+                                    if (appliedDiscount && tier.price > 0) {
 
-                        </div>
+                                      const discount = appliedDiscount.type === 'percentage' 
 
-                      </button>
+                                        ? (tier.price * appliedDiscount.value / 100) 
 
-                    );
+                                        : appliedDiscount.value;
 
-                  })}
+                                      finalTierPrice = Math.max(0, tier.price - discount);
 
-                </div>
+                                    }
+
+                
+
+                                    return (
+
+                                      <button
+
+                                        key={tier.name}
+
+                                        disabled={isTierFull}
+
+                                        onClick={() => handleRegister(tier.name)}
+
+                                        className={cn(
+
+                                          "w-full p-4 rounded-xl border transition-all text-left flex justify-between items-center group",
+
+                                          isTierFull 
+
+                                            ? "bg-white/5 border-white/5 opacity-50 cursor-not-allowed" 
+
+                                            : "bg-white/5 border-white/10 hover:border-cyan-500/50 hover:bg-white/[0.08]"
+
+                                        )}
+
+                                      >
+
+                                        <div className="flex-1">
+
+                                          <div className="flex items-center gap-2">
+
+                                            <p className="font-bold text-lg">{tier.name}</p>
+
+                                            {isTierFull && <Badge variant="destructive" className="text-[8px] h-4">SOLD OUT</Badge>}
+
+                                          </div>
+
+                                          {tier.description && <p className="text-xs text-gray-500 mt-1">{tier.description}</p>}
+
+                                          <p className="text-[10px] text-gray-600 mt-2">{tier.capacity - tier.registeredCount} spots remaining</p>
+
+                                        </div>
+
+                                        <div className="text-right ml-4">
+
+                                          <p className="text-xl font-black text-cyan-400">
+
+                                            {appliedDiscount && tier.price > 0 ? (
+
+                                              <span className="flex flex-col items-end">
+
+                                                <span className="text-[10px] line-through text-gray-500">${tier.price}</span>
+
+                                                <span>{finalTierPrice > 0 ? `${finalTierPrice}` : 'FREE'}</span>
+
+                                              </span>
+
+                                            ) : (
+
+                                              tier.price > 0 ? `${tier.price}` : 'FREE'
+
+                                            )}
+
+                                          </p>
+
+                                        </div>
+
+                                      </button>
+
+                                    );
+
+                                  })}
+
+                                </div>
 
               </DialogContent>
 

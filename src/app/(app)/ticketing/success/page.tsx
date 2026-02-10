@@ -15,6 +15,7 @@ export default function PaymentSuccessPage() {
   const sessionId = searchParams.get('session_id');
   const eventId = searchParams.get('event_id');
   const tier = searchParams.get('tier');
+  const discountId = searchParams.get('discountId');
   
   const [loading, setLoading] = useState(true);
   const registerMutation = useMutation(api.registrations.register);
@@ -27,7 +28,8 @@ export default function PaymentSuccessPage() {
           await registerMutation({ 
             eventId: eventId as any, 
             status: 'confirmed',
-            tierName: tier || undefined
+            tierName: tier || undefined,
+            discountId: discountId ? (discountId as any) : undefined
           });
         } catch (e) {
           console.error("Confirmation error:", e);
@@ -39,7 +41,7 @@ export default function PaymentSuccessPage() {
       }
     }
     confirm();
-  }, [eventId, sessionId, router, registerMutation]);
+  }, [eventId, sessionId, router, registerMutation, tier, discountId]);
 
   return (
     <div className="min-h-screen bg-black flex items-center justify-center p-4">

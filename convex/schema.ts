@@ -437,4 +437,15 @@ export default defineSchema({
     optionIndex: v.number(),
     createdAt: v.number(),
   }).index("by_poll", ["pollId"]).index("by_user_poll", ["userId", "pollId"]),
+
+  discount_codes: defineTable({
+    code: v.string(), // Uppercase code like "EARLYBIRD20"
+    eventId: v.optional(v.id("events")), // If null, applies to all events (platform-wide)
+    type: v.union(v.literal("percentage"), v.literal("fixed")),
+    value: v.number(), // 20 for 20%, or 100 for $100
+    maxUses: v.optional(v.number()),
+    usedCount: v.number(),
+    expiryDate: v.optional(v.number()),
+    isActive: v.boolean(),
+  }).index("by_code", ["code"]).index("by_event", ["eventId"]),
 });
