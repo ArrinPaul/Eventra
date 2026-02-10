@@ -8,20 +8,34 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/core/utils/utils';
 import { format } from 'date-fns';
-import { CalendarIcon, MapPin, Globe, Users, Video } from 'lucide-react';
+import { CalendarIcon, MapPin, Globe, Users, Video, Sparkles } from 'lucide-react';
 import type { EventWizardData } from './types';
+import { SmartSchedulerAssistant } from './smart-scheduler-assistant';
 
 export function Step2DateLocation() {
   const { control, watch, setValue } = useFormContext<EventWizardData>();
   
   const locationType = watch('locationType');
   const startDate = watch('startDate');
+  const eventData = watch();
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
-      <div className="space-y-2">
-        <h2 className="text-2xl font-bold">Time & Place</h2>
-        <p className="text-muted-foreground">When and where is this happening?</p>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="space-y-2">
+          <h2 className="text-2xl font-bold">Time & Place</h2>
+          <p className="text-muted-foreground">When and where is this happening?</p>
+        </div>
+        <div className="w-full md:w-auto">
+          <SmartSchedulerAssistant 
+            eventData={{
+              title: eventData.title,
+              description: eventData.description,
+              category: eventData.category,
+              targetAudience: eventData.targetAudience
+            }} 
+          />
+        </div>
       </div>
 
       {/* Date & Time Grid */}

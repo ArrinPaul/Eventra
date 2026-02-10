@@ -222,7 +222,7 @@
 ## Phase 11: New Features to Add 🚀
 
 ### 11.1 Event Experience
-- [ ] **Multi-language / i18n support**: Internationalize UI strings.
+- [x] **Multi-language / i18n support**: Fully integrated `next-intl`. Added English and Spanish translations for core UI (Dashboard, Navigation, Common labels). Includes a `LanguageSwitcher` in the header and persistent locale management.
 - [x] **Event templates**: Implemented `event_templates` table and seeding logic. Organizers can now start from pre-built structures for workshops, conferences, and meetups. Includes suggested agendas and capacities.
 - [x] **Recurring events**: Implemented recurrence schema and basic logic in `events` table. Mutations updated to support `recurrenceRule`. Foundation for automated series generation complete.
 - [x] **Co-organizer support**: Multi-organizer management implemented. Owners can add/remove team members by email. Co-organizers can edit event details but not delete the event. Dashboard updated to show co-organized events.
@@ -271,7 +271,7 @@
 
 ### 11.7 AI Enhancements
 - [x] **AI-powered event summarization**: Implemented `eventSummarizerFlow` via Genkit. Organizers can generate professional post-event summaries with highlights and takeaways based on event data and attendee feedback.
-- [ ] **Smart scheduling**: AI suggests optimal event times based on audience availability.
+- [x] **Smart scheduling**: AI-driven optimal time suggestions implemented. Includes `smartSchedulerFlow` and a dedicated `SmartSchedulerAssistant` in the event creation wizard to help organizers pick the best dates/times for their target audience.
 - [ ] **Chatbot memory**: Persist conversation context across sessions.
 - [ ] **AI moderation**: Auto-flag inappropriate content in community posts.
 - [ ] **Predictive attendance**: ML-based prediction of event attendance rates.

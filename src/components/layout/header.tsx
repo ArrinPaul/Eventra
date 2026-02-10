@@ -18,6 +18,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { LanguageSwitcher } from '@/components/shared/language-switcher';
+import { useTranslations } from 'next-intl';
 
 function ThemeToggle() {
   const { setTheme, theme } = useTheme();
@@ -45,6 +47,7 @@ function ThemeToggle() {
 
 export default function Header() {
   const { user, logout } = useAuth();
+  const t = useTranslations('Common');
   const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -57,10 +60,10 @@ export default function Header() {
 
   const navLinks = [
     { href: '/', label: 'Home' },
-    { href: '/explore', label: 'Explore' },
-    { href: '/tickets', label: 'My Tickets', requireAuth: true },
+    { href: '/explore', label: t('explore') },
+    { href: '/tickets', label: t('tickets'), requireAuth: true },
     { href: '/my-events', label: 'My Events', requireAuth: true },
-    { href: '/admin', label: 'Dashboard', roles: ['organizer', 'admin'] },
+    { href: '/admin', label: t('dashboard'), roles: ['organizer', 'admin'] },
   ].filter(link => {
     if (link.href === '/' || link.href === '/explore') return true;
     if (link.requireAuth && !user) return false;
@@ -128,6 +131,7 @@ export default function Header() {
               <Search className="w-5 h-5" />
             </Button>
 
+            <LanguageSwitcher />
             <ThemeToggle />
             
             {user ? (

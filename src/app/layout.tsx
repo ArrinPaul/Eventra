@@ -31,15 +31,20 @@ const inter = Inter({
   display: 'swap',
 });
 
-export default function RootLayout({
+import { NextIntlClientProvider } from 'next-intl';
+import { getMessages, getLocale } from 'next-intl/server';
+
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   const organizationSchema = generateOrganizationSchema();
+  const locale = await getLocale();
+  const messages = await getMessages();
   
   return (
-    <html lang="en" suppressHydrationWarning className={`${outfit.variable} ${inter.variable}`}>
+    <html lang={locale} suppressHydrationWarning className={`${outfit.variable} ${inter.variable}`}>
       <head>
         <script
           type="application/ld+json"
@@ -47,12 +52,14 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body antialiased bg-background text-foreground selection:bg-primary/20 selection:text-primary">
-        <Providers>
-          {children}
-          <Toaster />
-          <NotificationWatcher />
-          <FloatingAiChat />
-        </Providers>
+        <NextIntlClientProvider messages={messages}>
+          <Providers>
+            {children}
+            <Toaster />
+            <NotificationWatcher />
+            <FloatingAiChat />
+          </Providers>
+        </NextIntlClientProvider>
       </body>
     </html>
   );

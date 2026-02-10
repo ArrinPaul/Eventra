@@ -29,6 +29,7 @@ import { api } from '../../../convex/_generated/api';
 import { ActivityFeed } from '@/components/feed/activity-feed';
 import { EngagementMetrics } from './engagement-metrics';
 import { ReferralSystem } from './referral-system';
+import { useTranslations } from 'next-intl';
 
 // Placeholder data - in a real app, this would come from props or API
 const FEATURED_EVENTS = [
@@ -83,6 +84,8 @@ const MY_UPCOMING = [
 
 export function AttendeeDashboard() {
   const { user } = useAuth();
+  const t = useTranslations('Dashboard');
+  const tc = useTranslations('Common');
   const registrations = useQuery(api.registrations.getByUser) || [];
 
   if (!user) return null;
@@ -99,7 +102,7 @@ export function AttendeeDashboard() {
                 <span>AI-Curated Experience</span>
               </div>
               <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-white">
-                Hello, <span className="bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">{user.name?.split(' ')[0] ?? 'there'}</span>!
+                {t('welcome', { name: user.name?.split(' ')[0] ?? 'there' })}
               </h1>
               <p className="text-lg text-gray-400">
                 You have <span className="font-bold text-cyan-400">{MY_UPCOMING.length} events</span> coming up this week.
@@ -108,11 +111,11 @@ export function AttendeeDashboard() {
               <div className="flex flex-wrap gap-3 pt-2">
                 <Button asChild size="lg" className="rounded-full bg-gradient-to-r from-cyan-500 to-cyan-400 hover:from-cyan-400 hover:to-cyan-300 text-gray-900 font-semibold border-0">
                   <Link href="/explore">
-                    Explore Events <ArrowRight className="ml-2 h-4 w-4" />
+                    {tc('explore')} <ArrowRight className="ml-2 h-4 w-4" />
                   </Link>
                 </Button>
                 <Button asChild variant="outline" size="lg" className="rounded-full border-white/20 hover:bg-white/10 text-white">
-                  <Link href="/my-events">View Schedule</Link>
+                  <Link href="/my-events">{t('myEvents')}</Link>
                 </Button>
               </div>
             </div>
