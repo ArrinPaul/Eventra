@@ -198,6 +198,8 @@ export default defineSchema({
     imageUrl: v.optional(v.string()),
     likes: v.number(),
     createdAt: v.number(),
+    isFlagged: v.optional(v.boolean()),
+    moderationReason: v.optional(v.string()),
   }).index("by_community", ["communityId"]),
 
   post_likes: defineTable({

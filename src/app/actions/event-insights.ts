@@ -2,10 +2,37 @@
 
 import { eventSummarizerFlow } from '@/ai/flows/event-summarizer';
 import { socialMediaPostFlow } from '@/ai/flows/ai-social-posts';
+import { predictiveAttendanceFlow } from '@/ai/flows/predictive-attendance';
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "../../../convex/_generated/api";
 
 const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
+
+// ... (other actions)
+
+export async function getPredictiveAttendance(eventId: string) {
+  try {
+    const event = await convex.query(api.events.getById, { id: eventId as any });
+    if (!event) throw new Error('Event not found');
+
+    const daysUntil = Math.max(0, Math.ceil((event.startDate - Date.now()) / (1000 * 60 * 60 * 24)));
+
+    const result = await predictiveAttendanceFlow({
+      title: event.title,
+      description: event.description,
+      category: event.category,
+      capacity: event.capacity,
+      registeredCount: event.registeredCount,
+      daysUntilEvent: daysUntil,
+      isPaid: event.isPaid,
+    });
+
+    return { success: true, ...result };
+  } catch (error: any) {
+    console.error('Attendance prediction error:', error);
+    return { success: false, error: error.message || 'Failed to predict attendance' };
+  }
+}
 
 export async function generateEventSummary(eventId: string) {
   try {

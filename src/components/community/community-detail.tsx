@@ -15,6 +15,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import { useToast } from '@/hooks/use-toast';
+import { moderateContent } from '@/app/actions/moderation';
 
 export function CommunityDetailClient({ communityId }: { communityId: string }) {
   const { user } = useAuth();
@@ -26,6 +27,7 @@ export function CommunityDetailClient({ communityId }: { communityId: string }) 
   const posts = useQuery(api.posts.list) || []; 
   const joinMutation = useMutation(api.communities.join);
   const createPostMutation = useMutation(api.posts.create);
+  const flagPostMutation = useMutation(api.moderation.flagPost);
   
   const [showCreatePost, setShowCreatePost] = useState(false);
   const [newPostContent, setNewPostContent] = useState('');
@@ -46,10 +48,30 @@ export function CommunityDetailClient({ communityId }: { communityId: string }) 
     if (!newPostContent.trim()) return;
     setLoading(true);
     try {
-      await createPostMutation({ content: newPostContent });
+      // 1. Create Post
+      const postId = await createPostMutation({ 
+        content: newPostContent,
+        communityId: communityId as any 
+      });
+      
       setShowCreatePost(false);
       setNewPostContent('');
       toast({ title: 'Posted successfully' });
+
+      // 2. Async AI Moderation check
+      const moderation = await moderateContent(newPostContent, user?.name);
+      if (moderation.success && moderation.isFlagged) {
+        // Flag the post in Convex
+        await flagPostMutation({
+          postId: postId as any,
+          reason: moderation.reason || 'AI Flagged'
+        });
+        toast({ 
+          title: 'Post Flagged', 
+          description: 'Your post is under review by our AI moderator.',
+          variant: 'destructive' 
+        });
+      }
     } catch (e) {
       toast({ title: 'Failed to post', variant: 'destructive' });
     } finally {

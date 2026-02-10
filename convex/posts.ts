@@ -6,7 +6,11 @@ export const list = query({
   args: {},
   handler: async (ctx) => {
     const userId = await auth.getUserId(ctx);
-    const posts = await ctx.db.query("community_posts").order("desc").collect();
+    const posts = await ctx.db
+      .query("community_posts")
+      .filter((q) => q.neq(q.field("isFlagged"), true))
+      .order("desc")
+      .collect();
     // Enrich with author info
     const enriched = [];
     for (const post of posts) {
@@ -44,6 +48,7 @@ export const listByCommunity = query({
     const posts = await ctx.db
       .query("community_posts")
       .withIndex("by_community", (q) => q.eq("communityId", args.communityId))
+      .filter((q) => q.neq(q.field("isFlagged"), true))
       .order("desc")
       .collect();
     const enriched = [];
@@ -74,7 +79,7 @@ export const create = mutation({
     const userId = await auth.getUserId(ctx);
     if (!userId) throw new Error("Unauthorized");
 
-    return await ctx.db.insert("community_posts", {
+    const postId = await ctx.db.insert("community_posts", {
       communityId: args.communityId,
       authorId: userId,
       content: args.content,
@@ -82,6 +87,8 @@ export const create = mutation({
       likes: 0,
       createdAt: Date.now(),
     });
+
+    return postId;
   },
 });
 

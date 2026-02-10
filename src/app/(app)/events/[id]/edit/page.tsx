@@ -14,6 +14,7 @@ import { CoOrganizerManager } from '@/components/organizer/co-organizer-manager'
 import { AnnouncementManager } from '@/components/organizer/announcement-manager';
 import { WebhookManager } from '@/components/organizer/webhook-manager';
 import { SocialPostGenerator } from '@/components/organizer/social-post-generator';
+import { AttendancePredictor } from '@/components/organizer/attendance-predictor';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 
@@ -114,6 +115,8 @@ export default function EventEditPage({ params }: { params: Promise<{ id: string
         <div className="space-y-8">
           <AnnouncementManager eventId={event._id} />
           
+          <AttendancePredictor eventId={event._id} />
+
           <SocialPostGenerator eventId={event._id} />
 
           <WebhookManager eventId={event._id} />

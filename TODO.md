@@ -272,7 +272,7 @@
 ### 11.7 AI Enhancements
 - [x] **AI-powered event summarization**: Implemented `eventSummarizerFlow` via Genkit. Organizers can generate professional post-event summaries with highlights and takeaways based on event data and attendee feedback.
 - [x] **Smart scheduling**: AI-driven optimal time suggestions implemented. Includes `smartSchedulerFlow` and a dedicated `SmartSchedulerAssistant` in the event creation wizard to help organizers pick the best dates/times for their target audience.
-- [ ] **Chatbot memory**: Persist conversation context across sessions.
-- [ ] **AI moderation**: Auto-flag inappropriate content in community posts.
-- [ ] **Predictive attendance**: ML-based prediction of event attendance rates.
+- [x] **Chatbot memory**: Full conversation context persistence implemented. `ai_chat_sessions` and `ai_chat_messages` in Convex are used to feed history into `aiChatbotFlow`, allowing for sophisticated follow-up questions and long-term continuity.
+- [x] **AI moderation**: Automated content moderation implemented for community posts. Uses `contentModeratorFlow` to analyze posts for violations (hate speech, harassment, etc.) and automatically flags them in the database for review, filtering them from public feeds.
+- [x] **Predictive attendance**: AI-driven attendance estimation implemented. Uses `predictiveAttendanceFlow` to analyze event data and registration trends to predict likely show rates and total attendance, providing insights and recommendations to organizers.
 - [x] **AI-generated social media posts**: Implemented `socialMediaPostFlow` to generate platform-specific promo content (X, LinkedIn, Instagram). Includes a `SocialPostGenerator` component for organizers.

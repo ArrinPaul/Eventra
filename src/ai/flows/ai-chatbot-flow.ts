@@ -50,16 +50,17 @@ const chatbotPrompt = ai.definePrompt({
   Guidelines:
   1. Be professional, friendly, and helpful.
   2. Use the provided event details as your primary source of truth for event-specific questions.
-  3. If you don't know something, be honest and suggest where the user might find the answer.
-  4. Provide "actions" when appropriate (e.g., suggesting to view the agenda, register for an event, or connect with someone).
-  5. Keep responses concise but comprehensive.
+  3. MAINTAIN CONTEXT: Reference previous parts of the conversation if relevant. If the user asks a follow-up question, use the history to understand the subject.
+  4. If you don't know something, be honest and suggest where the user might find the answer.
+  5. Provide "actions" when appropriate (e.g., suggesting to view the agenda, register for an event, or connect with someone).
+  6. Keep responses concise but comprehensive.
 
   Conversation History:
   {{#each history}}
   {{role}}: {{content}}
   {{/each}}
 
-  User Message: {{message}}
+  Current User Message: {{message}}
   `,
 });
 
