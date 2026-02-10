@@ -17,7 +17,8 @@ import {
   MoreVertical,
   Loader2,
   Trash2,
-  Edit
+  Edit,
+  Copy
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { format } from 'date-fns';
@@ -25,15 +26,19 @@ import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RevenueDashboard } from '@/components/organizer/revenue-dashboard';
+import { useRouter } from 'next/navigation';
 
 export default function OrganizerDashboard() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const router = useRouter();
   const managedEvents = useQuery(api.events.getManagedEvents, user ? { userId: (user._id || user.id) as any } : "skip") || [];
   const deleteEventMutation = useMutation(api.events.deleteEvent);
+  const cloneEventMutation = useMutation(api.events.cloneEvent);
   
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState('events');
+  const [isCloning, setIsCloning] = useState<string | null>(null);
 
   const filteredEvents = managedEvents.filter((e: any) => 
     e.title.toLowerCase().includes(searchTerm.toLowerCase())
@@ -51,6 +56,19 @@ export default function OrganizerDashboard() {
       toast({ title: 'Event deleted' });
     } catch (e) {
       toast({ title: 'Failed to delete', variant: 'destructive' });
+    }
+  };
+
+  const handleClone = async (id: string) => {
+    setIsCloning(id);
+    try {
+      const newId = await cloneEventMutation({ id: id as any });
+      toast({ title: 'Event cloned successfully!', description: 'Opening the new event editor.' });
+      router.push(`/events/${newId}/edit`);
+    } catch (e) {
+      toast({ title: 'Failed to clone event', variant: 'destructive' });
+    } finally {
+      setIsCloning(null);
     }
   };
 
@@ -147,6 +165,15 @@ export default function OrganizerDashboard() {
                         </div>
                       </div>
                       <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8" 
+                          onClick={() => handleClone(event._id)}
+                          disabled={isCloning === event._id}
+                        >
+                          {isCloning === event._id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Copy size={16} />}
+                        </Button>
                         <Button variant="ghost" size="icon" className="h-8 w-8" asChild><Link href={`/events/${event._id}`}><ArrowUpRight size={16} /></Link></Button>
                         <Button variant="ghost" size="icon" className="h-8 w-8" asChild><Link href={`/events/${event._id}/edit`}><Edit size={16} /></Link></Button>
                         {isOwner && (

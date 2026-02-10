@@ -112,7 +112,11 @@ export default defineSchema({
     })),
     parentEventId: v.optional(v.id("events")), // To link instances to original series
     summary: v.optional(v.string()), // AI-generated post-event summary
-  }).index("by_organizer", ["organizerId"]).index("by_status", ["status"]).index("by_status_endDate", ["status", "endDate"])
+  }).index("by_organizer", ["organizerId"])
+    .index("by_status", ["status"])
+    .index("by_status_endDate", ["status", "endDate"])
+    .index("by_speaker", ["speakers"]) // Note: Convex supports indexing array fields
+    .index("by_co_organizer", ["coOrganizerIds"])
     .searchIndex("search_title", { searchField: "title" }),
 
   registrations: defineTable({

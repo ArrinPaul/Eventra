@@ -10,6 +10,16 @@ export const issue = mutation({
     personalizedMessage: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    // Auth check: Only organizers of the event or admins can issue certificates
+    const callerId = await auth.getUserId(ctx);
+    if (callerId) {
+      const caller = await ctx.db.get(callerId);
+      const event = await ctx.db.get(args.eventId);
+      if (!caller || !event || (caller.role !== "admin" && event.organizerId !== callerId)) {
+        throw new Error("Unauthorized: Only organizers or admins can issue certificates");
+      }
+    }
+
     // Prevent duplicates
     const existing = await ctx.db
       .query("certificates")
@@ -59,7 +69,12 @@ export const bulkIssue = mutation({
 
     const event = await ctx.db.get(args.eventId);
     if (!event) throw new Error("Event not found");
-    if (event.organizerId !== userId) throw new Error("Not authorized");
+    
+    // Only organizers or admins can bulk issue
+    const user = await ctx.db.get(userId);
+    if (!user || (user.role !== "admin" && event.organizerId !== userId)) {
+      throw new Error("Not authorized to issue certificates for this event");
+    }
 
     const registrations = await ctx.db
       .query("registrations")

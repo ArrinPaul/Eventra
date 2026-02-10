@@ -22,17 +22,49 @@ export interface User {
   company?: string;
   designation?: string;
   country?: string;
-  gender?: string;
+  gender?: 'male' | 'female' | 'other' | 'prefer-not-to-say';
   points?: number;
   level?: number;
+  xp?: number;
   checkedIn?: boolean;
   myEvents?: string[];
   wishlist?: string[];
   eventRatings?: Record<string, number>;
   organizationId?: string;
   mobile?: string;
+  phone?: string;
+  bloodGroup?: string;
+  foodChoice?: 'veg' | 'non-veg' | 'vegan';
+  emergencyContact?: { name: string; number: string };
   registrationId?: string;
+  status?: string;
   notificationPreferences?: Record<string, boolean>;
+  referralCode?: string;
+  referredBy?: string;
+}
+
+export interface EventLocation {
+  venue?: string | {
+    name?: string;
+    address?: string;
+    city?: string;
+    country?: string;
+  };
+  address?: string;
+  city?: string;
+  country?: string;
+  lat?: number;
+  lng?: number;
+  virtualLink?: string;
+}
+
+export interface AgendaItem {
+  title: string;
+  startTime?: string;
+  endTime?: string;
+  description?: string;
+  speaker?: string;
+  type?: string;
 }
 
 export interface Event {
@@ -44,7 +76,7 @@ export interface Event {
   endDate: number | Date;
   date?: string;
   time?: string;
-  location: any;
+  location?: EventLocation;
   type: string;
   category: string;
   status: string;
@@ -58,7 +90,7 @@ export interface Event {
   price?: number;
   currency?: string;
   targetAudience?: string;
-  agenda?: any[];
+  agenda?: AgendaItem[];
   speakers?: string[];
   createdAt?: number | Date;
   timezone?: string;
@@ -103,16 +135,20 @@ export function getUserInterests(user: User | null): string[] {
 
 export function getUserSkills(user: User | null): string[] {
   if (!user) return [];
-  // For now, extract from interests or provide based on role
+  // Extract from interests or provide based on role
   const interests = getUserInterests(user);
   const roleSkills: Record<string, string[]> = {
-    'student': ['learning', 'collaboration'],
-    'professional': ['leadership', 'networking'],
-    'organizer': ['event management', 'planning'],
-    'speaker': ['public speaking', 'presentation'],
+    'student': ['learning', 'collaboration', 'curiosity'],
+    'professional': ['leadership', 'networking', 'strategy'],
+    'organizer': ['event management', 'planning', 'logistics'],
+    'speaker': ['public speaking', 'presentation', 'expertise'],
+    'attendee': ['networking', 'engagement'],
+    'vendor': ['sales', 'marketing', 'customer service'],
+    'admin': ['oversight', 'management', 'security'],
   };
   
-  return [...interests, ...(roleSkills[user.role] || [])];
+  const skills = new Set([...interests, ...(roleSkills[user.role] || [])]);
+  return Array.from(skills);
 }
 
 export function getUserAttendedEvents(user: User | null): string[] {

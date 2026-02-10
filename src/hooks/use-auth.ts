@@ -3,6 +3,7 @@
 import { useConvexAuth, useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useAuthActions } from "@convex-dev/auth/react";
+import { User } from "@/types";
 
 export const useAuth = () => {
   const { isLoading, isAuthenticated } = useConvexAuth();
@@ -19,9 +20,9 @@ export const useAuth = () => {
     isAuthenticated,
     logout: signOut,
     signIn,
-    updateUser: async (data: any) => {
+    updateUser: async (data: Partial<User>) => {
         try {
-            return await updateUserMutation(data);
+            return await updateUserMutation(data as any);
         } catch (e) {
             console.error("Update user failed", e);
             throw e;
@@ -41,8 +42,8 @@ export const useAuth = () => {
             console.error("Check-in failed", e);
         }
     },
-    register: async (data: any) => {
-        return updateUserMutation(data);
+    register: async (data: Partial<User>) => {
+        return updateUserMutation(data as any);
     },
     users: [],
   };

@@ -1,9 +1,9 @@
-import { mutation, query } from "./_generated/server";
+import { mutation, query, QueryCtx, MutationCtx } from "./_generated/server";
 import { v } from "convex/values";
 import { auth } from "./auth";
 
 // Check if user is admin
-async function isAdmin(ctx: any) {
+async function isAdmin(ctx: QueryCtx) {
   const userId = await auth.getUserId(ctx);
   if (userId === null) return false;
   const user = await ctx.db.get(userId);
@@ -156,7 +156,7 @@ export const updateSetting = mutation({
 });
 
 // --- Audit Log ---
-async function logAuditAction(ctx: any, action: string, details: Record<string, unknown>) {
+async function logAuditAction(ctx: MutationCtx, action: string, details: Record<string, unknown>) {
   const userId = await auth.getUserId(ctx);
   if (!userId) return;
   await ctx.db.insert("audit_log", {

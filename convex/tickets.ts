@@ -1,7 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query, internalMutation } from "./_generated/server";
 import { auth } from "./auth";
-import { internal } from "./_generated/api";
+import { api, internal } from "./_generated/api";
 import { awardPointsInternal } from "./gamification";
 
 export const getByEventId = query({
@@ -54,13 +54,14 @@ export const createTicket = mutation({
     attendeeEmail: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    // Only allow admin or system to create tickets directly
     const callerId = await auth.getUserId(ctx);
-    if (callerId) {
-      const caller = await ctx.db.get(callerId);
-      if (!caller || caller.role !== "admin") {
-        throw new Error("Unauthorized: Only admins can create tickets manually");
-      }
+    if (!callerId) {
+      throw new Error("Unauthorized: Authentication required");
+    }
+    
+    const caller = await ctx.db.get(callerId);
+    if (!caller || caller.role !== "admin") {
+      throw new Error("Unauthorized: Only admins can create tickets manually");
     }
     
     return await ctx.db.insert("tickets", {

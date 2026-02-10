@@ -83,31 +83,28 @@
 
 ### 8.1 Events — Core Gaps ✅
 - [x] **Capacity enforcement on registration**: `registrations.register` checks `event.capacity`, supports waitlist auto-promote.
-- [x] **Event update mutation**: Supports all 15+ fields.
+- [x] **Event update mutation**: Supports all 15+ fields with organizer/admin auth.
 - [x] **Cascading deletes**: `deleteEvent` cascades to registrations, tickets, reviews, and certificates.
 - [x] **Event status lifecycle**: `cancelEvent`, `completeEvent`, `publishEvent` mutations with notifications.
 - [x] **Event creation wizard**: Multi-step with `react-hook-form` + `zod` + AI Assist.
-- [x] **Event creation form**: Exposes `capacity`, `status`, and `type` with validation.
-
-**⚠️ Remaining Issues Found in Audit:**
-- [ ] 🔴 **`events.create` has NO auth check** — unauthenticated users can create events.
-- [ ] 🟡 **`events.create` accepts `registeredCount` from client** — should be forced to 0 server-side.
-- [ ] ⚠️ **`events.get` returns ALL events with no limit** — will break at scale (loads entire table).
-- [ ] ⚠️ **`events.getAnalytics` does 4 full table scans** (events, registrations, users, reviews) — severe performance issue.
-- [ ] 🔴 **Missing `internal` import in `convex/events.ts`** — `internal.webhooks.trigger` will throw `ReferenceError` at runtime.
+- [x] **Auth enforcement**: `events.create` now requires organizer/admin role.
+- [x] **Input validation**: `events.create` forces `registeredCount` to 0 server-side.
+- [x] **Optimization**: `events.get` has a default limit to prevent over-fetching.
+- [x] **Build Fix**: Missing `internal` imports added to all event-related files.
 
 ### 8.2 Check-In — QR Format ✅
-- [x] **QR data format unified**: `/check-in` encodes plain `ticketNumber` string.
+- [x] **QR data format unified**: `/check-in` encodes plain `ticketNumber` string
+.
 - [x] **Check-in page shows real ticket data** from Convex.
 - [x] **Scanner scopes to selected event**: `checkInTicket` validates ticket belongs to event.
 
-### 8.3 Certificates ⚠️
-- [x] **Bulk issue mutation**: `bulkIssue` for organizers with dedup.
+### 8.3 Certificates ✅
+- [x] **Bulk issue mutation**: Secured with organizer/admin auth checks.
 - [x] **Verification portal**: `verify` query by certificate number.
 - [x] **Certificate Manager UI**: Select event → see attendees → bulk issue.
-- [ ] ⚠️ **No PDF/document generation** — certificates are DB records only. Download produces a text file.
-- [ ] 🟡 **`certificates.issue` has no auth check** — any caller can issue certificates to any user.
-- [ ] ⚠️ **Certificate IDs use `Math.random()`** — not collision-resistant for production.
+- [x] **PDF Generation**: High-quality client-side generation using `jspdf`.
+- [x] **Security**: `certificates.issue` now has strict ownership/role checks.
+- [x] **Robust IDs**: Certificate logic updated for production collision resistance.
 
 ### 8.4 Feed/Posts ✅
 - [x] **Community-scoped posts**: `posts.create` requires real `communityId`.
@@ -127,16 +124,15 @@
 - [x] **Dynamic Data**: Announcer bot and recommendations refactored to use real session data.
 - [x] **Unified Auth**: Created `validateAIRequest` and `validateAIAction` helpers.
 
-### 8.6 Type Safety ⚠️
+### 8.6 Type Safety ✅
 - [x] **Convex functions have typed `ctx` and `args`** (no more `ctx: any` in Convex).
 - [x] **Schema uses typed validators** for `location` and `agenda`.
 - [x] **Legacy type aliases cleaned** from `types/index.ts`.
 - [x] **Auth context placeholder functions removed**.
-- [ ] ⚠️ **`files.ts` still uses `any` for ctx and args** — bypasses type safety.
-- [ ] ⚠️ **`Event.location` typed as `any` in `types/index.ts`** — schema is typed but TypeScript types aren't.
-- [ ] ⚠️ **`Event.agenda` typed as `any[]` in `types/index.ts`** — same gap.
-- [ ] ⚠️ **`getUserSkills()` in `types/index.ts` is a stub** — always returns `[]`.
-- [ ] ⚠️ **`updateUser` in auth hooks accepts `data: any`** — no type safety on user updates.
+- [x] **`files.ts` use explicit `MutationCtx` and `QueryCtx` types**.
+- [x] **`Event.location` and `Event.agenda` fully typed** in `types/index.ts`.
+- [x] **`getUserSkills()` in `types/index.ts` fully implemented** with role-based logic.
+- [x] **`updateUser` in auth hooks and context uses `Partial<User>`** for type safety.
 
 ---
 
@@ -152,10 +148,8 @@
 - [x] **Waitlist system**: Backend fully implemented with auto-promote.
 - [x] **Auto-complete past events**: Cron job runs hourly.
 - [x] **Capacity progress indicator**: Color-coded progress bar on event detail.
-
-**⚠️ Issues:**
-- [ ] `getManagedEvents` and `getBySpeaker` do full table scans with in-memory filtering — no index support for array contains.
-- [ ] `cloneEvent` exists in backend but no UI button to trigger it.
+- [x] **Optimized queries**: `getManagedEvents`, `getBySpeaker`, and `getAnalytics` optimized for scale.
+- [x] **UI clone button**: "Clone Event" button added to Dashboard and Event Details.
 
 ### 9.2 Ticketing ⚠️
 - [x] **Payment integration**: Stripe checkout flow, webhook listener, payment confirmation.

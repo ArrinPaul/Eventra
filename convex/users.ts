@@ -1,4 +1,4 @@
-import { mutation, query } from "./_generated/server";
+import { mutation, query, QueryCtx, MutationCtx } from "./_generated/server";
 import { auth } from "./auth";
 import { v } from "convex/values";
 import { calculateLevel } from "./utils";
@@ -6,7 +6,7 @@ import { awardPointsInternal } from "./gamification";
 
 export const viewer = query({
   args: {},
-  handler: async (ctx) => {
+  handler: async (ctx: QueryCtx) => {
     const userId = await auth.getUserId(ctx);
     if (userId === null) return null;
     return await ctx.db.get(userId);
@@ -15,7 +15,7 @@ export const viewer = query({
 
 export const getById = query({
   args: { id: v.id("users") },
-  handler: async (ctx, args) => {
+  handler: async (ctx: QueryCtx, args) => {
     return await ctx.db.get(args.id);
   },
 });
@@ -47,7 +47,7 @@ export const update = mutation({
     wishlist: v.optional(v.array(v.string())),
     eventRatings: v.optional(v.any()),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx: MutationCtx, args) => {
     const userId = await auth.getUserId(ctx);
     if (userId === null) throw new Error("Not authenticated");
     await ctx.db.patch(userId, args);
@@ -61,7 +61,7 @@ export const update = mutation({
  */
 export const awardPoints = mutation({
   args: { points: v.number(), reason: v.optional(v.string()) },
-  handler: async (ctx, args) => {
+  handler: async (ctx: MutationCtx, args) => {
     const userId = await auth.getUserId(ctx);
     if (!userId) throw new Error("Not authenticated");
     
@@ -89,7 +89,7 @@ export const awardPoints = mutation({
 
 export const checkIn = mutation({
   args: {},
-  handler: async (ctx) => {
+  handler: async (ctx: MutationCtx) => {
     const userId = await auth.getUserId(ctx);
     if (!userId) throw new Error("Not authenticated");
     await ctx.db.patch(userId, { checkedIn: true });
@@ -98,14 +98,22 @@ export const checkIn = mutation({
 
 export const list = query({
   args: {},
-  handler: async (ctx) => {
+  handler: async (ctx: QueryCtx) => {
+    const userId = await auth.getUserId(ctx);
+    if (!userId) throw new Error("Unauthorized");
+    
+    const user = await ctx.db.get(userId);
+    if (!user || user.role !== "admin") {
+      throw new Error("Unauthorized: Only admins can list all users");
+    }
+    
     return await ctx.db.query("users").collect();
   },
 });
 
 export const getLeaderboard = query({
   args: { limit: v.optional(v.number()) },
-  handler: async (ctx, args) => {
+  handler: async (ctx: QueryCtx, args) => {
     const users = await ctx.db
       .query("users")
       .withIndex("by_points")
@@ -120,7 +128,7 @@ export const getLeaderboard = query({
 
 export const search = query({
   args: { query: v.string() },
-  handler: async (ctx, args) => {
+  handler: async (ctx: QueryCtx, args) => {
     return await ctx.db
       .query("users")
       .withSearchIndex("search_name", (q) => q.search("name", args.query))
@@ -130,7 +138,7 @@ export const search = query({
 
 export const getByEmail = query({
   args: { email: v.string() },
-  handler: async (ctx, args) => {
+  handler: async (ctx: QueryCtx, args) => {
     return await ctx.db
       .query("users")
       .withIndex("by_email", (q) => q.eq("email", args.email))
@@ -140,7 +148,7 @@ export const getByEmail = query({
 
 export const follow = mutation({
   args: { followingId: v.id("users") },
-  handler: async (ctx, args) => {
+  handler: async (ctx: MutationCtx, args) => {
     const userId = await auth.getUserId(ctx);
     if (!userId) throw new Error("Unauthorized");
     if (userId === args.followingId) throw new Error("Cannot follow yourself");
@@ -174,7 +182,7 @@ export const follow = mutation({
 
 export const unfollow = mutation({
   args: { followingId: v.id("users") },
-  handler: async (ctx, args) => {
+  handler: async (ctx: MutationCtx, args) => {
     const userId = await auth.getUserId(ctx);
     if (!userId) throw new Error("Unauthorized");
 
@@ -191,7 +199,7 @@ export const unfollow = mutation({
 
 export const getFollowStats = query({
   args: { userId: v.id("users") },
-  handler: async (ctx, args) => {
+  handler: async (ctx: QueryCtx, args) => {
     const currentUserId = await auth.getUserId(ctx);
     
     const followers = await ctx.db
@@ -222,7 +230,7 @@ export const getFollowStats = query({
 
 export const getEngagementScore = query({
   args: { userId: v.id("users") },
-  handler: async (ctx, args) => {
+  handler: async (ctx: QueryCtx, args) => {
     const registrations = await ctx.db
       .query("registrations")
       .withIndex("by_user", (q: any) => q.eq("userId", args.userId))
@@ -230,7 +238,7 @@ export const getEngagementScore = query({
     
     const messages = await ctx.db
       .query("messages")
-      .filter((q) => q.eq(q.field("senderId"), args.userId))
+      .filter((q: any) => q.eq(q.field("senderId"), args.userId))
       .collect();
     
     const reviews = await ctx.db
@@ -263,7 +271,7 @@ export const getEngagementScore = query({
 
 export const generateReferralCode = mutation({
   args: {},
-  handler: async (ctx) => {
+  handler: async (ctx: MutationCtx) => {
     const userId = await auth.getUserId(ctx);
     if (!userId) throw new Error("Unauthorized");
 
@@ -278,7 +286,7 @@ export const generateReferralCode = mutation({
 
 export const redeemReferral = mutation({
   args: { code: v.string() },
-  handler: async (ctx, args) => {
+  handler: async (ctx: MutationCtx, args) => {
     const userId = await auth.getUserId(ctx);
     if (!userId) throw new Error("Unauthorized");
 
@@ -331,7 +339,7 @@ export const redeemReferral = mutation({
 
 export const getRecommended = query({
   args: { limit: v.optional(v.number()) },
-  handler: async (ctx, args) => {
+  handler: async (ctx: QueryCtx, args) => {
     const userId = await auth.getUserId(ctx);
     if (!userId) return [];
 

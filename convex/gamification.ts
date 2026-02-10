@@ -1,7 +1,8 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { mutation, query, MutationCtx } from "./_generated/server";
 import { auth } from "./auth";
 import { calculateLevel } from "./utils";
+import { Id } from "./_generated/dataModel";
 
 /**
  * Get all badge definitions
@@ -88,8 +89,8 @@ export const addPoints = mutation({
  * Use this instead of manual DB patches to ensure the gamification loop is consistent.
  */
 export async function awardPointsInternal(
-  ctx: any, 
-  userId: any, 
+  ctx: MutationCtx, 
+  userId: Id<"users">, 
   points: number, 
   reason: string,
   link?: string
@@ -134,7 +135,7 @@ export async function awardPointsInternal(
 /**
  * Check and award automatic badges based on milestones
  */
-async function checkBadgeTriggers(ctx: any, userId: any, totalPoints: number) {
+async function checkBadgeTriggers(ctx: MutationCtx, userId: Id<"users">, totalPoints: number) {
   const badges = await ctx.db.query("badges").collect();
   const userBadges = await ctx.db
     .query("user_badges")

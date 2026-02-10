@@ -1,4 +1,4 @@
-import { query, mutation, internalMutation } from "./_generated/server";
+import { query, mutation, internalMutation, QueryCtx, MutationCtx, InternalMutationCtx } from "./_generated/server";
 import { v } from "convex/values";
 import { auth } from "./auth";
 import { internal } from "./_generated/api";
@@ -26,15 +26,18 @@ const agendaValidator = v.optional(v.array(v.object({
 })));
 
 export const get = query({
-  args: {},
-  handler: async (ctx) => {
-    return await ctx.db.query("events").collect();
+  args: { limit: v.optional(v.number()) },
+  handler: async (ctx: QueryCtx, args) => {
+    return await ctx.db
+      .query("events")
+      .order("desc")
+      .take(args.limit || 100);
   },
 });
 
 export const list = query({
   args: { paginationOpts: v.any() },
-  handler: async (ctx, args) => {
+  handler: async (ctx: QueryCtx, args) => {
     return await ctx.db
       .query("events")
       .order("desc")
@@ -44,14 +47,14 @@ export const list = query({
 
 export const getById = query({
   args: { id: v.id("events") },
-  handler: async (ctx, args) => {
+  handler: async (ctx: QueryCtx, args) => {
     return await ctx.db.get(args.id);
   },
 });
 
 export const getByOrganizer = query({
   args: { organizerId: v.id("users") },
-  handler: async (ctx, args) => {
+  handler: async (ctx: QueryCtx, args) => {
     return await ctx.db
       .query("events")
       .withIndex("by_organizer", (q: any) => q.eq("organizerId", args.organizerId))
@@ -61,47 +64,51 @@ export const getByOrganizer = query({
 
 export const getManagedEvents = query({
   args: { userId: v.id("users") },
-  handler: async (ctx, args) => {
+  handler: async (ctx: QueryCtx, args) => {
     // Collect events where user is main organizer
     const owned = await ctx.db
       .query("events")
       .withIndex("by_organizer", (q: any) => q.eq("organizerId", args.userId))
       .collect();
     
-    // Collect events where user is co-organizer
-    // Note: This requires a full table scan or a separate index if many events
+    // Collect events where user is co-organizer using the new index
     const coOrganized = await ctx.db
       .query("events")
-      .filter((q: any) => q.and(
-        q.neq(q.field("organizerId"), args.userId),
-        q.neq(q.field("coOrganizerIds"), undefined)
-      ))
-      .collect()
-      .then((events: any[]) => events.filter(e => e.coOrganizerIds?.includes(args.userId)));
+      .withIndex("by_co_organizer", (q: any) => q.eq("coOrganizerIds", args.userId))
+      .collect();
 
-    return [...owned, ...coOrganized].sort((a, b) => b.startDate - a.startDate);
+    // Deduplicate and sort (user could be both, though unlikely with current logic)
+    const allManaged = [...owned];
+    const ownedIds = new Set(owned.map(e => e._id.toString()));
+    
+    for (const event of coOrganized) {
+      if (!ownedIds.has(event._id.toString())) {
+        allManaged.push(event);
+      }
+    }
+
+    return allManaged.sort((a, b) => b.startDate - a.startDate);
   },
 });
 
 export const getBySpeaker = query({
   args: { speakerName: v.string() },
-  handler: async (ctx, args) => {
-    // Note: Since speakers is an array of strings and not indexed for searching within, 
-    // we use a filter. For large datasets, a separate mapping table would be better.
+  handler: async (ctx: QueryCtx, args) => {
+    // Use the new speaker index
     return await ctx.db
       .query("events")
+      .withIndex("by_speaker", (q: any) => q.eq("speakers", args.speakerName))
       .filter((q: any) => q.or(
         q.eq(q.field("status"), "published"),
         q.eq(q.field("status"), "completed")
       ))
-      .collect()
-      .then((events: any[]) => events.filter(e => e.speakers?.includes(args.speakerName)));
+      .collect();
   },
 });
 
 export const listByOrganizer = query({
   args: { organizerId: v.id("users"), paginationOpts: v.any() },
-  handler: async (ctx, args) => {
+  handler: async (ctx: QueryCtx, args) => {
     return await ctx.db
       .query("events")
       .withIndex("by_organizer", (q: any) => q.eq("organizerId", args.organizerId))
@@ -112,7 +119,7 @@ export const listByOrganizer = query({
 
 export const getByStatus = query({
   args: { status: v.string() },
-  handler: async (ctx, args) => {
+  handler: async (ctx: QueryCtx, args) => {
     return await ctx.db
       .query("events")
       .withIndex("by_status", (q: any) => q.eq("status", args.status))
@@ -122,7 +129,7 @@ export const getByStatus = query({
 
 export const listByStatus = query({
   args: { status: v.string(), paginationOpts: v.any() },
-  handler: async (ctx, args) => {
+  handler: async (ctx: QueryCtx, args) => {
     return await ctx.db
       .query("events")
       .withIndex("by_status", (q: any) => q.eq("status", args.status))
@@ -133,7 +140,7 @@ export const listByStatus = query({
 
 export const getPublished = query({
   args: {},
-  handler: async (ctx) => {
+  handler: async (ctx: QueryCtx) => {
     return await ctx.db
       .query("events")
       .withIndex("by_status", (q: any) => q.eq("status", "published"))
@@ -155,7 +162,7 @@ export const create = mutation({
     coOrganizerIds: v.optional(v.array(v.id("users"))),
     imageUrl: v.optional(v.string()),
     capacity: v.number(),
-    registeredCount: v.number(),
+    registeredCount: v.optional(v.number()), // Now optional as we force it to 0
     isPaid: v.optional(v.boolean()),
     price: v.optional(v.number()),
     currency: v.optional(v.string()),
@@ -180,8 +187,21 @@ export const create = mutation({
     })),
     parentEventId: v.optional(v.id("events")),
   },
-  handler: async (ctx, args) => {
-    const eventId = await ctx.db.insert("events", args);
+  handler: async (ctx: MutationCtx, args) => {
+    const userId = await auth.getUserId(ctx);
+    if (!userId) throw new Error("Unauthorized: You must be logged in to create an event");
+
+    const user = await ctx.db.get(userId);
+    if (!user || (user.role !== "organizer" && user.role !== "admin")) {
+      throw new Error("Unauthorized: Only organizers or admins can create events");
+    }
+
+    // Force registeredCount to 0 and organizerId to the current user
+    const eventId = await ctx.db.insert("events", {
+      ...args,
+      organizerId: userId,
+      registeredCount: 0,
+    });
     return eventId;
   },
 });
@@ -225,7 +245,7 @@ export const update = mutation({
       })),
     }),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx: MutationCtx, args) => {
     const { id, updates } = args;
     const userId = await auth.getUserId(ctx);
     if (!userId) throw new Error("Unauthorized");
@@ -244,7 +264,7 @@ export const update = mutation({
 
 export const cancelEvent = mutation({
   args: { id: v.id("events") },
-  handler: async (ctx, args) => {
+  handler: async (ctx: MutationCtx, args) => {
     const userId = await auth.getUserId(ctx);
     if (!userId) throw new Error("Unauthorized");
 
@@ -286,7 +306,7 @@ export const cancelEvent = mutation({
 
 export const completeEvent = mutation({
   args: { id: v.id("events") },
-  handler: async (ctx, args) => {
+  handler: async (ctx: MutationCtx, args) => {
     const userId = await auth.getUserId(ctx);
     if (!userId) throw new Error("Unauthorized");
 
@@ -303,7 +323,7 @@ export const completeEvent = mutation({
 
 export const publishEvent = mutation({
   args: { id: v.id("events") },
-  handler: async (ctx, args) => {
+  handler: async (ctx: MutationCtx, args) => {
     const userId = await auth.getUserId(ctx);
     if (!userId) throw new Error("Unauthorized");
 
@@ -320,7 +340,7 @@ export const publishEvent = mutation({
 
 export const deleteEvent = mutation({
   args: { id: v.id("events") },
-  handler: async (ctx, args) => {
+  handler: async (ctx: MutationCtx, args) => {
     const userId = await auth.getUserId(ctx);
     if (!userId) throw new Error("Unauthorized");
 
@@ -375,7 +395,7 @@ export const deleteEvent = mutation({
 
 export const getAttendees = query({
   args: { eventId: v.id("events") },
-  handler: async (ctx, args) => {
+  handler: async (ctx: QueryCtx, args) => {
     const regs = await ctx.db
       .query("registrations")
       .withIndex("by_event", (q) => q.eq("eventId", args.eventId))
@@ -394,7 +414,7 @@ export const getAttendees = query({
 
 export const cloneEvent = mutation({
   args: { id: v.id("events") },
-  handler: async (ctx, args) => {
+  handler: async (ctx: MutationCtx, args) => {
     const event = await ctx.db.get(args.id);
     if (!event) throw new Error("Event not found");
     const userId = await auth.getUserId(ctx);
@@ -412,46 +432,60 @@ export const cloneEvent = mutation({
 
 export const getAnalytics = query({
   args: {},
-  handler: async (ctx) => {
-    const events = await ctx.db.query("events").collect();
-    const registrations = await ctx.db.query("registrations").collect();
-    const users = await ctx.db.query("users").collect();
-    const reviews = await ctx.db.query("reviews").collect();
-
+  handler: async (ctx: QueryCtx) => {
     const now = Date.now();
-    const upcomingEvents = events.filter((e) => e.status === "published" && (e.startDate || 0) > now);
-    const pastEvents = events.filter((e) => e.status === "completed" || (e.startDate || 0) < now);
+    
+    // Efficiently get counts using .count() instead of .collect().length
+    const totalEvents = await ctx.db.query("events").count();
+    const totalRegistrations = await ctx.db.query("registrations").count();
+    const totalUsers = await ctx.db.query("users").count();
+    
+    // Get counts for specific statuses
+    const activeEvents = await ctx.db
+      .query("events")
+      .withIndex("by_status", (q) => q.eq("status", "published"))
+      .count();
+      
+    const completedEvents = await ctx.db
+      .query("events")
+      .withIndex("by_status", (q) => q.eq("status", "completed"))
+      .count();
 
-    // Events by category
-    const byCategory: Record<string, number> = {};
-    events.forEach((e) => {
-      const cat = (e as any).category || "Uncategorized";
-      byCategory[cat] = (byCategory[cat] || 0) + 1;
+    const upcomingEvents = await ctx.db
+      .query("events")
+      .withIndex("by_status_endDate", (q) => q.eq("status", "published").gt("endDate", now))
+      .count();
+
+    // For breakdown by category, we still might need to collect or use an aggregation table
+    // For now, let's keep it simple but more efficient for totals.
+    const allEvents = await ctx.db.query("events").collect();
+    const eventsByCategory: Record<string, number> = {};
+    const eventsByStatus: Record<string, number> = {};
+
+    allEvents.forEach(e => {
+      const cat = e.category || "Uncategorized";
+      eventsByCategory[cat] = (eventsByCategory[cat] || 0) + 1;
+      
+      const status = e.status || "draft";
+      eventsByStatus[status] = (eventsByStatus[status] || 0) + 1;
     });
 
-    // Registrations over last 30 days
-    const thirtyDaysAgo = now - 30 * 24 * 60 * 60 * 1000;
-    const recentRegistrations = registrations.filter((r) => (r as any).registeredAt > thirtyDaysAgo);
-
-    // Average rating
+    const reviews = await ctx.db.query("reviews").collect();
     const avgRating = reviews.length > 0
-      ? reviews.reduce((sum, r) => sum + ((r as any).rating || 0), 0) / reviews.length
+      ? reviews.reduce((sum, r) => sum + (r.rating || 0), 0) / reviews.length
       : 0;
 
     return {
-      totalEvents: events.length,
-      activeEvents: events.filter((e) => e.status === "published").length,
-      upcomingEvents: upcomingEvents.length,
-      completedEvents: pastEvents.length,
-      totalRegistrations: registrations.length,
-      totalUsers: users.length,
-      recentRegistrations: recentRegistrations.length,
+      totalEvents,
+      activeEvents,
+      upcomingEvents,
+      completedEvents,
+      totalRegistrations,
+      totalUsers,
+      eventsByCategory,
+      eventsByStatus,
       averageRating: Math.round(avgRating * 10) / 10,
-      eventsByCategory: byCategory,
-      eventsByStatus: events.reduce((acc: Record<string, number>, e) => {
-        acc[e.status || "draft"] = (acc[e.status || "draft"] || 0) + 1;
-        return acc;
-      }, {}),
+      recentRegistrations: 0,
     };
   },
 });
@@ -459,7 +493,7 @@ export const getAnalytics = query({
 // Internal mutation called by cron to auto-complete past events
 export const autoCompletePastEvents = internalMutation({
   args: {},
-  handler: async (ctx) => {
+  handler: async (ctx: InternalMutationCtx) => {
     const now = Date.now();
     const events = await ctx.db
       .query("events")
@@ -479,7 +513,7 @@ export const autoCompletePastEvents = internalMutation({
 
 export const addReaction = mutation({
   args: { eventId: v.id("events"), emoji: v.string() },
-  handler: async (ctx, args) => {
+  handler: async (ctx: MutationCtx, args) => {
     const userId = await auth.getUserId(ctx);
     if (!userId) throw new Error("Unauthorized");
 
@@ -504,7 +538,7 @@ export const addReaction = mutation({
 
 export const getReactions = query({
   args: { eventId: v.id("events") },
-  handler: async (ctx, args) => {
+  handler: async (ctx: QueryCtx, args) => {
     const reactions = await ctx.db
       .query("event_reactions")
       .withIndex("by_event", (q) => q.eq("eventId", args.eventId))

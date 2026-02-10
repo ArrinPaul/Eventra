@@ -7,7 +7,7 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   logout: () => Promise<void>;
-  updateUser: (updatedUser: any) => Promise<any>;
+  updateUser: (updatedUser: Partial<User>) => Promise<any>;
   awardPoints: (points: number) => Promise<void>;
   checkInUser: () => Promise<void>;
   isAuthenticated: boolean;

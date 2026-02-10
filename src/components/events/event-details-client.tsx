@@ -21,6 +21,7 @@ import {
   CheckCircle,
   Loader2,
   Edit,
+  Copy,
 } from 'lucide-react';
 import { cn } from '@/core/utils/utils';
 import { useAuth } from '@/hooks/use-auth';
@@ -56,8 +57,10 @@ export default function EventDetailsClient({ eventId }: { eventId: string }) {
   const event = useQuery(api.events.getById, { id: eventId as any });
   const registration = useQuery(api.registrations.getRegistration, { eventId: eventId as any });
   const registerMutation = useMutation(api.registrations.register);
+  const cloneEventMutation = useMutation(api.events.cloneEvent);
   
   const [registering, setRegistering] = useState(false);
+  const [cloning, setCloning] = useState(false);
   const [showChatbot, setShowChatbot] = useState(false);
   const [activeTab, setActiveTab] = useState('about');
   const [showTierSelection, setShowTierSelection] = useState(false);
@@ -159,6 +162,19 @@ export default function EventDetailsClient({ eventId }: { eventId: string }) {
     }
   };
 
+  const handleClone = async () => {
+    setCloning(true);
+    try {
+      const newId = await cloneEventMutation({ id: eventId as any });
+      toast({ title: 'Event cloned successfully! 📋', description: 'Redirecting to the new event editor.' });
+      router.push(`/events/${newId}/edit`);
+    } catch (e: any) {
+      toast({ title: 'Clone failed', description: e.message, variant: 'destructive' });
+    } finally {
+      setCloning(false);
+    }
+  };
+
 
   if (event === undefined) return <div className="flex items-center justify-center min-h-screen text-white">Loading...</div>;
   if (event === null) return <div className="flex items-center justify-center min-h-screen text-white">Event Not Found</div>;
@@ -179,7 +195,16 @@ export default function EventDetailsClient({ eventId }: { eventId: string }) {
       <div className="h-[300px] bg-gradient-to-br from-cyan-900/50 to-purple-900/50 relative">
         <div className="absolute top-4 left-4"><Button variant="ghost" onClick={() => router.back()}><ArrowLeft className="mr-2 h-4 w-4" /> Back</Button></div>
         {isOrganizer && (
-          <div className="absolute top-4 right-4">
+          <div className="absolute top-4 right-4 flex items-center gap-2">
+            <Button 
+              variant="outline" 
+              className="border-white/20 hover:bg-white/10"
+              onClick={handleClone}
+              disabled={cloning}
+            >
+              {cloning ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Copy className="mr-2 h-4 w-4" />}
+              Clone
+            </Button>
             <Button variant="outline" asChild className="border-white/20 hover:bg-white/10">
               <Link href={`/events/${eventId}/edit`}><Edit className="mr-2 h-4 w-4" /> Edit Event</Link>
             </Button>
