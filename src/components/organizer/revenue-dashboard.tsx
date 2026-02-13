@@ -59,9 +59,12 @@ export function RevenueDashboard() {
               <DollarSign className="h-4 w-4 text-cyan-400" />
             </div>
             <p className="text-2xl font-bold">${stats.totalRevenue.toLocaleString()}</p>
-            <div className="flex items-center gap-1 mt-1 text-green-400 text-xs">
-              <ArrowUpRight className="h-3 w-3" />
-              <span>+12.5% from last month</span>
+            <div className={cn(
+              "flex items-center gap-1 mt-1 text-xs",
+              (stats.revenueTrend || 0) >= 0 ? "text-green-400" : "text-red-400"
+            )}>
+              {(stats.revenueTrend || 0) >= 0 ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
+              <span>{Math.abs(stats.revenueTrend || 0)}% from last month</span>
             </div>
           </CardContent>
         </Card>

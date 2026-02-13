@@ -40,8 +40,6 @@ export const getSharedReport = query({
     const event = await ctx.db.get(report.eventId);
     if (!event) return null;
 
-    // Record view count (optional, would need mutation but queries are read-only)
-    // Return event and basic analytics
     return {
       eventTitle: event.title,
       description: event.description,
@@ -50,7 +48,24 @@ export const getSharedReport = query({
       capacity: event.capacity,
       startDate: event.startDate,
       status: event.status,
+      viewCount: report.viewCount,
     };
+  },
+});
+
+export const incrementReportView = mutation({
+  args: { token: v.string() },
+  handler: async (ctx, args) => {
+    const report = await ctx.db
+      .query("shared_reports")
+      .withIndex("by_token", (q) => q.eq("token", args.token))
+      .unique();
+
+    if (report) {
+      await ctx.db.patch(report._id, {
+        viewCount: report.viewCount + 1
+      });
+    }
   },
 });
 
@@ -61,6 +76,8 @@ export const getOrganizerRevenue = query({
     if (!userId) throw new Error("Unauthorized");
     
     const targetId = args.organizerId || userId;
+    const now = Date.now();
+    const oneMonthAgo = now - (30 * 24 * 60 * 60 * 1000);
     
     // 1. Get all events for this organizer
     const events = await ctx.db
@@ -68,10 +85,10 @@ export const getOrganizerRevenue = query({
       .withIndex("by_organizer", (q) => q.eq("organizerId", targetId))
       .collect();
     
-    const eventIds = events.map(e => e._id);
-    
     // 2. Get all tickets for these events
     let totalRevenue = 0;
+    let recentRevenue = 0;
+    let previousMonthRevenue = 0;
     const revenueByEvent = [];
     const revenueByTier: Record<string, number> = {};
     const dailyRevenue: Record<string, number> = {};
@@ -91,6 +108,12 @@ export const getOrganizerRevenue = query({
           eventRevenue += price;
           totalRevenue += price;
           
+          if (ticket.purchaseDate > oneMonthAgo) {
+            recentRevenue += price;
+          } else if (ticket.purchaseDate > oneMonthAgo - (30 * 24 * 60 * 60 * 1000)) {
+            previousMonthRevenue += price;
+          }
+          
           // By Tier
           const tier = ticket.ticketTypeId || "Standard";
           revenueByTier[tier] = (revenueByTier[tier] || 0) + price;
@@ -109,8 +132,14 @@ export const getOrganizerRevenue = query({
       });
     }
 
+    const revenueTrend = previousMonthRevenue === 0 
+      ? 100 
+      : Math.round(((recentRevenue - previousMonthRevenue) / previousMonthRevenue) * 100);
+
     return {
       totalRevenue,
+      recentRevenue,
+      revenueTrend,
       revenueByEvent: revenueByEvent.sort((a, b) => b.revenue - a.revenue),
       revenueByTier,
       dailyRevenue: Object.entries(dailyRevenue)

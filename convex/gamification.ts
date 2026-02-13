@@ -143,12 +143,12 @@ async function checkBadgeTriggers(ctx: MutationCtx, userId: Id<"users">, totalPo
     .collect();
   const earnedBadgeIds = new Set(userBadges.map((ub: any) => ub.badgeId.toString()));
 
-  // Count events attended
+  // Count events attended (checked in)
   const registrations = await ctx.db
     .query("registrations")
     .withIndex("by_user", (q: any) => q.eq("userId", userId))
     .collect();
-  const confirmedCount = registrations.filter((r: any) => r.status === "confirmed" || r.checkedIn).length;
+  const attendanceCount = registrations.filter((r: any) => r.checkedIn).length;
 
   for (const badge of badges) {
     if (earnedBadgeIds.has(badge._id.toString())) continue;
@@ -158,16 +158,23 @@ async function checkBadgeTriggers(ctx: MutationCtx, userId: Id<"users">, totalPo
     if (badge.structured_criteria) {
       const { type, threshold } = badge.structured_criteria;
       if (type === "points" && totalPoints >= threshold) shouldAward = true;
-      if (type === "attendance" && confirmedCount >= threshold) shouldAward = true;
+      if (type === "attendance" && attendanceCount >= threshold) shouldAward = true;
     } else {
-      // Fallback to legacy string matching for safety
+      // Improved legacy matching to be less fragile
       const criteria = badge.criteria?.toLowerCase() ?? "";
-      if (criteria.includes("100 points") && totalPoints >= 100) shouldAward = true;
-      if (criteria.includes("500 points") && totalPoints >= 500) shouldAward = true;
-      if (criteria.includes("1000 points") && totalPoints >= 1000) shouldAward = true;
-      if (criteria.includes("first event") && confirmedCount >= 1) shouldAward = true;
-      if (criteria.includes("5 events") && confirmedCount >= 5) shouldAward = true;
-      if (criteria.includes("10 events") && confirmedCount >= 10) shouldAward = true;
+      
+      // Match "X points" pattern
+      const pointMatch = criteria.match(/(\d+)\s*points/);
+      if (pointMatch && totalPoints >= parseInt(pointMatch[1])) {
+        shouldAward = true;
+      }
+      
+      // Match attendance patterns
+      if (criteria.includes("first event") && attendanceCount >= 1) shouldAward = true;
+      const eventMatch = criteria.match(/(\d+)\s*events/);
+      if (eventMatch && attendanceCount >= parseInt(eventMatch[1])) {
+        shouldAward = true;
+      }
     }
 
     if (shouldAward) {

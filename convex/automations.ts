@@ -47,6 +47,14 @@ export const create = mutation({
 export const toggle = mutation({
   args: { id: v.id("automations"), isActive: v.boolean() },
   handler: async (ctx, args) => {
+    const userId = await auth.getUserId(ctx);
+    if (!userId) throw new Error("Unauthorized");
+
+    const automation = await ctx.db.get(args.id);
+    if (!automation || automation.userId !== userId) {
+      throw new Error("Not authorized");
+    }
+
     await ctx.db.patch(args.id, { isActive: args.isActive });
   },
 });
@@ -54,6 +62,14 @@ export const toggle = mutation({
 export const deleteAutomation = mutation({
   args: { id: v.id("automations") },
   handler: async (ctx, args) => {
+    const userId = await auth.getUserId(ctx);
+    if (!userId) throw new Error("Unauthorized");
+
+    const automation = await ctx.db.get(args.id);
+    if (!automation || automation.userId !== userId) {
+      throw new Error("Not authorized");
+    }
+
     await ctx.db.delete(args.id);
   },
 });

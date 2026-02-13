@@ -18,22 +18,31 @@ export const getRooms = query({
       const room = await ctx.db.get(membership.roomId);
       if (!room) continue;
 
-      const participantNames = [];
-      for (const pid of room.participants) {
-        if (pid !== userId) {
-          const user = await ctx.db.get(pid);
-          if (user) participantNames.push(user.name || "User");
+      let participantNames = [];
+      if (room.type === 'direct') {
+        // For direct rooms, we want the other person's name
+        for (const pid of room.participants) {
+          if (pid !== userId) {
+            const user = await ctx.db.get(pid);
+            if (user) participantNames.push(user.name || "User");
+          }
         }
+      } else if (room.type === 'event') {
+        participantNames = ["Event Group"];
+      } else {
+        participantNames = [room.name || "Group"];
       }
 
-      // Get unread count using lastReadAt
-      const unreadMessages = await ctx.db
+      // Get unread count using lastReadAt - more efficient
+      const unreadCount = await ctx.db
         .query("messages")
         .withIndex("by_room", (q) => q.eq("roomId", room._id))
-        .filter((q) => q.gt(q.field("sentAt"), membership.lastReadAt))
-        .collect();
-      
-      const unreadCount = unreadMessages.filter(m => m.senderId !== userId).length;
+        .filter((q) => q.and(
+          q.gt(q.field("sentAt"), membership.lastReadAt),
+          q.neq(q.field("senderId"), userId)
+        ))
+        .collect()
+        .then(messages => messages.length);
       
       const lastMessage = await ctx.db
         .query("messages")
@@ -53,29 +62,8 @@ export const getRooms = query({
   },
 });
 
-export const getMessages = query({
-  args: { roomId: v.id("chat_rooms") },
-  handler: async (ctx, args) => {
-    const messages = await ctx.db
-      .query("messages")
-      .withIndex("by_room", (q) => q.eq("roomId", args.roomId))
-      .collect();
-    // Enrich with sender info
-    const enriched = [];
-    for (const msg of messages) {
-      const sender = await ctx.db.get(msg.senderId);
-      enriched.push({
-        ...msg,
-        senderName: sender?.name || "User",
-        senderImage: sender?.image,
-      });
-    }
-    return enriched;
-  },
-});
-
 export const listMessages = query({
-  args: { roomId: v.id("chat_rooms"), paginationOpts: v.any() },
+  args: { roomId: v.id("chat_rooms"), paginationOpts: v.paginationOpts() },
   handler: async (ctx, args) => {
     const results = await ctx.db
       .query("messages")
@@ -110,8 +98,13 @@ export const sendMessage = mutation({
     const userId = await auth.getUserId(ctx);
     if (!userId) throw new Error("Unauthorized");
 
+    // Basic file validation
+    if (args.fileUrl && !args.fileType) {
+      throw new Error("File type is required when providing a file URL");
+    }
+
     const now = Date.now();
-    await ctx.db.insert("messages", {
+    const messageId = await ctx.db.insert("messages", {
       roomId: args.roomId,
       senderId: userId,
       content: args.content,
@@ -133,6 +126,53 @@ export const sendMessage = mutation({
     if (membership) {
       await ctx.db.patch(membership._id, { lastReadAt: now });
     }
+
+    // Send notifications to other participants
+    const room = await ctx.db.get(args.roomId);
+    const sender = await ctx.db.get(userId);
+    if (room) {
+      // Limit notifications for large event rooms to avoid performance hits
+      if (room.type === "event" && room.participants.length > 50) {
+        // In large event rooms, maybe only notify the organizer if they are not the sender
+        if (room.eventId) {
+          const event = await ctx.db.get(room.eventId);
+          if (event && event.organizerId !== userId) {
+            await ctx.db.insert("notifications", {
+              userId: event.organizerId,
+              title: `New message in ${event.title}`,
+              message: `${sender?.name || "User"}: ${args.content.substring(0, 50)}`,
+              type: "chat",
+              read: false,
+              createdAt: now,
+              link: `/chat?roomId=${args.roomId}`,
+            });
+          }
+        }
+      } else {
+        for (const participantId of room.participants) {
+          if (participantId !== userId) {
+            let title = "New Message";
+            if (room.type === "direct") {
+              title = `Message from ${sender?.name || "User"}`;
+            } else if (room.name) {
+              title = `New message in ${room.name}`;
+            }
+
+            await ctx.db.insert("notifications", {
+              userId: participantId,
+              title,
+              message: args.content.substring(0, 100) || (args.fileUrl ? "Shared an attachment" : "New message"),
+              type: "chat",
+              read: false,
+              createdAt: now,
+              link: `/chat?roomId=${args.roomId}`,
+            });
+          }
+        }
+      }
+    }
+
+    return messageId;
   },
 });
 
@@ -179,16 +219,16 @@ export const createRoom = mutation({
     const userId = await auth.getUserId(ctx);
     if (!userId) throw new Error("Unauthorized");
 
-    // For direct messages, check if room already exists
+    // For direct messages, check if room already exists - Scalable approach
     if (args.type === "direct" && args.participants.length === 2) {
       const rooms = await ctx.db.query("chat_rooms")
-        .withIndex("by_type", (q) => q.eq("type", "direct"))
+        .withIndex("by_participants", (q) => q.eq("participants", args.participants[0]))
+        .filter((q) => q.eq(q.field("type"), "direct"))
         .collect();
       
       const existing = rooms.find(
         (r) =>
           r.participants.length === 2 &&
-          r.participants.includes(args.participants[0]) &&
           r.participants.includes(args.participants[1])
       );
       if (existing) return existing._id;

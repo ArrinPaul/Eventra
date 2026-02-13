@@ -1,14 +1,31 @@
 /**
  * Calculate user level based on total XP
- * Formula: Math.floor(xp / 500) + 1
+ * Formula: Each level requires 500 XP
  */
 export function calculateLevel(xp: number): number {
   return Math.floor((xp || 0) / 500) + 1;
 }
 
 /**
- * Calculate XP needed for the next level
+ * Get detailed level information
  */
-export function xpForNextLevel(currentLevel: number): number {
-  return currentLevel * 500;
+export function getLevelInfo(xp: number) {
+  const level = calculateLevel(xp);
+  const xpInCurrentLevel = xp % 500;
+  const xpForNextLevel = 500;
+  const progress = Math.floor((xpInCurrentLevel / xpForNextLevel) * 100);
+  
+  return {
+    level,
+    xpInCurrentLevel,
+    xpForNextLevel,
+    progress
+  };
+}
+
+/**
+ * Calculate total XP needed for a specific level
+ */
+export function totalXpForLevel(level: number): number {
+  return (level - 1) * 500;
 }

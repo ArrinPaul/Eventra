@@ -85,10 +85,17 @@ export const deleteCommunity = mutation({
     const community = await ctx.db.get(args.id);
     if (!community) throw new Error("Not found");
     if (community.createdBy !== userId) throw new Error("Not authorized");
+    
     // Delete members
     const members = await ctx.db.query("community_members")
       .withIndex("by_community", (q) => q.eq("communityId", args.id)).collect();
     for (const m of members) await ctx.db.delete(m._id);
+
+    // Delete join requests
+    const requests = await ctx.db.query("community_join_requests")
+      .withIndex("by_community", (q) => q.eq("communityId", args.id)).collect();
+    for (const r of requests) await ctx.db.delete(r._id);
+
     // Delete posts and their associated likes/comments
     const posts = await ctx.db.query("community_posts")
       .withIndex("by_community", (q) => q.eq("communityId", args.id)).collect();
@@ -136,6 +143,17 @@ export const join = mutation({
 
     await ctx.db.patch(args.id, {
       membersCount: community.membersCount + 1,
+    });
+
+    // Notify creator
+    await ctx.db.insert("notifications", {
+      userId: community.createdBy,
+      title: "New Member",
+      message: `Someone joined your community "${community.name}".`,
+      type: "community",
+      read: false,
+      createdAt: Date.now(),
+      link: `/community/${args.id}`,
     });
 
     // Trigger Challenge Progress
@@ -201,8 +219,8 @@ export const getJoinRequests = query({
 
     const requests = await ctx.db
       .query("community_join_requests")
-      .withIndex("by_community", (q) => q.eq("communityId", args.communityId))
-      .filter((q) => q.eq(q.field("status"), "pending"))
+      .withIndex("by_status", (q) => q.eq("status", "pending"))
+      .filter((q) => q.eq(q.field("communityId"), args.communityId))
       .collect();
 
     const enriched = [];
@@ -304,18 +322,22 @@ export const getMemberStatus = query({
 });
 
 export const getMembers = query({
-  args: { communityId: v.id("communities") },
+  args: { communityId: v.id("communities"), paginationOpts: v.paginationOpts() },
   handler: async (ctx, args) => {
-    const members = await ctx.db
+    const results = await ctx.db
       .query("community_members")
       .withIndex("by_community", (q) => q.eq("communityId", args.communityId))
-      .collect();
-    const enriched = [];
-    for (const m of members) {
-      const user = await ctx.db.get(m.userId);
-      if (user) enriched.push({ ...m, name: user.name, image: user.image, email: user.email });
-    }
-    return enriched;
+      .paginate(args.paginationOpts);
+
+    return {
+      ...results,
+      page: await Promise.all(
+        results.page.map(async (m) => {
+          const user = await ctx.db.get(m.userId);
+          return { ...m, name: user?.name, image: user?.image, email: user?.email };
+        })
+      ),
+    };
   },
 });
 

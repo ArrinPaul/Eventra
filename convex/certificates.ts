@@ -12,12 +12,12 @@ export const issue = mutation({
   handler: async (ctx, args) => {
     // Auth check: Only organizers of the event or admins can issue certificates
     const callerId = await auth.getUserId(ctx);
-    if (callerId) {
-      const caller = await ctx.db.get(callerId);
-      const event = await ctx.db.get(args.eventId);
-      if (!caller || !event || (caller.role !== "admin" && event.organizerId !== callerId)) {
-        throw new Error("Unauthorized: Only organizers or admins can issue certificates");
-      }
+    if (!callerId) throw new Error("Unauthorized");
+    
+    const caller = await ctx.db.get(callerId);
+    const event = await ctx.db.get(args.eventId);
+    if (!caller || !event || (caller.role !== "admin" && event.organizerId !== callerId)) {
+      throw new Error("Unauthorized: Only organizers or admins can issue certificates");
     }
 
     // Prevent duplicates

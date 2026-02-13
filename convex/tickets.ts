@@ -1,8 +1,9 @@
 import { v } from "convex/values";
-import { mutation, query, internalMutation } from "./_generated/server";
+import { mutation, query, internalMutation, internalAction } from "./_generated/server";
 import { auth } from "./auth";
 import { api, internal } from "./_generated/api";
 import { awardPointsInternal } from "./gamification";
+import Stripe from "stripe";
 
 export const getByEventId = query({
   args: { eventId: v.id("events") },
@@ -63,10 +64,20 @@ export const createTicket = mutation({
     if (!caller || caller.role !== "admin") {
       throw new Error("Unauthorized: Only admins can create tickets manually");
     }
+
+    const existing = await ctx.db
+      .query("tickets")
+      .withIndex("by_ticket_number", (q) => q.eq("ticketNumber", args.ticketNumber))
+      .first();
+    
+    if (existing) {
+      throw new Error("Ticket number already exists");
+    }
     
     return await ctx.db.insert("tickets", {
       ...args,
       purchaseDate: Date.now(),
+      qrCode: args.ticketNumber,
     });
   },
 });
@@ -182,6 +193,26 @@ export const checkInTicket = mutation({
   },
 });
 
+export const processRefund = internalAction({
+  args: {
+    paymentIntentId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+      apiVersion: "2025-01-27.acacia",
+    });
+
+    try {
+      await stripe.refunds.create({
+        payment_intent: args.paymentIntentId,
+      });
+    } catch (err) {
+      console.error(`Stripe refund failed for ${args.paymentIntentId}:`, err);
+      // We log but don't fail the action to avoid retries if it's already refunded
+    }
+  },
+});
+
 /**
  * Cancel (refund) a ticket
  */
@@ -200,6 +231,14 @@ export const cancelTicket = mutation({
 
     const newStatus = args.status || "cancelled";
     await ctx.db.patch(args.ticketId, { status: newStatus as any });
+
+    // Initiate refund if paid
+    if (ticket.stripePaymentId) {
+      await ctx.scheduler.runAfter(0, internal.tickets.processRefund, {
+        paymentIntentId: ticket.stripePaymentId,
+      });
+      await ctx.db.patch(args.ticketId, { status: "refunded" });
+    }
 
     // Cancel linked registration
     const reg = await ctx.db

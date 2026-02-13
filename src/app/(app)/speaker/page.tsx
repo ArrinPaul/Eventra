@@ -15,7 +15,7 @@ export default function SpeakerDashboard() {
   const { user } = useAuth();
   
   const sessions = useQuery(api.events.getBySpeaker, user?.name ? { speakerName: user.name } : "skip" as any) || [];
-  const notifications = useQuery(api.notifications.get) || [];
+  const notifications = useQuery(api.notifications.get, { limit: 20 }) || [];
 
   const stats = {
     totalSessions: sessions.length,

@@ -1,24 +1,21 @@
 import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
+import { auth } from "./auth";
 
 export const sendRequest = mutation({
   args: {
     receiverId: v.id("users"),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Not authenticated");
-    const user = await ctx.db
-      .query("users")
-      .filter((q) => q.eq(q.field("email"), identity.email))
-      .first();
-    if (!user) throw new Error("User not found");
-    if (user._id === args.receiverId) throw new Error("Cannot connect with yourself");
+    const userId = await auth.getUserId(ctx);
+    if (!userId) throw new Error("Not authenticated");
+    
+    if (userId === args.receiverId) throw new Error("Cannot connect with yourself");
 
     // Check if connection already exists (either direction)
     const existing = await ctx.db
       .query("connections")
-      .withIndex("by_requester", (q) => q.eq("requesterId", user._id))
+      .withIndex("by_requester", (q) => q.eq("requesterId", userId))
       .filter((q) => q.eq(q.field("receiverId"), args.receiverId))
       .first();
     if (existing) throw new Error("Connection request already exists");
@@ -26,23 +23,24 @@ export const sendRequest = mutation({
     const reverse = await ctx.db
       .query("connections")
       .withIndex("by_requester", (q) => q.eq("requesterId", args.receiverId))
-      .filter((q) => q.eq(q.field("receiverId"), user._id))
+      .filter((q) => q.eq(q.field("receiverId"), userId))
       .first();
     if (reverse) throw new Error("Connection request already exists");
 
     await ctx.db.insert("connections", {
-      requesterId: user._id,
+      requesterId: userId,
       receiverId: args.receiverId,
       status: "pending",
       createdAt: Date.now(),
     });
 
     // Send notification to receiver
+    const sender = await ctx.db.get(userId);
     await ctx.db.insert("notifications", {
       userId: args.receiverId,
       type: "connection",
       title: "New Connection Request",
-      message: `${user.name || "Someone"} wants to connect with you.`,
+      message: `${sender?.name || "Someone"} wants to connect with you.`,
       read: false,
       link: "/networking",
       createdAt: Date.now(),
@@ -56,17 +54,12 @@ export const respondToRequest = mutation({
     accept: v.boolean(),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Not authenticated");
-    const user = await ctx.db
-      .query("users")
-      .filter((q) => q.eq(q.field("email"), identity.email))
-      .first();
-    if (!user) throw new Error("User not found");
+    const userId = await auth.getUserId(ctx);
+    if (!userId) throw new Error("Not authenticated");
 
     const connection = await ctx.db.get(args.connectionId);
     if (!connection) throw new Error("Connection not found");
-    if (connection.receiverId !== user._id) throw new Error("Not authorized");
+    if (connection.receiverId !== userId) throw new Error("Not authorized");
     if (connection.status !== "pending") throw new Error("Request already handled");
 
     await ctx.db.patch(args.connectionId, {
@@ -74,11 +67,12 @@ export const respondToRequest = mutation({
     });
 
     if (args.accept) {
+      const me = await ctx.db.get(userId);
       await ctx.db.insert("notifications", {
         userId: connection.requesterId,
         type: "connection",
         title: "Connection Accepted",
-        message: `${user.name || "Someone"} accepted your connection request!`,
+        message: `${me?.name || "Someone"} accepted your connection request!`,
         read: false,
         link: "/networking",
         createdAt: Date.now(),
@@ -92,17 +86,12 @@ export const removeConnection = mutation({
     connectionId: v.id("connections"),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Not authenticated");
-    const user = await ctx.db
-      .query("users")
-      .filter((q) => q.eq(q.field("email"), identity.email))
-      .first();
-    if (!user) throw new Error("User not found");
+    const userId = await auth.getUserId(ctx);
+    if (!userId) throw new Error("Not authenticated");
 
     const connection = await ctx.db.get(args.connectionId);
     if (!connection) throw new Error("Connection not found");
-    if (connection.requesterId !== user._id && connection.receiverId !== user._id) {
+    if (connection.requesterId !== userId && connection.receiverId !== userId) {
       throw new Error("Not authorized");
     }
     await ctx.db.delete(args.connectionId);
@@ -112,31 +101,26 @@ export const removeConnection = mutation({
 export const getMyConnections = query({
   args: {},
   handler: async (ctx) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) return [];
-    const user = await ctx.db
-      .query("users")
-      .filter((q) => q.eq(q.field("email"), identity.email))
-      .first();
-    if (!user) return [];
+    const userId = await auth.getUserId(ctx);
+    if (!userId) return [];
 
     const sent = await ctx.db
       .query("connections")
-      .withIndex("by_requester", (q) => q.eq("requesterId", user._id))
+      .withIndex("by_requester", (q) => q.eq("requesterId", userId))
       .collect();
     const received = await ctx.db
       .query("connections")
-      .withIndex("by_receiver", (q) => q.eq("receiverId", user._id))
+      .withIndex("by_receiver", (q) => q.eq("receiverId", userId))
       .collect();
 
     const all = [...sent, ...received];
     const enriched = await Promise.all(
       all.map(async (c) => {
-        const otherId = c.requesterId === user._id ? c.receiverId : c.requesterId;
+        const otherId = c.requesterId === userId ? c.receiverId : c.requesterId;
         const otherUser = await ctx.db.get(otherId);
         return {
           ...c,
-          direction: c.requesterId === user._id ? ("sent" as const) : ("received" as const),
+          direction: c.requesterId === userId ? ("sent" as const) : ("received" as const),
           otherUser: otherUser
             ? { id: otherUser._id, name: otherUser.name, email: otherUser.email, image: otherUser.image, role: otherUser.role }
             : null,
@@ -150,17 +134,12 @@ export const getMyConnections = query({
 export const getConnectionStatus = query({
   args: { otherUserId: v.id("users") },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) return null;
-    const user = await ctx.db
-      .query("users")
-      .filter((q) => q.eq(q.field("email"), identity.email))
-      .first();
-    if (!user) return null;
+    const userId = await auth.getUserId(ctx);
+    if (!userId) return null;
 
     const sent = await ctx.db
       .query("connections")
-      .withIndex("by_requester", (q) => q.eq("requesterId", user._id))
+      .withIndex("by_requester", (q) => q.eq("requesterId", userId))
       .filter((q) => q.eq(q.field("receiverId"), args.otherUserId))
       .first();
     if (sent) return { connectionId: sent._id, status: sent.status, direction: "sent" as const };
@@ -168,7 +147,7 @@ export const getConnectionStatus = query({
     const received = await ctx.db
       .query("connections")
       .withIndex("by_requester", (q) => q.eq("requesterId", args.otherUserId))
-      .filter((q) => q.eq(q.field("receiverId"), user._id))
+      .filter((q) => q.eq(q.field("receiverId"), userId))
       .first();
     if (received) return { connectionId: received._id, status: received.status, direction: "received" as const };
 

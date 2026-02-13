@@ -9,15 +9,15 @@ export default function AdminPage() {
     const router = useRouter();
 
     useEffect(() => {
-        if (!loading && user?.role !== 'organizer') {
+        if (!loading && user?.role !== 'admin') {
             router.push('/');
         }
     }, [user, loading, router]);
 
-    if (loading || user?.role !== 'organizer') {
+    if (loading || user?.role !== 'admin') {
         return (
-            <div className="flex items-center justify-center h-screen">
-                <p>Loading or unauthorized...</p>
+            <div className="flex items-center justify-center h-screen text-white">
+                <p>Unauthorized access...</p>
             </div>
         );
     }

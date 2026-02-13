@@ -12,18 +12,65 @@ import { useAuth } from '@/hooks/use-auth';
 export function NotificationWatcher() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const latestNotification = useQuery(api.notifications.get);
+  const latestNotification = useQuery(api.notifications.get, { limit: 1 });
   const markRead = useMutation(api.notifications.markRead);
+  const subscribePush = useMutation(api.notifications.subscribePush);
   const lastNotifIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     // Request notification permission on mount
     if (typeof window !== 'undefined' && 'Notification' in window) {
       if (Notification.permission === 'default') {
-        Notification.requestPermission();
+        Notification.requestPermission().then(permission => {
+          if (permission === 'granted' && user) {
+            setupPushSubscription();
+          }
+        });
+      } else if (Notification.permission === 'granted' && user) {
+        setupPushSubscription();
       }
     }
-  }, []);
+  }, [user]);
+
+  const setupPushSubscription = async () => {
+    if (!('serviceWorker' in navigator) || !user) return;
+
+    try {
+      const registration = await navigator.serviceWorker.ready;
+      
+      // Check if we already have a subscription
+      let subscription = await registration.pushManager.getSubscription();
+      
+      if (!subscription) {
+        // In a real app, the VAPID_PUBLIC_KEY would come from environment variables via an API or public config
+        // For this implementation, we check if it's available in the window or use a placeholder if not set
+        const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+        
+        if (!VAPID_PUBLIC_KEY) {
+          console.warn("VAPID Public Key not found. Push subscription skipped.");
+          return;
+        }
+
+        subscription = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: VAPID_PUBLIC_KEY
+        });
+      }
+
+      // Send subscription to server
+      const p256dh = btoa(String.fromCharCode.apply(null, new Uint8Array(subscription.getKey('p256dh')!) as any));
+      const auth = btoa(String.fromCharCode.apply(null, new Uint8Array(subscription.getKey('auth')!) as any));
+
+      await subscribePush({
+        endpoint: subscription.endpoint,
+        p256dh,
+        auth,
+        userAgent: navigator.userAgent
+      });
+    } catch (error) {
+      console.error('Push subscription failed:', error);
+    }
+  };
 
   useEffect(() => {
     if (!latestNotification || latestNotification.length === 0) return;

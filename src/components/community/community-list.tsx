@@ -115,3 +115,52 @@ export function CommunityListClient() {
           <Loader2 className="h-6 w-6 animate-spin text-cyan-500" />
         </div>
       )}
+
+      <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+        <DialogContent className="bg-gray-900 text-white border-white/10">
+          <DialogHeader>
+            <DialogTitle>Create New Community</DialogTitle>
+            <DialogDescription>
+              Connect with like-minded people.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+             <Input 
+               placeholder="Community Name" 
+               value={newCommunity.name} 
+               onChange={(e) => setNewCommunity({...newCommunity, name: e.target.value})} 
+               className="bg-white/5 border-white/10"
+             />
+             <Textarea 
+               placeholder="Description" 
+               value={newCommunity.description} 
+               onChange={(e) => setNewCommunity({...newCommunity, description: e.target.value})} 
+               className="bg-white/5 border-white/10"
+             />
+             <Input 
+               placeholder="Category" 
+               value={newCommunity.category} 
+               onChange={(e) => setNewCommunity({...newCommunity, category: e.target.value})} 
+               className="bg-white/5 border-white/10"
+             />
+             <div className="flex items-center gap-2">
+               <input 
+                 type="checkbox" 
+                 checked={newCommunity.isPrivate} 
+                 onChange={(e) => setNewCommunity({...newCommunity, isPrivate: e.target.checked})} 
+                 className="rounded border-gray-600 bg-gray-700"
+               />
+               <span className="text-sm">Private Community</span>
+             </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowCreateDialog(false)} className="border-white/10">Cancel</Button>
+            <Button onClick={handleCreateCommunity} disabled={loading} className="bg-cyan-600 hover:bg-cyan-500">
+              {loading ? 'Creating...' : 'Create'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}

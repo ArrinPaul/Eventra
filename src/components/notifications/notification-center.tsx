@@ -46,12 +46,11 @@ export function NotificationBell() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   
-  const notificationsRaw = useQuery(api.notifications.get) || [];
+  const notificationsRaw = useQuery(api.notifications.get, { limit: 20 }) || [];
+  const unreadCount = useQuery(api.notifications.getUnreadCount) || 0;
   const markRead = useMutation(api.notifications.markRead);
   const markAllRead = useMutation(api.notifications.markAllRead);
   const deleteMutation = useMutation(api.notifications.deleteNotification);
-
-  const unreadCount = notificationsRaw.filter((n: any) => !n.read).length;
 
   return (
     <Popover open={open} onOpenChange={setOpen}>

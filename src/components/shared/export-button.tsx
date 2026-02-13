@@ -30,8 +30,7 @@ export function ExportButton({ data, filename, title }: ExportButtonProps) {
           return typeof val === 'string' ? `"${val.replace(/"/g, '""')}"` : val;
         }).join(',')
       )
-    ].join('
-');
+    ].join('\n');
 
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');

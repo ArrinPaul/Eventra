@@ -127,6 +127,18 @@ export const deactivate = mutation({
     const code = await ctx.db.get(args.id);
     if (!code) throw new Error("Code not found");
 
+    // Check if user is organizer of the event or admin
+    if (code.eventId) {
+      const event = await ctx.db.get(code.eventId);
+      if (event && event.organizerId !== userId && !event.coOrganizerIds?.includes(userId)) {
+        const user = await ctx.db.get(userId);
+        if (user?.role !== "admin") throw new Error("Unauthorized");
+      }
+    } else {
+       const user = await ctx.db.get(userId);
+       if (user?.role !== "admin") throw new Error("Unauthorized");
+    }
+
     await ctx.db.patch(args.id, { isActive: false });
   },
 });

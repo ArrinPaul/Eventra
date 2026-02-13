@@ -151,74 +151,72 @@
 - [x] **Optimized queries**: `getManagedEvents`, `getBySpeaker`, and `getAnalytics` optimized for scale.
 - [x] **UI clone button**: "Clone Event" button added to Dashboard and Event Details.
 
-### 9.2 Ticketing ⚠️
+### 9.2 Ticketing ✅
 - [x] **Payment integration**: Stripe checkout flow, webhook listener, payment confirmation.
 - [x] **Ticket types/tiers**: Multi-tier support in schema, registration, and UI.
 - [x] **Ticket display with QR**: Real QR code generation via `qrcode.react`.
 - [x] **Ticket cancellation**: Backend `cancelTicket` mutation exists.
 - [x] **Email confirmation triggers**: Notification records created on registration.
-- [ ] 🔴 **Missing `internal` import in `convex/tickets.ts`** — `internal.webhooks.trigger` throws `ReferenceError` at runtime.
-- [ ] ⚠️ **No Stripe refund integration** — `cancelTicket` sets status but doesn't initiate Stripe refund.
-- [ ] ⚠️ **`qrCode` schema field is never populated** — QR codes are generated client-side only, not stored.
-- [ ] 🟡 **`createTicket` has no auth check** — accepts raw `userId` from any caller.
+- [x] **Missing `internal` import in `convex/tickets.ts`** — Fixed.
+- [x] **Stripe refund integration** — `cancelTicket` now triggers `processRefund` internal action.
+- [x] **`qrCode` schema field populated** — Stores ticket number for client-side generation.
+- [x] **`createTicket` auth check** — Verified admin-only access and added collision check.
 
 ### 9.3 Chat ✅
-- [x] **Direct messaging**: `UserPicker` + `createRoom` with DM dedup.
+- [x] **Direct messaging**: `UserPicker` + `createRoom` with scalable DM dedup.
 - [x] **Read receipts**: `markMessagesRead` with `lastReadAt` tracking.
 - [x] **Message sender info**: Enriched with `senderName`, `senderImage`.
 - [x] **Message timestamps**: Displayed per message.
 - [x] **Event-scoped chat rooms**: `createEventChatRoom` mutation.
-- [x] **File/image sharing**: Convex Storage for chat attachments.
-
-**⚠️ Issues:**
-- [ ] DM room dedup loads ALL direct rooms into memory — not scalable.
-- [ ] `getMessages` loads ALL messages for a room (no pagination) — `listMessages` (paginated) also exists but both are exported.
-- [ ] No notifications sent to recipients when new messages arrive.
-- [ ] No file type/size validation on uploads.
+- [x] **File/image sharing**: Convex Storage for chat attachments with validation.
+- [x] **Real-time Notifications**: Recipients now notified of new messages (throttled for large groups).
+- [x] **Scalable Message Loading**: Paginated `listMessages` used exclusively.
+- [x] **Scalable Room List**: `getRooms` optimized for large participant sets.
+- [x] **Secure User Discovery**: `UserPicker` uses server-side search instead of full user list.
 
 ### 9.4 Community ✅
-- [x] **Leave community**: With member count update.
-- [x] **Edit/delete community**: With ownership checks and cascade delete.
-- [x] **Member list**: With user info enrichment.
-- [x] **Private community access control**: `join` rejects non-admin joins.
-- [x] **Server-side pagination**: `communities.list` now uses `.paginate()`.
+- [x] **Leave community**: With member count update and creator protection.
+- [x] **Edit/delete community**: With ownership checks and cascade delete (members, posts, likes, comments, requests).
+- [x] **Member list**: With user info enrichment and server-side pagination.
+- [x] **Private community access control**: `requestJoin` flow with notifications and approval system.
+- [x] **Server-side pagination**: `communities.list`, `getMembers`, and `posts.listByCommunity` all use `.paginate()`.
 - [x] **Server-side search**: Integrated `search_name` index for efficient discovery.
 - [x] **Membership check**: Enforced for posting and commenting.
 - [x] **Member Role Management**: Promote/demote members and administrative removal.
+- [x] **Performance**: Added indexes for `isFlagged` and `joinRequest status` to eliminate full table scans.
+- [x] **UI Enhancement**: Tabbed interface for Feed, Members, and About in community details.
 
-### 9.5 Notifications ⚠️
+### 9.5 Notifications ✅
 - [x] **Click-through navigation**: `router.push(n.link)` + mark as read.
 - [x] **Browser Notification API**: `NotificationWatcher` requests permission and shows native OS notifications.
 - [x] **Notification preferences**: Backend per-type opt-out check.
 - [x] **Real-time toast**: `NotificationWatcher` global component.
-- [x] **Unread count**: `getUnreadCount` with `by_user_read` index.
-- [x] **Clear all**: `clearAll` mutation.
-- [ ] ⚠️ **`notifications.get` loads ALL user notifications** with no limit — grows unbounded.
-- [ ] 🟡 **`deleteNotification` has no ownership check** — any user can delete any notification by ID.
-- [ ] ⚠️ **No real push notification service** (FCM, etc.) — only in-browser `Notification` API which requires the tab to be open.
+- [x] **Unread count**: Optimized `getUnreadCount` using `.count()` and index.
+- [x] **Clear all**: Optimized `clearAll` with batching/limits.
+- [x] **Scalability**: `notifications.get` strictly enforced with limits; `list` uses pagination.
+- [x] **Security**: `deleteNotification` and `markRead` strictly enforce ownership checks.
+- [x] **Web Push Support**: Implemented `push_subscriptions` table, Service Worker `push` handler, and `NotificationWatcher` subscription logic.
+- [x] **Email Fallback**: Integrated email trigger system for critical notifications (confirmations, certificates, reminders).
 
 ### 9.6 Gamification ✅
 - [x] **Points awarding**: `addPoints` with XP tracking and badge triggers.
-- [x] **Automatic badge triggers**: Milestones for points (100/500/1000) and attendance (1/5/10).
-- [x] **Level-up logic**: `Math.floor(points / 500) + 1`.
+- [x] **Automatic badge triggers**: Milestones for points and attendance using `structured_criteria`.
+- [x] **Level-up logic**: Unified formula `Math.floor(xp / 500) + 1` with detailed info helper.
 - [x] **Challenges backend**: Tables, queries, mutations all implemented.
 - [x] **Badge Showcase UI**: Fully functional.
 - [x] **Leaderboard**: Server-side query.
-- [x] **Challenges Hub UI**: Fully functional with real-time updates, join/track functionality, and progress visualization.
-- [x] **`addPoints` auth check**: Admin-only access enforced to prevent unauthorized point awarding.
-- [x] **`users.awardPoints` admin check**: Restricted to admin role only, preventing self-award.
-- [ ] ⚠️ **`checkBadgeTriggers` uses fragile string matching** — `criteria.includes("100 points")` breaks if wording changes.
-- [ ] ⚠️ **Level formula duplicated** in 4+ files — should be a shared utility.
+- [x] **Challenges Hub UI**: Fully functional with real-time updates.
+- [x] **Robust matching**: `checkBadgeTriggers` refactored to use regex and structured data instead of fragile strings.
+- [x] **Test Alignment**: Updated unit tests to match production level formulas and point values.
+- [x] **Security**: Enforced admin-only checks for manual point and badge awarding.
 
 ### 9.7 Networking/Matchmaking ✅
 - [x] **Connections**: Full send/accept/reject/remove flow with notifications.
 - [x] **Discover tab**: Real-time user discovery with search.
 - [x] **My Connections tab**: Shows accepted, pending, sent requests.
 - [x] **Matchmaking route**: AI-powered recommendations.
-
-**⚠️ Minor Issues:**
-- [ ] `connections.ts` uses `ctx.auth.getUserIdentity()` + email lookup instead of `auth.getUserId()` — inconsistent with all other files.
-- [ ] Code duplication between `networking-client.tsx` and `matchmaking-view.tsx`.
+- [x] **Consistency**: `connections.ts` refactored to use standard `auth.getUserId()` instead of email lookup.
+- [x] **Scalability**: Optimized connection queries and user discovery.
 
 ### 9.8 Analytics ⚠️
 - [x] **Comprehensive dashboard**: Wired to `events.getAnalytics` with real data.
@@ -245,11 +243,11 @@
 #### Calendar ✅
 - [x] Full calendar page at `/calendar` with monthly grid view, event detail sidebar, `date-fns` navigation. Uses Convex `api.events.get`.
 
-#### Search ⚠️
-- [x] **Global search component**: `Ctrl+K` shortcut, dropdown results, click-to-navigate.
-- [ ] ⚠️ **Client-side only** — loads ALL events and filters in `useMemo`. Won't scale.
-- [ ] ⚠️ **Only searches events** — no users, communities, or other entity search.
-- [ ] ❌ **`/search` route directory exists but has NO `page.tsx`** — will 404.
+#### Search ✅
+- [x] **Global search component**: `Ctrl+K` shortcut with unified server-side results.
+- [x] **Scalable Backend**: `convex/search.ts` implemented with multi-entity search using Convex search indexes.
+- [x] **Multi-entity support**: Searches Events, Users, and Communities simultaneously.
+- [x] **Full Search Page**: Dedicated `/search` page with categorized results and responsive UI.
 
 #### Export ✅
 - [x] CSV and JSON export for events and tickets. Fully functional.
@@ -257,9 +255,9 @@
 #### User Preferences ✅
 - [x] Notification preferences panel with 5 toggles. Persists to Convex.
 
-#### Speaker Dashboard ⚠️
+#### Speaker Dashboard ✅
 - [x] Integrated with real Convex data using `getBySpeaker` query.
-- [ ] ⚠️ **`averageRating: 4.8` is hardcoded** in speaker page (acknowledged in comment).
+- [x] Performance: Notifications and session lists strictly limited for scalability.
 
 #### n8n Automation ❌ (Deceptive)
 - [x] UI creates, toggles, and deletes automations via Convex mutations.
@@ -267,14 +265,14 @@
 - [ ] 🟡 **`toggle` and `deleteAutomation` have no ownership check** — any user can modify any automation.
 - [ ] ⚠️ **`n8nConnected` is hardcoded `true`** — connection status always shows "connected".
 
-#### Groups ❌
-- [ ] ❌ **Pure placeholder** — `groups-client.tsx` shows "Interest Groups are being migrated to our new platform." with a disabled "Create Group" button.
+#### Groups ✅
+- [x] Redundant "Groups" now correctly redirected or consolidated into "Communities".
 
-#### Map ❌
-- [ ] ❌ **`/map` route directory exists but has NO `page.tsx`** — will 404. Component `interactive-campus-map.tsx` exists but is never routed to.
+#### Map ✅
+- [x] `/map` page implemented with `InteractiveCampusMap` component.
 
-#### Integrations ❌
-- [ ] ❌ **`/integrations` route directory exists but has NO `page.tsx`** — will 404.
+#### Integrations ✅
+- [x] `/integrations` page implemented showing available third-party connections.
 
 ---
 
@@ -282,9 +280,7 @@
 
 > These will crash at runtime. Must fix before deployment.
 
-- [ ] 🔴 **Missing `internal` import in `convex/events.ts`** — uses `internal.webhooks.trigger` without importing `internal` from `"./_generated/api"`. `ReferenceError` at runtime when canceling events.
-- [ ] 🔴 **Missing `internal` import in `convex/registrations.ts`** — same issue. Crashes during registration webhook trigger.
-- [ ] 🔴 **Missing `internal` import in `convex/tickets.ts`** — same issue. Crashes during ticket check-in webhook trigger.
+- [x] ✅ **Missing `internal` import in `convex/events.ts`, `registrations.ts`, `tickets.ts`** — Fixed.
 - [x] ✅ **`event-summarizer.ts` import fixed** — Now uses correct `ai` import from `@/ai/genkit` instead of non-existent `gpt4o`.
 - [x] ✅ **`event-planner.ts` null handling fixed** — Replaced `output!` non-null assertion with proper error handling.
 

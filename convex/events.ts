@@ -434,12 +434,33 @@ export const getAnalytics = query({
   args: {},
   handler: async (ctx: QueryCtx) => {
     const now = Date.now();
+    const oneMonthAgo = now - (30 * 24 * 60 * 60 * 1000);
     
-    // Efficiently get counts using .count() instead of .collect().length
+    // Efficiently get counts using .count()
     const totalEvents = await ctx.db.query("events").count();
     const totalRegistrations = await ctx.db.query("registrations").count();
     const totalUsers = await ctx.db.query("users").count();
     
+    // Get monthly growth
+    const recentRegistrations = await ctx.db
+      .query("registrations")
+      .filter((q) => q.gt(q.field("_creationTime"), oneMonthAgo))
+      .collect()
+      .then(regs => regs.length);
+      
+    const previousMonthRegistrations = await ctx.db
+      .query("registrations")
+      .filter((q) => q.and(
+        q.gt(q.field("_creationTime"), oneMonthAgo - (30 * 24 * 60 * 60 * 1000)),
+        q.lt(q.field("_creationTime"), oneMonthAgo)
+      ))
+      .collect()
+      .then(regs => regs.length);
+
+    const registrationTrend = previousMonthRegistrations === 0 
+      ? 100 
+      : Math.round(((recentRegistrations - previousMonthRegistrations) / previousMonthRegistrations) * 100);
+
     // Get counts for specific statuses
     const activeEvents = await ctx.db
       .query("events")
@@ -456,9 +477,9 @@ export const getAnalytics = query({
       .withIndex("by_status_endDate", (q) => q.eq("status", "published").gt("endDate", now))
       .count();
 
-    // For breakdown by category, we still might need to collect or use an aggregation table
-    // For now, let's keep it simple but more efficient for totals.
-    const allEvents = await ctx.db.query("events").collect();
+    // Limit collection for categorization to avoid massive scans if events are many
+    // In a real production app with millions of events, you'd use an aggregation table.
+    const allEvents = await ctx.db.query("events").take(500); 
     const eventsByCategory: Record<string, number> = {};
     const eventsByStatus: Record<string, number> = {};
 
@@ -470,7 +491,7 @@ export const getAnalytics = query({
       eventsByStatus[status] = (eventsByStatus[status] || 0) + 1;
     });
 
-    const reviews = await ctx.db.query("reviews").collect();
+    const reviews = await ctx.db.query("reviews").take(100);
     const avgRating = reviews.length > 0
       ? reviews.reduce((sum, r) => sum + (r.rating || 0), 0) / reviews.length
       : 0;
@@ -485,7 +506,8 @@ export const getAnalytics = query({
       eventsByCategory,
       eventsByStatus,
       averageRating: Math.round(avgRating * 10) / 10,
-      recentRegistrations: 0,
+      recentRegistrations,
+      registrationTrend,
     };
   },
 });

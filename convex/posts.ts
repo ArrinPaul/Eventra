@@ -8,7 +8,7 @@ export const list = query({
     const userId = await auth.getUserId(ctx);
     const results = await ctx.db
       .query("community_posts")
-      .filter((q) => q.neq(q.field("isFlagged"), true))
+      .withIndex("by_flagged_created", (q) => q.eq("isFlagged", false))
       .order("desc")
       .paginate(args.paginationOpts);
 
@@ -16,10 +16,11 @@ export const list = query({
     const enriched = [];
     for (const post of results.page) {
       const author = await ctx.db.get(post.authorId);
-      const commentCount = (await ctx.db
+      const commentCount = await ctx.db
         .query("comments")
         .withIndex("by_post", (q) => q.eq("postId", post._id))
-        .collect()).length;
+        .collect()
+        .then(comments => comments.length);
       
       let meLiked = false;
       if (userId) {
@@ -45,29 +46,44 @@ export const list = query({
 });
 
 export const listByCommunity = query({
-  args: { communityId: v.id("communities") },
+  args: { communityId: v.id("communities"), paginationOpts: v.paginationOpts() },
   handler: async (ctx, args) => {
-    const posts = await ctx.db
+    const userId = await auth.getUserId(ctx);
+    const results = await ctx.db
       .query("community_posts")
       .withIndex("by_community", (q) => q.eq("communityId", args.communityId))
       .filter((q) => q.neq(q.field("isFlagged"), true))
       .order("desc")
-      .collect();
+      .paginate(args.paginationOpts);
+
     const enriched = [];
-    for (const post of posts) {
+    for (const post of results.page) {
       const author = await ctx.db.get(post.authorId);
-      const commentCount = (await ctx.db
+      const commentCount = await ctx.db
         .query("comments")
         .withIndex("by_post", (q) => q.eq("postId", post._id))
-        .collect()).length;
+        .collect()
+        .then(comments => comments.length);
+      
+      let meLiked = false;
+      if (userId) {
+        const like = await ctx.db
+          .query("post_likes")
+          .withIndex("by_user_post", (q) => q.eq("userId", userId).eq("postId", post._id))
+          .unique();
+        meLiked = !!like;
+      }
+
       enriched.push({
         ...post,
         authorName: author?.name || "Anonymous",
         authorImage: author?.image,
+        authorRole: author?.role,
         commentCount,
+        meLiked,
       });
     }
-    return enriched;
+    return { ...results, page: enriched };
   },
 });
 

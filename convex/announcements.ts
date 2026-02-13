@@ -50,6 +50,10 @@ export const deactivate = mutation({
     
     const announcement = await ctx.db.get(args.id);
     if (!announcement) throw new Error("Not found");
+
+    if (announcement.organizerId !== userId) {
+      throw new Error("Not authorized");
+    }
     
     await ctx.db.patch(args.id, { isActive: false });
   },

@@ -35,20 +35,12 @@ interface PointAction {
   description: string;
 }
 
-// Point values
+// Point values - Aligned with production
 const POINT_VALUES: Record<string, number> = {
-  REGISTER_EVENT: 10,
-  ATTEND_EVENT: 25,
-  CHECK_IN: 15,
-  CONNECT_USER: 5,
-  POST_CREATED: 10,
-  COMMENT_CREATED: 5,
-  RECEIVE_LIKE: 2,
-  GIVE_FEEDBACK: 15,
-  EARN_CERTIFICATE: 50,
-  ORGANIZE_EVENT: 100,
-  REFER_USER: 30,
-  COMPLETE_PROFILE: 20,
+  REGISTER_EVENT: 50,
+  CHECK_IN: 100,
+  REFER_USER: 100,
+  COMPLETE_CHALLENGE: 200,
   STREAK_BONUS: 10,
 };
 
@@ -148,24 +140,18 @@ const BADGES: Badge[] = [
 
 // Gamification functions
 function calculateLevel(points: number): { level: number; currentXP: number; xpForNextLevel: number; progress: number } {
-  // XP required for level n: 100 * n * (n + 1) / 2
-  let level = 1;
-  let totalXPRequired = 0;
+  // Production formula: Math.floor(xp / 500) + 1
+  const level = Math.floor(points / 500) + 1;
+  const currentXP = points % 500;
+  const xpForNextLevel = 500;
+  const progress = Math.round((currentXP / xpForNextLevel) * 100);
   
-  while (true) {
-    const xpForLevel = 100 * level;
-    if (totalXPRequired + xpForLevel > points) {
-      const currentXP = points - totalXPRequired;
-      return {
-        level,
-        currentXP,
-        xpForNextLevel: xpForLevel,
-        progress: Math.round((currentXP / xpForLevel) * 100),
-      };
-    }
-    totalXPRequired += xpForLevel;
-    level++;
-  }
+  return {
+    level,
+    currentXP,
+    xpForNextLevel,
+    progress,
+  };
 }
 
 function awardPoints(currentPoints: number, action: keyof typeof POINT_VALUES): { newTotal: number; awarded: number } {

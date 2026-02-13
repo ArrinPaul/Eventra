@@ -15,28 +15,35 @@ export const getUsers = query({
     role: v.optional(v.string()),
     status: v.optional(v.string()),
     search: v.optional(v.string()),
+    paginationOpts: v.paginationOpts(),
   },
   handler: async (ctx, args) => {
     if (!(await isAdmin(ctx))) {
       throw new Error("Unauthorized");
     }
 
-    let users = await ctx.db.query("users").collect();
+    let query = ctx.db.query("users");
 
     if (args.role && args.role !== "all") {
-      users = users.filter((u: any) => u.role === args.role);
+      // In a real app with more users, you'd use a combined index.
+      // For now we filter after fetch or use a simple index if available.
+      // Users table has searchIndex on name but no combined index for role + status.
     }
 
+    // We'll use a basic paginate for now, and filter the page results
+    // Better: use specialized indexes for role/status if many users.
+    const results = await query.order("desc").paginate(args.paginationOpts);
+
+    let page = results.page;
+    if (args.role && args.role !== "all") {
+      page = page.filter((u: any) => u.role === args.role);
+    }
     if (args.search) {
       const search = args.search.toLowerCase();
-      users = users.filter(
-        (u: any) =>
-          u.name?.toLowerCase().includes(search) ||
-          u.email?.toLowerCase().includes(search)
-      );
+      page = page.filter((u: any) => u.name?.toLowerCase().includes(search) || u.email?.toLowerCase().includes(search));
     }
 
-    return users;
+    return { ...results, page };
   },
 });
 
@@ -189,57 +196,82 @@ export const getDashboardStats = query({
   handler: async (ctx) => {
     if (!(await isAdmin(ctx))) throw new Error("Unauthorized");
 
-    const users = await ctx.db.query("users").collect();
-    const events = await ctx.db.query("events").collect();
-    const registrations = await ctx.db.query("registrations").collect();
+    const totalUsers = await ctx.db.query("users").count();
+    const totalEvents = await ctx.db.query("events").count();
+    const totalRegistrations = await ctx.db.query("registrations").count();
+    
+    const now = Date.now();
+    const oneMonthAgo = now - (30 * 24 * 60 * 60 * 1000);
+    
+    const recentUsers = await ctx.db
+      .query("users")
+      .filter((q) => q.gt(q.field("_creationTime"), oneMonthAgo))
+      .collect()
+      .then(users => users.length);
+      
+    const previousMonthUsers = await ctx.db
+      .query("users")
+      .filter((q) => q.and(
+        q.gt(q.field("_creationTime"), oneMonthAgo - (30 * 24 * 60 * 60 * 1000)),
+        q.lt(q.field("_creationTime"), oneMonthAgo)
+      ))
+      .collect()
+      .then(users => users.length);
+
+    const userTrend = previousMonthUsers === 0 
+      ? 100 
+      : Math.round(((recentUsers - previousMonthUsers) / previousMonthUsers) * 100);
+
+    // For distribution, we still need some collection but limit it
+    const sampleUsers = await ctx.db.query("users").take(1000);
+    const sampleEvents = await ctx.db.query("events").take(1000);
 
     return {
-      totalUsers: users.length,
-      totalEvents: events.length,
-      totalRegistrations: registrations.length,
-      activeEvents: events.filter((e: any) => e.status === "published").length,
-      usersByRole: users.reduce((acc: any, u: any) => {
+      totalUsers,
+      totalEvents,
+      totalRegistrations,
+      userTrend,
+      activeEvents: sampleEvents.filter((e: any) => e.status === "published").length,
+      usersByRole: sampleUsers.reduce((acc: any, u: any) => {
         const role = u.role ?? "attendee";
         acc[role] = (acc[role] ?? 0) + 1;
         return acc;
       }, {} as Record<string, number>),
-            eventsByStatus: events.reduce((acc: any, e: any) => {
-              const status = e.status ?? "draft";
-              acc[status] = (acc[status] ?? 0) + 1;
-              return acc;
-            }, {} as Record<string, number>),
-          };
-        },
-      });
-      
-      export const getDetailedAnalytics = query({
-        args: {},
-        handler: async (ctx) => {
-          if (!(await isAdmin(ctx))) throw new Error("Unauthorized");
-      
-          const users = await ctx.db.query("users").collect();
-          const registrations = await ctx.db.query("registrations").collect();
-          const messages = await ctx.db.query("messages").collect();
-          const badges = await ctx.db.query("user_badges").collect();
-      
-          // Group users by month
-          const usersByMonth: Record<string, number> = {};
-          users.forEach((u: any) => {
-            const month = new Date(u._creationTime).toLocaleString('default', { month: 'short' });
-            usersByMonth[month] = (usersByMonth[month] || 0) + 1;
-          });
-      
-          // Activity distribution
-          const engagement = {
-            messages: messages.length,
-            registrations: registrations.length,
-            badgesEarned: badges.length,
-          };
-      
-          return {
-            growthData: Object.entries(usersByMonth).map(([name, value]) => ({ name, value })),
-            engagement,
-          };
-        }
-      });
-      
+      eventsByStatus: sampleEvents.reduce((acc: any, e: any) => {
+        const status = e.status ?? "draft";
+        acc[status] = (acc[status] ?? 0) + 1;
+        return acc;
+      }, {} as Record<string, number>),
+    };
+  },
+});
+
+export const getDetailedAnalytics = query({
+  args: {},
+  handler: async (ctx) => {
+    if (!(await isAdmin(ctx))) throw new Error("Unauthorized");
+
+    const sampleUsers = await ctx.db.query("users").order("desc").take(500);
+    
+    // Group users by month
+    const usersByMonth: Record<string, number> = {};
+    sampleUsers.forEach((u: any) => {
+      const month = new Date(u._creationTime).toLocaleString('default', { month: 'short' });
+      usersByMonth[month] = (usersByMonth[month] || 0) + 1;
+    });
+
+    // Activity distribution - use counts where possible
+    const engagement = {
+      messages: await ctx.db.query("messages").count(),
+      registrations: await ctx.db.query("registrations").count(),
+      badgesEarned: await ctx.db.query("user_badges").count(),
+    };
+
+    return {
+      growthData: Object.entries(usersByMonth)
+        .map(([name, value]) => ({ name, value }))
+        .reverse(), // Chromological order
+      engagement,
+    };
+  }
+});

@@ -74,7 +74,17 @@ export const register = mutation({
 
     // Get user info for ticket
     const user = await ctx.db.get(userId);
-    const ticketNumber = `EVT-${args.eventId.substring(0, 4)}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+    // Generate unique ticket number
+    let ticketNumber = "";
+    let isUnique = false;
+    while (!isUnique) {
+        ticketNumber = `EVT-${args.eventId.substring(0, 4)}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+        const existing = await ctx.db
+            .query("tickets")
+            .withIndex("by_ticket_number", (q) => q.eq("ticketNumber", ticketNumber))
+            .first();
+        if (!existing) isUnique = true;
+    }
 
     const ticketId = await ctx.db.insert("tickets", {
       eventId: args.eventId,
@@ -86,6 +96,7 @@ export const register = mutation({
       attendeeName: user?.name || "Attendee",
       attendeeEmail: user?.email || "",
       ticketTypeId: args.tierName,
+      qrCode: ticketNumber,
     });
 
     const regId = await ctx.db.insert("registrations", {
@@ -383,7 +394,17 @@ export const confirmPayment = internalMutation({
 
 
 
-    const ticketNumber = `EVT-${eventId.substring(0, 4)}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+    // Generate unique ticket number
+    let ticketNumber = "";
+    let isUnique = false;
+    while (!isUnique) {
+        ticketNumber = `EVT-${eventId.substring(0, 4)}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+        const existing = await ctx.db
+            .query("tickets")
+            .withIndex("by_ticket_number", (q) => q.eq("ticketNumber", ticketNumber))
+            .first();
+        if (!existing) isUnique = true;
+    }
 
 
 
@@ -456,6 +477,10 @@ export const confirmPayment = internalMutation({
 
 
       stripePaymentId,
+
+
+
+      qrCode: ticketNumber,
 
 
 

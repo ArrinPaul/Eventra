@@ -129,10 +129,36 @@ export const getLeaderboard = query({
 export const search = query({
   args: { query: v.string() },
   handler: async (ctx: QueryCtx, args) => {
+    const userId = await auth.getUserId(ctx);
+    if (!userId) throw new Error("Unauthorized");
+
     return await ctx.db
       .query("users")
       .withSearchIndex("search_name", (q) => q.search("name", args.query))
       .take(20);
+  },
+});
+
+export const searchForDM = query({
+  args: { query: v.string() },
+  handler: async (ctx: QueryCtx, args) => {
+    const userId = await auth.getUserId(ctx);
+    if (!userId) throw new Error("Unauthorized");
+
+    if (!args.query) return [];
+
+    const results = await ctx.db
+      .query("users")
+      .withSearchIndex("search_name", (q) => q.search("name", args.query))
+      .take(10);
+
+    // Return only public info
+    return results.map(u => ({
+      _id: u._id,
+      name: u.name,
+      image: u.image,
+      role: u.role,
+    }));
   },
 });
 

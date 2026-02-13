@@ -68,7 +68,7 @@ export default function AdminAnalyticsOverview() {
           { label: 'Total Users', value: stats.totalUsers, icon: Users, color: 'text-blue-400' },
           { label: 'Active Events', value: stats.activeEvents, icon: Calendar, color: 'text-green-400' },
           { label: 'Registrations', value: stats.totalRegistrations, icon: Ticket, color: 'text-amber-400' },
-          { label: 'Growth', value: '+12%', icon: TrendingUp, color: 'text-cyan-400' },
+          { label: 'Growth', value: `${(stats as any).userTrend || 0}%`, icon: TrendingUp, color: (stats as any).userTrend >= 0 ? 'text-cyan-400' : 'text-red-400' },
         ].map((s, i) => (
           <Card key={i} className="bg-white/5 border-white/10 text-white overflow-hidden">
             <CardContent className="p-6">

@@ -204,7 +204,10 @@ export default defineSchema({
     userId: v.id("users"),
     status: v.union(v.literal("pending"), v.literal("approved"), v.literal("rejected")),
     createdAt: v.number(),
-  }).index("by_community", ["communityId"]).index("by_user", ["userId"]).index("by_community_user", ["communityId", "userId"]),
+  }).index("by_community", ["communityId"])
+    .index("by_user", ["userId"])
+    .index("by_community_user", ["communityId", "userId"])
+    .index("by_status", ["status"]),
 
   community_posts: defineTable({
     communityId: v.id("communities"),
@@ -215,7 +218,9 @@ export default defineSchema({
     createdAt: v.number(),
     isFlagged: v.optional(v.boolean()),
     moderationReason: v.optional(v.string()),
-  }).index("by_community", ["communityId"]),
+  }).index("by_community", ["communityId"])
+    .index("by_flagged_created", ["isFlagged", "createdAt"])
+    .index("by_created", ["createdAt"]),
 
   post_likes: defineTable({
     postId: v.id("community_posts"),
@@ -492,6 +497,15 @@ export default defineSchema({
     isActive: v.boolean(),
     createdAt: v.number(),
   }).index("by_user", ["userId"]).index("by_event", ["eventId"]),
+
+  push_subscriptions: defineTable({
+    userId: v.id("users"),
+    endpoint: v.string(),
+    p256dh: v.string(),
+    auth: v.string(),
+    userAgent: v.optional(v.string()),
+    createdAt: v.number(),
+  }).index("by_user", ["userId"]).index("by_endpoint", ["endpoint"]),
 
   content: defineTable({
     title: v.string(),
