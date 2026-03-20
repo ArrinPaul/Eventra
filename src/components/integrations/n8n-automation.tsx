@@ -53,6 +53,7 @@ import {
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu';
 import { Id } from '../../../convex/_generated/dataModel';
+import { EVENTOS_CONFIG } from '@/core/config/eventos-config';
 
 interface N8nAutomationProps {
   eventId?: string;
@@ -78,7 +79,10 @@ export default function N8nAutomation({ eventId, eventTitle, userRole }: N8nAuto
   const [triggerType, setTriggerType] = useState('registration');
   const [actions, setActions] = useState<any[]>([]);
   
-  const [n8nConnected, setN8nConnected] = useState(true); // Default true for UI mockup
+  const n8nConnected = Boolean(
+    EVENTOS_CONFIG.externalServices.automation.n8n.enabled &&
+    EVENTOS_CONFIG.externalServices.automation.n8n.baseUrl
+  );
 
   const handleCreateWorkflow = async () => {
     if (!workflowName.trim()) return;
@@ -120,6 +124,11 @@ export default function N8nAutomation({ eventId, eventTitle, userRole }: N8nAuto
             Automation Hub
           </h1>
           <p className="text-gray-400 mt-1">Design powerful workflows to automate your event operations.</p>
+          <p className="text-xs mt-2">
+            <span className={n8nConnected ? 'text-green-400' : 'text-amber-400'}>
+              n8n {n8nConnected ? 'configured' : 'not configured'}
+            </span>
+          </p>
         </div>
         <Button onClick={() => setShowCreateDialog(true)} className="bg-cyan-600 hover:bg-cyan-500">
           <Plus className="w-4 h-4 mr-2" />

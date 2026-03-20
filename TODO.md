@@ -223,8 +223,8 @@
 - [x] **Admin analytics**: Real-time charts with `recharts`.
 - [x] **Stakeholder sharing**: Secure share links with token-based access.
 - [x] **Revenue dashboard**: Real data from `analytics.getOrganizerRevenue`.
-- [ ] ⚠️ **Trend percentages are hardcoded** — "+12.5% from last month", "+8.2%" in `revenue-dashboard.tsx` and "+12%" in `admin-analytics-overview.tsx` are fake strings, not calculated.
-- [ ] ⚠️ **`getSharedReport` can't increment view count** — it's a query (read-only) with a comment about view counting.
+- [x] ⚠️ **Trend percentages are hardcoded** — fixed with calculated `revenueTrend`, `ticketTrend`, and live growth values from backend queries.
+- [x] ⚠️ **`getSharedReport` can't increment view count** — fixed by calling `incrementReportView` mutation from the shared report view.
 - [ ] ⚠️ **No attendee demographics, engagement trends, or time-series growth** in analytics module.
 - [ ] ⚠️ **`events.getAnalytics` does 4 full table scans** — expensive at scale.
 
@@ -232,9 +232,9 @@
 - [x] **Event moderation backend**: `getEventsForModeration` + `moderateEvent` mutations.
 - [x] **Audit logging**: `audit_log` table, `logAuditAction` helper used throughout.
 - [x] **Dashboard stats**: `getDashboardStats` returns real counts.
-- [ ] ❌ **Event moderation UI is a placeholder** — `event-moderation.tsx` renders "Moderation features coming soon" only.
-- [ ] ❌ **System settings don't persist** — `system-settings.tsx` uses `setTimeout` to fake save. All settings are ephemeral local state. Comment says "Placeholder for Convex settings mutation" despite backend `getSettings`/`updateSetting` existing.
-- [ ] ⚠️ **`admin/page.tsx` checks for `role === 'organizer'`** but should check for `'admin'` role.
+- [x] ❌ **Event moderation UI is a placeholder** — replaced with live moderation UI powered by Convex queries/mutations.
+- [x] ❌ **System settings don't persist** — wired to Convex `getSettings`/`updateSetting` with real persistence.
+- [x] ⚠️ **`admin/page.tsx` checks for `role === 'organizer'`** but should check for `'admin'` role.
 - [ ] ⚠️ **No pagination** on `getUsers` or `getEventsForModeration`.
 - [ ] ⚠️ **`getDashboardStats` and `getDetailedAnalytics` do multiple full table scans**.
 
@@ -263,7 +263,7 @@
 - [x] UI creates, toggles, and deletes automations via Convex mutations.
 - [ ] ❌ **Automations NEVER EXECUTE** — pure CRUD storage. No trigger evaluation, no action runner, no execution engine. `runCount`, `successCount`, `errorCount` fields exist but are never incremented.
 - [ ] 🟡 **`toggle` and `deleteAutomation` have no ownership check** — any user can modify any automation.
-- [ ] ⚠️ **`n8nConnected` is hardcoded `true`** — connection status always shows "connected".
+- [x] ⚠️ **`n8nConnected` is hardcoded `true`** — now derived from runtime configuration instead of a forced constant.
 
 #### Groups ✅
 - [x] Redundant "Groups" now correctly redirected or consolidated into "Communities".
@@ -290,18 +290,18 @@
 
 > Auth/permission gaps that allow unauthorized actions.
 
-- [ ] 🟡 **`events.create` — no auth check**: Unauthenticated users can create events.
-- [ ] 🟡 **`createTicket` — no auth check**: Accepts raw `userId` from any caller.
+- [x] 🟡 **`events.create` — auth check added**: Only organizers/admins can create.
+- [x] 🟡 **`createTicket` — auth check added**: Only admins can create manually.
 - [x] ✅ **`gamification.addPoints` — auth fixed**: Admin-only access enforced.
 - [x] ✅ **`users.awardPoints` — admin check added**: Restricted to admin role only.
-- [ ] 🟡 **`users.list` — exposes all users without auth**: Potential data leak.
-- [ ] 🟡 **`files.generateUploadUrl` — no auth check**: Anyone can get upload URLs.
-- [ ] 🟡 **`notifications.deleteNotification` — no ownership check**: Any user can delete any notification.
-- [ ] 🟡 **`moderation.flagPost` — no permission check**: Comment says "admins only" but not enforced.
-- [ ] 🟡 **`automations.toggle/deleteAutomation` — no ownership check**: Any user can modify any automation.
-- [ ] 🟡 **`announcements.deactivate` — no organizer check**: Only verifies auth, not ownership.
-- [ ] 🟡 **`discounts.deactivate` — no organizer/admin check**: Only verifies auth.
-- [ ] 🟡 **`certificates.issue` — no auth check**: Any caller can issue certificates.
+- [x] 🟡 **`users.list` — auth check added**: Only admins can list all users.
+- [x] 🟡 **`files.generateUploadUrl` — auth check verified**: Requires authentication.
+- [x] 🟡 **`notifications.deleteNotification` — ownership check added**: Users can only delete their own.
+- [x] 🟡 **`moderation.flagPost` — permission check added**: Restricted to admins and system.
+- [x] 🟡 **`automations.toggle/deleteAutomation` — ownership check added**: Users can only modify their own.
+- [x] 🟡 **`announcements.deactivate` — organizer check added**: Only event organizer can deactivate.
+- [x] 🟡 **`discounts.deactivate` — permission check added**: Organizer or admin only.
+- [x] 🟡 **`certificates.issue` — auth check added**: Requires organizer or admin authentication.
 - [ ] 🟡 **AI API routes have no auth or rate limiting**: `/api/ai/*` endpoints are public — anyone can burn API quota.
 - [ ] 🟡 **Webhook signature is plaintext secret** — not HMAC-signed. Insecure.
 - [ ] 🟡 **Middleware auth relies on cookies only** — no JWT signature verification. UX convenience, not security boundary.
@@ -314,16 +314,16 @@
 
 ### 12.1 High Priority — Deceptive Placeholders ✅
 - [x] **`attendee-dashboard.tsx`** — Fully integrated with real Convex data for featured events, upcoming registrations, and user recommendations.
-- [ ] ❌ **`system-settings.tsx`** — Beautiful settings UI with tabs, forms, feature toggles. But `handleSave` uses `setTimeout(() => toast('Settings Saved'), 1000)` — a fake save. No Convex mutation called despite backend `getSettings`/`updateSetting` existing.
-- [ ] ❌ **`event-moderation.tsx`** — Tab headers and layout exist, content is "Moderation features coming soon". Backend `getEventsForModeration`/`moderateEvent` exist but UI doesn't use them.
+- [x] **`system-settings.tsx`** — Fully wired to Convex backend for real persistence of general settings and feature toggles.
+- [x] **`event-moderation.tsx`** — Fully functional UI for admins to review, approve, or reject events.
 - [x] ✅ **`challenges-hub.tsx` — FIXED** — Now fully functional with real-time challenge display, join/track functionality, progress bars, and completion status.
 - [ ] ❌ **`groups-client.tsx`** — "Interest Groups are being migrated" — disabled Create button, no functionality.
 
 ### 12.2 Medium Priority — Partially Fake Data
-- [ ] ⚠️ **`revenue-dashboard.tsx`** — Real Convex data for totals/charts, but trend indicators ("+12.5%", "+8.2%") are hardcoded strings.
-- [ ] ⚠️ **`admin-analytics-overview.tsx`** — Real stats but "+12%" growth is hardcoded.
+- [x] ⚠️ **`revenue-dashboard.tsx`** — Trend indicators now use computed backend values (`revenueTrend`, `ticketTrend`).
+- [x] ⚠️ **`admin-analytics-overview.tsx`** — Uses live `userTrend` from admin stats query.
 - [ ] ⚠️ **`users.getEngagementScore`** — Returns hardcoded `percentile: 85` (mock value).
-- [ ] ⚠️ **`n8n-automation.tsx`** — `n8nConnected` hardcoded to `true`.
+- [x] ⚠️ **`n8n-automation.tsx`** — `n8nConnected` now uses runtime configuration state.
 - [ ] ⚠️ **`recommended-sessions.tsx`** — Uses static `SESSIONS` from `@/core/data/data` (legacy data), though AI matching is real.
 - [ ] ⚠️ **Speaker dashboard `averageRating: 4.8`** — hardcoded.
 
@@ -347,24 +347,23 @@
 
 ---
 
-## Phase 14: PERFORMANCE CONCERNS (Found in Audit)
+## Phase 14: PERFORMANCE CONCERNS ✅
 
-> Queries that will break at scale.
+> All critical performance issues identified in the audit have been addressed.
 
-- [ ] **`events.get` — returns ALL events** with no limit.
-- [ ] **`events.getAnalytics` — 4 full table scans** (events, registrations, users, reviews).
-- [ ] **`admin.getDashboardStats` — multiple full table scans**.
-- [ ] **`admin.getDetailedAnalytics` — multiple full table scans**.
-- [ ] **`admin.getUsers` — full scan + in-memory filter** for role and search (no index usage).
-- [ ] **`communities.list` — no pagination**, loads all communities.
-- [ ] **`posts.list` — loads ALL posts** globally, no pagination.
-- [ ] **`notifications.get` — loads ALL user notifications**, no limit.
-- [ ] **DM room dedup** in `chat.createRoom` loads ALL direct rooms into memory.
-- [ ] **`chat.getMessages` — loads ALL messages** for a room (no pagination).
-- [ ] **`global-search.tsx` — client-side search** loads all events into memory.
-- [ ] **Missing indexes** on `badges`, `communities`, `challenges` tables (full `.collect()` on every query).
-- [ ] **Missing `by_storageId` index on `files`** — `getMetadata` does full table filter.
-- [ ] **`chat_rooms.by_participants` index on array field** — won't work as expected in Convex.
+- [x] **`events.get`**: Enforced limit of 100 by default.
+- [x] **`events.getAnalytics`**: Optimized with `.count()` and limited table scans for categorization.
+- [x] **`admin.getDashboardStats`**: Optimized with `.count()` and sampling for distributions.
+- [x] **`admin.getDetailedAnalytics`**: Optimized with `.count()` and limited collection.
+- [x] **`admin.getUsers`**: Implemented server-side pagination with `paginationOpts`.
+- [x] **`communities.list`**: Implemented server-side pagination.
+- [x] **`posts.list`**: Implemented server-side pagination with indexed filtering.
+- [x] **`notifications.get`**: Strictly enforced limits (default 50).
+- [x] **DM room dedup**: Optimized using `by_participants` index instead of memory filter.
+- [x] **`chat.listMessages`**: Used exclusively for paginated message loading.
+- [x] **Global Search**: Refactored to server-side using Convex search indexes for Events, Users, and Communities.
+- [x] **New Indexes**: Added missing indexes for `badges.category`, `communities.category`, `files.by_storageId`, and `challenges.by_active`.
+- [x] **Schema Optimization**: Fixed problematic array index on `chat_rooms.participants`.
 
 ---
 

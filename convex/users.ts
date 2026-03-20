@@ -363,6 +363,34 @@ export const redeemReferral = mutation({
   },
 });
 
+export const listPublicUsers = query({
+  args: { limit: v.optional(v.number()) },
+  handler: async (ctx: QueryCtx, args) => {
+    const userId = await auth.getUserId(ctx);
+    if (!userId) throw new Error("Unauthorized");
+
+    const users = await ctx.db
+      .query("users")
+      .filter((q) => q.and(
+        q.eq(q.field("onboardingCompleted"), true),
+        q.neq(q.field("_id"), userId)
+      ))
+      .take(args.limit || 50);
+
+    return users.map(u => ({
+      _id: u._id,
+      name: u.name,
+      image: u.image,
+      role: u.role,
+      bio: u.bio,
+      interests: u.interests,
+      company: u.company,
+      designation: u.designation,
+      college: u.college,
+    }));
+  },
+});
+
 export const getRecommended = query({
   args: { limit: v.optional(v.number()) },
   handler: async (ctx: QueryCtx, args) => {

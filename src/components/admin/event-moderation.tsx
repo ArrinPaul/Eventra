@@ -4,13 +4,13 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Flag, Clock, MessageSquare } from 'lucide-react';
 
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import { useToast } from '@/hooks/use-toast';
-import { Flag, Clock, MessageSquare, Check, X, ShieldAlert, Loader2 } from 'lucide-react';
+import { Check, X, ShieldAlert, Loader2, Clock } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Id } from '../../../convex/_generated/dataModel';
 
 export default function EventModeration() {
   const { toast } = useToast();
@@ -22,7 +22,7 @@ export default function EventModeration() {
   
   const moderateMutation = useMutation(api.admin.moderateEvent);
 
-  const handleModerate = async (eventId: any, action: 'approve' | 'reject' | 'suspend') => {
+  const handleModerate = async (eventId: Id<'events'>, action: 'approve' | 'reject' | 'suspend') => {
     try {
       await moderateMutation({ eventId, action });
       toast({ title: `Event ${action}ed` });

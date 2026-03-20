@@ -167,7 +167,7 @@ export default defineSchema({
     category: v.string(),
     xpReward: v.number(),
     rarity: v.union(v.literal("common"), v.literal("uncommon"), v.literal("rare"), v.literal("epic"), v.literal("legendary")),
-  }),
+  }).index("by_category", ["category"]),
 
   user_badges: defineTable({
     userId: v.id("users"),
@@ -190,7 +190,8 @@ export default defineSchema({
     isPrivate: v.boolean(),
     membersCount: v.number(),
     category: v.string(),
-  }).searchIndex("search_name", { searchField: "name" }),
+  }).index("by_category", ["category"])
+    .searchIndex("search_name", { searchField: "name" }),
 
   community_members: defineTable({
     communityId: v.id("communities"),
@@ -266,7 +267,7 @@ export default defineSchema({
     contentType: v.string(),
     size: v.number(),
     url: v.string(),
-  }).index("by_user", ["userId"]),
+  }).index("by_user", ["userId"]).index("by_storageId", ["storageId"]),
 
   reviews: defineTable({
     eventId: v.id("events"),
@@ -303,7 +304,7 @@ export default defineSchema({
     isActive: v.boolean(),
     startDate: v.optional(v.number()),
     endDate: v.optional(v.number()),
-  }),
+  }).index("by_active", ["isActive"]),
 
   user_challenges: defineTable({
     userId: v.id("users"),

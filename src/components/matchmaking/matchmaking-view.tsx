@@ -28,11 +28,16 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/core/utils/utils';
 import Link from 'next/link';
 
+import { getMatchmakingRecommendations, MatchmakingResult } from '@/app/actions/matchmaking';
+import { MatchmakingCard } from '../networking/matchmaking-card';
+import { MatchmakingSection } from '../networking/matchmaking-section';
+import { Badge } from '@/components/ui/badge';
+import { cn } from '@/core/utils/utils';
+import Link from 'next/link';
+
 export default function MatchmakingView() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [loading, setLoading] = useState(true);
-  const [result, setResult] = useState<MatchmakingResult | null>(null);
 
   const sendConnectionRequest = useMutation(api.connections.sendRequest);
 
@@ -44,24 +49,6 @@ export default function MatchmakingView() {
       toast({ title: "Error", description: e.message || "Failed to send request", variant: "destructive" });
     }
   };
-
-  const fetchMatches = useCallback(async () => {
-    if (!user) return;
-    setLoading(true);
-    try {
-      const data = await getMatchmakingRecommendations(user._id || user.id);
-      setResult(data);
-    } catch (error) {
-      console.error('Failed to fetch matches:', error);
-      toast({ title: 'Error', description: 'Failed to load matchmaking recommendations', variant: 'destructive' });
-    } finally {
-      setLoading(false);
-    }
-  }, [user, toast]);
-
-  useEffect(() => {
-    fetchMatches();
-  }, [fetchMatches]);
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl text-white space-y-8">
@@ -75,10 +62,6 @@ export default function MatchmakingView() {
           <p className="text-gray-400 text-lg">Our AI analyzes your profile and goals to find your perfect professional matches.</p>
         </div>
         <div className="flex items-center gap-3">
-          <Button variant="outline" className="border-white/10" onClick={fetchMatches} disabled={loading}>
-            <RefreshCw className={cn("w-4 h-4 mr-2", loading && "animate-spin")} />
-            Recalculate Matches
-          </Button>
           <Link href="/networking">
             <Button className="bg-white/10 hover:bg-white/20 text-white">
               <Users className="w-4 h-4 mr-2" />
@@ -89,32 +72,8 @@ export default function MatchmakingView() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-        <div className="lg:col-span-3 space-y-8">
-          {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {[1, 2, 4, 5].map(i => (
-                <Card key={i} className="bg-white/5 border-white/10 h-[320px] animate-pulse">
-                  <CardContent className="h-full" />
-                </Card>
-              ))}
-            </div>
-          ) : result?.error ? (
-            <div className="py-20 text-center text-gray-500 border border-dashed border-white/10 rounded-2xl bg-white/5">
-              <Target size={48} className="mx-auto mb-4 opacity-20" />
-              <p className="text-xl font-medium text-white mb-2">{result.error}</p>
-              <p>Try completing your profile bio and interests to help our AI understand you better.</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {result?.recommendations.map((match) => (
-                <MatchmakingCard 
-                  key={match.userId} 
-                  match={match} 
-                  onConnect={(id) => handleConnect(id)}
-                />
-              ))}
-            </div>
-          )}
+        <div className="lg:col-span-3">
+          <MatchmakingSection />
         </div>
 
         <div className="space-y-6">
@@ -126,17 +85,9 @@ export default function MatchmakingView() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {loading ? (
-                <div className="space-y-2">
-                  <div className="h-4 bg-white/10 rounded w-full animate-pulse" />
-                  <div className="h-4 bg-white/10 rounded w-5/6 animate-pulse" />
-                  <div className="h-4 bg-white/10 rounded w-4/6 animate-pulse" />
-                </div>
-              ) : (
-                <p className="text-sm text-gray-400 leading-relaxed italic">
-                  {result?.strategy?.weeklyPlan || "Complete your profile to generate a personalized networking strategy."}
-                </p>
-              )}
+              <p className="text-sm text-gray-400 leading-relaxed italic">
+                Our AI considers your interests, current role, and professional goals to suggest the most relevant connections for your growth.
+              </p>
             </CardContent>
           </Card>
 

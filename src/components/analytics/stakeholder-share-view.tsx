@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -83,6 +83,15 @@ export function StakeholderShareDialog({ eventId, eventName, open, onOpenChange 
 
 export function StakeholderReportView({ token }: { token: string }) {
   const report = useQuery(api.analytics.getSharedReport, { token });
+  const incrementReportView = useMutation(api.analytics.incrementReportView);
+  const hasIncrementedRef = useRef(false);
+
+  useEffect(() => {
+    if (report && !hasIncrementedRef.current) {
+      hasIncrementedRef.current = true;
+      void incrementReportView({ token });
+    }
+  }, [report, token, incrementReportView]);
 
   if (report === undefined) return <div className="p-20 text-center"><Loader2 className="animate-spin h-8 w-8 mx-auto text-cyan-500" /></div>;
   if (report === null) return <div className="p-20 text-center text-red-400">Invalid or expired share link.</div>;

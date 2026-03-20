@@ -30,16 +30,13 @@ export interface MatchmakingResult {
  */
 export async function getMatchmakingRecommendations(userId: string): Promise<MatchmakingResult> {
   try {
-    // 1. Fetch current user and all other users
-    const allUsers = await convex.query(api.users.list) as any[];
-    const currentUser = allUsers.find(u => u._id === userId || u.id === userId);
+    // 1. Fetch current user and potential connections
+    const currentUser = await convex.query(api.users.getById, { id: userId as any }) as any;
+    const potentialConnectionsRaw = await convex.query(api.users.listPublicUsers, { limit: 50 }) as any[];
 
     if (!currentUser) {
       return { recommendations: [], error: 'User not found' };
     }
-
-    // 2. Filter potential connections (exclude self)
-    const potentialConnectionsRaw = allUsers.filter(u => (u._id !== userId && u.id !== userId) && u.onboardingCompleted);
 
     if (potentialConnectionsRaw.length === 0) {
       return { recommendations: [], error: 'No potential connections found yet' };

@@ -89,6 +89,8 @@ export const getOrganizerRevenue = query({
     let totalRevenue = 0;
     let recentRevenue = 0;
     let previousMonthRevenue = 0;
+    let recentTicketCount = 0;
+    let previousMonthTicketCount = 0;
     const revenueByEvent = [];
     const revenueByTier: Record<string, number> = {};
     const dailyRevenue: Record<string, number> = {};
@@ -110,8 +112,10 @@ export const getOrganizerRevenue = query({
           
           if (ticket.purchaseDate > oneMonthAgo) {
             recentRevenue += price;
+            recentTicketCount += 1;
           } else if (ticket.purchaseDate > oneMonthAgo - (30 * 24 * 60 * 60 * 1000)) {
             previousMonthRevenue += price;
+            previousMonthTicketCount += 1;
           }
           
           // By Tier
@@ -136,10 +140,17 @@ export const getOrganizerRevenue = query({
       ? 100 
       : Math.round(((recentRevenue - previousMonthRevenue) / previousMonthRevenue) * 100);
 
+    const ticketTrend = previousMonthTicketCount === 0
+      ? (recentTicketCount > 0 ? 100 : 0)
+      : Math.round(((recentTicketCount - previousMonthTicketCount) / previousMonthTicketCount) * 100);
+
     return {
       totalRevenue,
       recentRevenue,
       revenueTrend,
+      recentTicketCount,
+      previousMonthTicketCount,
+      ticketTrend,
       revenueByEvent: revenueByEvent.sort((a, b) => b.revenue - a.revenue),
       revenueByTier,
       dailyRevenue: Object.entries(dailyRevenue)

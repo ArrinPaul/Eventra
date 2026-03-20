@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { ExportButton } from '@/components/shared/export-button';
+import { cn } from '@/core/utils/utils';
 
 const COLORS = ['#06b6d4', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981'];
 
@@ -78,9 +79,12 @@ export function RevenueDashboard() {
             <p className="text-2xl font-bold">
               {stats.revenueByEvent.reduce((sum, e) => sum + e.ticketCount, 0).toLocaleString()}
             </p>
-            <div className="flex items-center gap-1 mt-1 text-green-400 text-xs">
-              <ArrowUpRight className="h-3 w-3" />
-              <span>+8.2% from last month</span>
+            <div className={cn(
+              "flex items-center gap-1 mt-1 text-xs",
+              (stats.ticketTrend || 0) >= 0 ? "text-green-400" : "text-red-400"
+            )}>
+              {(stats.ticketTrend || 0) >= 0 ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
+              <span>{Math.abs(stats.ticketTrend || 0)}% from last month</span>
             </div>
           </CardContent>
         </Card>

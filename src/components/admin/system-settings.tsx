@@ -1,18 +1,20 @@
 'use client';
 
+import { useMemo, useState } from 'react';
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import { useToast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Switch } from '@/components/ui/switch';
 import {
   Settings,
-  Bell,
-  Mail,
-  Shield,
   Save,
   RefreshCw,
   Zap,
-  Server,
-  Key,
 } from 'lucide-react';
 
 export default function SystemSettings() {
@@ -126,5 +128,3 @@ export default function SystemSettings() {
     </div>
   );
 }
-
-import { useMemo } from 'react';
