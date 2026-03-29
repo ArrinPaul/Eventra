@@ -167,3 +167,4 @@ export function DepartmentPieChart({
 }
 
 export default DepartmentPieChart;
+

@@ -6,15 +6,9 @@ import React from 'react';
 // import { Progress } from '@/components/ui/progress';
 // import { Badge } from '@/components/ui/badge';
 // import { Target, Trophy, Calendar, CheckCircle2, Clock } from 'lucide-react';
-// // import { useQuery, useMutation } from 'convex/react';
-// import { api } from '@/convex/_generated/api';
 // import { useToast } from '@/hooks/use-toast';
-// // import { Id } from '@/convex/_generated/dataModel';
 
 export function ChallengesHub() {
-//   const challenges = useQuery(api.gamification.getChallenges);
-//   const userChallenges = useQuery(api.gamification.getUserChallenges);
-//   const joinChallenge = useMutation(api.gamification.joinChallenge);
   const { toast } = useToast();
 
   const handleJoinChallenge = async (challengeId: Id<'challenges'>) => {
@@ -153,3 +147,4 @@ export function ChallengesHub() {
     </Card>
   );
 }
+

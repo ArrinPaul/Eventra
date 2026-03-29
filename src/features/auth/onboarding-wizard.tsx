@@ -16,8 +16,6 @@
 // import { Progress } from '@/components/ui/progress';
 // import { useToast } from '@/hooks/use-toast';
 // import { useAuth } from '@/hooks/use-auth';
-// // import { useMutation } from 'convex/react';
-// import { api } from '../../../convex/_generated/api';
 import { useStorage } from '@/lib/storage';
 import { 
   ChevronLeft, 
@@ -185,7 +183,6 @@ export function OnboardingWizard() {
     }
   };
 // 
-//   const updateProfile = useMutation(api.users.update);
 
   const handleComplete = async () => {
     setIsSubmitting(true);
@@ -273,3 +270,4 @@ export function OnboardingWizard() {
     </Card>
   );
 }
+

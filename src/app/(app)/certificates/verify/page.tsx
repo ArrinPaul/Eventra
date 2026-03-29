@@ -2,7 +2,7 @@ import { Suspense } from 'react';
 import CertificateVerifyClient from './verify-client';
 
 export const metadata = {
-  title: 'Verify Certificate | EventOS',
+  title: 'Verify Certificate | Eventra',
   description: 'Verify the authenticity of a certificate',
 };
 
@@ -13,3 +13,4 @@ export default function VerifyCertificatePage() {
     </Suspense>
   );
 }
+

@@ -1,5 +1,5 @@
 /**
- * Email Service for EventOS
+ * Email Service for Eventra
  * Handles sending emails for various events (registration, reminders, certificates, etc.)
  */
 
@@ -81,18 +81,18 @@ const templates = {
             </ul>
 
             <center>
-              <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://eventos.app'}/tickets?event=${event.id}" class="button">
+              <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://eventra.app'}/tickets?event=${event.id}" class="button">
                 View My Ticket
               </a>
             </center>
 
             <p style="margin-top: 30px; color: #6b7280; font-size: 14px;">
-              <strong>Need help?</strong> Reply to this email or contact support at support@eventos.app
+              <strong>Need help?</strong> Reply to this email or contact support at support@eventra.app
             </p>
           </div>
           <div class="footer">
-            <p>© ${new Date().getFullYear()} EventOS. All rights reserved.</p>
-            <p>You're receiving this because you registered for an event on EventOS.</p>
+            <p>© ${new Date().getFullYear()} Eventra. All rights reserved.</p>
+            <p>You're receiving this because you registered for an event on Eventra.</p>
           </div>
         </div>
       </body>
@@ -113,11 +113,11 @@ Ticket Details:
 - Location: ${ticket.event?.location || 'TBD'}
 ${ticket.price && ticket.price > 0 ? `- Amount Paid: ${ticket.currency || 'USD'} ${ticket.price.toFixed(2)}` : ''}
 
-View your ticket: ${process.env.NEXT_PUBLIC_APP_URL || 'https://eventos.app'}/tickets?event=${event.id}
+View your ticket: ${process.env.NEXT_PUBLIC_APP_URL || 'https://eventra.app'}/tickets?event=${event.id}
 
 See you at the event!
 
-EventOS Team
+Eventra Team
     `
   }),
 
@@ -152,7 +152,7 @@ EventOS Team
               <li><strong>Time:</strong> ${new Date(event.startDate || new Date()).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}</li>
             </ul>
             <center>
-              <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://eventos.app'}/events/${event.id}" class="button">
+              <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://eventra.app'}/events/${event.id}" class="button">
                 View Event Details
               </a>
             </center>
@@ -168,7 +168,6 @@ class EmailService {
   private apiEndpoint: string;
 
   constructor() {
-    // Use Firebase Functions endpoint or fallback to environment variable
     this.apiEndpoint = process.env.NEXT_PUBLIC_EMAIL_API_ENDPOINT || '/api/send-email';
   }
 
@@ -229,7 +228,7 @@ class EmailService {
       return;
     }
 
-    // In production, send via API endpoint (Firebase Function or Next.js API route)
+    // In production, send via API endpoint
     try {
       const response = await fetch(this.apiEndpoint, {
         method: 'POST',
@@ -251,3 +250,4 @@ class EmailService {
 
 // Export singleton instance
 export const emailService = new EmailService();
+

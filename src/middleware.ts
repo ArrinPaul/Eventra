@@ -1,5 +1,5 @@
 /**
- * EventOS Middleware
+ * Eventra Middleware
  * Handles route protection and role-based redirects
  */
 
@@ -231,3 +231,4 @@ export const config = {
     '/((?!_next/static|_next/image|favicon.ico|public/).*)',
   ],
 };
+

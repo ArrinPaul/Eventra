@@ -18,15 +18,12 @@
 // import { cn } from '@/core/utils/utils';
 // import { useAuth } from '@/hooks/use-auth';
 // import { useToast } from '@/hooks/use-toast';
-// // import { useMutation } from 'convex/react';
-// import { api } from '../../../convex/_generated/api';
 import type { Event } from '@/types';
 
 export function EventCard({ event, variant = 'default' }: { event: Event, variant?: 'default' | 'compact' | 'featured' }) {
   const router = useRouter();
   const { user } = useAuth();
   const { toast } = useToast();
-//   const registerMutation = useMutation(api.registrations.register);
   const [isRegistering, setIsRegistering] = useState(false);
 
   const displayDate = new Date(event.startDate || event.date || Date.now());
@@ -61,3 +58,4 @@ export function EventCard({ event, variant = 'default' }: { event: Event, varian
     </Link>
   );
 }
+

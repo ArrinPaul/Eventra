@@ -9,8 +9,6 @@
 // import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 // import { Sparkles, TrendingUp, Users, Target, Calendar, BookOpen, Network, RefreshCw, Clock } from 'lucide-react';
 // import { useAuth } from '@/hooks/use-auth';
-// // import { useQuery } from 'convex/react';
-// import { api } from '../../../convex/_generated/api';
 import { 
   getAIRecommendations, 
   getAIContentRecommendations, 
@@ -52,7 +50,6 @@ export default function AiRecommendationDashboard() {
   const [connectionRecommendations, setConnectionRecommendations] = useState<ConnectionRecommendation[]>([]);
   const [insights, setInsights] = useState<InsightCard[]>([]);
 // 
-//   const events = useQuery(api.events.get) || [];
 // 
 //   const loadRecommendations = useCallback(async () => {
 //     if (!user) return;
@@ -64,7 +61,6 @@ export default function AiRecommendationDashboard() {
         getAIConnectionRecommendations(user._id || user.id)
       ]);
 
-      // Enrich event recommendations with full event data from Convex
       const enrichedEvents = eventsRes.recommendations.map(rec => {
         const fullEvent = events.find((e: any) => e._id === rec.eventId);
         return {
@@ -273,7 +269,6 @@ export default function AiRecommendationDashboard() {
                     <div className="flex flex-col md:flex-row justify-between items-start gap-6">
                       <div className="flex items-start gap-4 flex-1">
                         <Avatar className="h-14 w-14 border-2 border-cyan-500/20">
-                          <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${connection.name}`} />
                           <AvatarFallback className="bg-cyan-500/10 text-cyan-500 font-bold">{connection.name[0]}</AvatarFallback>
                         </Avatar>
                         <div className="flex-1 space-y-2">
@@ -322,4 +317,5 @@ export default function AiRecommendationDashboard() {
     </div>
   );
 }
+
 

@@ -34,8 +34,6 @@
 // } from 'lucide-react';
 // import { EventCard } from '@/components/events/event-card';
 // import { useAuth } from '@/hooks/use-auth';
-// // import { useQuery, usePaginatedQuery } from 'convex/react';
-// import { api } from '../../../convex/_generated/api';
 import { getAIRecommendations, AIRecommendation } from '@/app/actions/ai-recommendations';
 import { cn } from '@/core/utils/utils';
 import type { Event } from '@/types';
@@ -82,9 +80,6 @@ export default function ExploreClient() {
   const [locationFilter, setLocationFilter] = useState(searchParams.get('location') || '');
   const [showOnlyFree, setShowOnlyFree] = useState(false);
 
-  // Convex Query - Paginated
-//   const { results: paginatedEvents, status, loadMore } = usePaginatedQuery(
-//     api.events.listByStatus,
 //     { status: "published" },
 //     { initialNumItems: 12 }
 //   );
@@ -143,7 +138,6 @@ export default function ExploreClient() {
     }
   }, [events, fetchAIRecommendations, aiRecommendations.length]);
 
-  // Apply filters (local filtering for now as Convex paginated queries are limited in dynamic filtering)
   const displayedEvents = useMemo(() => {
     let result = [...events];
 
@@ -447,3 +441,4 @@ export default function ExploreClient() {
             }
 
             
+

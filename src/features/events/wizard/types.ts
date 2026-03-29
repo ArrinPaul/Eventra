@@ -61,3 +61,4 @@ export const defaultEventValues: EventWizardData = {
   enableWaitlist: false,
   ticketTiers: [],
 };
+

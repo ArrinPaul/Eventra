@@ -217,7 +217,7 @@ export function logEnvConfigStatus(): void {
     return; // Don't log in production
   }
 
-  console.log('\n📋 EventOS Configuration Status:');
+  console.log('\n📋 Eventra Configuration Status:');
   console.log('================================');
   console.log(`Environment: ${envConfig.nodeEnv}`);
   console.log(`Site URL: ${envConfig.siteUrl}`);

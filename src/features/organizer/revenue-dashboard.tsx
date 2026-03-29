@@ -1,7 +1,5 @@
 'use client';
 // 
-// import { useQuery } from 'convex/react';
-// import { api } from '../../../convex/_generated/api';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
@@ -23,7 +21,6 @@ import { cn } from '@/core/utils/utils';
 const COLORS = ['#06b6d4', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981'];
 
 export function RevenueDashboard() {
-//   const stats = useQuery(api.analytics.getOrganizerRevenue);
 
   if (!stats) {
     return (
@@ -224,4 +221,5 @@ export function RevenueDashboard() {
     </div>
   );
 }
+
 

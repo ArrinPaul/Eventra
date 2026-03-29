@@ -6,8 +6,6 @@ import React, { useState, useEffect, useCallback } from 'react';
 // import { Sparkles, Target, Trophy, RefreshCw } from 'lucide-react';
 // import { useAuth } from '@/hooks/use-auth';
 // import { useToast } from '@/hooks/use-toast';
-// // import { useMutation } from 'convex/react';
-// import { api } from '../../../convex/_generated/api';
 import { getMatchmakingRecommendations, MatchmakingResult } from '@/app/actions/matchmaking';
 import { MatchmakingCard } from './matchmaking-card';
 import { cn } from '@/core/utils/utils';
@@ -18,7 +16,6 @@ export function MatchmakingSection() {
   const [loading, setLoading] = useState(true);
   const [result, setResult] = useState<MatchmakingResult | null>(null);
 // 
-//   const sendConnectionRequest = useMutation(api.connections.sendRequest);
 
   const handleConnect = async (userId: string) => {
     try {
@@ -108,4 +105,5 @@ export function MatchmakingSection() {
     </div>
   );
 }
+
 

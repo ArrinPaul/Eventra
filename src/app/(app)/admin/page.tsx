@@ -24,3 +24,4 @@ export default function AdminPage() {
 
     return <AdminDashboardClient />;
 }
+

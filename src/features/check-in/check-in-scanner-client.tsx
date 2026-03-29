@@ -2,8 +2,6 @@
 // 
 // import { useState, useEffect, useRef, useCallback } from 'react';
 // import { useAuth } from '@/hooks/use-auth';
-// // import { useQuery, useMutation } from 'convex/react';
-// import { api } from '../../../convex/_generated/api';
 import { EventTicket, Event } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -50,8 +48,6 @@ export default function CheckInScannerClient() {
   const { user } = useAuth();
   const { toast } = useToast();
 //   
-//   const allEventsRaw = useQuery(api.events.get);
-//   const checkInTicketMutation = useMutation(api.tickets.checkInTicket);
   
   const [selectedEvent, setSelectedEvent] = useState<string>('');
   const [scanning, setScanning] = useState(false);
@@ -65,7 +61,6 @@ export default function CheckInScannerClient() {
   const organizerEvents = events.filter(e => e.organizerId === (user?._id || user?.id) || user?.role === 'admin');
 
   // Dashboard Queries
-//   const registrations = useQuery(api.registrations.getByEvents, selectedEvent ? { eventIds: [selectedEvent as any] } : "skip") || [];
 //   const checkInCount = registrations.filter((r: any) => r.checkedIn).length;
 //   const totalRegistrations = registrations.length;
 //   const checkInRate = totalRegistrations > 0 ? Math.round((checkInCount / totalRegistrations) * 100) : 0;
@@ -261,4 +256,5 @@ export default function CheckInScannerClient() {
     </div>
   );
 }
+
 

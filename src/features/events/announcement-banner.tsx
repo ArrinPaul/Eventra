@@ -1,14 +1,11 @@
 'use client';
 // 
-// import { useQuery, useMutation } from 'convex/react';
-// import { api } from '../../../convex/_generated/api';
 import { AlertCircle, Bell, Info, X } from 'lucide-react';
 import { cn } from '@/core/utils/utils';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export function AnnouncementBanner({ eventId }: { eventId: string }) {
-//   const announcements = useQuery(api.announcements.getActiveByEvent, { eventId: eventId as any });
   
   if (!announcements || announcements.length === 0) return null;
 
@@ -42,4 +39,5 @@ export function AnnouncementBanner({ eventId }: { eventId: string }) {
     </div>
   );
 }
+
 

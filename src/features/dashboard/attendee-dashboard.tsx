@@ -24,8 +24,6 @@
 // import Link from 'next/link';
 // import { format } from 'date-fns';
 // import { cn } from '@/core/utils/utils';
-// // import { useQuery } from 'convex/react';
-// import { api } from '../../../convex/_generated/api';
 import { ActivityFeed } from '@/components/feed/activity-feed';
 import { EngagementMetrics } from './engagement-metrics';
 import { ReferralSystem } from './referral-system';
@@ -36,9 +34,6 @@ export function AttendeeDashboard() {
   const t = useTranslations('Dashboard');
   const tc = useTranslations('Common');
 //   
-//   const registrations = useQuery(api.registrations.getUpcoming) || [];
-//   const featuredEvents = useQuery(api.events.getPublished) || [];
-//   const quickConnect = useQuery(api.users.getRecommended, { limit: 3 }) || [];
 // 
 //   if (!user) return null;
 // 
@@ -234,7 +229,6 @@ export function AttendeeDashboard() {
 //                 <>
 //                   <div className="bg-white p-3 rounded-xl shadow-inner mb-4">
 //                     <img
-//                       src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent((registrations[0] as any).ticketNumber || '')}`}
 //                       alt="QR Code"
 //                       className="w-32 h-32"
 //                     />
@@ -306,4 +300,5 @@ export function AttendeeDashboard() {
 //     </div>
 //   );
 }
+
 

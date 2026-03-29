@@ -2,7 +2,7 @@
  * Eventra Types - Consolidated
  */
 
-export * from '../core/config/eventos-config';
+export * from '../core/config/eventra-config';
 
 export type UserRole = 'student' | 'professional' | 'organizer' | 'admin' | 'speaker' | 'attendee' | 'vendor';
 
@@ -198,3 +198,4 @@ export interface FeedPost {
 }
 
 export interface UserProfile extends User {}
+

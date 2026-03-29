@@ -1,8 +1,6 @@
 'use client';
 // 
 // import { useState } from 'react';
-// // import { useQuery, useMutation } from 'convex/react';
-// import { api } from '../../../convex/_generated/api';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,10 +19,6 @@ import { cn } from '@/core/utils/utils';
 
 export function AnnouncementManager({ eventId }: { eventId: string }) {
   const { toast } = useToast();
-//   const announcements = useQuery(api.announcements.getActiveByEvent, { eventId: eventId as any });
-//   const createAnnouncement = useMutation(api.announcements.create);
-//   const deactivateAnnouncement = useMutation(api.announcements.deactivate);
-//   const updateAnnouncement = useMutation(api.announcements.update);
 
   const [content, setContent] = useState('');
   const [type, setType] = useState<'info' | 'warning' | 'urgent'>('info');
@@ -208,4 +202,5 @@ export function AnnouncementManager({ eventId }: { eventId: string }) {
     </Card>
   );
 }
+
 

@@ -1,8 +1,6 @@
 'use client';
 
 import React from 'react';
-// import { useQuery } from 'convex/react';
-// import { api } from '../../../convex/_generated/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Trophy, Award, Star, Shield, Zap } from 'lucide-react';
@@ -25,7 +23,6 @@ const rarityIcons: Record<string, React.ReactNode> = {
 };
 
 export function BadgeShowcase({ userId, compact }: { userId: string; stats?: any; compact?: boolean }) {
-//   const badges = useQuery(api.gamification.getUserBadges, { userId: userId as any }) || [];
 // 
 //   if (compact) {
 //     return (
@@ -86,3 +83,4 @@ export function BadgeShowcase({ userId, compact }: { userId: string; stats?: any
     </Card>
   );
 }
+

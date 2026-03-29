@@ -1,8 +1,6 @@
 'use client';
 // 
 // import { useMemo, useState } from 'react';
-// // import { useQuery, useMutation } from 'convex/react';
-// import { api } from '../../../convex/_generated/api';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -19,8 +17,6 @@ import {
 
 export default function SystemSettings() {
   const { toast } = useToast();
-//   const settingsRaw = useQuery(api.admin.getSettings);
-//   const updateSettingMutation = useMutation(api.admin.updateSetting);
   
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState('general');
@@ -128,3 +124,4 @@ export default function SystemSettings() {
     </div>
   );
 }
+

@@ -413,3 +413,4 @@ export function hasLiveEvents(zoneId: string, events: MapEvent[]): boolean {
     return now >= start && now <= end;
   });
 }
+

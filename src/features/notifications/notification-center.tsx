@@ -20,8 +20,6 @@ import React, { useState } from 'react';
 // } from '@/components/ui/popover';
 // import { useAuth } from '@/hooks/use-auth';
 // import { useToast } from '@/hooks/use-toast';
-// // import { useQuery, useMutation, usePaginatedQuery } from 'convex/react';
-// import { api } from '../../../convex/_generated/api';
 import {
   Bell,
   BellRing,
@@ -46,11 +44,6 @@ export function NotificationBell() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
 //   
-//   const notificationsRaw = useQuery(api.notifications.get, { limit: 20 }) || [];
-//   const unreadCount = useQuery(api.notifications.getUnreadCount) || 0;
-//   const markRead = useMutation(api.notifications.markRead);
-//   const markAllRead = useMutation(api.notifications.markAllRead);
-//   const deleteMutation = useMutation(api.notifications.deleteNotification);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -92,18 +85,12 @@ export function NotificationBell() {
 
 export function NotificationCenter() {
   const router = useRouter();
-//   const { results, status, loadMore } = usePaginatedQuery(
-//     api.notifications.list,
 //     {},
 //     { initialNumItems: 10 }
 //   );
   
   const notifications = results || [];
-//   const markRead = useMutation(api.notifications.markRead);
-//   const markAllRead = useMutation(api.notifications.markAllRead);
-//   const deleteMutation = useMutation(api.notifications.deleteNotification);
 // 
-//   const unreadCount = useQuery(api.notifications.getUnreadCount) || 0;
 // 
 //   return (
 //     <div className="container py-8 space-y-6 text-white">
@@ -139,3 +126,4 @@ export function NotificationCenter() {
     </div>
   );
 }
+

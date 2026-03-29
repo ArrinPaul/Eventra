@@ -15,7 +15,7 @@ export default function RegisterPage() {
 
       <div className="w-full relative z-10">
         <div className="text-center mb-8 space-y-2">
-          <h1 className="text-4xl font-extrabold tracking-tight font-headline">Join EventOS</h1>
+          <h1 className="text-4xl font-extrabold tracking-tight font-headline">Join Eventra</h1>
           <p className="text-muted-foreground text-lg">Start your journey with intelligent event management.</p>
         </div>
         

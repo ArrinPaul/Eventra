@@ -20,8 +20,6 @@ import React, { useState, useEffect, useCallback } from 'react';
 // } from 'lucide-react';
 // import { useAuth } from '@/hooks/use-auth';
 // import { useToast } from '@/hooks/use-toast';
-// // import { useQuery, useMutation } from 'convex/react';
-// import { api } from '../../../convex/_generated/api';
 import { getMatchmakingRecommendations, MatchmakingResult } from '@/app/actions/matchmaking';
 import { MatchmakingCard } from '../networking/matchmaking-card';
 import { Badge } from '@/components/ui/badge';
@@ -39,7 +37,6 @@ export default function MatchmakingView() {
   const { user } = useAuth();
   const { toast } = useToast();
 // 
-//   const sendConnectionRequest = useMutation(api.connections.sendRequest);
 
   const handleConnect = async (userId: string) => {
     try {
@@ -133,4 +130,5 @@ export default function MatchmakingView() {
     </div>
   );
 }
+
 

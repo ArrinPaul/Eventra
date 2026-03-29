@@ -7,7 +7,6 @@ import { NextRequest, NextResponse } from 'next/server';
  * In production, configure one of these:
  * - SENDGRID_API_KEY for SendGrid
  * - RESEND_API_KEY for Resend
- * - Or use Firebase Extensions (Trigger Email)
  */
 
 interface EmailPayload {
@@ -44,7 +43,6 @@ export async function POST(request: NextRequest) {
 
     if (sendgridApiKey) {
       // Use SendGrid
-      const response = await fetch('https://api.sendgrid.com/v3/mail/send', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${sendgridApiKey}`,
@@ -53,8 +51,8 @@ export async function POST(request: NextRequest) {
         body: JSON.stringify({
           personalizations: [{ to: [{ email: payload.to }] }],
           from: { 
-            email: process.env.EMAIL_FROM || 'noreply@eventos.app',
-            name: process.env.EMAIL_FROM_NAME || 'EventOS'
+            email: process.env.EMAIL_FROM || 'noreply@eventra.app',
+            name: process.env.EMAIL_FROM_NAME || 'Eventra'
           },
           subject: payload.subject,
           content: [
@@ -78,14 +76,13 @@ export async function POST(request: NextRequest) {
     
     if (resendApiKey) {
       // Use Resend
-      const response = await fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${resendApiKey}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          from: process.env.EMAIL_FROM || 'EventOS <noreply@eventos.app>',
+          from: process.env.EMAIL_FROM || 'Eventra <noreply@eventra.app>',
           to: payload.to,
           subject: payload.subject,
           html: payload.html,
@@ -140,3 +137,4 @@ export async function GET() {
     configured: hasProvider
   });
 }
+

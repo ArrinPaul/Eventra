@@ -1,8 +1,6 @@
 'use client';
 
 import React from 'react';
-// import { useQuery } from 'convex/react';
-// import { api } from '../../../convex/_generated/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -40,8 +38,6 @@ function timeAgo(timestamp: number): string {
 }
 
 export function ActivityFeed({ userId, global }: { userId?: string; global?: boolean }) {
-//   const myFeed = useQuery(
-//     global ? api.activity.getGlobalFeed : userId ? api.activity.getUserFeed : api.activity.getMyFeed,
 //     userId ? { userId: userId as any } : {}
 //   );
 
@@ -114,4 +110,5 @@ export function ActivityFeed({ userId, global }: { userId?: string; global?: boo
     </Card>
   );
 }
+
 

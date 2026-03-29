@@ -31,7 +31,7 @@ export default function LoginPage() {
             </div>
             <h1 className="text-5xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">
               Welcome to <br />
-              <span className="bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">EventOS</span>
+              <span className="bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">Eventra</span>
             </h1>
             <p className="text-xl text-gray-400 max-w-md leading-relaxed">
               Your intelligent companion for seamless event experiences. Discover, connect, and engage like never before with AI-powered insights.

@@ -59,7 +59,6 @@ export function EventForm({ onSave, event }: EventFormProps) {
     try {
       const { storageId } = await uploadFile(file, user._id || user.id);
       // Storage URL is returned from saveFile — use the storageId as a reference
-      // The convex file URL is typically accessed via storage.getUrl
       setImageUrl(`/api/storage/${storageId}`);
     } catch {
       // fallback: use object URL for preview
@@ -163,3 +162,4 @@ export function EventForm({ onSave, event }: EventFormProps) {
     </Form>
   );
 }
+

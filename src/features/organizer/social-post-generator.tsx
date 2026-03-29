@@ -105,3 +105,4 @@ export function SocialPostGenerator({ eventId }: { eventId: string }) {
     </Card>
   );
 }
+

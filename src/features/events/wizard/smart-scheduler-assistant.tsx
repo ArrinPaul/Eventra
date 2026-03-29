@@ -100,3 +100,4 @@ export function SmartSchedulerAssistant({ eventData }: SmartSchedulerAssistantPr
     </div>
   );
 }
+

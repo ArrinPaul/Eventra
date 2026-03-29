@@ -207,3 +207,4 @@ export function RegistrationTrendChart({
 }
 
 export default RegistrationTrendChart;
+

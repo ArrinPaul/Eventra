@@ -1,8 +1,6 @@
 'use client';
 // import { useMemo } from 'react';
 // import { useAuth } from '@/hooks/use-auth';
-// // import { useQuery } from 'convex/react';
-// import { api } from '../../../convex/_generated/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Sparkles, Plus, Minus } from 'lucide-react';
@@ -11,7 +9,6 @@ import { useToast } from '@/hooks/use-toast';
 export default function RecommendedSessions() {
     const { user, updateUser } = useAuth();
     const { toast } = useToast();
-//     const publishedEvents = useQuery(api.events.getPublished) || [];
 // 
 //     const recommendations = useMemo(() => {
 //         if (!user) return [];
@@ -70,3 +67,4 @@ export default function RecommendedSessions() {
         </Card>
     );
 }
+

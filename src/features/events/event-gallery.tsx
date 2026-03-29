@@ -1,9 +1,6 @@
 'use client';
 // 
 // import { useState, useRef } from 'react';
-// // import { useQuery, useMutation } from 'convex/react';
-// import { api } from '../../../convex/_generated/api';
-// import { Id } from '../../../convex/_generated/dataModel';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -32,10 +29,6 @@ export function EventGallery({ eventId, isRegistered }: EventGalleryProps) {
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
 //   
-//   const photos = useQuery(api.gallery.getByEvent, { eventId }) || [];
-//   const generateUploadUrl = useMutation(api.files.generateUploadUrl);
-//   const uploadPhoto = useMutation(api.gallery.upload);
-//   const deletePhoto = useMutation(api.gallery.deletePhoto);
 
   const [uploading, setUploading] = useState(false);
   const [selectedPhoto, setSelectedPhoto] = useState<any>(null);
@@ -194,4 +187,5 @@ export function EventGallery({ eventId, isRegistered }: EventGalleryProps) {
     </div>
   );
 }
+
 

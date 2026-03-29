@@ -2,8 +2,6 @@
 // import { useState } from 'react';
 // import type { Event } from '@/types';
 // import { useAuth } from '@/hooks/use-auth';
-// // import { useQuery, useMutation } from 'convex/react';
-// import { api } from '../../../convex/_generated/api';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -62,11 +60,6 @@ export default function EventsClient() {
   const { user } = useAuth();
   const { toast } = useToast();
   
-  // Convex Hooks
-//   const allEventsRaw = useQuery(api.events.get);
-//   const createEventMutation = useMutation(api.events.create);
-//   const updateEventMutation = useMutation(api.events.update);
-//   const deleteEventMutation = useMutation(api.events.deleteEvent);
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
@@ -74,7 +67,6 @@ export default function EventsClient() {
   const loading = allEventsRaw === undefined;
   const isOrganizer = user?.role === 'organizer' || user?.role === 'admin';
 
-  // Map Convex data to Event type
   const events: Event[] = (allEventsRaw || []).map((e: any) => ({
     ...e,
     id: e._id,
@@ -189,3 +181,4 @@ export default function EventsClient() {
     </div>
   );
 }
+

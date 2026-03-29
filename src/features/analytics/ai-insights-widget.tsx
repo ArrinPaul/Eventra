@@ -103,3 +103,4 @@ export function AIInsightsWidget({
 }
 
 export default AIInsightsWidget;
+

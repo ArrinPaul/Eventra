@@ -2,8 +2,6 @@
 
 import React from 'react';
 import { useParams } from 'next/navigation';
-import { useQuery } from 'convex/react';
-import { api } from '../../../../../convex/_generated/api';
 import { useAuth } from '@/hooks/use-auth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -17,9 +15,6 @@ export default function UserProfilePage() {
   const userId = params.id as string;
   const { user: currentUser } = useAuth();
 
-  const profileUser = useQuery(api.users.getById, userId ? { id: userId as any } : 'skip');
-  const stats = useQuery(api.gamification.getProfile, profileUser ? { userId: profileUser._id } : 'skip');
-  const followStats = useQuery(api.users.getFollowStats, profileUser ? { userId: profileUser._id } : 'skip');
 
   if (profileUser === undefined) {
     return (

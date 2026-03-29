@@ -13,8 +13,6 @@ import React, { useState } from 'react';
 //   MoreVertical, ThumbsUp, MessageCircle, Flag, Info
 // } from 'lucide-react';
 // import { useAuth } from '@/hooks/use-auth';
-// // import { useQuery, useMutation, usePaginatedQuery } from 'convex/react';
-// import { api } from '../../../convex/_generated/api';
 import { useToast } from '@/hooks/use-toast';
 import { moderateContent } from '@/app/actions/moderation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -25,25 +23,15 @@ export function CommunityDetailClient({ communityId }: { communityId: string }) 
   const router = useRouter();
   const { toast } = useToast();
 //   
-//   const community = useQuery(api.communities.getById, { id: communityId as any });
-//   const memberStatus = useQuery(api.communities.getMemberStatus, { communityId: communityId as any });
 //   
-//   const { results: posts, status: postsStatus, loadMore: loadMorePosts } = usePaginatedQuery(
-//     api.posts.listByCommunity,
 //     { communityId: communityId as any },
 //     { initialNumItems: 10 }
 //   );
 // 
-//   const { results: members, status: membersStatus, loadMore: loadMoreMembers } = usePaginatedQuery(
-//     api.communities.getMembers,
 //     { communityId: communityId as any },
 //     { initialNumItems: 20 }
 //   );
 // 
-//   const joinMutation = useMutation(api.communities.join);
-//   const createPostMutation = useMutation(api.posts.create);
-//   const flagPostMutation = useMutation(api.moderation.flagPost);
-//   const likePostMutation = useMutation(api.posts.like);
   
   const [showCreatePost, setShowCreatePost] = useState(false);
   const [newPostContent, setNewPostContent] = useState('');
@@ -85,7 +73,6 @@ export function CommunityDetailClient({ communityId }: { communityId: string }) 
       // 2. Async AI Moderation check
       const moderation = await moderateContent(newPostContent, user?.name);
       if (moderation.success && moderation.isFlagged) {
-        // Flag the post in Convex
         await flagPostMutation({
           postId: postId as any,
           reason: moderation.reason || 'AI Flagged'
@@ -296,5 +283,6 @@ export function CommunityDetailClient({ communityId }: { communityId: string }) 
     </div>
   );
 }
+
 
 

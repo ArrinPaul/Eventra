@@ -65,8 +65,6 @@ import React, { useState, useMemo } from 'react';
 //   ChevronRight
 // } from 'lucide-react';
 // import { formatDistanceToNow } from 'date-fns';
-// // import { useQuery, useMutation, usePaginatedQuery } from 'convex/react';
-// import { api } from '../../../convex/_generated/api';
 import { cn } from '@/core/utils/utils';
 
 interface UserFilters {
@@ -93,9 +91,6 @@ export default function UserManagement() {
   const [banReason, setBanReason] = useState('');
   const itemsPerPage = 10;
 
-  // Use Convex hooks with pagination
-//   const { results: usersRaw, status: paginationStatus, loadMore } = usePaginatedQuery(
-//     api.admin.getUsers,
 //     {
 //       role: filters.role,
 //       search: filters.search,
@@ -103,9 +98,6 @@ export default function UserManagement() {
 //     { initialNumItems: itemsPerPage }
 //   );
 //   
-//   const statsQuery = useQuery(api.admin.getDashboardStats);
-//   const updateRoleMutation = useMutation(api.admin.updateUserRole);
-//   const updateStatusMutation = useMutation(api.admin.updateUserStatus);
 
   const loading = usersRaw === undefined;
   const users = usersRaw || [];
@@ -261,3 +253,4 @@ export default function UserManagement() {
     </div>
   );
 }
+

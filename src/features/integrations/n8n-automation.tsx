@@ -32,8 +32,6 @@
 // } from 'lucide-react';
 // import { useAuth } from '@/hooks/use-auth';
 // import { useToast } from '../../hooks/use-toast';
-// // import { useQuery, useMutation } from 'convex/react';
-// import { api } from '../../../convex/_generated/api';
 // import { 
 //   Dialog,
 //   DialogContent,
@@ -52,8 +50,7 @@
 //   DropdownMenuItem,
 //   DropdownMenuTrigger,
 // } from '../ui/dropdown-menu';
-// // import { Id } from '../../../convex/_generated/dataModel';
-import { EVENTOS_CONFIG } from '@/core/config/eventos-config';
+import { EVENTRA_CONFIG } from '@/core/config/eventra-config';
 
 interface N8nAutomationProps {
   eventId?: string;
@@ -65,10 +62,6 @@ export default function N8nAutomation({ eventId, eventTitle, userRole }: N8nAuto
   const { user } = useAuth();
   const { toast } = useToast();
 //   
-//   const workflows = useQuery(api.automations.get) || [];
-//   const createAutomation = useMutation(api.automations.create);
-//   const toggleAutomation = useMutation(api.automations.toggle);
-//   const deleteAutomation = useMutation(api.automations.deleteAutomation);
 
   const [loading, setLoading] = useState(false);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
@@ -80,8 +73,8 @@ export default function N8nAutomation({ eventId, eventTitle, userRole }: N8nAuto
   const [actions, setActions] = useState<any[]>([]);
   
   const n8nConnected = Boolean(
-    EVENTOS_CONFIG.externalServices.automation.n8n.enabled &&
-    EVENTOS_CONFIG.externalServices.automation.n8n.baseUrl
+    EVENTRA_CONFIG.externalServices.automation.n8n.enabled &&
+    EVENTRA_CONFIG.externalServices.automation.n8n.baseUrl
   );
 
   const handleCreateWorkflow = async () => {
@@ -259,4 +252,5 @@ export default function N8nAutomation({ eventId, eventTitle, userRole }: N8nAuto
     </div>
   );
 }
+
 

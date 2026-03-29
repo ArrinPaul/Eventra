@@ -12,8 +12,6 @@ import Link from 'next/link';
 //   Users, MessageSquare, Plus, Search, ChevronRight, Lock, Loader2
 // } from 'lucide-react';
 // import { useAuth } from '@/hooks/use-auth';
-// // import { useQuery, useMutation, usePaginatedQuery } from 'convex/react';
-// import { api } from '../../../convex/_generated/api';
 import { useToast } from '@/hooks/use-toast';
 
 export function CommunityListClient() {
@@ -21,13 +19,10 @@ export function CommunityListClient() {
   const { toast } = useToast();
   
   const [searchTerm, setSearchTerm] = useState('');
-//   const { results: communitiesRaw, status, loadMore } = usePaginatedQuery(
-//     api.communities.list,
 //     { search: searchTerm || undefined },
 //     { initialNumItems: 12 }
 //   );
 //   
-//   const createCommunityMutation = useMutation(api.communities.create);
   
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -164,4 +159,5 @@ export function CommunityListClient() {
     </div>
   );
 }
+
 

@@ -26,8 +26,6 @@ import React, { useState } from 'react';
 // import { cn } from '@/core/utils/utils';
 // import { useAuth } from '@/hooks/use-auth';
 // import { useToast } from '@/hooks/use-toast';
-// // import { useQuery, useMutation } from 'convex/react';
-// import { api } from '../../../convex/_generated/api';
 import { EventChatbot, ChatbotTrigger } from '@/components/ai/event-chatbot';
 import { Progress } from '@/components/ui/progress';
 import { createCheckoutSession } from '@/app/actions/payments';
@@ -54,10 +52,6 @@ export default function EventDetailsClient({ eventId }: { eventId: string }) {
   const { user, updateUser } = useAuth();
   const { toast } = useToast();
 // 
-//   const event = useQuery(api.events.getById, { id: eventId as any });
-//   const registration = useQuery(api.registrations.getRegistration, { eventId: eventId as any });
-//   const registerMutation = useMutation(api.registrations.register);
-//   const cloneEventMutation = useMutation(api.events.cloneEvent);
   
   const [registering, setRegistering] = useState(false);
   const [cloning, setCloning] = useState(false);
@@ -86,7 +80,6 @@ export default function EventDetailsClient({ eventId }: { eventId: string }) {
     }
   };
 // 
-//   const validateDiscount = useQuery(api.discounts.validate, { 
 //     code: discountCode, 
 //     eventId: eventId as any 
 //   });
@@ -617,3 +610,4 @@ export default function EventDetailsClient({ eventId }: { eventId: string }) {
       }
 
       
+

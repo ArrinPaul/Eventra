@@ -8,15 +8,12 @@
 // import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 // import QrScanner from '@/components/check-in/qr-scanner';
 // import { useToast } from '@/hooks/use-toast';
-// // import { useQuery } from 'convex/react';
-// import { api } from '../../../../convex/_generated/api';
 
 
 export default function CheckInPage() {
     const { user } = useAuth();
     const [isScannerOpen, setIsScannerOpen] = useState(false);
     const { toast } = useToast();
-//     const myTickets = useQuery(api.tickets.getMyTickets) ?? [];
 //     
 //     if (!user) return null;
 // 
@@ -25,7 +22,6 @@ export default function CheckInPage() {
 //     // Use ticketNumber as QR data (plain string) – must match what scanner expects
 //     const firstTicket = myTickets[0];
 //     const qrData = firstTicket?.ticketNumber ?? user.registrationId ?? 'NO-TICKET';
-//     const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(qrData)}`;
 //     
 //     const handleScanSuccess = (scannedData: any) => {
 //         setIsScannerOpen(false);
@@ -105,4 +101,5 @@ export default function CheckInPage() {
         </div>
     );
 }
+
 

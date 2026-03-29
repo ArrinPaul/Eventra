@@ -175,3 +175,4 @@ export default function AnalyticsCharts({ allUsers }: { allUsers: User[] }) {
         </div>
     );
 }
+

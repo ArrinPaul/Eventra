@@ -281,3 +281,4 @@ export function MyEventCard({
     </Card>
   );
 }
+

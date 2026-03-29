@@ -17,8 +17,6 @@ import React, { useState } from 'react';
 //   XCircle
 // } from 'lucide-react';
 // import { useAuth } from '@/hooks/use-auth';
-// // import { useQuery, useConvex } from 'convex/react';
-// import { api } from '../../../../convex/_generated/api';
 import { format } from 'date-fns';
 import {
   Dialog,
@@ -32,8 +30,6 @@ import { generateCertificateHtml } from '@/core/utils/certificate-generator';
 
 export function CertificatesClient() {
   const { user } = useAuth();
-  const convex = useConvex();
-//   const certificatesRaw = useQuery(api.certificates.getByUser);
   const certificates = certificatesRaw ?? [];
   const [searchTerm, setSearchTerm] = useState('');
   const [verifyNumber, setVerifyNumber] = useState('');
@@ -87,8 +83,6 @@ Verified by Eventra Platform
     setVerifying(true);
     setVerifyResult(null);
     try {
-      // Use Convex query to search all certificates, not just local ones
-      const result = await convex.query(api.certificates.verify, { certificateNumber: verifyNumber.trim() });
       if (result) {
         setVerifyResult({
           valid: true,
@@ -260,3 +254,4 @@ Verified by Eventra Platform
     </div>
   );
 }
+

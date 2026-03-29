@@ -1,9 +1,6 @@
 'use client';
 // 
 // import { useState } from 'react';
-// // import { useQuery, useMutation } from 'convex/react';
-// import { api } from '../../../convex/_generated/api';
-// import { Id } from '../../../convex/_generated/dataModel';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -35,10 +32,6 @@ export function EventDiscussionBoard({ eventId }: EventDiscussionBoardProps) {
   const [isQuestion, setIsQuestion] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 // 
-//   const messages = useQuery(api.discussions.listByEvent, { eventId }) || [];
-//   const createMessage = useMutation(api.discussions.create);
-//   const likeMessage = useMutation(api.discussions.like);
-//   const markAsAnswered = useMutation(api.discussions.markAsAnswered);
 
   const handleSubmit = async () => {
     if (!content.trim() || !user) return;
@@ -181,4 +174,5 @@ export function EventDiscussionBoard({ eventId }: EventDiscussionBoardProps) {
     </div>
   );
 }
+
 

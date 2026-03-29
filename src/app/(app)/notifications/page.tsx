@@ -2,7 +2,7 @@ import { Metadata } from 'next';
 import { NotificationCenter } from '@/components/notifications/notification-center';
 
 export const metadata: Metadata = {
-  title: 'Notifications | EventOS',
+  title: 'Notifications | Eventra',
   description: 'View and manage your notifications'
 };
 
@@ -13,3 +13,4 @@ export default function NotificationsPage() {
     </div>
   );
 }
+

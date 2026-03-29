@@ -5,8 +5,6 @@
 // import { AGENDA_STRING } from '@/core/data/data';
 // import type { Session } from '@/types';
 // import { useAuth } from '@/hooks/use-auth';
-// // import { useQuery } from 'convex/react';
-// import { api } from '../../../convex/_generated/api';
 import { useToast } from '@/hooks/use-toast';
 import { Calendar, Clock, Plus, Minus, Sparkles, Loader2, User, Tag, AlertTriangle, MapPin } from 'lucide-react';
 import { getRecommendedSessions } from '@/core/actions/actions';
@@ -165,7 +163,6 @@ export default function AgendaClient() {
   const { user } = useAuth();
   const { toast } = useToast();
 //   
-//   const allEventsRaw = useQuery(api.events.get);
   const [loadingRecommendations, setLoadingRecommendations] = useState(false);
   const [recommendations, setRecommendations] = useState<string[]>([]);
   const [isAlertOpen, setIsAlertOpen] = useState(false);
@@ -260,3 +257,4 @@ export default function AgendaClient() {
     </div>
   );
 }
+

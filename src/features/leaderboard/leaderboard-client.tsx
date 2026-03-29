@@ -1,8 +1,6 @@
 'use client';
 // import { useState } from 'react';
 // import { useAuth } from '@/hooks/use-auth';
-// // import { useQuery } from 'convex/react';
-// import { api } from '../../../convex/_generated/api';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -12,7 +10,6 @@ import { cn } from '@/core/utils/utils';
 
 export default function LeaderboardClient() {
     const { user: currentUser } = useAuth();
-//     const allUsersRaw = useQuery(api.users.list);
     const [timeFilter] = useState('all');
 
     const rankedUsers = (allUsersRaw || [])
@@ -48,4 +45,5 @@ export default function LeaderboardClient() {
         </div>
     );
 }
+
 

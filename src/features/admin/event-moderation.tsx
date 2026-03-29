@@ -5,12 +5,9 @@ import React, { useState } from 'react';
 // import { Button } from '@/components/ui/button';
 // import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 // // 
-// import { useMutation, usePaginatedQuery } from 'convex/react';
-// import { api } from '../../../convex/_generated/api';
 // import { useToast } from '@/hooks/use-toast';
 // import { Check, X, ShieldAlert, Loader2, Clock } from 'lucide-react';
 // import { Badge } from '@/components/ui/badge';
-// // import { Id } from '../../../convex/_generated/dataModel';
 
 export default function EventModeration() {
   const { toast } = useToast();
@@ -21,15 +18,12 @@ export default function EventModeration() {
     results: events,
     status: paginationStatus,
     loadMore,
-  } = usePaginatedQuery(
-    api.admin.getEventsForModeration,
     {
       status: activeTab === 'pending' ? 'published' : 'all',
     },
     { initialNumItems: pageSize }
   );
 //   
-//   const moderateMutation = useMutation(api.admin.moderateEvent);
 
   const handleModerate = async (eventId: Id<'events'>, action: 'approve' | 'reject' | 'suspend') => {
     try {
@@ -128,3 +122,4 @@ export default function EventModeration() {
     </div>
   );
 }
+

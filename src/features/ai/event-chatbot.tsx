@@ -361,3 +361,4 @@ export function ChatbotTrigger({ onClick }: { onClick: () => void }) {
 }
 
 export default EventChatbot;
+

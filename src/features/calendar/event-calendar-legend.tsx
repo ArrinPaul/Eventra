@@ -14,3 +14,4 @@ export function EventCalendarLegend() {
     </div>
   );
 }
+

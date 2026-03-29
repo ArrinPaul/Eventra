@@ -61,3 +61,4 @@ export const registerSchema = z.discriminatedUnion('role', [
 
 export type LoginFormData = z.infer<typeof loginSchema>;
 export type RegisterFormData = z.infer<typeof studentSchema> | z.infer<typeof professionalSchema> | z.infer<typeof organizerSchema>;
+

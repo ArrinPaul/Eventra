@@ -1,13 +1,13 @@
 /**
- * EventOS Configuration
- * Central configuration for the EventOS SaaS platform
+ * Eventra Configuration
+ * Central configuration for the Eventra platform
  */
 
-export const EVENTOS_CONFIG = {
+export const EVENTRA_CONFIG = {
   // Platform Information
   platform: {
-    name: 'EventOS',
-    description: 'Intelligent Event Management SaaS Platform',
+    name: 'Eventra',
+    description: 'Intelligent Event Management Platform',
     version: '1.0.0',
     domain: process.env.NEXT_PUBLIC_DOMAIN || 'localhost:3000',
   },
@@ -227,9 +227,9 @@ export const EVENTOS_CONFIG = {
 };
 
 // Type definitions for better TypeScript support
-export type EventOSRole = typeof EVENTOS_CONFIG.roles[keyof typeof EVENTOS_CONFIG.roles];
-export type SubscriptionPlan = keyof typeof EVENTOS_CONFIG.plans;
-export type AIProvider = keyof typeof EVENTOS_CONFIG.ai.providers;
+export type EventraRole = typeof EVENTRA_CONFIG.roles[keyof typeof EVENTRA_CONFIG.roles];
+export type SubscriptionPlan = keyof typeof EVENTRA_CONFIG.plans;
+export type AIProvider = keyof typeof EVENTRA_CONFIG.ai.providers;
 
 // Helper functions
 export const getRolePermissions = (role: string) => {
@@ -249,7 +249,7 @@ export const getRolePermissions = (role: string) => {
 };
 
 export const canAccessFeature = (userPlan: string, feature: string): boolean => {
-  const plan = EVENTOS_CONFIG.plans[userPlan.toUpperCase() as SubscriptionPlan];
+  const plan = EVENTRA_CONFIG.plans[userPlan.toUpperCase() as SubscriptionPlan];
   if (!plan) return false;
   
   // Type-safe feature access with Record
@@ -257,6 +257,6 @@ export const canAccessFeature = (userPlan: string, feature: string): boolean => 
   return features[feature] === true || (typeof features[feature] === 'number' && features[feature] > 0);
 };
 
-export const isFeatureEnabled = (feature: keyof typeof EVENTOS_CONFIG.features): boolean => {
-  return EVENTOS_CONFIG.features[feature];
+export const isFeatureEnabled = (feature: keyof typeof EVENTRA_CONFIG.features): boolean => {
+  return EVENTRA_CONFIG.features[feature];
 };

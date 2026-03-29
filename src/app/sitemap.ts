@@ -41,3 +41,4 @@ export default function sitemap(): MetadataRoute.Sitemap {
   // For now, return static routes
   return staticRoutes;
 }
+

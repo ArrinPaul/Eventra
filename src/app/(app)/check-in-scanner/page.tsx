@@ -2,7 +2,7 @@ import CheckInScannerClient from '@/components/check-in/check-in-scanner-client'
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Check-in Scanner | EventOS',
+  title: 'Check-in Scanner | Eventra',
   description: 'Scan QR codes to check in event attendees.',
 };
 

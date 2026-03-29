@@ -5,7 +5,7 @@ import { User } from '@/types';
 
 /**
  * Mock Auth Hook for Project Rework
- * Replaces Convex/Firebase logic with a placeholder.
+ * Replaces old logic with a placeholder.
  */
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
@@ -71,4 +71,5 @@ export function useAuth() {
     signIn
   };
 }
+
 

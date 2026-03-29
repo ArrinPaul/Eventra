@@ -1,7 +1,5 @@
 'use client';
 
-import { useQuery, useMutation } from 'convex/react';
-import { api } from '../../../../../../convex/_generated/api';
 import { EventForm } from '@/components/events/event-form';
 import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
@@ -23,8 +21,6 @@ export default function EventEditPage({ params }: { params: Promise<{ id: string
   const { user } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
-  const event = useQuery(api.events.getById, { id: id as any });
-  const updateEvent = useMutation(api.events.update);
 
   if (event === undefined) {
     return (

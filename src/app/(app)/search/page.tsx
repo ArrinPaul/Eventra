@@ -1,8 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-// import { useQuery } from 'convex/react';
-// import { api } from '../../../../convex/_generated/api';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -13,7 +11,6 @@ import { format } from 'date-fns';
 
 export default function SearchPage() {
   const [query, setQuery] = useState('');
-//   const results = useQuery(api.search.globalSearch, { query }) ?? { events: [], users: [], communities: [] };
 //   
 //   const hasResults = results.events.length > 0 || results.users.length > 0 || results.communities.length > 0;
 // 
@@ -160,4 +157,5 @@ export default function SearchPage() {
 //     </div>
 //   );
 }
+
 

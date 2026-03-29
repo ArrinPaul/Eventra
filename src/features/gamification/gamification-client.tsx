@@ -6,8 +6,6 @@ import React, { useState } from 'react';
 // import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 // import { Trophy, Star, Zap, Target, History, Award, Loader2, ListChecks } from 'lucide-react';
 // import { useAuth } from '@/hooks/use-auth';
-// // import { useQuery } from 'convex/react';
-// import { api } from '../../../convex/_generated/api';
 import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/core/utils/utils';
 import { ChallengesHub } from './challenges-hub';
@@ -16,9 +14,6 @@ export function GamificationClient() {
   const { user } = useAuth();
   const userId = user?._id || user?.id;
 //   
-//   const badgeDefinitions = useQuery(api.gamification.getBadgeDefinitions) || [];
-//   const userBadges = useQuery(api.gamification.getUserBadges, userId ? { userId: userId as any } : "skip") || [];
-//   const pointsHistory = useQuery(api.gamification.getPointsHistory) || [];
 //   
 //   const [activeTab, setActiveTab] = useState('overview');
 
@@ -145,3 +140,4 @@ export function GamificationClient() {
     </div>
   );
 }
+

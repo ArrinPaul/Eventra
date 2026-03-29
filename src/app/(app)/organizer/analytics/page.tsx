@@ -2,7 +2,7 @@ import { Metadata } from 'next';
 import OrganizerAnalyticsDashboard from '@/components/analytics/organizer-analytics-dashboard';
 
 export const metadata: Metadata = {
-  title: 'Organizer Analytics | EventOS',
+  title: 'Organizer Analytics | Eventra',
   description: 'Track your event performance, registration funnels, demographics, and revenue'
 };
 
@@ -13,3 +13,4 @@ export default function OrganizerAnalyticsPage() {
     </div>
   );
 }
+

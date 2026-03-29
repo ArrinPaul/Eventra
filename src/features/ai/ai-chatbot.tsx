@@ -31,9 +31,6 @@
 // } from 'lucide-react';
 // import { useAuth } from '@/hooks/use-auth';
 // import { useToast } from '../../hooks/use-toast';
-// // import { useQuery, useMutation } from 'convex/react';
-// import { api } from '../../../convex/_generated/api';
-// import { Id } from '../../../convex/_generated/dataModel';
 
 // Web Speech API types
 interface SpeechRecognitionResult {
@@ -106,13 +103,8 @@ export default function AIChatbot({
   const { user } = useAuth();
   const { toast } = useToast();
 //   
-//   const sessions = useQuery(api.aiChat.getSessions) || [];
-//   const createSession = useMutation(api.aiChat.createSession);
-//   const deleteSession = useMutation(api.aiChat.deleteSession);
-//   const addMessageMutation = useMutation(api.aiChat.addMessage);
   
   const [currentSessionId, setCurrentSessionId] = useState<Id<"ai_chat_sessions"> | null>(null);
-//   const messages = useQuery(api.aiChat.getSessionMessages, currentSessionId ? { sessionId: currentSessionId } : "skip" as any) || [];
 //   
 //   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -211,7 +203,6 @@ export default function AIChatbot({
       }
     }
 
-    // Add user message to Convex
     await addMessageMutation({
       sessionId: sessionId!,
       role: 'user',
@@ -244,7 +235,6 @@ export default function AIChatbot({
       const data = await response.json();
       
       if (data.success) {
-        // Add assistant message to Convex
         await addMessageMutation({
           sessionId: sessionId!,
           role: 'assistant',
@@ -464,3 +454,4 @@ export default function AIChatbot({
     </div>
   );
 }
+

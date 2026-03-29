@@ -1,8 +1,6 @@
 'use client';
 // import { useState, useEffect, useRef, useCallback } from 'react';
 // import { useAuth } from '@/hooks/use-auth';
-// // import { useQuery, useMutation, usePaginatedQuery } from 'convex/react';
-// import { api } from '../../../convex/_generated/api';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -32,19 +30,13 @@ export default function EnhancedChatClient({ initialRoomId }: { initialRoomId?: 
   const { user } = useAuth();
   const { toast } = useToast();
 //   
-//   const generateUploadUrl = useMutation(api.files.generateUploadUrl);
 //   
-//   const chatRooms = useQuery(api.chat.getRooms) || [];
 //   const [selectedRoomId, setSelectedRoomId] = useState<string | null>(initialRoomId || null);
 //   
-//   const { results: messages, status, loadMore } = usePaginatedQuery(
-//     api.chat.listMessages,
 //     selectedRoomId ? { roomId: selectedRoomId as any } : "skip" as any,
 //     { initialNumItems: 20 }
 //   );
 // 
-//   const sendMessageMutation = useMutation(api.chat.sendMessage);
-//   const createRoomMutation = useMutation(api.chat.createRoom);
   
   const [newMessage, setNewMessage] = useState('');
   const [isCreatingRoom, setIsCreatingRoom] = useState(false);
@@ -69,7 +61,6 @@ export default function EnhancedChatClient({ initialRoomId }: { initialRoomId?: 
         body: file,
       });
       const { storageId } = await result.json();
-      const url = `${process.env.NEXT_PUBLIC_CONVEX_URL}/api/storage/${storageId}`;
       setPendingFile({ url, type: file.type, name: file.name });
     } catch (e) {
       toast({ title: 'Upload failed', variant: 'destructive' });
@@ -335,3 +326,4 @@ export default function EnhancedChatClient({ initialRoomId }: { initialRoomId?: 
     </div>
   );
 }
+

@@ -1,8 +1,6 @@
 'use client';
 // 
 // import { useState } from 'react';
-// // import { useQuery, useMutation } from 'convex/react';
-// import { api } from '../../../convex/_generated/api';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,8 +8,6 @@ import { Loader2, Send } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
 export function CommentSection({ postId }: { postId: string }) {
-//   const comments = useQuery(api.posts.getComments, { postId: postId as any });
-//   const addComment = useMutation(api.posts.addComment);
   
   const [content, setContent] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -75,4 +71,5 @@ export function CommentSection({ postId }: { postId: string }) {
     </div>
   );
 }
+
 

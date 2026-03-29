@@ -13,8 +13,6 @@ import React, { useState } from 'react';
 //   Users,
 //   Loader2
 // } from 'lucide-react';
-// // import { useQuery } from 'convex/react';
-// import { api } from '../../../convex/_generated/api';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 
@@ -23,8 +21,6 @@ export default function ExportFunctionality() {
   const { toast } = useToast();
   const [exporting, setExporting] = useState<string | null>(null);
 // 
-//   const myEvents = useQuery(api.events.getByOrganizer, user ? { organizerId: user._id || user.id as any } : "skip" as any) || [];
-//   const myTickets = useQuery(api.tickets.getByUserId, user ? { userId: user._id || user.id as any } : "skip" as any) || [];
 // 
 //   const downloadFile = (content: string, fileName: string, contentType: string) => {
 //     const blob = new Blob([content], { type: contentType });
@@ -161,3 +157,4 @@ export default function ExportFunctionality() {
     </div>
   );
 }
+

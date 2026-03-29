@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { EVENTOS_CONFIG, isFeatureEnabled, canAccessFeature } from '@/core/config/eventos-config';
+import { EVENTRA_CONFIG, isFeatureEnabled, canAccessFeature } from '@/core/config/eventra-config';
 
 export interface AIAuthResult {
   isAuthenticated: boolean;
@@ -15,7 +15,7 @@ export interface AIAuthResult {
  */
 export async function validateAIRequest(
   request: NextRequest, 
-  featureKey: keyof typeof EVENTOS_CONFIG.ai.features | string
+  featureKey: keyof typeof EVENTRA_CONFIG.ai.features | string
 ): Promise<AIAuthResult> {
   const cookieStore = await cookies();
   const authToken = cookieStore.get('auth-token')?.value;
@@ -35,8 +35,8 @@ export async function validateAIRequest(
   }
 
   // 2. Global Feature Flag Check
-  if (featureKey in EVENTOS_CONFIG.ai.features) {
-    const isGlobalEnabled = EVENTOS_CONFIG.ai.features[featureKey as keyof typeof EVENTOS_CONFIG.ai.features];
+  if (featureKey in EVENTRA_CONFIG.ai.features) {
+    const isGlobalEnabled = EVENTRA_CONFIG.ai.features[featureKey as keyof typeof EVENTRA_CONFIG.ai.features];
     if (!isGlobalEnabled) {
       return {
         isAuthenticated: true,
@@ -71,7 +71,7 @@ export async function validateAIRequest(
  * Server Action version of AI Auth validation
  */
 export async function validateAIAction(
-  featureKey: keyof typeof EVENTOS_CONFIG.ai.features | string
+  featureKey: keyof typeof EVENTRA_CONFIG.ai.features | string
 ) {
   const cookieStore = await cookies();
   const authToken = cookieStore.get('auth-token')?.value;
@@ -81,8 +81,8 @@ export async function validateAIAction(
     throw new Error('Authentication required');
   }
 
-  if (featureKey in EVENTOS_CONFIG.ai.features) {
-    if (!EVENTOS_CONFIG.ai.features[featureKey as keyof typeof EVENTOS_CONFIG.ai.features]) {
+  if (featureKey in EVENTRA_CONFIG.ai.features) {
+    if (!EVENTRA_CONFIG.ai.features[featureKey as keyof typeof EVENTRA_CONFIG.ai.features]) {
       throw new Error(`AI feature '${featureKey}' is disabled`);
     }
   }
@@ -97,3 +97,4 @@ export async function validateAIAction(
     userPlan
   };
 }
+

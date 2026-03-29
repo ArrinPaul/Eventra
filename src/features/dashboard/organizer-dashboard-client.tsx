@@ -5,8 +5,6 @@ import React, { useState } from 'react';
 // import { Button } from '@/components/ui/button';
 // import { Badge } from '@/components/ui/badge';
 // import { useAuth } from '@/hooks/use-auth';
-// // import { useQuery, useMutation } from 'convex/react';
-// import { api } from '../../../convex/_generated/api';
 import { 
   Plus, 
   Calendar, 
@@ -32,9 +30,6 @@ export default function OrganizerDashboard() {
   const { user } = useAuth();
   const { toast } = useToast();
   const router = useRouter();
-//   const managedEvents = useQuery(api.events.getManagedEvents, user ? { userId: (user._id || user.id) as any } : "skip") || [];
-//   const deleteEventMutation = useMutation(api.events.deleteEvent);
-//   const cloneEventMutation = useMutation(api.events.cloneEvent);
   
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState('events');
@@ -204,4 +199,5 @@ export default function OrganizerDashboard() {
     </div>
   );
 }
+
 

@@ -1,8 +1,6 @@
 'use client';
 // 
 // import { useEffect, useRef } from 'react';
-// // import { useQuery, useMutation } from 'convex/react';
-// import { api } from '../../../convex/_generated/api';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
 
@@ -12,9 +10,6 @@ import { useAuth } from '@/hooks/use-auth';
 export function NotificationWatcher() {
   const { user } = useAuth();
   const { toast } = useToast();
-//   const latestNotification = useQuery(api.notifications.get, { limit: 1 });
-//   const markRead = useMutation(api.notifications.markRead);
-//   const subscribePush = useMutation(api.notifications.subscribePush);
   const lastNotifIdRef = useRef<string | null>(null);
 
   useEffect(() => {
@@ -196,3 +191,4 @@ export function NotificationWatcher() {
 
   return null;
 }
+

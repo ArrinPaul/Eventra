@@ -1,9 +1,6 @@
 'use client';
 // 
 // import { useState } from 'react';
-// // import { useQuery, useMutation } from 'convex/react';
-// import { api } from '../../../convex/_generated/api';
-// import { Id } from '../../../convex/_generated/dataModel';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -25,11 +22,9 @@ export function CoOrganizerManager({ eventId, organizerId, coOrganizerIds = [] }
   const [isSearching, setIsSearching] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
 // 
-//   const updateEventMutation = useMutation(api.events.update);
   
   // To show co-organizer details, we fetch them
   // In a real app, a dedicated query for multiple IDs is better
-//   const allUsers = useQuery(api.users.list) || [];
 //   const coOrganizers = allUsers.filter((u: any) => coOrganizerIds.includes(u._id));
   const mainOrganizer = allUsers.find((u: any) => u._id === organizerId);
 
@@ -180,4 +175,5 @@ export function CoOrganizerManager({ eventId, organizerId, coOrganizerIds = [] }
     </Card>
   );
 }
+
 

@@ -9,8 +9,6 @@
 // import { Badge } from '@/components/ui/badge';
 // import { useToast } from '@/hooks/use-toast';
 // import { useAuth } from '@/hooks/use-auth';
-// // import { useMutation } from 'convex/react';
-// import { api } from '../../../convex/_generated/api';
 import { 
   ChevronLeft, 
   ChevronRight, 
@@ -30,7 +28,6 @@ export default function EventCreationWizard() {
   const router = useRouter();
   const { toast } = useToast();
   const { user } = useAuth();
-//   const createEventMutation = useMutation(api.events.create);
   
   const [currentStep, setCurrentStep] = useState(1);
   const [isSaving, setIsSaving] = useState(false);
@@ -247,4 +244,5 @@ export default function EventCreationWizard() {
     </div>
   );
 }
+
 

@@ -1,7 +1,5 @@
 'use client';
 
-import { useQuery } from 'convex/react';
-import { api } from '../../../../../../convex/_generated/api';
 import { FeedbackForm } from '@/components/events/feedback-form';
 import { useParams, useRouter } from 'next/navigation';
 import { Loader2, ArrowLeft } from 'lucide-react';
@@ -12,7 +10,6 @@ export default function EventFeedbackPage() {
   const router = useRouter();
   const eventId = params.id as string;
   
-  const event = useQuery(api.events.getById, { id: eventId as any });
 
   if (event === undefined) return <div className="p-20 text-center"><Loader2 className="animate-spin h-8 w-8 mx-auto text-cyan-500" /></div>;
   if (!event) return <div className="p-20 text-center text-white">Event not found.</div>;

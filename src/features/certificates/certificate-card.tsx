@@ -290,3 +290,4 @@ export function CertificateViewer({ html, certificateId, onClose }: CertificateV
 }
 
 export default CertificateCard;
+
