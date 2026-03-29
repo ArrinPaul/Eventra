@@ -1,36 +1,37 @@
 'use client';
 // 
-// import { useState, useEffect, useRef } from 'react';
-// import { Button } from '../ui/button';
-// import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { useState, useEffect, useRef } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 // import { Badge } from '../ui/badge';
-// import {
-//   MessageCircle,
-//   Send,
-//   Bot,
-//   User,
-//   Settings,
-//   Sparkles,
-//   Calendar,
-//   Users,
-//   FileText,
-//   Clock,
-//   ChevronDown,
-//   ChevronUp,
-//   X,
-//   Minimize2,
-//   Maximize2,
-//   RotateCcw,
-//   Download,
-//   Share2,
-//   Mic,
-//   MicOff,
-//   Image,
-//   Paperclip,
-//   Trash2
-// } from 'lucide-react';
-// import { useAuth } from '@/hooks/use-auth';
-// import { useToast } from '../../hooks/use-toast';
+import {
+  MessageCircle,
+  Send,
+  Bot,
+  User,
+  Settings,
+  Sparkles,
+  Calendar,
+  Users,
+  FileText,
+  Clock,
+  ChevronDown,
+  ChevronUp,
+  X,
+  Minimize2,
+  Maximize2,
+  RotateCcw,
+  Download,
+  Share2,
+  Mic,
+  MicOff,
+  Image,
+  Paperclip,
+  Trash2
+} from 'lucide-react';
+import { useAuth } from '@/hooks/use-auth';
+import { useToast } from '@/hooks/use-toast';
+import type { Id } from '@/types';
 
 // Web Speech API types
 interface SpeechRecognitionResult {
@@ -74,16 +75,16 @@ declare global {
   }
 }
 
-import { Input } from '../ui/input';
-import { Textarea } from '../ui/textarea';
-import { Switch } from '../ui/switch';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '../ui/dropdown-menu';
+} from '@/components/ui/dropdown-menu';
 
 interface AIChatbotProps {
   eventId?: string;
@@ -102,11 +103,12 @@ export default function AIChatbot({
 }: AIChatbotProps) {
   const { user } = useAuth();
   const { toast } = useToast();
-//   
+  
+  // State for messages and input
+  const [messages, setMessages] = useState<any[]>([]);
+  const [inputMessage, setInputMessage] = useState('');
   
   const [currentSessionId, setCurrentSessionId] = useState<Id<"ai_chat_sessions"> | null>(null);
-//   
-//   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -120,6 +122,7 @@ export default function AIChatbot({
   // Voice recognition
   const [isListening, setIsListening] = useState(false);
   const [recognition, setRecognition] = useState<any>(null);
+  const sessions: any[] = [];
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -131,6 +134,22 @@ export default function AIChatbot({
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // API Mutation Stubs - Replace with real server actions in Phase 1
+  const createSession = async (data: any) => {
+    // TODO: Implement real session creation via server action
+    return `session-${Date.now()}` as Id<"ai_chat_sessions">;
+  };
+
+  const addMessageMutation = async (data: any) => {
+    // TODO: Implement real message persistence via server action
+    return { _id: `msg-${Date.now()}` };
+  };
+
+  const deleteSession = async (data: any) => {
+    // TODO: Implement real session deletion via server action
+    return Promise.resolve();
+  };
 
   const initializeSpeechRecognition = () => {
     if (typeof window !== 'undefined' && 'webkitSpeechRecognition' in (window as any)) {

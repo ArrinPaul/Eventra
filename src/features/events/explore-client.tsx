@@ -1,40 +1,40 @@
 'use client';
 // 
-// import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-// import { useSearchParams, useRouter } from 'next/navigation';
-// import { Input } from '@/components/ui/input';
-// import { Button } from '@/components/ui/button';
-// import { Badge } from '@/components/ui/badge';
-// import {
-//   Select,
-//   SelectContent,
-//   SelectItem,
-//   SelectTrigger,
-//   SelectValue,
-// } from '@/components/ui/select';
-// import {
-//   Sheet,
-//   SheetContent,
-//   SheetHeader,
-//   SheetTitle,
-//   SheetTrigger,
-// } from '@/components/ui/sheet';
-// import { 
-//   Search, 
-//   Calendar, 
-//   MapPin, 
-//   Sparkles,
-//   Grid3X3,
-//   List,
-//   X,
-//   Loader2,
-//   SlidersHorizontal,
-//   Brain,
-//   RefreshCw
-// } from 'lucide-react';
-// import { EventCard } from '@/features/events/event-card';
-// import { useAuth } from '@/hooks/use-auth';
-import { getAIRecommendations, AIRecommendation } from '@/app/actions/ai-recommendations';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet';
+import { 
+  Search, 
+  Calendar, 
+  MapPin, 
+  Sparkles,
+  Grid3X3,
+  List,
+  X,
+  Loader2,
+  SlidersHorizontal,
+  Brain,
+  RefreshCw
+} from 'lucide-react';
+import { EventCard } from '@/features/events/event-card';
+import { useAuth } from '@/hooks/use-auth';
+import { getAIRecommendations } from '@/app/actions/ai-recommendations';
 import { cn } from '@/core/utils/utils';
 import type { Event } from '@/types';
 import { getUserInterests, getUserSkills, getUserAttendedEvents } from '@/types';
@@ -80,6 +80,12 @@ export default function ExploreClient() {
   const [locationFilter, setLocationFilter] = useState(searchParams.get('location') || '');
   const [showOnlyFree, setShowOnlyFree] = useState(false);
 
+  // TODO: wire to backend pagination query
+  const paginatedEvents: any[] = [];
+  const status: string = 'Exhausted';
+  const loading = false;
+  const loadMore = (_count: number) => {};
+
 //     { status: "published" },
 //     { initialNumItems: 12 }
 //   );
@@ -88,7 +94,7 @@ export default function ExploreClient() {
   const [filteredEvents, setFilteredEvents] = useState<Event[]>([]);
   
   // AI Recommendations state
-  const [aiRecommendations, setAiRecommendations] = useState<AIRecommendation[]>([]);
+  const [aiRecommendations, setAiRecommendations] = useState<any[]>([]);
   const [aiLoading, setAiLoading] = useState(false);
   const [aiInsights, setAiInsights] = useState<{ weeklyPlan?: string; learningPath?: string[] } | null>(null);
   const [aiError, setAiError] = useState<string | null>(null);
@@ -109,21 +115,9 @@ export default function ExploreClient() {
     setAiError(null);
     
     try {
-      const userInterests = getUserInterests(user) || ['Tech', 'Networking', 'Career'];
-      const userSkills = getUserSkills(user) || ['networking', 'learning'];
-      const pastEventTypes = getUserAttendedEvents(user).slice(0, 5).map(() => 'Workshop');
-      
-      const result = await getAIRecommendations(
-        user?._id || user?.id || 'guest',
-        userInterests,
-        userSkills,
-        pastEventTypes,
-        events
-      );
-      
-      setAiRecommendations(result.recommendations);
-      setAiInsights(result.insights || null);
-      if (result.error) setAiError(result.error);
+      const result = await getAIRecommendations(user?._id || user?.id || 'guest');
+      setAiRecommendations(Array.isArray(result) ? result : []);
+      setAiInsights(null);
     } catch (error) {
       console.error('Failed to fetch AI recommendations:', error);
       setAiError('Unable to load personalized recommendations');

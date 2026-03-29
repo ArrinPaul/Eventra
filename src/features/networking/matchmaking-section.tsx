@@ -1,11 +1,11 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-// import { Card, CardContent } from '@/components/ui/card';
-// import { Button } from '@/components/ui/button';
-// import { Sparkles, Target, Trophy, RefreshCw } from 'lucide-react';
-// import { useAuth } from '@/hooks/use-auth';
-// import { useToast } from '@/hooks/use-toast';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Sparkles, Target, Trophy, RefreshCw } from 'lucide-react';
+import { useAuth } from '@/hooks/use-auth';
+import { useToast } from '@/hooks/use-toast';
 import { getMatchmakingRecommendations, MatchmakingResult } from '@/app/actions/matchmaking';
 import { MatchmakingCard } from './matchmaking-card';
 import { cn } from '@/core/utils/utils';
@@ -15,6 +15,7 @@ export function MatchmakingSection() {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [result, setResult] = useState<MatchmakingResult | null>(null);
+  const sendConnectionRequest = async (_payload: any) => Promise.resolve();
 // 
 
   const handleConnect = async (userId: string) => {
@@ -91,7 +92,15 @@ export function MatchmakingSection() {
         {result?.recommendations.map((match) => (
           <MatchmakingCard 
             key={match.userId} 
-            match={match} 
+            match={{
+              userId: match.userId,
+              name: match.name,
+              role: 'Member',
+              company: 'Eventra Community',
+              connectionValue: match.score,
+              rationale: match.rationale || 'Potentially valuable connection based on profile overlap.',
+              conversationStarters: ['What events are you most interested in this month?'],
+            }} 
             onConnect={(id) => handleConnect(id)}
           />
         ))}

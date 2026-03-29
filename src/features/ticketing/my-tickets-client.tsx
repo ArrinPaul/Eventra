@@ -1,7 +1,7 @@
 'use client';
 // 
-// import { useState } from 'react';
-// import { useAuth } from '@/hooks/use-auth';
+import { useState } from 'react';
+import { useAuth } from '@/hooks/use-auth';
 import { EventTicket } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -117,6 +117,8 @@ function TicketCard({ ticket, onViewTicket, onPrint, onCancel, onDownloadInvoice
 export default function MyTicketsClient() {
   const { user } = useAuth();
   const { toast } = useToast();
+  // TODO: wire to backend
+  const allTicketsRaw: any[] = [];
   const [selectedTicket, setSelectedTicket] = useState<EventTicket | null>(null);
   const [activeTab, setActiveTab] = useState('upcoming');
   const [cancellingId, setCancellingId] = useState<string | null>(null);
@@ -133,7 +135,7 @@ export default function MyTicketsClient() {
 
     setCancellingId(ticket.id);
     try {
-      const result = await processTicketCancellation(ticket.id, (ticket as any).stripePaymentId);
+      const result: any = await (processTicketCancellation as any)(ticket.id, (ticket as any).stripePaymentId);
       if (result.success) {
         toast({ 
           title: result.status === 'refunded' ? "Refund Processed" : "Ticket Cancelled",

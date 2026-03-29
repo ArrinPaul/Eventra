@@ -1,12 +1,12 @@
 'use client';
 
 import React, { useState } from 'react';
-// import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-// import { Button } from '@/components/ui/button';
-// import { Badge } from '@/components/ui/badge';
-// import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-// import { Ticket, ShoppingCart, Calendar, MapPin, Loader2, QrCode, CheckCircle2 } from 'lucide-react';
-// import { useAuth } from '@/hooks/use-auth';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Ticket, ShoppingCart, Calendar, MapPin, Loader2, QrCode, CheckCircle2 } from 'lucide-react';
+import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { cn } from '@/core/utils/utils';
@@ -15,6 +15,10 @@ import Link from 'next/link';
 export function TicketingClient() {
   const { user } = useAuth();
   const { toast } = useToast();
+  // TODO: wire to backend
+  const registerMutation = async (_args: any) => Promise.resolve();
+  const myTicketsRaw: any[] = [];
+  const events: any[] = [];
   const userId = user?._id || user?.id;
 //   
   

@@ -1,6 +1,6 @@
 'use client';
 // 
-// import { useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -21,6 +21,13 @@ export default function SystemSettings() {
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState('general');
   const [localChanges, setLocalChanges] = useState<Record<string, string>>({});
+  
+  // TODO: Fetch settings from backend
+  const settingsRaw: any[] = [];
+  const updateSettingMutation = async (data: any) => {
+    // TODO: Implement real setting update via server action
+    return Promise.resolve();
+  };
 
   const settings = useMemo(() => {
     const base: Record<string, string> = {

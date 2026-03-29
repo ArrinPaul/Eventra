@@ -21,6 +21,12 @@ export default function EventEditPage({ params }: { params: Promise<{ id: string
   const { user } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
+  
+  // TODO: Fetch event from backend using id
+  const event: any = null;
+  const updateEvent = async (data: any) => {
+    toast({ description: 'Update not yet implemented' });
+  };
 
   if (event === undefined) {
     return (

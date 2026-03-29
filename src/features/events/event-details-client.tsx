@@ -1,31 +1,31 @@
 'use client';
 
 import React, { useState } from 'react';
-// import { useRouter } from 'next/navigation';
-// import Link from 'next/link';
-// import { Button } from '@/components/ui/button';
-// import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-// import { Badge } from '@/components/ui/badge';
-// import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-// import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-// import { Separator } from '@/components/ui/separator';
-// import {
-//   ArrowLeft,
-//   Calendar,
-//   Clock,
-//   MapPin,
-//   Users,
-//   Heart,
-//   Share2,
-//   Ticket,
-//   CheckCircle,
-//   Loader2,
-//   Edit,
-//   Copy,
-// } from 'lucide-react';
-// import { cn } from '@/core/utils/utils';
-// import { useAuth } from '@/hooks/use-auth';
-// import { useToast } from '@/hooks/use-toast';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Separator } from '@/components/ui/separator';
+import {
+  ArrowLeft,
+  Calendar,
+  Clock,
+  MapPin,
+  Users,
+  Heart,
+  Share2,
+  Ticket,
+  CheckCircle,
+  Loader2,
+  Edit,
+  Copy,
+} from 'lucide-react';
+import { cn } from '@/core/utils/utils';
+import { useAuth } from '@/hooks/use-auth';
+import { useToast } from '@/hooks/use-toast';
 import { EventChatbot, ChatbotTrigger } from '@/features/ai/event-chatbot';
 import { Progress } from '@/components/ui/progress';
 import { createCheckoutSession } from '@/app/actions/payments';
@@ -51,7 +51,13 @@ export default function EventDetailsClient({ eventId }: { eventId: string }) {
   const router = useRouter();
   const { user, updateUser } = useAuth();
   const { toast } = useToast();
-// 
+
+  // TODO: wire these to real backend queries/mutations
+  const event: any = null;
+  const registration: any = null;
+  const validateDiscount: any = null;
+  const registerMutation = async (_args: any) => Promise.resolve();
+  const cloneEventMutation = async (_args: any) => `${eventId}-clone`;
   
   const [registering, setRegistering] = useState(false);
   const [cloning, setCloning] = useState(false);

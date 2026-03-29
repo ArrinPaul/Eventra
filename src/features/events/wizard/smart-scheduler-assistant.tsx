@@ -31,12 +31,12 @@ export function SmartSchedulerAssistant({ eventData }: SmartSchedulerAssistantPr
 
     setLoading(true);
     try {
-      const result = await getAISchedulingRecommendations(eventData);
-      if (result.success) {
-        setRecommendations(result.recommendations);
-        setStrategy(result.strategy);
+      const result: any = await getAISchedulingRecommendations(eventData);
+      if (result?.slots) {
+        setRecommendations(result.slots);
+        setStrategy(result.strategy || 'AI-selected optimal slots');
       } else {
-        throw new Error(result.error);
+        throw new Error(result?.error || 'No recommendations returned');
       }
     } catch (e: any) {
       toast({ title: "Failed to get AI help", description: e.message, variant: "destructive" });

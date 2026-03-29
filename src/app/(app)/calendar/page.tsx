@@ -1,6 +1,6 @@
 'use client';
 // 
-// import { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -9,8 +9,9 @@ import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSam
 import Link from 'next/link';
 
 export default function CalendarPage() {
-//   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const events: any[] = []; // TODO: Fetch from backend
 
   const days = useMemo(() => {
     const start = startOfMonth(currentMonth);

@@ -1,11 +1,11 @@
 'use client';
 // 
-// import { useEffect, useState } from 'react';
-// import { useRouter, useSearchParams } from 'next/navigation';
-// import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-// import { Button } from '@/components/ui/button';
-// import { CheckCircle2, Loader2, ArrowRight, Ticket } from 'lucide-react';
-// import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { CheckCircle2, Loader2, ArrowRight, Ticket } from 'lucide-react';
+import Link from 'next/link';
 
 export default function PaymentSuccessPage() {
   const router = useRouter();
@@ -16,6 +16,12 @@ export default function PaymentSuccessPage() {
   const discountId = searchParams.get('discountId');
   
   const [loading, setLoading] = useState(true);
+
+  // Stub implementation for missing registerMutation
+  const registerMutation = async (params: any) => {
+    // TODO: Implement actual registration mutation
+    return Promise.resolve();
+  };
 
   useEffect(() => {
     async function confirm() {

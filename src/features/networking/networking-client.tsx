@@ -1,27 +1,27 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-// import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-// import { Button } from '@/components/ui/button';
-// import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-// import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-// import { 
-//   Users, 
-//   Zap, 
-//   Sparkles, 
-//   Loader2, 
-//   RefreshCw,
-//   Search,
-//   UserPlus,
-//   MessageSquare,
-//   Trophy,
-//   Target,
-//   Check,
-//   X,
-//   UserMinus
-// } from 'lucide-react';
-// import { useAuth } from '@/hooks/use-auth';
-// import { useToast } from '@/hooks/use-toast';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { 
+  Users, 
+  Zap, 
+  Sparkles, 
+  Loader2, 
+  RefreshCw,
+  Search,
+  UserPlus,
+  MessageSquare,
+  Trophy,
+  Target,
+  Check,
+  X,
+  UserMinus
+} from 'lucide-react';
+import { useAuth } from '@/hooks/use-auth';
+import { useToast } from '@/hooks/use-toast';
 import { getMatchmakingRecommendations, MatchmakingResult } from '@/app/actions/matchmaking';
 import { MatchmakingCard } from './matchmaking-card';
 import { MatchmakingSection } from './matchmaking-section';
@@ -33,7 +33,13 @@ export default function NetworkingClient() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
-// 
+
+  // TODO: wire to backend queries/mutations
+  const connections: any[] = [];
+  const publicUsers: any[] = [];
+  const sendConnectionRequest = async (_args: any) => Promise.resolve();
+  const respondToRequest = async (_args: any) => Promise.resolve();
+  const removeConnection = async (_args: any) => Promise.resolve();
 
   const acceptedConnections = connections.filter((c: any) => c.status === 'accepted');
   const pendingReceived = connections.filter((c: any) => c.status === 'pending' && c.direction === 'received');

@@ -1,7 +1,7 @@
 'use client';
-// import { useState } from 'react';
-// import type { Event } from '@/types';
-// import { useAuth } from '@/hooks/use-auth';
+import { useState } from 'react';
+import type { Event } from '@/types';
+import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -27,7 +27,7 @@ function EventCard({ event, isOrganizer, onEdit, onDelete }: { event: Event; isO
             <span>{displayDate.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
           </div>
           <div className="flex items-center text-muted-foreground"><Clock className="mr-2 h-4 w-4"/><span>{event.time || (event.startDate && new Date(event.startDate).toLocaleTimeString()) || 'TBA'}</span></div>
-          <div className="flex items-center text-muted-foreground"><MapPin className="mr-2 h-4 w-4"/><span>{event.location?.venue?.name || (typeof event.location === 'string' ? event.location : 'Online')}</span></div>
+          <div className="flex items-center text-muted-foreground"><MapPin className="mr-2 h-4 w-4"/><span>{typeof event.location?.venue === 'string' ? event.location.venue : (event.location?.venue?.name || (typeof event.location === 'string' ? event.location : 'Online'))}</span></div>
           <div className="flex items-center text-muted-foreground"><Tag className="mr-2 h-4 w-4"/><span>{event.category}</span></div>
           <div className="flex items-center text-muted-foreground"><Users className="mr-2 h-4 w-4"/><span>For: {event.targetAudience || 'All'}</span></div>
         </CardContent>
@@ -59,6 +59,12 @@ function EventCard({ event, isOrganizer, onEdit, onDelete }: { event: Event; isO
 export default function EventsClient() {
   const { user } = useAuth();
   const { toast } = useToast();
+
+  // TODO: wire to backend actions/queries
+  const allEventsRaw: any[] = [];
+  const createEventMutation = async (_data: any) => Promise.resolve();
+  const updateEventMutation = async (_data: any) => Promise.resolve();
+  const deleteEventMutation = async (_data: any) => Promise.resolve();
   
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);

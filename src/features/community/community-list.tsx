@@ -2,21 +2,27 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-// import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-// import { Badge } from '@/components/ui/badge';
-// import { Button } from '@/components/ui/button';
-// import { Input } from '@/components/ui/input';
-// import { Textarea } from '@/components/ui/textarea';
-// import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-// import { 
-//   Users, MessageSquare, Plus, Search, ChevronRight, Lock, Loader2
-// } from 'lucide-react';
-// import { useAuth } from '@/hooks/use-auth';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { 
+  Users, MessageSquare, Plus, Search, ChevronRight, Lock, Loader2
+} from 'lucide-react';
+import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 
 export function CommunityListClient() {
   const { user } = useAuth();
   const { toast } = useToast();
+
+  // TODO: wire to backend
+  const communitiesRaw: any[] = [];
+  const status: string = 'Exhausted';
+  const loadMore = (_count: number) => {};
+  const createCommunityMutation = async (_data: any) => Promise.resolve();
   
   const [searchTerm, setSearchTerm] = useState('');
 //     { search: searchTerm || undefined },

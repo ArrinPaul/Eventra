@@ -16,7 +16,7 @@ export function LoginForm() {
   async function handleGoogleSignIn() {
     setIsGoogleLoading(true);
     try {
-      await signIn("google");
+      await signIn();
     } catch (error: unknown) {
       toast({
         variant: 'destructive',

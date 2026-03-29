@@ -4,6 +4,9 @@
 
 export * from '../core/config/eventra-config';
 
+// Replacement type for Convex Id<T> - used for entity references
+export type Id<T extends string = string> = string & { readonly __brand: T };
+
 export type UserRole = 'student' | 'professional' | 'organizer' | 'admin' | 'speaker' | 'attendee' | 'vendor';
 
 export interface User {
@@ -55,6 +58,7 @@ export interface EventLocation {
   country?: string;
   lat?: number;
   lng?: number;
+  isVirtual?: boolean;
   virtualLink?: string;
 }
 
@@ -81,7 +85,9 @@ export interface Event {
   category: string;
   status: string;
   organizerId: string;
+  coOrganizerIds?: string[];
   imageUrl?: string;
+  image?: string;
   capacity: number;
   registeredCount: number;
   visibility?: 'public' | 'private' | 'unlisted';
@@ -108,6 +114,7 @@ export interface EventTicket {
   price: number;
   currency?: string;
   qrCode?: string;
+  ticketTypeId?: string;
   attendeeName?: string;
   attendeeEmail?: string;
   event?: Partial<Event>;

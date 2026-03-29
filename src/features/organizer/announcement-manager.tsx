@@ -1,6 +1,6 @@
 'use client';
 // 
-// import { useState } from 'react';
+import { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,6 +19,11 @@ import { cn } from '@/core/utils/utils';
 
 export function AnnouncementManager({ eventId }: { eventId: string }) {
   const { toast } = useToast();
+  // TODO: wire to backend
+  const announcements: any[] = [];
+  const createAnnouncement = async (_args: any) => Promise.resolve();
+  const updateAnnouncement = async (_args: any) => Promise.resolve();
+  const deactivateAnnouncement = async (_args: any) => Promise.resolve();
 
   const [content, setContent] = useState('');
   const [type, setType] = useState<'info' | 'warning' | 'urgent'>('info');

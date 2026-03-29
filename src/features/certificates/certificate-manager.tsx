@@ -1,26 +1,33 @@
 'use client';
 
 import React, { useState } from 'react';
-// import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-// import { Button } from '@/components/ui/button';
-// import { Badge } from '@/components/ui/badge';
-// import { 
-//   Award, 
-//   Users, 
-//   CheckCircle2, 
-//   Loader2, 
-//   RefreshCw,
-//   Send,
-//   Search,
-//   ChevronRight,
-//   FileText
-// } from 'lucide-react';
-// import { useAuth } from '@/hooks/use-auth';
-// import { useToast } from '@/hooks/use-toast';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { 
+  Award, 
+  Users, 
+  CheckCircle2, 
+  Loader2, 
+  RefreshCw,
+  Send,
+  Search,
+  ChevronRight,
+  FileText
+} from 'lucide-react';
+import { useAuth } from '@/hooks/use-auth';
+import { useToast } from '@/hooks/use-toast';
+import type { Id } from '@/types';
 
 export function CertificateManager() {
   const { user } = useAuth();
   const { toast } = useToast();
+
+  // TODO: wire to backend queries/mutations
+  const events: any[] = [];
+  const issuedCertificates: any[] = [];
+  const attendees: any[] = [];
+  const bulkIssueMutation = async (_args: any) => ({ issued: 0 });
   
   const [selectedEventId, setSelectedEventId] = useState<Id<"events"> | null>(null);
   const [isIssuing, setIsIssuing] = useState(false);

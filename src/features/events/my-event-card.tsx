@@ -51,6 +51,9 @@ export function MyEventCard({
   const displayDate = parseDate(event.startDate);
 
   const eventImage = event.imageUrl || event.image || `https://picsum.photos/seed/${event.id}/800/600`;
+  const venueName = typeof event.location?.venue === 'string'
+    ? event.location?.venue
+    : event.location?.venue?.name;
 
   // Get live status
   const getLiveStatus = () => {
@@ -117,8 +120,10 @@ export function MyEventCard({
   };
 
   const getGoogleMapsUrl = () => {
-    if (event.location?.venue?.name) {
-      const address = event.location.venue.address || event.location.venue.name;
+    if (venueName) {
+      const address = typeof event.location?.venue === 'string'
+        ? event.location.venue
+        : (event.location?.venue?.address || event.location?.venue?.name || '');
       return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
     }
     return null;
@@ -186,8 +191,7 @@ export function MyEventCard({
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <MapPin className="h-4 w-4 flex-shrink-0" />
           <span className="line-clamp-1">
-            {event.location?.venue?.name || 
-             (event.location?.isVirtual ? 'Virtual Event' : 'Location TBD')}
+            {venueName || (event.location?.isVirtual ? 'Virtual Event' : 'Location TBD')}
           </span>
         </div>
 

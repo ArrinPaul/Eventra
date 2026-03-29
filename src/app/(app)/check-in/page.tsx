@@ -1,13 +1,12 @@
 'use client';
-// import { useState } from 'react';
-// import { useAuth } from "@/hooks/use-auth";
-// import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-// import { Button } from "@/components/ui/button";
-// import Image from "next/image";
-// import { Check, QrCode } from "lucide-react";
-// import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-// import QrScanner from '@/components/check-in/qr-scanner';
-// import { useToast } from '@/hooks/use-toast';
+import { useState } from 'react';
+import { useAuth } from '@/hooks/use-auth';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import Image from "next/image";
+import { Check, QrCode } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { useToast } from '@/hooks/use-toast';
 
 
 export default function CheckInPage() {
@@ -53,7 +52,9 @@ export default function CheckInPage() {
                             <DialogHeader>
                                 <DialogTitle>Scan QR Code</DialogTitle>
                             </DialogHeader>
-                            <QrScanner onSuccess={handleScanSuccess} />
+                            <div className="p-4 text-center text-gray-500">
+                                QR Scanner Component - To be implemented
+                            </div>
                         </DialogContent>
                     </Dialog>
                 )}

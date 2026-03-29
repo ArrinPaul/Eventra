@@ -1,8 +1,9 @@
 'use client';
 // 
-// import { useState } from 'react';
+import { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -12,6 +13,10 @@ import { cn } from '@/core/utils/utils';
 
 export function WebhookManager({ eventId }: { eventId?: string }) {
   const { toast } = useToast();
+  // TODO: wire to backend
+  const webhooks: any[] = [];
+  const createWebhook = async (_args: any) => Promise.resolve();
+  const deleteWebhook = async (_args: any) => Promise.resolve();
 
   const [url, setUrl] = useState('');
   const [selectedEvents, setSelectedEvents] = useState<string[]>(['registration.created']);
@@ -121,7 +126,7 @@ export function WebhookManager({ eventId }: { eventId?: string }) {
                     </Button>
                   </div>
                   <div className="flex flex-wrap gap-1 mt-2">
-                    {w.events.map(e => (
+                    {w.events.map((e: string) => (
                       <Badge key={e} variant="outline" className="text-[9px] py-0 border-white/10">{e}</Badge>
                     ))}
                   </div>

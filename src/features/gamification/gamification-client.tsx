@@ -1,11 +1,11 @@
 'use client';
 
 import React, { useState } from 'react';
-// import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-// import { Badge } from '@/components/ui/badge';
-// import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-// import { Trophy, Star, Zap, Target, History, Award, Loader2, ListChecks } from 'lucide-react';
-// import { useAuth } from '@/hooks/use-auth';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Trophy, Star, Zap, Target, History, Award, Loader2, ListChecks } from 'lucide-react';
+import { useAuth } from '@/hooks/use-auth';
 import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/core/utils/utils';
 import { ChallengesHub } from './challenges-hub';
@@ -13,9 +13,12 @@ import { ChallengesHub } from './challenges-hub';
 export function GamificationClient() {
   const { user } = useAuth();
   const userId = user?._id || user?.id;
-//   
-//   
-//   const [activeTab, setActiveTab] = useState('overview');
+
+  // TODO: wire to backend
+  const userBadges: any[] = [];
+  const pointsHistory: any[] = [];
+  const badgeDefinitions: any[] = [];
+  const [activeTab, setActiveTab] = useState('overview');
 
   const earnedBadgeIds = new Set(userBadges.map((ub: any) => ub._id));
 

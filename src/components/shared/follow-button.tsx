@@ -1,6 +1,6 @@
 'use client';
-// 
 import { Button } from '@/components/ui/button';
+import type { Id } from '@/types';
 import { UserPlus, UserMinus, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
@@ -13,6 +13,17 @@ interface FollowButtonProps {
 export function FollowButton({ userId, className }: FollowButtonProps) {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+
+  // Stub declarations for missing implementations
+  const stats = { followers: 0, following: 0, isFollowing: false };
+  const follow = async ({ followingId }: { followingId: Id<"users"> }) => {
+    // TODO: Implement actual follow logic
+    return Promise.resolve();
+  };
+  const unfollow = async ({ followingId }: { followingId: Id<"users"> }) => {
+    // TODO: Implement actual unfollow logic
+    return Promise.resolve();
+  };
 
   const handleToggle = async () => {
     setLoading(true);

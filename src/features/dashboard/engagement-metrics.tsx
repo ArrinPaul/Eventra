@@ -1,5 +1,5 @@
 'use client';
-// 
+import type React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { 
@@ -12,12 +12,23 @@ import {
   Zap
 } from 'lucide-react';
 import { cn } from '@/core/utils/utils';
+import type { Id } from '@/types';
 
 interface EngagementMetricsProps {
   userId: Id<"users">;
 }
 
 export function EngagementMetrics({ userId }: EngagementMetricsProps) {
+  const data = {
+    score: 0,
+    percentile: 0,
+    stats: {
+      eventCount: 0,
+      messageCount: 0,
+      reviewCount: 0,
+      badgeCount: 0,
+    },
+  };
 
   if (data === undefined) return <div className="h-40 animate-pulse bg-white/5 rounded-2xl" />;
   if (!data) return null;

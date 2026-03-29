@@ -21,6 +21,19 @@ import { AIInsightsWidget } from './ai-insights-widget';
 
 export default function AnalyticsDashboard() {
   const [selectedTab, setSelectedTab] = useState('overview');
+  // TODO: Fetch from backend
+  const [analytics, setAnalytics] = useState({
+    totalEvents: 0,
+    activeEvents: 0,
+    totalUsers: 0,
+    totalRegistrations: 0,
+    eventsByCategory: {} as Record<string, number>,
+    eventsByStatus: {} as Record<string, number>,
+    recentRegistrations: 0,
+    upcomingEvents: 0,
+    completedEvents: 0,
+    averageRating: 0,
+  });
 
   if (!analytics) {
     return (

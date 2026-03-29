@@ -178,6 +178,7 @@ class EmailService {
     try {
       const emailContent = templates.registrationConfirmation(ticket, event);
       
+      if (!ticket.attendeeEmail) return false;
       await this.sendEmail({
         to: ticket.attendeeEmail,
         subject: emailContent.subject,

@@ -1,6 +1,6 @@
 'use client';
 // 
-// import { useState, useMemo, useEffect, useRef } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Search, Calendar, MapPin, Users, X } from 'lucide-react';

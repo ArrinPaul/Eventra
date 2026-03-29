@@ -14,7 +14,12 @@ export default function UserProfilePage() {
   const params = useParams();
   const userId = params.id as string;
   const { user: currentUser } = useAuth();
+  // TODO: Fetch from backend
+  const [profileUser, setProfileUser] = React.useState(null);
 
+  // Stub declarations for missing data
+  const followStats = { followers: 0, following: 0, events: 0, followerCount: 0, followingCount: 0 };
+  const stats = { attended: 0, organized: 0, points: 0, level: 1, xp: 0, badgeCount: 0 };
 
   if (profileUser === undefined) {
     return (
@@ -35,7 +40,7 @@ export default function UserProfilePage() {
     );
   }
 
-  const isOwnProfile = currentUser && (currentUser._id === profileUser._id || currentUser.id === profileUser._id);
+  const isOwnProfile = currentUser && (((currentUser as any)._id === (profileUser as any)?._id) || (currentUser as any).id === (profileUser as any)?._id);
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl text-white space-y-6">
@@ -45,17 +50,17 @@ export default function UserProfilePage() {
         <CardContent className="p-6 -mt-16">
           <div className="flex flex-col sm:flex-row items-start sm:items-end gap-4">
             <Avatar className="h-24 w-24 border-4 border-[#0a0b14] shadow-lg">
-              <AvatarImage src={profileUser.image} />
+              <AvatarImage src={(profileUser as any)?.image} />
               <AvatarFallback className="bg-cyan-500/20 text-cyan-400 text-2xl font-bold">
-                {profileUser.name?.charAt(0) || '?'}
+                {(profileUser as any)?.name?.charAt(0) || '?'}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1">
-              <h1 className="text-2xl font-bold">{profileUser.name || 'Anonymous'}</h1>
+              <h1 className="text-2xl font-bold">{(profileUser as any)?.name || 'Anonymous'}</h1>
               <div className="flex flex-wrap items-center gap-3 mt-1 text-sm text-gray-400">
-                {profileUser.role && (
+                {(profileUser as any)?.role && (
                   <Badge variant="secondary" className="bg-cyan-500/10 text-cyan-400 border-cyan-500/20 capitalize">
-                    {profileUser.role}
+                    {(profileUser as any)?.role}
                   </Badge>
                 )}
                 {followStats && (
@@ -66,9 +71,9 @@ export default function UserProfilePage() {
                 )}
               </div>
             </div>
-            {!isOwnProfile && profileUser?._id && (
+            {!isOwnProfile && (profileUser as any)?._id && (
               <div className="pb-1">
-                <FollowButton userId={profileUser._id} />
+                <FollowButton userId={(profileUser as any)?._id} />
               </div>
             )}
           </div>
@@ -98,14 +103,14 @@ export default function UserProfilePage() {
       </Card>
 
       {/* Badges */}
-      <BadgeShowcase userId={profileUser._id} />
+      <BadgeShowcase userId={(profileUser as any)?._id} />
 
       {/* Member since */}
       <Card className="bg-white/5 border-white/10 text-white">
         <CardContent className="p-6">
           <div className="flex items-center gap-2 text-sm text-gray-400">
             <Calendar className="h-4 w-4" />
-            <span>Member since {new Date(profileUser._creationTime).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>
+            <span>Member since {new Date((profileUser as any)?._creationTime).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>
           </div>
         </CardContent>
       </Card>

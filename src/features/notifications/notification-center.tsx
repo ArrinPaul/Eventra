@@ -1,25 +1,25 @@
 'use client';
 
 import React, { useState } from 'react';
-// import { useRouter } from 'next/navigation';
-// import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-// import { Button } from '@/components/ui/button';
-// import { Badge } from '@/components/ui/badge';
-// import { ScrollArea } from '@/components/ui/scroll-area';
-// import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-// import {
-//   DropdownMenu,
-//   DropdownMenuContent,
-//   DropdownMenuItem,
-//   DropdownMenuTrigger,
-// } from '@/components/ui/dropdown-menu';
-// import {
-//   Popover,
-//   PopoverContent,
-//   PopoverTrigger
-// } from '@/components/ui/popover';
-// import { useAuth } from '@/hooks/use-auth';
-// import { useToast } from '@/hooks/use-toast';
+import { useRouter } from 'next/navigation';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger
+} from '@/components/ui/popover';
+import { useAuth } from '@/hooks/use-auth';
+import { useToast } from '@/hooks/use-toast';
 import {
   Bell,
   BellRing,
@@ -43,7 +43,13 @@ export function NotificationBell() {
   const { toast } = useToast();
   const router = useRouter();
   const [open, setOpen] = useState(false);
-//   
+
+  // TODO: wire to backend notifications query/mutations
+  const notificationsRaw: any[] = [];
+  const unreadCount = 0;
+  const markAllRead = () => {};
+  const markRead = (_data: any) => {};
+  const deleteMutation = (_data: any) => {};
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -92,7 +98,7 @@ export function NotificationCenter() {
   const markAllRead = () => {};
   const markRead = (data: any) => {};
   const deleteMutation = (data: any) => {};
-  const status = 'Exhausted';
+  const status: string = 'Exhausted';
   const loadMore = (num: number) => {};
 
 

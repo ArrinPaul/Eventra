@@ -41,14 +41,14 @@ export default function BroadcastForm({ recipients }: BroadcastFormProps) {
       const result = await sendBroadcastEmail({ 
         ...values,
         recipients: recipients.map(r => ({ name: r.name, email: r.email })),
-      });
+      }) as any;
 
       if (result.success) {
         toast({
-            title: result.provider === 'none' ? 'Broadcast Simulated' : 'Broadcast Sent!',
-            description: result.provider === 'none' 
-              ? `Your message was logged to the console for ${result.sentCount} recipients.`
-              : `Your message has been sent to ${result.sentCount} attendees via ${result.provider}.`,
+            title: (result.provider === 'none' || !result.provider) ? 'Broadcast Simulated' : 'Broadcast Sent!',
+            description: (result.provider === 'none' || !result.provider)
+              ? `Your message was logged to the console for ${result.sentCount || recipients.length} recipients.`
+              : `Your message has been sent to ${result.sentCount || recipients.length} attendees via ${result.provider}.`,
         });
         form.reset();
       } else {

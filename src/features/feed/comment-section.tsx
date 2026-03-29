@@ -1,6 +1,6 @@
 'use client';
 // 
-// import { useState } from 'react';
+import { useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,6 +8,8 @@ import { Loader2, Send } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
 export function CommentSection({ postId }: { postId: string }) {
+  const comments: any[] = [];
+  const addComment = async (_args: any) => Promise.resolve();
   
   const [content, setContent] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);

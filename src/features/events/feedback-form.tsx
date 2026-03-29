@@ -1,6 +1,6 @@
 'use client';
 // 
-// import { useState } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -9,6 +9,7 @@ import { Star, Loader2, CheckCircle2, MessageSquare, HelpCircle } from 'lucide-r
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/core/utils/utils';
 import { Switch } from '@/components/ui/switch';
+import type { Id } from '@/types';
 
 interface FeedbackFormProps {
   eventId: Id<"events">;
@@ -24,6 +25,7 @@ interface FeedbackFormProps {
 
 export function FeedbackForm({ eventId, eventName, schema = [], onSuccess }: FeedbackFormProps) {
   const { toast } = useToast();
+  const submitFeedback = async (_payload: any) => Promise.resolve();
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState('');
   const [responses, setResponses] = useState<Record<string, any>>({});

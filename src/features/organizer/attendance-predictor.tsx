@@ -18,12 +18,12 @@ export function AttendancePredictor({ eventId }: { eventId: string }) {
     setLoading(true);
     try {
       const result = await getPredictiveAttendance(eventId);
-      if (result.success) {
-        setPrediction(result);
-        toast({ title: 'Attendance prediction ready! 📈' });
-      } else {
-        throw new Error(result.error);
-      }
+      setPrediction({
+        predictedShowRate: result.confidence,
+        predictedAttendance: result.predictedAttendance,
+        factors: result.factors,
+      });
+      toast({ title: 'Attendance prediction ready! 📈' });
     } catch (e: any) {
       toast({ title: 'Prediction failed', description: e.message, variant: 'destructive' });
     } finally {

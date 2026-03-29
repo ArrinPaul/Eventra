@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Users, Loader2 } from 'lucide-react';
 
 export default function AttendeesDisplay({ eventId }: { eventId: string }) {
+  const attendeesRaw: any[] = [];
 
   if (attendeesRaw === undefined) return <div className="flex justify-center p-10"><Loader2 className="animate-spin" /></div>;
 

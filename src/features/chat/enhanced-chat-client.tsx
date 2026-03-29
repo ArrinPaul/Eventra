@@ -1,6 +1,6 @@
 'use client';
-// import { useState, useEffect, useRef, useCallback } from 'react';
-// import { useAuth } from '@/hooks/use-auth';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { useAuth } from '@/hooks/use-auth';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -29,9 +29,16 @@ import { UserPicker } from './user-picker';
 export default function EnhancedChatClient({ initialRoomId }: { initialRoomId?: string }) {
   const { user } = useAuth();
   const { toast } = useToast();
-//   
-//   
-//   const [selectedRoomId, setSelectedRoomId] = useState<string | null>(initialRoomId || null);
+
+  const [selectedRoomId, setSelectedRoomId] = useState<string | null>(initialRoomId || null);
+  // TODO: replace with backend data/mutations
+  const chatRooms: any[] = [];
+  const messages: any[] = [];
+  const status: string = 'Exhausted';
+  const loadMore = (_count: number) => {};
+  const generateUploadUrl = async () => '';
+  const createRoomMutation = async (_args: any) => 'room-id';
+  const sendMessageMutation = async (_args: any) => Promise.resolve();
 //   
 //     selectedRoomId ? { roomId: selectedRoomId as any } : "skip" as any,
 //     { initialNumItems: 20 }
@@ -61,6 +68,7 @@ export default function EnhancedChatClient({ initialRoomId }: { initialRoomId?: 
         body: file,
       });
       const { storageId } = await result.json();
+      const url = String(storageId || '');
       setPendingFile({ url, type: file.type, name: file.name });
     } catch (e) {
       toast({ title: 'Upload failed', variant: 'destructive' });
@@ -223,7 +231,7 @@ export default function EnhancedChatClient({ initialRoomId }: { initialRoomId?: 
               <div className="space-y-6">
                 {status === "CanLoadMore" && (
                   <div className="flex justify-center py-2">
-                    <Button variant="ghost" size="xs" onClick={() => loadMore(20)} className="text-[10px] h-7 text-gray-500 hover:text-cyan-400">
+                    <Button variant="ghost" size="sm" onClick={() => loadMore(20)} className="text-[10px] h-7 text-gray-500 hover:text-cyan-400">
                       <ChevronUp className="w-3 h-3 mr-1" /> Load earlier messages
                     </Button>
                   </div>

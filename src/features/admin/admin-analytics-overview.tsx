@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-// import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-// import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Users,
   Calendar,
@@ -33,7 +33,30 @@ import {
 
 export default function AdminAnalyticsOverview() {
   const [activeTab, setActiveTab] = useState('overview');
-//   
+  
+  // TODO: Fetch from backend - initialized with default values to prevent null reference errors
+  const [stats, setStats] = useState({
+    totalUsers: 0,
+    activeEvents: 0,
+    totalRegistrations: 0,
+    userTrend: 0,
+  });
+  
+  const [detailed, setDetailed] = useState({
+    engagement: {
+      registrations: 0,
+      messages: 0,
+      badgesEarned: 0,
+    },
+    growthData: [],
+    usersByRole: {} as Record<string, number>,
+    eventsByStatus: {} as Record<string, number>,
+    engagementTrends: [],
+    demographics: {
+      byRole: {} as Record<string, number>,
+      byCountry: {} as Record<string, number>,
+    },
+  });
   
   const loading = !stats || !detailed;
 
@@ -119,13 +142,13 @@ export default function AdminAnalyticsOverview() {
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
-                        data={Object.entries(stats.usersByRole).map(([name, value]) => ({ name, value }))}
+                        data={Object.entries(detailed.usersByRole).map(([name, value]) => ({ name, value }))}
                         cx="50%" cy="50%"
                         innerRadius={60} outerRadius={80}
                         paddingAngle={5}
                         dataKey="value"
                       >
-                        {Object.entries(stats.usersByRole).map((entry, index) => (
+                        {Object.entries(detailed.usersByRole).map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                         ))}
                       </Pie>
@@ -136,7 +159,7 @@ export default function AdminAnalyticsOverview() {
                   </ResponsiveContainer>
                 </div>
                 <div className="space-y-2 mt-4">
-                  {Object.entries(stats.usersByRole).map(([role, count], i) => (
+                  {Object.entries(detailed.usersByRole).map(([role, count], i) => (
                     <div key={role} className="flex items-center justify-between text-xs">
                       <div className="flex items-center gap-2">
                         <div className="w-2 h-2 rounded-full" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
@@ -186,7 +209,7 @@ export default function AdminAnalyticsOverview() {
               </CardHeader>
               <CardContent className="flex items-center justify-center py-6">
                 <div className="grid grid-cols-2 gap-8">
-                  {Object.entries(stats.eventsByStatus).map(([status, count], i) => (
+                  {Object.entries(detailed.eventsByStatus).map(([status, count], i) => (
                     <div key={status} className="text-center">
                       <div className={`text-2xl font-bold ${status === 'published' ? 'text-green-400' : 'text-gray-400'}`}>{count as number}</div>
                       <div className="text-[10px] uppercase font-black tracking-widest text-gray-600">{status}</div>

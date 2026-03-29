@@ -2,7 +2,7 @@
 
 import { useAuth } from "@/hooks/use-auth";
 import OrganizerDashboard from "@/features/dashboard/organizer-dashboard-client";
-import { AttendeeDashboard } from "@/features/dashboard/attendee-dashboard";
+import AttendeeDashboard from "@/features/dashboard/attendee-dashboard";
 import { Loader2 } from "lucide-react";
 
 export default function DashboardClient() {

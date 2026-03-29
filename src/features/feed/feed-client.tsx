@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -24,6 +24,9 @@ export default function FeedClient() {
   const { toast } = useToast();
 
   const communities: any[] = [];
+  const postsRaw: any[] = [];
+  const [status] = useState<'CanLoadMore' | 'LoadingMore' | 'Exhausted'>('Exhausted');
+  const loadMore = (_count: number) => {};
   const createPostMutation = async (data: any) => {};
   const updatePostMutation = async (data: any) => {};
   const deletePostMutation = async (data: any) => {};

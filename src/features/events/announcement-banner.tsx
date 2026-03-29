@@ -1,18 +1,18 @@
 'use client';
-// 
 import { AlertCircle, Bell, Info, X } from 'lucide-react';
 import { cn } from '@/core/utils/utils';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export function AnnouncementBanner({ eventId }: { eventId: string }) {
+  const announcements: any[] = [];
   
   if (!announcements || announcements.length === 0) return null;
 
   return (
     <div className="space-y-2 mb-6">
       <AnimatePresence>
-        {announcements.map((a) => (
+        {announcements.map((a: any) => (
           <motion.div
             key={a._id}
             initial={{ height: 0, opacity: 0 }}

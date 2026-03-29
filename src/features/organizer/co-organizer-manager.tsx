@@ -1,6 +1,6 @@
 'use client';
 // 
-// import { useState } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Plus, UserMinus, UserPlus, Mail, ShieldCheck } from 'lucide-react';
+import type { Id } from '@/types';
 
 interface CoOrganizerManagerProps {
   eventId: Id<"events">;
@@ -18,6 +19,10 @@ interface CoOrganizerManagerProps {
 
 export function CoOrganizerManager({ eventId, organizerId, coOrganizerIds = [] }: CoOrganizerManagerProps) {
   const { toast } = useToast();
+  // TODO: wire to backend
+  const allUsers: any[] = [];
+  const coOrganizers = allUsers.filter((u: any) => coOrganizerIds.includes(u._id));
+  const updateEventMutation = async (_args: any) => Promise.resolve();
   const [email, setEmail] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);

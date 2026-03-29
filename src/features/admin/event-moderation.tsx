@@ -1,13 +1,13 @@
 'use client';
 
 import React, { useState } from 'react';
-// import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-// import { Button } from '@/components/ui/button';
-// import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 // // 
-// import { useToast } from '@/hooks/use-toast';
-// import { Check, X, ShieldAlert, Loader2, Clock } from 'lucide-react';
-// import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/hooks/use-toast';
+import { Check, X, ShieldAlert, Loader2, Clock } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 export default function EventModeration() {
   const { toast } = useToast();
@@ -16,7 +16,9 @@ export default function EventModeration() {
   
   const events: any[] = []; // Placeholder for events
   const paginationStatus = 'Exhausted';
-  const loadMore = () => {};
+  const loadMore = (num: number) => {
+    // TODO: Implement pagination via server action
+  };
   const moderateMutation = async (args: any) => {};
 
   const handleModerate = async (eventId: string, action: 'approve' | 'reject' | 'suspend') => {
@@ -42,9 +44,7 @@ export default function EventModeration() {
         </TabsList>
         
         <TabsContent value={activeTab}>
-          {paginationStatus === 'LoadingFirstPage' ? (
-            <div className="py-20 text-center"><Loader2 className="animate-spin h-8 w-8 mx-auto text-cyan-500" /></div>
-          ) : events.length === 0 ? (
+          {events.length === 0 ? (
             <div className="py-20 text-center text-gray-500 border border-dashed border-white/10 rounded-2xl bg-white/5">
               <Check size={48} className="mx-auto mb-4 opacity-20" />
               <p>No events found for moderation.</p>
@@ -98,7 +98,7 @@ export default function EventModeration() {
                 </Card>
               ))}
 
-              {paginationStatus === 'CanLoadMore' && (
+              {false && (
                 <div className="flex justify-center pt-2">
                   <Button variant="outline" className="border-white/10" onClick={() => loadMore(pageSize)}>
                     Load More Events
@@ -106,7 +106,7 @@ export default function EventModeration() {
                 </div>
               )}
 
-              {paginationStatus === 'LoadingMore' && (
+              {false && (
                 <div className="py-4 text-center"><Loader2 className="animate-spin h-6 w-6 mx-auto text-cyan-500" /></div>
               )}
             </div>

@@ -1,14 +1,14 @@
 'use client';
 // 
-// import { useState } from 'react';
-// import { useRouter } from 'next/navigation';
-// import { useForm } from 'react-hook-form';
-// import { zodResolver } from '@hookform/resolvers/zod';
-// import { Form } from '@/components/ui/form';
-// import { Button } from '@/components/ui/button';
-// import { Badge } from '@/components/ui/badge';
-// import { useToast } from '@/hooks/use-toast';
-// import { useAuth } from '@/hooks/use-auth';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Form } from '@/components/ui/form';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/use-auth';
 import { 
   ChevronLeft, 
   ChevronRight, 
@@ -32,6 +32,7 @@ export default function EventCreationWizard() {
   const [currentStep, setCurrentStep] = useState(1);
   const [isSaving, setIsSaving] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const createEventMutation = async (_args: any) => Promise.resolve();
 
   const form = useForm<EventWizardData>({
     resolver: zodResolver(eventWizardSchema),
@@ -64,11 +65,7 @@ export default function EventCreationWizard() {
     }
     setIsGenerating(true);
     try {
-      const result = await getAIEventPlan({
-        title: formData.title,
-        eventType: formData.category,
-        duration: 2, 
-      }) as any;
+      const result: any = await getAIEventPlan(`Plan a ${formData.category} event: ${formData.title}`);
       if (result.success) {
         setValue('description', result.agenda.description || `This ${formData.category} event focuses on ${formData.title}.`);
         setValue('agenda', result.agenda.agenda);

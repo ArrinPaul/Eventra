@@ -1,19 +1,23 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-// import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-// import { Button } from '@/components/ui/button';
-// import { Badge } from '@/components/ui/badge';
-// import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-// import { Share2, Copy, Check, ExternalLink, Users, Calendar, BarChart3, Globe } from 'lucide-react';
-// import { useToast } from '@/hooks/use-toast';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Share2, Copy, Check, ExternalLink, Users, Calendar, BarChart3, Globe } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
+import type { Id } from '@/types';
 
 export function StakeholderShareDialog({ eventId, eventName, open, onOpenChange }: { eventId: Id<"events">, eventName: string, open?: boolean, onOpenChange?: (open: boolean) => void }) {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  // TODO: Fetch from backend
+  const [report, setReport] = useState(null);
+  const createShareLink = async (_args: any) => ({ token: 'preview-token' });
 
   const handleGenerate = async () => {
     setLoading(true);
@@ -79,6 +83,9 @@ export function StakeholderShareDialog({ eventId, eventName, open, onOpenChange 
 
 export function StakeholderReportView({ token }: { token: string }) {
   const hasIncrementedRef = useRef(false);
+  // TODO: Fetch report + mutation from backend
+  const report: any = null;
+  const incrementReportView = async (_args: any) => Promise.resolve();
 
   useEffect(() => {
     if (report && !hasIncrementedRef.current) {

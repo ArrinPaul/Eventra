@@ -10,6 +10,8 @@ export default function EventFeedbackPage() {
   const router = useRouter();
   const eventId = params.id as string;
   
+  // TODO: Fetch event from backend
+  const event: any = null;
 
   if (event === undefined) return <div className="p-20 text-center"><Loader2 className="animate-spin h-8 w-8 mx-auto text-cyan-500" /></div>;
   if (!event) return <div className="p-20 text-center text-white">Event not found.</div>;

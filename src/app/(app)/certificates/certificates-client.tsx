@@ -1,22 +1,22 @@
 'use client';
 
 import React, { useState } from 'react';
-// import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-// import { Button } from '@/components/ui/button';
-// import { Badge } from '@/components/ui/badge';
-// import { Input } from '@/components/ui/input';
-// import { 
-//   Award, 
-//   Download, 
-//   ExternalLink, 
-//   Search, 
-//   Loader2,
-//   Calendar,
-//   ShieldCheck,
-//   CheckCircle2,
-//   XCircle
-// } from 'lucide-react';
-// import { useAuth } from '@/hooks/use-auth';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { 
+  Award, 
+  Download, 
+  ExternalLink, 
+  Search, 
+  Loader2,
+  Calendar,
+  ShieldCheck,
+  CheckCircle2,
+  XCircle
+} from 'lucide-react';
+import { useAuth } from '@/hooks/use-auth';
 import { format } from 'date-fns';
 import {
   Dialog,
@@ -30,6 +30,9 @@ import { generateCertificateHtml } from '@/core/utils/certificate-generator';
 
 export function CertificatesClient() {
   const { user } = useAuth();
+  // TODO: Fetch from backend
+  const certificatesRaw: any[] = [];
+  const result: any = null;
   const certificates = certificatesRaw ?? [];
   const [searchTerm, setSearchTerm] = useState('');
   const [verifyNumber, setVerifyNumber] = useState('');

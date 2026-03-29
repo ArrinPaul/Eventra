@@ -1,6 +1,6 @@
 'use client';
-// import { useState } from 'react';
-// import { useAuth } from '@/hooks/use-auth';
+import { useState } from 'react';
+import { useAuth } from '@/hooks/use-auth';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -11,6 +11,7 @@ import { cn } from '@/core/utils/utils';
 export default function LeaderboardClient() {
     const { user: currentUser } = useAuth();
     const [timeFilter] = useState('all');
+    const allUsersRaw: any[] = [];
 
     const rankedUsers = (allUsersRaw || [])
         .filter((u: any) => u.role !== 'organizer' && u.role !== 'admin')

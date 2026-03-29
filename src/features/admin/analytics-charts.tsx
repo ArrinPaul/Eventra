@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect, useMemo } from 'react';
 import { Bar, BarChart, CartesianGrid, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis, Cell } from 'recharts';
-import type { User, LegacySession } from '@/types';
+import type { User, Session } from '@/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/hooks/use-auth';
 import useLocalStorage from '@/hooks/use-local-storage';
@@ -36,7 +36,7 @@ function AiInsights({ popularityData }: { popularityData: { name: string, count:
             try {
                 const popularityString = popularityData.map(p => `${p.name}: ${p.count} attendees`).join(', ');
                 const result = await getAnalyticsInsights({ sessionPopularity: popularityString });
-                setInsights(result.insights);
+                setInsights(result.insight || '');
             } catch (err) {
                 console.error(err);
                 setError('Could not load AI insights. The model may be overloaded.');
@@ -79,7 +79,7 @@ function AiInsights({ popularityData }: { popularityData: { name: string, count:
 
 export default function AnalyticsCharts({ allUsers }: { allUsers: User[] }) {
     const attendees = useMemo(() => allUsers.filter(u => u.role !== 'organizer'), [allUsers]);
-    const [sessions] = useLocalStorage<LegacySession[]>('ipx-sessions', initialSessions);
+    const [sessions] = useLocalStorage<Session[]>('ipx-sessions', initialSessions as Session[]);
 
     const registrationData = useMemo(() => {
         const studentCount = attendees.filter(u => u.role === 'student').length;

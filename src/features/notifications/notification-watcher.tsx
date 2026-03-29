@@ -1,6 +1,6 @@
 'use client';
 // 
-// import { useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
 
@@ -11,6 +11,10 @@ export function NotificationWatcher() {
   const { user } = useAuth();
   const { toast } = useToast();
   const lastNotifIdRef = useRef<string | null>(null);
+  // TODO: wire to backend queries/actions
+  const latestNotification: any[] = [];
+  const subscribePush = async (_args: any) => Promise.resolve();
+  const markRead = async (_args: any) => Promise.resolve();
 
   useEffect(() => {
     // Request notification permission on mount

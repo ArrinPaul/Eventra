@@ -1,5 +1,4 @@
 'use client';
-// 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
@@ -21,6 +20,15 @@ import { cn } from '@/core/utils/utils';
 const COLORS = ['#06b6d4', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981'];
 
 export function RevenueDashboard() {
+  // TODO: load real organizer revenue analytics from backend
+  const stats = {
+    totalRevenue: 0,
+    revenueTrend: 0,
+    ticketTrend: 0,
+    revenueByEvent: [] as Array<{ title: string; revenue: number; ticketCount: number }>,
+    dailyRevenue: [] as Array<{ date: string; amount: number }>,
+    revenueByTier: {} as Record<string, number>,
+  };
 
   if (!stats) {
     return (

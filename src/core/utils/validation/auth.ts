@@ -17,14 +17,11 @@ const commonFields = {
   emergencyContactNumber: z.string().min(10, { message: 'Emergency contact number is required.' }),
 };
 
-const passwordMatchRefine = [
-  (data: any) => data.password === data.confirmPassword,
-  {
-    message: "Passwords don't match",
-    path: ["confirmPassword"],
-  }
-] as const;
 
+const passwordMatchRefine = {
+  message: "Passwords don't match",
+  path: ["confirmPassword"],
+};
 export const studentSchema = z.object({
   ...commonFields,
   role: z.literal('student'),
@@ -32,8 +29,8 @@ export const studentSchema = z.object({
   college: z.string().min(2, { message: 'College name is required.' }),
   degree: z.enum(['ug', 'pg']),
   year: z.coerce.number().min(1).max(5),
-}).refine(...passwordMatchRefine);
 
+}).refine((data: any) => data.password === data.confirmPassword, passwordMatchRefine);
 export const professionalSchema = z.object({
   ...commonFields,
   role: z.literal('professional'),
@@ -43,22 +40,22 @@ export const professionalSchema = z.object({
   country: z.string().min(2, { message: 'Country is required.' }),
   gender: z.enum(['male', 'female', 'other', 'prefer-not-to-say']),
   bloodGroup: z.string().min(1, { message: 'Blood group is required.' }),
-}).refine(...passwordMatchRefine);
 
+}).refine((data: any) => data.password === data.confirmPassword, passwordMatchRefine);
 export const organizerSchema = z.object({
   ...commonFields,
   role: z.literal('organizer'),
   company: z.string().min(2, { message: 'Organization Name is required.' }),
   designation: z.string().min(2, { message: 'Position is required.' }),
   verificationCode: z.string().min(1, { message: "Organizer verification code is required." }),
-}).refine(...passwordMatchRefine);
 
+}).refine((data: any) => data.password === data.confirmPassword, passwordMatchRefine);
 export const registerSchema = z.discriminatedUnion('role', [
   z.object({ ...commonFields, role: z.literal('student'), interests: z.string().min(3), college: z.string(), degree: z.enum(['ug', 'pg']), year: z.coerce.number() }),
   z.object({ ...commonFields, role: z.literal('professional'), interests: z.string().min(3), company: z.string(), designation: z.string(), country: z.string(), gender: z.enum(['male', 'female', 'other', 'prefer-not-to-say']), bloodGroup: z.string() }),
   z.object({ ...commonFields, role: z.literal('organizer'), company: z.string(), designation: z.string(), verificationCode: z.string() }),
-]).refine(...passwordMatchRefine);
 
+]).refine((data: any) => data.password === data.confirmPassword, passwordMatchRefine);
 export type LoginFormData = z.infer<typeof loginSchema>;
 export type RegisterFormData = z.infer<typeof studentSchema> | z.infer<typeof professionalSchema> | z.infer<typeof organizerSchema>;
 

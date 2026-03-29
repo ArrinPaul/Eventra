@@ -38,6 +38,7 @@ function timeAgo(timestamp: number): string {
 }
 
 export function ActivityFeed({ userId, global }: { userId?: string; global?: boolean }) {
+  const myFeed: any[] = [];
 //     userId ? { userId: userId as any } : {}
 //   );
 

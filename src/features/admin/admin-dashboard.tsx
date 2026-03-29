@@ -1,6 +1,6 @@
 'use client';
-// import { useState } from 'react';
-// import { useAuth } from '@/hooks/use-auth';
+import { useState } from 'react';
+import { useAuth } from '@/hooks/use-auth';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -43,6 +43,9 @@ export default function AdminDashboardClient() {
     const [activeTab, setActiveTab] = useState('dashboard');
     const [filterRole, setFilterRole] = useState<UserRole | 'all'>('all');
     const [searchTerm, setSearchTerm] = useState('');
+    
+    // TODO: Fetch users from backend
+    const allUsersRaw: any[] = [];
 
     const loading = allUsersRaw === undefined;
     const users = (allUsersRaw || []).map((u: any) => ({ ...u, id: u._id }));

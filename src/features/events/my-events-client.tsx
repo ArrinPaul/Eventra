@@ -1,7 +1,7 @@
 'use client';
 // 
-// import { useState } from 'react';
-// import { useAuth } from '@/hooks/use-auth';
+import { useState } from 'react';
+import { useAuth } from '@/hooks/use-auth';
 import { Event } from '@/types';
 import { MyEventCard } from '@/features/events/my-event-card';
 import { Button } from '@/components/ui/button';
@@ -34,7 +34,10 @@ const getEventDate = (event: Event): Date => {
 export default function MyEventsClient() {
   const { user, updateUser } = useAuth();
   const { toast } = useToast();
-//   
+  // TODO: wire to backend
+  const allEventsRaw: any[] = [];
+  const myRegistrations: any[] = [];
+
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('registered');
 

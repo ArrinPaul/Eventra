@@ -1,10 +1,10 @@
 'use client';
 
 import React, { useState } from 'react';
-// import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-// import { Button } from '@/components/ui/button';
-// import { Badge } from '@/components/ui/badge';
-// import { useAuth } from '@/hooks/use-auth';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { useAuth } from '@/hooks/use-auth';
 import { 
   Plus, 
   Calendar, 
@@ -30,6 +30,10 @@ export default function OrganizerDashboard() {
   const { user } = useAuth();
   const { toast } = useToast();
   const router = useRouter();
+  // TODO: wire to backend
+  const managedEvents: any[] = [];
+  const deleteEventMutation = async (_args: any) => Promise.resolve();
+  const cloneEventMutation = async (_args: any) => 'cloned-event-id';
   
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState('events');

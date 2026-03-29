@@ -1,6 +1,6 @@
 'use client';
 // 
-// import { useState } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -11,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/core/utils/utils';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import type { Id } from '@/types';
 
 interface EventPollsProps {
   eventId: Id<"events">;
@@ -20,7 +21,13 @@ interface EventPollsProps {
 export function EventPolls({ eventId, isOrganizer }: EventPollsProps) {
   const { user } = useAuth();
   const { toast } = useToast();
-//   
+
+  // TODO: wire to backend
+  const polls: any[] = [];
+  const createPoll = async (_args: any) => Promise.resolve();
+  const toggleActive = async (_args: any) => Promise.resolve();
+  const deletePoll = async (_args: any) => Promise.resolve();
+  const submitVote = async (_args: any) => Promise.resolve();
 
   const [showCreate, setShowCreate] = useState(false);
   const [newQuestion, setNewQuestion] = useState('');

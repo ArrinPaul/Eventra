@@ -41,13 +41,14 @@ function getDateString(event: Event): string {
 
 function getLocationString(event: Event): string {
   if (typeof event.location === 'string') return event.location;
+  if (typeof event.location?.venue === 'string') return event.location.venue;
   if (event.location?.venue?.name) return event.location.venue.name;
   return '';
 }
 
 export function EventForm({ onSave, event }: EventFormProps) {
   const { user } = useAuth();
-//   const { uploadFile } = useStorage();
+  const { uploadFile } = useStorage();
   const [imageUrl, setImageUrl] = useState<string | null>(event?.imageUrl || null);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -57,7 +58,7 @@ export function EventForm({ onSave, event }: EventFormProps) {
     if (!file || !user) return;
     setUploading(true);
     try {
-      const { storageId } = await uploadFile(file, user._id || user.id);
+      const storageId = await uploadFile(file);
       // Storage URL is returned from saveFile — use the storageId as a reference
       setImageUrl(`/api/storage/${storageId}`);
     } catch {

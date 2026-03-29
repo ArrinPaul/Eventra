@@ -62,7 +62,7 @@ export default function UserPreferencesPanel() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      await updateUser({ notificationPreferences: prefs });
+      await updateUser({ notificationPreferences: prefs as unknown as Record<string, boolean> });
       toast({ title: 'Preferences saved successfully' });
     } catch (e) {
       toast({ title: 'Failed to save preferences', variant: 'destructive' });

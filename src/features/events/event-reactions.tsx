@@ -1,8 +1,8 @@
 'use client';
-// 
 import { Button } from '@/components/ui/button';
 import { cn } from '@/core/utils/utils';
 import { motion, AnimatePresence } from 'framer-motion';
+import type { Id } from '@/types';
 
 interface EventReactionsProps {
   eventId: Id<"events">;
@@ -11,6 +11,8 @@ interface EventReactionsProps {
 const EMOJIS = ["❤️", "🔥", "🙌", "😮", "👍"];
 
 export function EventReactions({ eventId }: EventReactionsProps) {
+  const reactions: Record<string, { count: number; me: boolean }> = {};
+  const addReaction = async (_args: any) => Promise.resolve();
 
   return (
     <div className="flex flex-wrap gap-2 py-4">

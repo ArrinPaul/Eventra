@@ -1,6 +1,6 @@
 'use client';
 // 
-// import { useState } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,6 +10,10 @@ import { cn } from '@/core/utils/utils';
 
 export function ReferralSystem() {
   const { toast } = useToast();
+  // TODO: Fetch from backend
+  const [user, setUser] = useState<any | null>(null);
+  const generateCode = async () => Promise.resolve();
+  const redeemCode = async (_args: any) => Promise.resolve();
 
   const [inputCode, setInputCode] = useState('');
   const [loading, setLoading] = useState(false);

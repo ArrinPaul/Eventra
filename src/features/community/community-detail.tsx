@@ -1,18 +1,18 @@
 'use client';
 
 import React, { useState } from 'react';
-// import { useRouter } from 'next/navigation';
-// import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-// import { Badge } from '@/components/ui/badge';
-// import { Button } from '@/components/ui/button';
-// import { Input } from '@/components/ui/input';
-// import { Textarea } from '@/components/ui/textarea';
-// import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-// import { 
-//   Users, MessageSquare, Plus, Search, ChevronRight, Lock, Calendar, Loader2, CheckCircle2,
-//   MoreVertical, ThumbsUp, MessageCircle, Flag, Info
-// } from 'lucide-react';
-// import { useAuth } from '@/hooks/use-auth';
+import { useRouter } from 'next/navigation';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { 
+  Users, MessageSquare, Plus, Search, ChevronRight, Lock, Calendar, Loader2, CheckCircle2,
+  MoreVertical, ThumbsUp, MessageCircle, Flag, Info
+} from 'lucide-react';
+import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { moderateContent } from '@/app/actions/moderation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -22,6 +22,21 @@ export function CommunityDetailClient({ communityId }: { communityId: string }) 
   const { user } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
+  // TODO: Fetch from backend
+  const [community, setCommunity] = useState<any | null>(null);
+
+  // TODO: replace with backend queries/mutations
+  const memberStatus = null;
+  const posts: any[] = [];
+  const members: any[] = [];
+  const postsStatus: string = 'Exhausted';
+  const membersStatus: string = 'Exhausted';
+  const joinMutation = async (_args: any) => Promise.resolve();
+  const likePostMutation = async (_args: any) => Promise.resolve();
+  const createPostMutation = async (_args: any) => 'post-id';
+  const flagPostMutation = async (_args: any) => Promise.resolve();
+  const loadMorePosts = (_count: number) => {};
+  const loadMoreMembers = (_count: number) => {};
 //   
 //   
 //     { communityId: communityId as any },

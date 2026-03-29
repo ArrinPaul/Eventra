@@ -1,6 +1,6 @@
 'use client';
 // 
-// import { useState, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,6 +18,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import type { Id } from '@/types';
 
 interface EventGalleryProps {
   eventId: Id<"events">;
@@ -28,7 +29,12 @@ export function EventGallery({ eventId, isRegistered }: EventGalleryProps) {
   const { user } = useAuth();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
-//   
+
+  // TODO: wire to backend
+  const photos: any[] = [];
+  const generateUploadUrl = async () => '';
+  const uploadPhoto = async (_args: any) => Promise.resolve();
+  const deletePhoto = async (_args: any) => Promise.resolve();
 
   const [uploading, setUploading] = useState(false);
   const [selectedPhoto, setSelectedPhoto] = useState<any>(null);

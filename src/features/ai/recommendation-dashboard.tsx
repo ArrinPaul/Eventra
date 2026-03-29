@@ -1,20 +1,18 @@
 'use client';
 // 
-// import { useState, useEffect, useCallback } from 'react';
-// import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-// import { Button } from '@/components/ui/button';
-// import { Badge } from '@/components/ui/badge';
-// import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-// import { Progress } from '@/components/ui/progress';
-// import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-// import { Sparkles, TrendingUp, Users, Target, Calendar, BookOpen, Network, RefreshCw, Clock } from 'lucide-react';
-// import { useAuth } from '@/hooks/use-auth';
+import { useState, useEffect, useCallback } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Progress } from '@/components/ui/progress';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Sparkles, TrendingUp, Users, Target, Calendar, BookOpen, Network, RefreshCw, Clock } from 'lucide-react';
+import { useAuth } from '@/hooks/use-auth';
 import { 
   getAIRecommendations, 
   getAIContentRecommendations, 
-  getAIConnectionRecommendations,
-  ContentRecommendation,
-  ConnectionRecommendation
+  getAIConnectionRecommendations
 } from '@/app/actions/ai-recommendations';
 import { cn } from '@/core/utils/utils';
 
@@ -46,8 +44,8 @@ export default function AiRecommendationDashboard() {
   const [activeTab, setActiveTab] = useState('events');
   const [loading, setLoading] = useState(false);
   const [eventRecommendations, setEventRecommendations] = useState<EventRecommendationEnriched[]>([]);
-  const [contentRecommendations, setContentRecommendations] = useState<ContentRecommendation[]>([]);
-  const [connectionRecommendations, setConnectionRecommendations] = useState<ConnectionRecommendation[]>([]);
+  const [contentRecommendations, setContentRecommendations] = useState<any[]>([]);
+  const [connectionRecommendations, setConnectionRecommendations] = useState<any[]>([]);
   const [insights, setInsights] = useState<InsightCard[]>([]);
 
   const events: any[] = []; // Placeholder for events
@@ -62,19 +60,19 @@ export default function AiRecommendationDashboard() {
         getAIConnectionRecommendations(user._id || user.id)
       ]);
 
-      const enrichedEvents = eventsRes.recommendations.map(rec => {
+      const enrichedEvents = (eventsRes as any[]).map((rec: any) => {
         const fullEvent = events.find((e: any) => e._id === rec.eventId);
         return {
-          eventId: rec.eventId,
+          eventId: rec.eventId || rec.id,
           title: fullEvent?.title || 'Unknown Event',
           type: fullEvent?.category || 'General',
-          relevanceScore: rec.relevanceScore,
-          recommendationReason: rec.reason,
-          personalizedPitch: rec.pitch,
+          relevanceScore: rec.relevanceScore || rec.score || 0,
+          recommendationReason: rec.reason || 'Recommended for your profile',
+          personalizedPitch: rec.pitch || 'Good match based on your interests',
           expectedValue: ['Skill development', 'Networking', 'Industry insights'],
           networkingOpportunities: ['Meet peers', 'Connect with speakers'],
           preparationSuggestions: ['Review agenda', 'Prepare questions'],
-          confidenceLevel: rec.confidenceLevel,
+          confidenceLevel: rec.confidenceLevel || 'medium',
           startTime: new Date(fullEvent?.startDate || Date.now()),
           duration: 120
         };
@@ -294,7 +292,7 @@ export default function AiRecommendationDashboard() {
                     <div className="mt-6 space-y-4 bg-white/5 rounded-xl p-4 border border-white/5">
                       <p className="text-xs font-semibold text-gray-500 uppercase">Conversation Starters:</p>
                       <div className="space-y-2">
-                        {connection.conversationStarters.map((starter, idx) => (
+                        {connection.conversationStarters.map((starter: string, idx: number) => (
                           <div key={idx} className="bg-white/5 p-2 rounded-lg text-xs text-gray-300 border border-white/5">
                             "{starter}"
                           </div>

@@ -11,7 +11,7 @@ export const EVENTS: Event[] = [
         title: 'React Workshop',
         startDate: new Date('2024-10-26T11:00:00'),
         endDate: new Date('2024-10-26T13:00:00'),
-        location: 'Room 101',
+        location: { venue: 'Room 101' },
         category: 'Workshop',
         type: 'workshop',
         status: 'published',

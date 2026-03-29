@@ -1,38 +1,52 @@
 'use client';
 // 
-// import { useAuth } from '@/hooks/use-auth';
-// import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-// import { Button } from '@/components/ui/button';
-// import { Badge } from '@/components/ui/badge';
-// import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-// import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-// import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-// import {
-//   Calendar,
-//   MapPin,
-//   Clock,
-//   ArrowRight,
-//   Sparkles,
-//   Trophy,
-//   Users,
-//   TrendingUp,
-//   Star,
-//   Zap,
-//   Ticket,
-//   Activity
-// } from 'lucide-react';
+import { useAuth } from '@/hooks/use-auth';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Calendar,
+  MapPin,
+  Clock,
+  ArrowRight,
+  Sparkles,
+  Trophy,
+  Users,
+  TrendingUp,
+  Star,
+  Zap,
+  Ticket,
+  Activity
+} from 'lucide-react';
 // import Link from 'next/link';
-// import { format } from 'date-fns';
+import { format } from 'date-fns';
 // import { cn } from '@/core/utils/utils';
 import { ActivityFeed } from '@/features/feed/activity-feed';
 import { EngagementMetrics } from './engagement-metrics';
 import { ReferralSystem } from './referral-system';
 import { useTranslations } from 'next-intl';
 
-export function AttendeeDashboard() {
+export default function AttendeeDashboard() {
   const { user } = useAuth();
   const t = useTranslations('Dashboard');
   const tc = useTranslations('Common');
+  if (!user) return null;
+
+  return (
+    <div className="min-h-screen bg-[#0a0b14] text-white">
+      <div className="container py-8">
+        <Card className="bg-white/5 border-white/10 text-white">
+          <CardHeader>
+            <CardTitle>{t('welcome', { name: user.name?.split(' ')[0] ?? 'there' })}</CardTitle>
+            <CardDescription className="text-gray-400">{tc('loading')}</CardDescription>
+          </CardHeader>
+        </Card>
+      </div>
+    </div>
+  );
 //   
 // 
 //   if (!user) return null;

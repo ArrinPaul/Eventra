@@ -1,6 +1,6 @@
 'use client';
 // 
-// import { useState } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -20,6 +20,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/core/utils/utils';
+import type { Id } from '@/types';
 
 interface EventDiscussionBoardProps {
   eventId: Id<"events">;
@@ -31,7 +32,12 @@ export function EventDiscussionBoard({ eventId }: EventDiscussionBoardProps) {
   const [content, setContent] = useState('');
   const [isQuestion, setIsQuestion] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-// 
+
+  // TODO: wire to backend
+  const messages: any[] = [];
+  const createMessage = async (_args: any) => Promise.resolve();
+  const likeMessage = async (_args: any) => Promise.resolve();
+  const markAsAnswered = async (_args: any) => Promise.resolve();
 
   const handleSubmit = async () => {
     if (!content.trim() || !user) return;

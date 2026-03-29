@@ -1,10 +1,9 @@
 'use client';
-// import { useState } from 'react';
-// import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-// import { Button } from '@/components/ui/button';
-// import { AGENDA_STRING } from '@/core/data/data';
-// import type { Session } from '@/types';
-// import { useAuth } from '@/hooks/use-auth';
+import { useState } from 'react';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import type { Session } from '@/types';
+import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { Calendar, Clock, Plus, Minus, Sparkles, Loader2, User, Tag, AlertTriangle, MapPin } from 'lucide-react';
 import { getRecommendedSessions } from '@/core/actions/actions';
@@ -162,7 +161,11 @@ function SessionCard({ session, allSessions }: { session: Session, allSessions: 
 export default function AgendaClient() {
   const { user } = useAuth();
   const { toast } = useToast();
-//   
+  
+  // TODO: Fetch events from backend
+  const allEventsRaw: any[] = [];
+  const AGENDA_STRING = 'Agenda';
+  
   const [loadingRecommendations, setLoadingRecommendations] = useState(false);
   const [recommendations, setRecommendations] = useState<string[]>([]);
   const [isAlertOpen, setIsAlertOpen] = useState(false);

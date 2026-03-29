@@ -1,7 +1,7 @@
 'use client';
 // 
-// import { useState, useEffect, useRef, useCallback } from 'react';
-// import { useAuth } from '@/hooks/use-auth';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { useAuth } from '@/hooks/use-auth';
 import { EventTicket, Event } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
