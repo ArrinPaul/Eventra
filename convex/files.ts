@@ -40,10 +40,29 @@ export const getMetadata = query({
     const userId = await auth.getUserId(ctx);
     if (!userId) return null;
 
-    return await ctx.db
+    const file = await ctx.db
       .query("files")
-      .withIndex("by_user", (q: any) => q.eq("userId", userId))
-      .filter((q: any) => q.eq(q.field("storageId"), args.storageId))
-      .first();
+      .withIndex("by_storageId", (q: any) => q.eq("storageId", args.storageId))
+      .unique();
+
+    if (!file || file.userId !== userId) return null;
+    return file;
+  },
+});
+
+export const deleteFile = mutation({
+  args: { id: v.id("files") },
+  handler: async (ctx: MutationCtx, args) => {
+    const userId = await auth.getUserId(ctx);
+    if (!userId) throw new Error("Unauthorized");
+
+    const file = await ctx.db.get(args.id);
+    if (!file) throw new Error("File not found");
+    if (file.userId !== userId) throw new Error("Not authorized");
+
+    await ctx.storage.delete(file.storageId);
+    await ctx.db.delete(args.id);
+
+    return { success: true };
   },
 });

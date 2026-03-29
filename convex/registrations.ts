@@ -118,6 +118,12 @@ export const register = mutation({
         eventId: args.eventId,
         payload: { userId, ticketNumber, registrationId: regId },
       });
+
+      await ctx.scheduler.runAfter(0, internal.automations.executeForTrigger, {
+        userId: event.organizerId,
+        triggerType: "registration",
+        payload: { eventId: args.eventId, attendeeId: userId, ticketNumber, registrationId: regId },
+      });
     }
 
     if (!isWaitlisted) {

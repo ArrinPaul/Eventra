@@ -95,9 +95,9 @@ export const EVENTOS_CONFIG = {
   ai: {
     providers: {
       openai: {
-        enabled: true,
-        models: ['gpt-4o', 'gpt-4o-mini'],
-        defaultModel: 'gpt-4o-mini',
+        enabled: false,
+        models: [],
+        defaultModel: '',
       },
       gemini: {
         enabled: true,

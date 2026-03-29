@@ -58,3 +58,30 @@ export const deactivate = mutation({
     await ctx.db.patch(args.id, { isActive: false });
   },
 });
+
+export const update = mutation({
+  args: {
+    id: v.id("announcements"),
+    content: v.string(),
+    type: v.union(v.literal("info"), v.literal("warning"), v.literal("urgent")),
+    expiresHours: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const userId = await auth.getUserId(ctx);
+    if (!userId) throw new Error("Unauthorized");
+
+    const announcement = await ctx.db.get(args.id);
+    if (!announcement) throw new Error("Not found");
+    if (announcement.organizerId !== userId) throw new Error("Not authorized");
+
+    await ctx.db.patch(args.id, {
+      content: args.content,
+      type: args.type,
+      expiresAt: args.expiresHours
+        ? Date.now() + (args.expiresHours * 60 * 60 * 1000)
+        : undefined,
+    });
+
+    return { success: true };
+  },
+});

@@ -52,6 +52,9 @@ export const submitResponse = mutation({
 
     const poll = await ctx.db.get(args.pollId);
     if (!poll || !poll.isActive) throw new Error("Poll is not active");
+    if (args.optionIndex < 0 || args.optionIndex >= poll.options.length) {
+      throw new Error("Invalid poll option selected");
+    }
 
     const existing = await ctx.db
       .query("poll_responses")
@@ -68,6 +71,35 @@ export const submitResponse = mutation({
         createdAt: Date.now(),
       });
     }
+  },
+});
+
+export const deletePoll = mutation({
+  args: { id: v.id("event_polls") },
+  handler: async (ctx, args) => {
+    const userId = await auth.getUserId(ctx);
+    if (!userId) throw new Error("Unauthorized");
+
+    const poll = await ctx.db.get(args.id);
+    if (!poll) throw new Error("Poll not found");
+
+    const event = await ctx.db.get(poll.eventId);
+    if (!event) throw new Error("Event not found");
+    if (event.organizerId !== userId && !event.coOrganizerIds?.includes(userId)) {
+      throw new Error("Unauthorized");
+    }
+
+    const responses = await ctx.db
+      .query("poll_responses")
+      .withIndex("by_poll", (q) => q.eq("pollId", args.id))
+      .collect();
+
+    for (const response of responses) {
+      await ctx.db.delete(response._id);
+    }
+
+    await ctx.db.delete(args.id);
+    return { success: true };
   },
 });
 

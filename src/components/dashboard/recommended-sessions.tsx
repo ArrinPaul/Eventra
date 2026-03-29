@@ -1,45 +1,37 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useMemo } from 'react';
 import { useAuth } from '@/hooks/use-auth';
-import { getRecommendedSessions } from '@/core/actions/actions';
-import { AGENDA_STRING, SESSIONS } from '@/core/data/data';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useQuery } from 'convex/react';
+import { api } from '../../../convex/_generated/api';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, Sparkles, Plus, Minus, Calendar } from 'lucide-react';
+import { Sparkles, Plus, Minus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import type { LegacySession } from '@/types';
 
 export default function RecommendedSessions() {
     const { user, updateUser } = useAuth();
     const { toast } = useToast();
-    const [recommendations, setRecommendations] = useState<LegacySession[]>([]);
-    const [loading, setLoading] = useState(true);
+    const publishedEvents = useQuery(api.events.getPublished) || [];
 
-    useEffect(() => {
-        const fetchRecommendations = async () => {
-            if (!user) return;
-            setLoading(true);
-            try {
-                const userInterests = user.interests || '';
-                const result = await getRecommendedSessions({
-                    role: user.role,
-                    interests: userInterests,
-                    agenda: AGENDA_STRING,
-                    myEvents: user.myEvents || [],
-                });
-                const validRecommendations = result.recommendations
-                    .map(rec => SESSIONS.find(s => s.id === rec.id))
-                    .filter((session): session is LegacySession => !!session)
-                    .slice(0,3);
-                setRecommendations(validRecommendations);
-            } catch (error) {
-                toast({ variant: "destructive", title: "Recommendation Error" });
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchRecommendations();
-    }, [user, toast]);
+    const recommendations = useMemo(() => {
+        if (!user) return [];
+
+        const interests = (user.interests || '')
+            .split(',')
+            .map((i: string) => i.trim().toLowerCase())
+            .filter(Boolean);
+
+        return publishedEvents
+            .filter((event: any) => !(user.myEvents || []).includes(event._id))
+            .map((event: any) => {
+                const haystack = `${event.title} ${event.description} ${event.category} ${(event.tags || []).join(' ')}`.toLowerCase();
+                const score = interests.reduce((acc: number, interest: string) => acc + (haystack.includes(interest) ? 1 : 0), 0);
+                return { ...event, score };
+            })
+            .filter((event: any) => event.score > 0)
+            .sort((a: any, b: any) => b.score - a.score)
+            .slice(0, 3);
+    }, [publishedEvents, user]);
 
     const handleToggleEvent = async (sessionId: string, isAdded: boolean) => {
         if (!user) return;
@@ -53,18 +45,22 @@ export default function RecommendedSessions() {
         } catch (e) {}
     };
 
-    if (loading || recommendations.length === 0) return null;
+    if (recommendations.length === 0) return null;
 
     return (
         <Card className="bg-white/5 border-white/10 text-white">
             <CardHeader><CardTitle className="flex items-center gap-2"><Sparkles className="text-cyan-400" size={20} /> Recommended</CardTitle></CardHeader>
             <CardContent className="space-y-3">
                 {recommendations.map(rec => {
-                    const isAdded = (user?.myEvents || []).includes(rec.id);
+                    const eventId = String(rec._id);
+                    const isAdded = (user?.myEvents || []).includes(eventId);
                     return (
-                        <div key={rec.id} className="flex items-center justify-between p-3 bg-white/5 rounded-lg border border-white/10">
-                            <div><p className="font-medium text-sm">{rec.title}</p><p className="text-xs text-gray-400">{rec.speaker}</p></div>
-                            <Button size="icon" variant={isAdded ? 'secondary' : 'default'} className="h-8 w-8" onClick={() => handleToggleEvent(rec.id, !!isAdded)}>
+                        <div key={eventId} className="flex items-center justify-between p-3 bg-white/5 rounded-lg border border-white/10">
+                            <div>
+                                <p className="font-medium text-sm">{rec.title}</p>
+                                <p className="text-xs text-gray-400">{rec.category}</p>
+                            </div>
+                            <Button size="icon" variant={isAdded ? 'secondary' : 'default'} className="h-8 w-8" onClick={() => handleToggleEvent(eventId, !!isAdded)}>
                                 {isAdded ? <Minus size={16} /> : <Plus size={16} />}
                             </Button>
                         </div>

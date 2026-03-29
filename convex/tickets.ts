@@ -183,6 +183,18 @@ export const checkInTicket = mutation({
       payload: { userId: ticket.userId, ticketNumber: ticket.ticketNumber, attendeeName: ticket.attendeeName },
     });
 
+    if (event?.organizerId) {
+      await ctx.scheduler.runAfter(0, internal.automations.executeForTrigger, {
+        userId: event.organizerId,
+        triggerType: "check_in",
+        payload: {
+          eventId: ticket.eventId,
+          attendeeId: ticket.userId,
+          ticketNumber: ticket.ticketNumber,
+        },
+      });
+    }
+
     // Trigger Challenge Progress
     await ctx.scheduler.runAfter(0, api.gamification.triggerChallengeProgress, {
       userId: ticket.userId,

@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-import { useQuery, useMutation } from 'convex/react';
+import { useMutation, usePaginatedQuery } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import { useToast } from '@/hooks/use-toast';
 import { Check, X, ShieldAlert, Loader2, Clock } from 'lucide-react';
@@ -15,10 +15,19 @@ import { Id } from '../../../convex/_generated/dataModel';
 export default function EventModeration() {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('pending');
+  const pageSize = 10;
   
-  const events = useQuery(api.admin.getEventsForModeration, { 
-    status: activeTab === 'pending' ? 'published' : 'all' // In a real app, you'd have a 'review' status
-  });
+  const {
+    results: events,
+    status: paginationStatus,
+    loadMore,
+  } = usePaginatedQuery(
+    api.admin.getEventsForModeration,
+    {
+      status: activeTab === 'pending' ? 'published' : 'all',
+    },
+    { initialNumItems: pageSize }
+  );
   
   const moderateMutation = useMutation(api.admin.moderateEvent);
 
@@ -45,7 +54,7 @@ export default function EventModeration() {
         </TabsList>
         
         <TabsContent value={activeTab}>
-          {events === undefined ? (
+          {paginationStatus === 'LoadingFirstPage' ? (
             <div className="py-20 text-center"><Loader2 className="animate-spin h-8 w-8 mx-auto text-cyan-500" /></div>
           ) : events.length === 0 ? (
             <div className="py-20 text-center text-gray-500 border border-dashed border-white/10 rounded-2xl bg-white/5">
@@ -100,6 +109,18 @@ export default function EventModeration() {
                   </CardContent>
                 </Card>
               ))}
+
+              {paginationStatus === 'CanLoadMore' && (
+                <div className="flex justify-center pt-2">
+                  <Button variant="outline" className="border-white/10" onClick={() => loadMore(pageSize)}>
+                    Load More Events
+                  </Button>
+                </div>
+              )}
+
+              {paginationStatus === 'LoadingMore' && (
+                <div className="py-4 text-center"><Loader2 className="animate-spin h-6 w-6 mx-auto text-cyan-500" /></div>
+              )}
             </div>
           )}
         </TabsContent>

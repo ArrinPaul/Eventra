@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { auth } from "./auth";
+import { internal } from "./_generated/api";
 
 export const submit = mutation({
   args: {
@@ -21,16 +22,32 @@ export const submit = mutation({
       .filter((q) => q.eq(q.field("userId"), userId))
       .unique();
 
+    const event = await ctx.db.get(args.eventId);
+
     if (existing) {
-      return await ctx.db.patch(existing._id, {
+      await ctx.db.patch(existing._id, {
         rating: args.rating,
         comment: args.comment,
         responses: args.responses,
         createdAt: Date.now(),
       });
+
+      if (event?.organizerId) {
+        await ctx.scheduler.runAfter(0, internal.automations.executeForTrigger, {
+          userId: event.organizerId,
+          triggerType: "feedback",
+          payload: {
+            eventId: args.eventId,
+            reviewerId: userId,
+            rating: args.rating,
+          },
+        });
+      }
+
+      return existing._id;
     }
 
-    return await ctx.db.insert("reviews", {
+    const reviewId = await ctx.db.insert("reviews", {
       eventId: args.eventId,
       userId,
       rating: args.rating,
@@ -38,6 +55,21 @@ export const submit = mutation({
       responses: args.responses,
       createdAt: Date.now(),
     });
+
+    if (event?.organizerId) {
+      await ctx.scheduler.runAfter(0, internal.automations.executeForTrigger, {
+        userId: event.organizerId,
+        triggerType: "feedback",
+        payload: {
+          eventId: args.eventId,
+          reviewerId: userId,
+          rating: args.rating,
+          reviewId,
+        },
+      });
+    }
+
+    return reviewId;
   },
 });
 

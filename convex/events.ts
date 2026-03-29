@@ -335,6 +335,15 @@ export const publishEvent = mutation({
     }
 
     await ctx.db.patch(args.id, { status: "published" });
+
+    await ctx.scheduler.runAfter(0, internal.automations.executeForTrigger, {
+      userId,
+      triggerType: "event_created",
+      payload: {
+        eventId: args.id,
+        title: event.title,
+      },
+    });
   },
 });
 
@@ -442,20 +451,16 @@ export const getAnalytics = query({
     const totalUsers = await ctx.db.query("users").count();
     
     // Get monthly growth
-    const recentRegistrations = await ctx.db
-      .query("registrations")
-      .filter((q) => q.gt(q.field("_creationTime"), oneMonthAgo))
-      .collect()
-      .then(regs => regs.length);
-      
-    const previousMonthRegistrations = await ctx.db
-      .query("registrations")
-      .filter((q) => q.and(
-        q.gt(q.field("_creationTime"), oneMonthAgo - (30 * 24 * 60 * 60 * 1000)),
-        q.lt(q.field("_creationTime"), oneMonthAgo)
-      ))
-      .collect()
-      .then(regs => regs.length);
+    // Use bounded samples to avoid full scans while still yielding actionable trends.
+    const registrationsSample = await ctx.db.query("registrations").order("desc").take(5000);
+    const recentRegistrations = registrationsSample.filter((r: any) => {
+      const ts = r.registrationDate || r._creationTime;
+      return ts > oneMonthAgo;
+    }).length;
+    const previousMonthRegistrations = registrationsSample.filter((r: any) => {
+      const ts = r.registrationDate || r._creationTime;
+      return ts > (oneMonthAgo - (30 * 24 * 60 * 60 * 1000)) && ts < oneMonthAgo;
+    }).length;
 
     const registrationTrend = previousMonthRegistrations === 0 
       ? 100 
@@ -508,6 +513,56 @@ export const getAnalytics = query({
       averageRating: Math.round(avgRating * 10) / 10,
       recentRegistrations,
       registrationTrend,
+    };
+  },
+});
+
+export const getSpeakerStats = query({
+  args: { speakerName: v.string() },
+  handler: async (ctx: QueryCtx, args) => {
+    const sessions = await ctx.db
+      .query("events")
+      .withIndex("by_speaker", (q: any) => q.eq("speakers", args.speakerName))
+      .collect();
+
+    if (sessions.length === 0) {
+      return {
+        totalSessions: 0,
+        upcomingSessions: 0,
+        completedSessions: 0,
+        totalAttendees: 0,
+        averageRating: 0,
+      };
+    }
+
+    const now = Date.now();
+    const completedSessionIds = new Set(
+      sessions
+        .filter((s: any) => s.status === "completed" || s.startDate < now)
+        .map((s: any) => s._id.toString())
+    );
+
+    const ratings: number[] = [];
+    for (const session of sessions) {
+      const reviews = await ctx.db
+        .query("reviews")
+        .withIndex("by_event", (q) => q.eq("eventId", session._id))
+        .collect();
+      reviews.forEach((r: any) => {
+        if (typeof r.rating === "number") ratings.push(r.rating);
+      });
+    }
+
+    const averageRating = ratings.length
+      ? Math.round((ratings.reduce((sum, r) => sum + r, 0) / ratings.length) * 10) / 10
+      : 0;
+
+    return {
+      totalSessions: sessions.length,
+      upcomingSessions: sessions.filter((s: any) => s.status === "published" && s.startDate > now).length,
+      completedSessions: completedSessionIds.size,
+      totalAttendees: sessions.reduce((sum: number, s: any) => sum + (s.registeredCount || 0), 0),
+      averageRating,
     };
   },
 });

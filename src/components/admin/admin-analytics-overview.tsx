@@ -200,6 +200,62 @@ export default function AdminAnalyticsOverview() {
               </CardContent>
             </Card>
           </div>
+
+          {detailed.engagementTrends && detailed.engagementTrends.length > 0 && (
+            <Card className="bg-white/5 border-white/10 text-white">
+              <CardHeader>
+                <CardTitle className="text-lg">30-Day Engagement Trend</CardTitle>
+                <CardDescription className="text-gray-500">Registrations, messages, and reviews over time</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="h-[320px] w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={detailed.engagementTrends}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#ffffff08" vertical={false} />
+                      <XAxis dataKey="date" stroke="#4b5563" fontSize={12} tickLine={false} axisLine={false} />
+                      <YAxis stroke="#4b5563" fontSize={12} tickLine={false} axisLine={false} />
+                      <Tooltip contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: '8px' }} />
+                      <Line type="monotone" dataKey="registrations" stroke="#06b6d4" strokeWidth={2} dot={false} />
+                      <Line type="monotone" dataKey="messages" stroke="#8b5cf6" strokeWidth={2} dot={false} />
+                      <Line type="monotone" dataKey="reviews" stroke="#10b981" strokeWidth={2} dot={false} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {detailed.demographics && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Card className="bg-white/5 border-white/10 text-white">
+                <CardHeader>
+                  <CardTitle className="text-lg">Attendee Demographics by Role</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  {Object.entries(detailed.demographics.byRole || {}).map(([role, count]) => (
+                    <div key={role} className="flex items-center justify-between text-sm">
+                      <span className="capitalize text-gray-400">{role}</span>
+                      <span className="font-semibold">{count as number}</span>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+
+              <Card className="bg-white/5 border-white/10 text-white">
+                <CardHeader>
+                  <CardTitle className="text-lg">Attendee Demographics by Country</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  {Object.entries(detailed.demographics.byCountry || {}).slice(0, 8).map(([country, count]) => (
+                    <div key={country} className="flex items-center justify-between text-sm">
+                      <span className="text-gray-400">{country}</span>
+                      <span className="font-semibold">{count as number}</span>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            </div>
+          )}
         </TabsContent>
       </Tabs>
     </div>

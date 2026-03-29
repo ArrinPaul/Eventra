@@ -103,7 +103,50 @@ function getRequiredRoleLevel(pathname: string): number | null {
   return null; // Public route
 }
 
-export function middleware(request: NextRequest) {
+function isLikelyJwt(token: string): boolean {
+  return token.split('.').length === 3;
+}
+
+function decodeBase64Url(input: string): string {
+  const normalized = input.replace(/-/g, '+').replace(/_/g, '/');
+  const padded = normalized + '='.repeat((4 - (normalized.length % 4)) % 4);
+  return atob(padded);
+}
+
+async function verifyJwtHs256(token: string, secret: string): Promise<boolean> {
+  const parts = token.split('.');
+  if (parts.length !== 3) return false;
+
+  const [headerB64, payloadB64, signatureB64] = parts;
+  const encoder = new TextEncoder();
+
+  const key = await crypto.subtle.importKey(
+    'raw',
+    encoder.encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['verify']
+  );
+
+  const signatureBytes = Uint8Array.from(decodeBase64Url(signatureB64), (c) => c.charCodeAt(0));
+  const data = encoder.encode(`${headerB64}.${payloadB64}`);
+  const isValid = await crypto.subtle.verify('HMAC', key, signatureBytes, data);
+  if (!isValid) return false;
+
+  try {
+    const payload = JSON.parse(decodeBase64Url(payloadB64));
+    if (payload.exp && typeof payload.exp === 'number') {
+      const now = Math.floor(Date.now() / 1000);
+      if (payload.exp < now) return false;
+    }
+  } catch {
+    return false;
+  }
+
+  return true;
+}
+
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   
   // Skip middleware for static files, API routes, and Next.js internals
@@ -145,6 +188,20 @@ export function middleware(request: NextRequest) {
       const loginUrl = new URL('/login', request.url);
       loginUrl.searchParams.set('callbackUrl', pathname);
       return NextResponse.redirect(loginUrl);
+    }
+
+    // Verify token signature for protected routes when JWT secret is configured.
+    if (authToken && isLikelyJwt(authToken) && process.env.JWT_SECRET) {
+      const isTokenValid = await verifyJwtHs256(authToken, process.env.JWT_SECRET);
+      if (!isTokenValid) {
+        const loginUrl = new URL('/login', request.url);
+        loginUrl.searchParams.set('callbackUrl', pathname);
+        const response = NextResponse.redirect(loginUrl);
+        response.cookies.delete('auth-token');
+        response.cookies.delete('user-role');
+        response.cookies.delete('user-id');
+        return response;
+      }
     }
     
     // Check role-based access

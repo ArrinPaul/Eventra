@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { Bell, Info, AlertCircle, Trash2, Loader2, Megaphone } from 'lucide-react';
+import { Bell, Info, AlertCircle, Trash2, Loader2, Megaphone, Pencil } from 'lucide-react';
 import { cn } from '@/core/utils/utils';
 
 export function AnnouncementManager({ eventId }: { eventId: string }) {
@@ -24,11 +24,13 @@ export function AnnouncementManager({ eventId }: { eventId: string }) {
   const announcements = useQuery(api.announcements.getActiveByEvent, { eventId: eventId as any });
   const createAnnouncement = useMutation(api.announcements.create);
   const deactivateAnnouncement = useMutation(api.announcements.deactivate);
+  const updateAnnouncement = useMutation(api.announcements.update);
 
   const [content, setContent] = useState('');
   const [type, setType] = useState<'info' | 'warning' | 'urgent'>('info');
   const [expiresHours, setExpiresHours] = useState('24');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,18 +38,39 @@ export function AnnouncementManager({ eventId }: { eventId: string }) {
 
     setIsSubmitting(true);
     try {
-      await createAnnouncement({
-        eventId: eventId as any,
-        content,
-        type,
-        expiresHours: parseInt(expiresHours),
-      });
+      if (editingId) {
+        await updateAnnouncement({
+          id: editingId as any,
+          content,
+          type,
+          expiresHours: parseInt(expiresHours),
+        });
+        toast({ title: 'Announcement updated' });
+      } else {
+        await createAnnouncement({
+          eventId: eventId as any,
+          content,
+          type,
+          expiresHours: parseInt(expiresHours),
+        });
+        toast({ title: 'Announcement broadcasted! 📣' });
+      }
       setContent('');
-      toast({ title: 'Announcement broadcasted! 📣' });
+      setEditingId(null);
     } catch (error) {
-      toast({ title: 'Failed to broadcast', variant: 'destructive' });
+      toast({ title: editingId ? 'Failed to update' : 'Failed to broadcast', variant: 'destructive' });
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleEdit = (a: any) => {
+    setEditingId(a._id);
+    setContent(a.content);
+    setType(a.type);
+    if (a.expiresAt) {
+      const hoursLeft = Math.max(1, Math.round((a.expiresAt - Date.now()) / (60 * 60 * 1000)));
+      setExpiresHours(String(hoursLeft));
     }
   };
 
@@ -120,8 +143,24 @@ export function AnnouncementManager({ eventId }: { eventId: string }) {
             className="w-full bg-cyan-600 hover:bg-cyan-500" 
             disabled={isSubmitting || !content}
           >
-            {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Broadcast Now"}
+            {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : (editingId ? "Update Announcement" : "Broadcast Now")}
           </Button>
+
+          {editingId && (
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full border-white/10"
+              onClick={() => {
+                setEditingId(null);
+                setContent('');
+                setType('info');
+                setExpiresHours('24');
+              }}
+            >
+              Cancel Edit
+            </Button>
+          )}
         </form>
 
         {announcements && announcements.length > 0 && (
@@ -144,6 +183,14 @@ export function AnnouncementManager({ eventId }: { eventId: string }) {
                       Expires: {a.expiresAt ? new Date(a.expiresAt).toLocaleString() : 'Never'}
                     </p>
                   </div>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-6 w-6 opacity-50 hover:opacity-100 hover:bg-white/10"
+                    onClick={() => handleEdit(a)}
+                  >
+                    <Pencil className="h-3.5 w-3.5" />
+                  </Button>
                   <Button 
                     variant="ghost" 
                     size="icon" 

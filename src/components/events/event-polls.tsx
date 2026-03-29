@@ -28,6 +28,7 @@ export function EventPolls({ eventId, isOrganizer }: EventPollsProps) {
   const createPoll = useMutation(api.polls.create);
   const submitVote = useMutation(api.polls.submitResponse);
   const toggleActive = useMutation(api.polls.toggleActive);
+  const deletePoll = useMutation(api.polls.deletePoll);
 
   const [showCreate, setShowCreate] = useState(false);
   const [newQuestion, setNewQuestion] = useState('');
@@ -120,15 +121,25 @@ export function EventPolls({ eventId, isOrganizer }: EventPollsProps) {
                 <div className="flex justify-between items-start">
                   <CardTitle className="text-lg">{poll.question}</CardTitle>
                   {isOrganizer && (
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => toggleActive({ id: poll._id, isActive: !poll.isActive })}
-                      className="text-xs h-8"
-                    >
-                      {poll.isActive ? <Pause size={14} className="mr-1" /> : <Play size={14} className="mr-1" />}
-                      {poll.isActive ? "End Poll" : "Restart"}
-                    </Button>
+                    <div className="flex items-center gap-2">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => toggleActive({ id: poll._id, isActive: !poll.isActive })}
+                        className="text-xs h-8"
+                      >
+                        {poll.isActive ? <Pause size={14} className="mr-1" /> : <Play size={14} className="mr-1" />}
+                        {poll.isActive ? "End Poll" : "Restart"}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-xs h-8 text-red-400 hover:text-red-300"
+                        onClick={() => deletePoll({ id: poll._id })}
+                      >
+                        <Trash2 size={14} className="mr-1" /> Delete
+                      </Button>
+                    </div>
                   )}
                 </div>
                 <CardDescription className="text-[10px] uppercase font-bold tracking-widest text-cyan-500/70">

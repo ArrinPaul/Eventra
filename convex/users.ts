@@ -287,10 +287,44 @@ export const getEngagementScore = query({
     // Calculate score (simple weighted average)
     const score = (stats.eventCount * 20) + (stats.messageCount * 2) + (stats.reviewCount * 10) + (stats.badgeCount * 50);
 
+    const userSample = await ctx.db.query("users").order("desc").take(200);
+    const userIds = userSample.map((u) => u._id);
+
+    const registrationCounts = await Promise.all(
+      userIds.map((id) =>
+        ctx.db.query("registrations").withIndex("by_user", (q: any) => q.eq("userId", id)).collect().then((rows) => rows.length)
+      )
+    );
+    const badgeCounts = await Promise.all(
+      userIds.map((id) =>
+        ctx.db.query("user_badges").withIndex("by_user", (q: any) => q.eq("userId", id)).collect().then((rows) => rows.length)
+      )
+    );
+    const reviewCounts = await Promise.all(
+      userIds.map((id) =>
+        ctx.db.query("reviews").withIndex("by_user", (q: any) => q.eq("userId", id)).collect().then((rows) => rows.length)
+      )
+    );
+
+    const scoreMap = new Map<string, number>();
+    userIds.forEach((id, idx) => {
+      const sampleScore =
+        (registrationCounts[idx] * 20) +
+        (reviewCounts[idx] * 10) +
+        (badgeCounts[idx] * 50);
+      scoreMap.set(id.toString(), sampleScore);
+    });
+
+    const sampleScores = Array.from(scoreMap.values()).sort((a, b) => a - b);
+    const belowOrEqual = sampleScores.filter((s) => s <= score).length;
+    const percentile = sampleScores.length > 0
+      ? Math.round((belowOrEqual / sampleScores.length) * 100)
+      : 0;
+
     return {
       score,
       stats,
-      percentile: 85, // Mock percentile for now
+      percentile,
     };
   },
 });

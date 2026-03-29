@@ -81,15 +81,25 @@ export const updateUserStatus = mutation({
 
 // --- Event Moderation ---
 export const getEventsForModeration = query({
-  args: { status: v.optional(v.string()) },
+  args: {
+    status: v.optional(v.string()),
+    paginationOpts: v.paginationOpts(),
+  },
   handler: async (ctx, args) => {
     if (!(await isAdmin(ctx))) throw new Error("Unauthorized");
 
-    let events = await ctx.db.query("events").order("desc").collect();
     if (args.status && args.status !== "all") {
-      events = events.filter((e: any) => e.status === args.status);
+      return await ctx.db
+        .query("events")
+        .withIndex("by_status", (q) => q.eq("status", args.status!))
+        .order("desc")
+        .paginate(args.paginationOpts);
     }
-    return events;
+
+    return await ctx.db
+      .query("events")
+      .order("desc")
+      .paginate(args.paginationOpts);
   },
 });
 
@@ -203,35 +213,30 @@ export const getDashboardStats = query({
     const now = Date.now();
     const oneMonthAgo = now - (30 * 24 * 60 * 60 * 1000);
     
-    const recentUsers = await ctx.db
-      .query("users")
-      .filter((q) => q.gt(q.field("_creationTime"), oneMonthAgo))
-      .collect()
-      .then(users => users.length);
-      
-    const previousMonthUsers = await ctx.db
-      .query("users")
-      .filter((q) => q.and(
-        q.gt(q.field("_creationTime"), oneMonthAgo - (30 * 24 * 60 * 60 * 1000)),
-        q.lt(q.field("_creationTime"), oneMonthAgo)
-      ))
-      .collect()
-      .then(users => users.length);
+    // Sample newest users to avoid full table scans on every dashboard load.
+    const userSample = await ctx.db.query("users").order("desc").take(3000);
+    const recentUsers = userSample.filter((u: any) => u._creationTime > oneMonthAgo).length;
+    const previousMonthUsers = userSample.filter((u: any) => (
+      u._creationTime > oneMonthAgo - (30 * 24 * 60 * 60 * 1000) && u._creationTime < oneMonthAgo
+    )).length;
 
     const userTrend = previousMonthUsers === 0 
       ? 100 
       : Math.round(((recentUsers - previousMonthUsers) / previousMonthUsers) * 100);
 
-    // For distribution, we still need some collection but limit it
-    const sampleUsers = await ctx.db.query("users").take(1000);
-    const sampleEvents = await ctx.db.query("events").take(1000);
+    const sampleUsers = userSample.slice(0, 1000);
+    const sampleEvents = await ctx.db.query("events").order("desc").take(1000);
+    const activeEvents = await ctx.db
+      .query("events")
+      .withIndex("by_status", (q) => q.eq("status", "published"))
+      .count();
 
     return {
       totalUsers,
       totalEvents,
       totalRegistrations,
       userTrend,
-      activeEvents: sampleEvents.filter((e: any) => e.status === "published").length,
+      activeEvents,
       usersByRole: sampleUsers.reduce((acc: any, u: any) => {
         const role = u.role ?? "attendee";
         acc[role] = (acc[role] ?? 0) + 1;
@@ -251,27 +256,76 @@ export const getDetailedAnalytics = query({
   handler: async (ctx) => {
     if (!(await isAdmin(ctx))) throw new Error("Unauthorized");
 
-    const sampleUsers = await ctx.db.query("users").order("desc").take(500);
-    
-    // Group users by month
-    const usersByMonth: Record<string, number> = {};
-    sampleUsers.forEach((u: any) => {
-      const month = new Date(u._creationTime).toLocaleString('default', { month: 'short' });
-      usersByMonth[month] = (usersByMonth[month] || 0) + 1;
-    });
+    const sampleUsers = await ctx.db.query("users").order("desc").take(2000);
+    const now = Date.now();
+    const sixMonthsAgo = now - (6 * 30 * 24 * 60 * 60 * 1000);
 
-    // Activity distribution - use counts where possible
+    const usersByMonth: Record<string, number> = {};
+    sampleUsers
+      .filter((u: any) => u._creationTime >= sixMonthsAgo)
+      .forEach((u: any) => {
+        const d = new Date(u._creationTime);
+        const monthKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+        usersByMonth[monthKey] = (usersByMonth[monthKey] || 0) + 1;
+      });
+
     const engagement = {
       messages: await ctx.db.query("messages").count(),
       registrations: await ctx.db.query("registrations").count(),
       badgesEarned: await ctx.db.query("user_badges").count(),
     };
 
+    const registrationsSample = await ctx.db.query("registrations").order("desc").take(5000);
+    const messagesSample = await ctx.db.query("messages").order("desc").take(5000);
+    const reviewsSample = await ctx.db.query("reviews").order("desc").take(5000);
+
+    const dailySeries: Record<string, { registrations: number; messages: number; reviews: number }> = {};
+    const upsertDay = (ts: number, field: "registrations" | "messages" | "reviews") => {
+      const key = new Date(ts).toISOString().split("T")[0];
+      if (!dailySeries[key]) {
+        dailySeries[key] = { registrations: 0, messages: 0, reviews: 0 };
+      }
+      dailySeries[key][field] += 1;
+    };
+
+    const thirtyDaysAgo = now - (30 * 24 * 60 * 60 * 1000);
+    registrationsSample.forEach((r: any) => {
+      const ts = r.registrationDate || r._creationTime;
+      if (ts >= thirtyDaysAgo) upsertDay(ts, "registrations");
+    });
+    messagesSample.forEach((m: any) => {
+      const ts = m.sentAt || m._creationTime;
+      if (ts >= thirtyDaysAgo) upsertDay(ts, "messages");
+    });
+    reviewsSample.forEach((r: any) => {
+      const ts = r.createdAt || r._creationTime;
+      if (ts >= thirtyDaysAgo) upsertDay(ts, "reviews");
+    });
+
+    const demographicsByRole = sampleUsers.reduce((acc: Record<string, number>, u: any) => {
+      const role = u.role || "attendee";
+      acc[role] = (acc[role] || 0) + 1;
+      return acc;
+    }, {});
+
+    const demographicsByCountry = sampleUsers.reduce((acc: Record<string, number>, u: any) => {
+      if (!u.country) return acc;
+      acc[u.country] = (acc[u.country] || 0) + 1;
+      return acc;
+    }, {});
+
     return {
       growthData: Object.entries(usersByMonth)
         .map(([name, value]) => ({ name, value }))
-        .reverse(), // Chromological order
+        .sort((a, b) => a.name.localeCompare(b.name)),
       engagement,
+      engagementTrends: Object.entries(dailySeries)
+        .map(([date, value]) => ({ date, ...value }))
+        .sort((a, b) => a.date.localeCompare(b.date)),
+      demographics: {
+        byRole: demographicsByRole,
+        byCountry: demographicsByCountry,
+      },
     };
   }
 });

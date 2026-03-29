@@ -41,6 +41,7 @@ export const api: any = {
     getAnalytics: "events:getAnalytics",
     addReaction: "events:addReaction",
     getReactions: "events:getReactions",
+    getSpeakerStats: "events:getSpeakerStats",
   },
   tickets: {
     getByEventId: "tickets:getByEventId",
@@ -76,6 +77,7 @@ export const api: any = {
     generateUploadUrl: "files:generateUploadUrl",
     saveFile: "files:saveFile",
     getMetadata: "files:getMetadata",
+    deleteFile: "files:deleteFile",
   },
   admin: {
     getUsers: "admin:getUsers",
@@ -167,6 +169,19 @@ export const api: any = {
     create: "announcements:create",
     getActiveByEvent: "announcements:getActiveByEvent",
     deactivate: "announcements:deactivate",
+    update: "announcements:update",
+  },
+  polls: {
+    create: "polls:create",
+    toggleActive: "polls:toggleActive",
+    submitResponse: "polls:submitResponse",
+    getByEvent: "polls:getByEvent",
+    deletePoll: "polls:deletePoll",
+  },
+  moderation: {
+    flagPost: "moderation:flagPost",
+    listFlaggedPosts: "moderation:listFlaggedPosts",
+    reviewFlag: "moderation:reviewFlag",
   },
   discounts: {
     validate: "discounts:validate",
@@ -181,6 +196,11 @@ export const internal: any = {
   webhooks: {
     trigger: "webhooks:trigger",
   },
+  automations: {
+    getActiveByUserAndTrigger: "automations:getActiveByUserAndTrigger",
+    recordExecution: "automations:recordExecution",
+    executeForTrigger: "automations:executeForTrigger",
+  },
   events: {
     autoCompletePastEvents: "events:autoCompletePastEvents",
   },
@@ -189,5 +209,8 @@ export const internal: any = {
   },
   registrations: {
     confirmPayment: "registrations:confirmPayment",
+  },
+  moderation: {
+    autoScanRecentPosts: "moderation:autoScanRecentPosts",
   },
 };

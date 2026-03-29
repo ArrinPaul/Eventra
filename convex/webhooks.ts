@@ -1,6 +1,22 @@
 import { v } from "convex/values";
 import { mutation, query, internalAction } from "./_generated/server";
+import { api } from "./_generated/api";
 import { auth } from "./auth";
+
+async function signWebhookPayload(secret: string, timestamp: number, payload: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    "raw",
+    encoder.encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"]
+  );
+  const signature = await crypto.subtle.sign("HMAC", key, encoder.encode(`${timestamp}.${payload}`));
+  return Array.from(new Uint8Array(signature))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
 
 export const create = mutation({
   args: {
@@ -78,19 +94,23 @@ export const trigger = internalAction({
 
     for (const webhook of webhooks) {
       try {
+        const timestamp = Date.now();
+        const body = JSON.stringify({
+          event: args.eventType,
+          eventId: args.eventId,
+          timestamp,
+          data: args.payload,
+        });
+        const signature = await signWebhookPayload(webhook.secret, timestamp, body);
+
         await fetch(webhook.url, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'X-Eventra-Signature': webhook.secret, // Simple signature
+            'X-Eventra-Signature': `t=${timestamp},v1=${signature}`,
             'X-Eventra-Event': args.eventType,
           },
-          body: JSON.stringify({
-            event: args.eventType,
-            eventId: args.eventId,
-            timestamp: Date.now(),
-            data: args.payload,
-          }),
+          body,
         });
       } catch (e) {
         console.error(`Failed to trigger webhook ${webhook.url}:`, e);

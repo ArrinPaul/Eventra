@@ -15,14 +15,15 @@ export default function SpeakerDashboard() {
   const { user } = useAuth();
   
   const sessions = useQuery(api.events.getBySpeaker, user?.name ? { speakerName: user.name } : "skip" as any) || [];
+  const speakerStats = useQuery(api.events.getSpeakerStats, user?.name ? { speakerName: user.name } : "skip" as any);
   const notifications = useQuery(api.notifications.get, { limit: 20 }) || [];
 
   const stats = {
-    totalSessions: sessions.length,
-    upcomingSessions: sessions.filter((s: any) => isFuture(new Date(s.startDate))).length,
-    completedSessions: sessions.filter((s: any) => isPast(new Date(s.startDate)) || s.status === 'completed').length,
-    totalAttendees: sessions.reduce((sum: number, s: any) => sum + (s.registeredCount || 0), 0),
-    averageRating: 4.8, // Fallback as we don't have per-speaker rating aggregation yet
+    totalSessions: speakerStats?.totalSessions ?? sessions.length,
+    upcomingSessions: speakerStats?.upcomingSessions ?? sessions.filter((s: any) => isFuture(new Date(s.startDate))).length,
+    completedSessions: speakerStats?.completedSessions ?? sessions.filter((s: any) => isPast(new Date(s.startDate)) || s.status === 'completed').length,
+    totalAttendees: speakerStats?.totalAttendees ?? sessions.reduce((sum: number, s: any) => sum + (s.registeredCount || 0), 0),
+    averageRating: speakerStats?.averageRating ?? 0,
   };
 
   const upcomingSessions = sessions
@@ -63,7 +64,7 @@ export default function SpeakerDashboard() {
           { label: 'Total Sessions', value: stats.totalSessions, icon: Calendar, color: 'text-blue-400', bg: 'bg-blue-500/10' },
           { label: 'Upcoming', value: stats.upcomingSessions, icon: Mic, color: 'text-green-400', bg: 'bg-green-500/10' },
           { label: 'Attendees', value: stats.totalAttendees, icon: Users, color: 'text-orange-400', bg: 'bg-orange-500/10' },
-          { label: 'Avg Rating', value: `${stats.averageRating}★`, icon: Award, color: 'text-yellow-400', bg: 'bg-yellow-500/10' },
+          { label: 'Avg Rating', value: stats.averageRating > 0 ? `${stats.averageRating}★` : 'N/A', icon: Award, color: 'text-yellow-400', bg: 'bg-yellow-500/10' },
         ].map((stat, i) => (
           <Card key={i} className="bg-white/5 border-white/10 overflow-hidden group">
             <CardContent className="p-6">
