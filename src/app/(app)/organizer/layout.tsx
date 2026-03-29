@@ -1,4 +1,3 @@
-// @ts-nocheck
 'use client';
 
 import { OrganizerSidebar } from '@/components/layout/organizer-sidebar';

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import ExploreClient from '@/features/events/explore-client';
 
 export const metadata = {

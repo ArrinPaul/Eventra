@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { Metadata, Viewport } from 'next';
 
 /**

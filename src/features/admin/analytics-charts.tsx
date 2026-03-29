@@ -1,4 +1,3 @@
-// @ts-nocheck
 'use client';
 import { useState, useEffect, useMemo } from 'react';
 import { Bar, BarChart, CartesianGrid, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis, Cell } from 'recharts';

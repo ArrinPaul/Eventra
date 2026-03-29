@@ -1,4 +1,3 @@
-// @ts-nocheck
 'use client';
 import { useAuth } from '@/hooks/use-auth';
 import DashboardClient from '@/features/dashboard/dashboard-client';

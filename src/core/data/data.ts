@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { Session, Event, User } from '@/types';
 
 export const SESSIONS: Session[] = [

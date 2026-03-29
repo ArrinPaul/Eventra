@@ -1,4 +1,3 @@
-// @ts-nocheck
 import CheckInScannerClient from '@/features/check-in/check-in-scanner-client';
 import { Metadata } from 'next';
 

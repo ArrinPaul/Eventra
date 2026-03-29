@@ -1,4 +1,3 @@
-// @ts-nocheck
 'use client';
 
 import UserPreferencesPanel from '@/features/preferences/user-preferences-panel';

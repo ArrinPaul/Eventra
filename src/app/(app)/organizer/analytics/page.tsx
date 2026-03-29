@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { Metadata } from 'next';
 import OrganizerAnalyticsDashboard from '@/features/analytics/organizer-analytics-dashboard';
 

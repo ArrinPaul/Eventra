@@ -1,4 +1,3 @@
-// @ts-nocheck
 'use client';
 // import { useState, useEffect, useRef, useCallback } from 'react';
 // import { useAuth } from '@/hooks/use-auth';

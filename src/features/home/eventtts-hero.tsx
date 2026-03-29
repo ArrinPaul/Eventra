@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Hero Section Component - Eventtts Style
  * 

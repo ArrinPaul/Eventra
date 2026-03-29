@@ -1,4 +1,3 @@
-// @ts-nocheck
 import MatchmakingView from '@/features/matchmaking/matchmaking-view';
 
 export const metadata = {

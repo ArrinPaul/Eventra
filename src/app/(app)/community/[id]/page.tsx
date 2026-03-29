@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { CommunityDetailClient } from '@/features/community/community-detail';
 
 interface CommunityDetailPageProps {

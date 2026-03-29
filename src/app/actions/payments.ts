@@ -1,4 +1,3 @@
-// @ts-nocheck
 'use server';
 
 export async function createCheckoutSession(

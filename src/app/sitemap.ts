@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { MetadataRoute } from 'next';
 
 /**

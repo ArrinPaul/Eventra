@@ -1,4 +1,3 @@
-// @ts-nocheck
 import MyTicketsClient from '@/features/ticketing/my-tickets-client';
 import { Metadata } from 'next';
 

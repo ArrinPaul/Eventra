@@ -1,4 +1,3 @@
-// @ts-nocheck
 'use server';
 
 export async function generateEventSummary(_eventId: string): Promise<{ success: boolean; summary?: string; error?: string }> {

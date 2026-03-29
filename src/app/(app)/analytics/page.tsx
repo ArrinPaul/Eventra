@@ -1,4 +1,3 @@
-// @ts-nocheck
 'use client';
 
 import ComprehensiveAnalyticsDashboard from '@/features/analytics/comprehensive-analytics-dashboard';

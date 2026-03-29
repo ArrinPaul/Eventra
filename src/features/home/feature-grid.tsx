@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Feature Grid Component - Eventtts Style
  * 

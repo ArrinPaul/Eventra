@@ -1,4 +1,3 @@
-// @ts-nocheck
 'use client';
 import { ThemeProvider } from 'next-themes';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';

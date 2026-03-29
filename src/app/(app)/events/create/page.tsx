@@ -1,4 +1,3 @@
-// @ts-nocheck
 import EventCreationWizard from '@/features/events/event-creation-wizard';
 
 export const metadata = {

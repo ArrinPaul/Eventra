@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Blue Section Component - Eventtts Style
  * 
