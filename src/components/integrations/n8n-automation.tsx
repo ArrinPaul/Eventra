@@ -1,58 +1,58 @@
 'use client';
-
-import { useState } from 'react';
-import { Button } from '../ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/card';
-import { Badge } from '../ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
-import { 
-  Zap, 
-  Plus, 
-  Play,
-  Pause,
-  Settings,
-  Trash2,
-  ExternalLink,
-  Clock,
-  CheckCircle,
-  XCircle,
-  AlertTriangle,
-  BarChart3,
-  Mail,
-  MessageSquare,
-  Calendar,
-  Users,
-  Database,
-  Webhook,
-  ArrowRight,
-  MoreVertical,
-  Eye,
-  Bell,
-  Loader2
-} from 'lucide-react';
-import { useAuth } from '@/hooks/use-auth';
-import { useToast } from '../../hooks/use-toast';
-import { useQuery, useMutation } from 'convex/react';
-import { api } from '../../../convex/_generated/api';
-import { 
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '../ui/dialog';
-import { Input } from '../ui/input';
-import { Label } from '../ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { Textarea } from '../ui/textarea';
-import { Switch } from '../ui/switch';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '../ui/dropdown-menu';
-import { Id } from '../../../convex/_generated/dataModel';
+// 
+// import { useState } from 'react';
+// import { Button } from '../ui/button';
+// import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/card';
+// import { Badge } from '../ui/badge';
+// import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
+// import { 
+//   Zap, 
+//   Plus, 
+//   Play,
+//   Pause,
+//   Settings,
+//   Trash2,
+//   ExternalLink,
+//   Clock,
+//   CheckCircle,
+//   XCircle,
+//   AlertTriangle,
+//   BarChart3,
+//   Mail,
+//   MessageSquare,
+//   Calendar,
+//   Users,
+//   Database,
+//   Webhook,
+//   ArrowRight,
+//   MoreVertical,
+//   Eye,
+//   Bell,
+//   Loader2
+// } from 'lucide-react';
+// import { useAuth } from '@/hooks/use-auth';
+// import { useToast } from '../../hooks/use-toast';
+// // import { useQuery, useMutation } from 'convex/react';
+// import { api } from '../../../convex/_generated/api';
+// import { 
+//   Dialog,
+//   DialogContent,
+//   DialogDescription,
+//   DialogHeader,
+//   DialogTitle,
+// } from '../ui/dialog';
+// import { Input } from '../ui/input';
+// import { Label } from '../ui/label';
+// import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+// import { Textarea } from '../ui/textarea';
+// import { Switch } from '../ui/switch';
+// import {
+//   DropdownMenu,
+//   DropdownMenuContent,
+//   DropdownMenuItem,
+//   DropdownMenuTrigger,
+// } from '../ui/dropdown-menu';
+// // import { Id } from '../../../convex/_generated/dataModel';
 import { EVENTOS_CONFIG } from '@/core/config/eventos-config';
 
 interface N8nAutomationProps {
@@ -64,11 +64,11 @@ interface N8nAutomationProps {
 export default function N8nAutomation({ eventId, eventTitle, userRole }: N8nAutomationProps) {
   const { user } = useAuth();
   const { toast } = useToast();
-  
-  const workflows = useQuery(api.automations.get) || [];
-  const createAutomation = useMutation(api.automations.create);
-  const toggleAutomation = useMutation(api.automations.toggle);
-  const deleteAutomation = useMutation(api.automations.deleteAutomation);
+//   
+//   const workflows = useQuery(api.automations.get) || [];
+//   const createAutomation = useMutation(api.automations.create);
+//   const toggleAutomation = useMutation(api.automations.toggle);
+//   const deleteAutomation = useMutation(api.automations.deleteAutomation);
 
   const [loading, setLoading] = useState(false);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
@@ -259,3 +259,4 @@ export default function N8nAutomation({ eventId, eventTitle, userRole }: N8nAuto
     </div>
   );
 }
+

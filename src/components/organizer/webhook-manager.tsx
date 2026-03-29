@@ -1,8 +1,8 @@
 'use client';
-
-import { useState } from 'react';
-import { useQuery, useMutation } from 'convex/react';
-import { api } from '../../../convex/_generated/api';
+// 
+// import { useState } from 'react';
+// // import { useQuery, useMutation } from 'convex/react';
+// import { api } from '../../../convex/_generated/api';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,10 +14,10 @@ import { cn } from '@/core/utils/utils';
 
 export function WebhookManager({ eventId }: { eventId?: string }) {
   const { toast } = useToast();
-  const webhooks = useQuery(api.webhooks.list) || [];
-  const createWebhook = useMutation(api.webhooks.create);
-  const deleteWebhook = useMutation(api.webhooks.deleteWebhook);
-  const toggleActive = useMutation(api.webhooks.toggleActive);
+//   const webhooks = useQuery(api.webhooks.list) || [];
+//   const createWebhook = useMutation(api.webhooks.create);
+//   const deleteWebhook = useMutation(api.webhooks.deleteWebhook);
+//   const toggleActive = useMutation(api.webhooks.toggleActive);
 
   const [url, setUrl] = useState('');
   const [selectedEvents, setSelectedEvents] = useState<string[]>(['registration.created']);
@@ -144,3 +144,4 @@ export function WebhookManager({ eventId }: { eventId?: string }) {
     </Card>
   );
 }
+

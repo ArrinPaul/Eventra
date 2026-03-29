@@ -1,21 +1,21 @@
 'use client';
 
 import React, { useState } from 'react';
-import {
-  Users,
-  Calendar,
-  Mic,
-} from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/hooks/use-auth';
-import { useQuery } from 'convex/react';
-import { api } from "../../../../../convex/_generated/api";
+// import {
+//   Users,
+//   Calendar,
+//   Mic,
+// } from 'lucide-react';
+// import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+// import { Badge } from '@/components/ui/badge';
+// import { useToast } from '@/hooks/use-toast';
+// import { useAuth } from '@/hooks/use-auth';
+// // import { useQuery } from 'convex/react';
+// import { api } from "../../../../../convex/_generated/api";
 
 export default function SpeakerSessionDashboard() {
   const { user } = useAuth();
-  const allEventsRaw = useQuery(api.events.get);
+//   const allEventsRaw = useQuery(api.events.get);
   const { toast } = useToast();
 
   const loading = allEventsRaw === undefined;

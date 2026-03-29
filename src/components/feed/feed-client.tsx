@@ -8,11 +8,11 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { 
-  Plus, Heart, MessageCircle, Share2, Loader2, Search, MoreVertical, Edit2, Trash2
-} from 'lucide-react';
+//   Plus, Heart, MessageCircle, Share2, Loader2, Search, MoreVertical, Edit2, Trash2
+// } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
-import { useQuery, useMutation, usePaginatedQuery } from 'convex/react';
-import { api } from '../../../convex/_generated/api';
+// // import { useQuery, useMutation, usePaginatedQuery } from 'convex/react';
+// import { api } from '../../../convex/_generated/api';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/core/utils/utils';
 import { CommentSection } from './comment-section';
@@ -26,17 +26,17 @@ import {
 export default function FeedClient() {
   const { user } = useAuth();
   const { toast } = useToast();
-  
-  const { results: postsRaw, status, loadMore } = usePaginatedQuery(
-    api.posts.list,
-    {},
-    { initialNumItems: 10 }
-  );
-  
-  const createPostMutation = useMutation(api.posts.create);
-  const updatePostMutation = useMutation(api.posts.update);
-  const deletePostMutation = useMutation(api.posts.deletePost);
-  const likePostMutation = useMutation(api.posts.like);
+//   
+//   const { results: postsRaw, status, loadMore } = usePaginatedQuery(
+//     api.posts.list,
+//     {},
+//     { initialNumItems: 10 }
+//   );
+//   
+//   const createPostMutation = useMutation(api.posts.create);
+//   const updatePostMutation = useMutation(api.posts.update);
+//   const deletePostMutation = useMutation(api.posts.deletePost);
+//   const likePostMutation = useMutation(api.posts.like);
   
   const [showCreatePost, setShowCreatePost] = useState(false);
   const [showEditPost, setShowEditPost] = useState(false);
@@ -225,3 +225,4 @@ export default function FeedClient() {
     </div>
   );
 }
+

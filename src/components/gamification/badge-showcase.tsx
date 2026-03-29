@@ -1,8 +1,8 @@
 'use client';
 
 import React from 'react';
-import { useQuery } from 'convex/react';
-import { api } from '../../../convex/_generated/api';
+// import { useQuery } from 'convex/react';
+// import { api } from '../../../convex/_generated/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Trophy, Award, Star, Shield, Zap } from 'lucide-react';
@@ -25,20 +25,20 @@ const rarityIcons: Record<string, React.ReactNode> = {
 };
 
 export function BadgeShowcase({ userId, compact }: { userId: string; stats?: any; compact?: boolean }) {
-  const badges = useQuery(api.gamification.getUserBadges, { userId: userId as any }) || [];
-
-  if (compact) {
-    return (
-      <div className="flex flex-wrap gap-2">
-        {badges.length === 0 && <p className="text-sm text-gray-500">No badges yet</p>}
-        {badges.map((b: any) => (
-          <div key={b.badgeId} className={cn('inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-medium', rarityColors[b.rarity] || rarityColors.common)} title={b.description}>
-            {rarityIcons[b.rarity] || rarityIcons.common}
-            {b.name}
-          </div>
-        ))}
-      </div>
-    );
+//   const badges = useQuery(api.gamification.getUserBadges, { userId: userId as any }) || [];
+// 
+//   if (compact) {
+//     return (
+//       <div className="flex flex-wrap gap-2">
+//         {badges.length === 0 && <p className="text-sm text-gray-500">No badges yet</p>}
+//         {badges.map((b: any) => (
+//           <div key={b.badgeId} className={cn('inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-medium', rarityColors[b.rarity] || rarityColors.common)} title={b.description}>
+//             {rarityIcons[b.rarity] || rarityIcons.common}
+//             {b.name}
+//           </div>
+//         ))}
+//       </div>
+//     );
   }
 
   return (

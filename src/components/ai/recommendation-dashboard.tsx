@@ -1,16 +1,16 @@
 'use client';
-
-import { useState, useEffect, useCallback } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Progress } from '@/components/ui/progress';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Sparkles, TrendingUp, Users, Target, Calendar, BookOpen, Network, RefreshCw, Clock } from 'lucide-react';
-import { useAuth } from '@/hooks/use-auth';
-import { useQuery } from 'convex/react';
-import { api } from '../../../convex/_generated/api';
+// 
+// import { useState, useEffect, useCallback } from 'react';
+// import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+// import { Button } from '@/components/ui/button';
+// import { Badge } from '@/components/ui/badge';
+// import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+// import { Progress } from '@/components/ui/progress';
+// import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+// import { Sparkles, TrendingUp, Users, Target, Calendar, BookOpen, Network, RefreshCw, Clock } from 'lucide-react';
+// import { useAuth } from '@/hooks/use-auth';
+// // import { useQuery } from 'convex/react';
+// import { api } from '../../../convex/_generated/api';
 import { 
   getAIRecommendations, 
   getAIContentRecommendations, 
@@ -51,12 +51,12 @@ export default function AiRecommendationDashboard() {
   const [contentRecommendations, setContentRecommendations] = useState<ContentRecommendation[]>([]);
   const [connectionRecommendations, setConnectionRecommendations] = useState<ConnectionRecommendation[]>([]);
   const [insights, setInsights] = useState<InsightCard[]>([]);
-
-  const events = useQuery(api.events.get) || [];
-
-  const loadRecommendations = useCallback(async () => {
-    if (!user) return;
-    setLoading(true);
+// 
+//   const events = useQuery(api.events.get) || [];
+// 
+//   const loadRecommendations = useCallback(async () => {
+//     if (!user) return;
+//     setLoading(true);
     try {
       const [eventsRes, contentRes, connectionsRes] = await Promise.all([
         getAIRecommendations(user._id || user.id),
@@ -322,3 +322,4 @@ export default function AiRecommendationDashboard() {
     </div>
   );
 }
+

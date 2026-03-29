@@ -1,72 +1,72 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Separator } from '@/components/ui/separator';
-import { Textarea } from '@/components/ui/textarea';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { useToast } from '@/hooks/use-toast';
-import {
-  Users,
-  Search,
-  MoreHorizontal,
-  Mail,
-  Shield,
-  ShieldAlert,
-  ShieldCheck,
-  Ban,
-  CheckCircle2,
-  Edit,
-  Download,
-  RefreshCw,
-  Eye,
-  Calendar,
-  Activity,
-  TrendingUp,
-  Award,
-  MessageSquare,
-  AlertTriangle,
-  UserCheck,
-  Clock,
-  ChevronLeft,
-  ChevronRight
-} from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
-import { useQuery, useMutation, usePaginatedQuery } from 'convex/react';
-import { api } from '../../../convex/_generated/api';
+// import { Card, CardContent } from '@/components/ui/card';
+// import { Button } from '@/components/ui/button';
+// import { Input } from '@/components/ui/input';
+// import { Label } from '@/components/ui/label';
+// import { Badge } from '@/components/ui/badge';
+// import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+// import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+// import { Checkbox } from '@/components/ui/checkbox';
+// import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+// import { Separator } from '@/components/ui/separator';
+// import { Textarea } from '@/components/ui/textarea';
+// import {
+//   Dialog,
+//   DialogContent,
+//   DialogDescription,
+//   DialogHeader,
+//   DialogTitle,
+//   DialogFooter,
+// } from '@/components/ui/dialog';
+// import {
+//   DropdownMenu,
+//   DropdownMenuContent,
+//   DropdownMenuItem,
+//   DropdownMenuLabel,
+//   DropdownMenuSeparator,
+//   DropdownMenuTrigger
+// } from '@/components/ui/dropdown-menu';
+// import {
+//   AlertDialog,
+//   AlertDialogAction,
+//   AlertDialogCancel,
+//   AlertDialogContent,
+//   AlertDialogDescription,
+//   AlertDialogFooter,
+//   AlertDialogHeader,
+//   AlertDialogTitle,
+// } from '@/components/ui/alert-dialog';
+// import { useToast } from '@/hooks/use-toast';
+// import {
+//   Users,
+//   Search,
+//   MoreHorizontal,
+//   Mail,
+//   Shield,
+//   ShieldAlert,
+//   ShieldCheck,
+//   Ban,
+//   CheckCircle2,
+//   Edit,
+//   Download,
+//   RefreshCw,
+//   Eye,
+//   Calendar,
+//   Activity,
+//   TrendingUp,
+//   Award,
+//   MessageSquare,
+//   AlertTriangle,
+//   UserCheck,
+//   Clock,
+//   ChevronLeft,
+//   ChevronRight
+// } from 'lucide-react';
+// import { formatDistanceToNow } from 'date-fns';
+// // import { useQuery, useMutation, usePaginatedQuery } from 'convex/react';
+// import { api } from '../../../convex/_generated/api';
 import { cn } from '@/core/utils/utils';
 
 interface UserFilters {
@@ -94,18 +94,18 @@ export default function UserManagement() {
   const itemsPerPage = 10;
 
   // Use Convex hooks with pagination
-  const { results: usersRaw, status: paginationStatus, loadMore } = usePaginatedQuery(
-    api.admin.getUsers,
-    {
-      role: filters.role,
-      search: filters.search,
-    },
-    { initialNumItems: itemsPerPage }
-  );
-  
-  const statsQuery = useQuery(api.admin.getDashboardStats);
-  const updateRoleMutation = useMutation(api.admin.updateUserRole);
-  const updateStatusMutation = useMutation(api.admin.updateUserStatus);
+//   const { results: usersRaw, status: paginationStatus, loadMore } = usePaginatedQuery(
+//     api.admin.getUsers,
+//     {
+//       role: filters.role,
+//       search: filters.search,
+//     },
+//     { initialNumItems: itemsPerPage }
+//   );
+//   
+//   const statsQuery = useQuery(api.admin.getDashboardStats);
+//   const updateRoleMutation = useMutation(api.admin.updateUserRole);
+//   const updateStatusMutation = useMutation(api.admin.updateUserStatus);
 
   const loading = usersRaw === undefined;
   const users = usersRaw || [];

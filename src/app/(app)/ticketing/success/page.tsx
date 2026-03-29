@@ -1,13 +1,13 @@
 'use client';
-
-import { useEffect, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { CheckCircle2, Loader2, ArrowRight, Ticket } from 'lucide-react';
-import Link from 'next/link';
-import { useMutation } from 'convex/react';
-import { api } from '../../../../convex/_generated/api';
+// 
+// import { useEffect, useState } from 'react';
+// import { useRouter, useSearchParams } from 'next/navigation';
+// import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+// import { Button } from '@/components/ui/button';
+// import { CheckCircle2, Loader2, ArrowRight, Ticket } from 'lucide-react';
+// import Link from 'next/link';
+// // import { useMutation } from 'convex/react';
+// import { api } from '../../../../convex/_generated/api';
 
 export default function PaymentSuccessPage() {
   const router = useRouter();
@@ -18,7 +18,7 @@ export default function PaymentSuccessPage() {
   const discountId = searchParams.get('discountId');
   
   const [loading, setLoading] = useState(true);
-  const registerMutation = useMutation(api.registrations.register);
+//   const registerMutation = useMutation(api.registrations.register);
 
   useEffect(() => {
     async function confirm() {
@@ -88,3 +88,4 @@ export default function PaymentSuccessPage() {
     </div>
   );
 }
+

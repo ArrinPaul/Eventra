@@ -1,41 +1,41 @@
 'use client';
-
-import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet';
-import { 
-  Search, 
-  Calendar, 
-  MapPin, 
-  Sparkles,
-  Grid3X3,
-  List,
-  X,
-  Loader2,
-  SlidersHorizontal,
-  Brain,
-  RefreshCw
-} from 'lucide-react';
-import { EventCard } from '@/components/events/event-card';
-import { useAuth } from '@/hooks/use-auth';
-import { useQuery, usePaginatedQuery } from 'convex/react';
-import { api } from '../../../convex/_generated/api';
+// 
+// import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+// import { useSearchParams, useRouter } from 'next/navigation';
+// import { Input } from '@/components/ui/input';
+// import { Button } from '@/components/ui/button';
+// import { Badge } from '@/components/ui/badge';
+// import {
+//   Select,
+//   SelectContent,
+//   SelectItem,
+//   SelectTrigger,
+//   SelectValue,
+// } from '@/components/ui/select';
+// import {
+//   Sheet,
+//   SheetContent,
+//   SheetHeader,
+//   SheetTitle,
+//   SheetTrigger,
+// } from '@/components/ui/sheet';
+// import { 
+//   Search, 
+//   Calendar, 
+//   MapPin, 
+//   Sparkles,
+//   Grid3X3,
+//   List,
+//   X,
+//   Loader2,
+//   SlidersHorizontal,
+//   Brain,
+//   RefreshCw
+// } from 'lucide-react';
+// import { EventCard } from '@/components/events/event-card';
+// import { useAuth } from '@/hooks/use-auth';
+// // import { useQuery, usePaginatedQuery } from 'convex/react';
+// import { api } from '../../../convex/_generated/api';
 import { getAIRecommendations, AIRecommendation } from '@/app/actions/ai-recommendations';
 import { cn } from '@/core/utils/utils';
 import type { Event } from '@/types';
@@ -83,11 +83,11 @@ export default function ExploreClient() {
   const [showOnlyFree, setShowOnlyFree] = useState(false);
 
   // Convex Query - Paginated
-  const { results: paginatedEvents, status, loadMore } = usePaginatedQuery(
-    api.events.listByStatus,
-    { status: "published" },
-    { initialNumItems: 12 }
-  );
+//   const { results: paginatedEvents, status, loadMore } = usePaginatedQuery(
+//     api.events.listByStatus,
+//     { status: "published" },
+//     { initialNumItems: 12 }
+//   );
 
   // State
   const [filteredEvents, setFilteredEvents] = useState<Event[]>([]);

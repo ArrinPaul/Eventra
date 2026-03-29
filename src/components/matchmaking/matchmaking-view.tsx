@@ -1,27 +1,27 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { 
-  Users, 
-  Zap, 
-  Sparkles, 
-  Loader2, 
-  RefreshCw,
-  Search,
-  UserPlus,
-  MessageSquare,
-  Trophy,
-  Target,
-  ArrowRight,
-  Brain
-} from 'lucide-react';
-import { useAuth } from '@/hooks/use-auth';
-import { useToast } from '@/hooks/use-toast';
-import { useQuery, useMutation } from 'convex/react';
-import { api } from '../../../convex/_generated/api';
+// import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+// import { Button } from '@/components/ui/button';
+// import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+// import { 
+//   Users, 
+//   Zap, 
+//   Sparkles, 
+//   Loader2, 
+//   RefreshCw,
+//   Search,
+//   UserPlus,
+//   MessageSquare,
+//   Trophy,
+//   Target,
+//   ArrowRight,
+//   Brain
+// } from 'lucide-react';
+// import { useAuth } from '@/hooks/use-auth';
+// import { useToast } from '@/hooks/use-toast';
+// // import { useQuery, useMutation } from 'convex/react';
+// import { api } from '../../../convex/_generated/api';
 import { getMatchmakingRecommendations, MatchmakingResult } from '@/app/actions/matchmaking';
 import { MatchmakingCard } from '../networking/matchmaking-card';
 import { Badge } from '@/components/ui/badge';
@@ -38,8 +38,8 @@ import Link from 'next/link';
 export default function MatchmakingView() {
   const { user } = useAuth();
   const { toast } = useToast();
-
-  const sendConnectionRequest = useMutation(api.connections.sendRequest);
+// 
+//   const sendConnectionRequest = useMutation(api.connections.sendRequest);
 
   const handleConnect = async (userId: string) => {
     try {
@@ -133,3 +133,4 @@ export default function MatchmakingView() {
     </div>
   );
 }
+

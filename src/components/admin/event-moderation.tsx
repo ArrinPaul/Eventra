@@ -1,16 +1,16 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-
-import { useMutation, usePaginatedQuery } from 'convex/react';
-import { api } from '../../../convex/_generated/api';
-import { useToast } from '@/hooks/use-toast';
-import { Check, X, ShieldAlert, Loader2, Clock } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { Id } from '../../../convex/_generated/dataModel';
+// import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+// import { Button } from '@/components/ui/button';
+// import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+// // 
+// import { useMutation, usePaginatedQuery } from 'convex/react';
+// import { api } from '../../../convex/_generated/api';
+// import { useToast } from '@/hooks/use-toast';
+// import { Check, X, ShieldAlert, Loader2, Clock } from 'lucide-react';
+// import { Badge } from '@/components/ui/badge';
+// // import { Id } from '../../../convex/_generated/dataModel';
 
 export default function EventModeration() {
   const { toast } = useToast();
@@ -28,8 +28,8 @@ export default function EventModeration() {
     },
     { initialNumItems: pageSize }
   );
-  
-  const moderateMutation = useMutation(api.admin.moderateEvent);
+//   
+//   const moderateMutation = useMutation(api.admin.moderateEvent);
 
   const handleModerate = async (eventId: Id<'events'>, action: 'approve' | 'reject' | 'suspend') => {
     try {

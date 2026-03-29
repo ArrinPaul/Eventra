@@ -1,8 +1,8 @@
 'use client';
-
-import { useState, useMemo, useEffect, useRef } from 'react';
-import { useQuery } from 'convex/react';
-import { api } from '../../../convex/_generated/api';
+// 
+// import { useState, useMemo, useEffect, useRef } from 'react';
+// // import { useQuery } from 'convex/react';
+// import { api } from '../../../convex/_generated/api';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Search, Calendar, MapPin, Users, X } from 'lucide-react';
@@ -18,18 +18,18 @@ export default function GlobalSearch({ className }: GlobalSearchProps) {
   const [isOpen, setIsOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-
-  const searchResults = useQuery(api.search.globalSearch, { query }) ?? { events: [], users: [], communities: [] };
-
-  const hasResults = (searchResults.events?.length ?? 0) > 0 || 
-                     (searchResults.users?.length ?? 0) > 0 || 
-                     (searchResults.communities?.length ?? 0) > 0;
-
-  // Close on outside click
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setIsOpen(false);
+// 
+//   const searchResults = useQuery(api.search.globalSearch, { query }) ?? { events: [], users: [], communities: [] };
+// 
+//   const hasResults = (searchResults.events?.length ?? 0) > 0 || 
+//                      (searchResults.users?.length ?? 0) > 0 || 
+//                      (searchResults.communities?.length ?? 0) > 0;
+// 
+//   // Close on outside click
+//   useEffect(() => {
+//     const handler = (e: MouseEvent) => {
+//       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+//         setIsOpen(false);
       }
     };
     document.addEventListener('mousedown', handler);
@@ -152,3 +152,4 @@ export default function GlobalSearch({ className }: GlobalSearchProps) {
 }
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+

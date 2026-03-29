@@ -1,9 +1,9 @@
 'use client';
-
-import { useState } from 'react';
-import { useQuery, useMutation } from 'convex/react';
-import { api } from '../../../convex/_generated/api';
-import { Id } from '../../../convex/_generated/dataModel';
+// 
+// import { useState } from 'react';
+// // import { useQuery, useMutation } from 'convex/react';
+// import { api } from '../../../convex/_generated/api';
+// import { Id } from '../../../convex/_generated/dataModel';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -23,12 +23,12 @@ interface EventPollsProps {
 export function EventPolls({ eventId, isOrganizer }: EventPollsProps) {
   const { user } = useAuth();
   const { toast } = useToast();
-  const polls = useQuery(api.polls.getByEvent, { eventId }) || [];
-  
-  const createPoll = useMutation(api.polls.create);
-  const submitVote = useMutation(api.polls.submitResponse);
-  const toggleActive = useMutation(api.polls.toggleActive);
-  const deletePoll = useMutation(api.polls.deletePoll);
+//   const polls = useQuery(api.polls.getByEvent, { eventId }) || [];
+//   
+//   const createPoll = useMutation(api.polls.create);
+//   const submitVote = useMutation(api.polls.submitResponse);
+//   const toggleActive = useMutation(api.polls.toggleActive);
+//   const deletePoll = useMutation(api.polls.deletePoll);
 
   const [showCreate, setShowCreate] = useState(false);
   const [newQuestion, setNewQuestion] = useState('');
@@ -182,3 +182,4 @@ export function EventPolls({ eventId, isOrganizer }: EventPollsProps) {
     </div>
   );
 }
+

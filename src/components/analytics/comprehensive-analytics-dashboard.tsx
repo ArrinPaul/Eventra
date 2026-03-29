@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useQuery } from 'convex/react';
-import { api } from '../../../convex/_generated/api';
+// import { useQuery } from 'convex/react';
+// import { api } from '../../../convex/_generated/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -23,7 +23,7 @@ import { AIInsightsWidget } from './ai-insights-widget';
 
 export default function AnalyticsDashboard() {
   const [selectedTab, setSelectedTab] = useState('overview');
-  const analytics = useQuery(api.events.getAnalytics);
+//   const analytics = useQuery(api.events.getAnalytics);
 
   if (!analytics) {
     return (
@@ -168,3 +168,4 @@ export default function AnalyticsDashboard() {
     </div>
   );
 }
+

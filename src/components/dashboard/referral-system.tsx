@@ -1,8 +1,8 @@
 'use client';
-
-import { useState } from 'react';
-import { useQuery, useMutation } from 'convex/react';
-import { api } from '../../../convex/_generated/api';
+// 
+// import { useState } from 'react';
+// // import { useQuery, useMutation } from 'convex/react';
+// import { api } from '../../../convex/_generated/api';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,9 +12,9 @@ import { cn } from '@/core/utils/utils';
 
 export function ReferralSystem() {
   const { toast } = useToast();
-  const user = useQuery(api.users.viewer);
-  const generateCode = useMutation(api.users.generateReferralCode);
-  const redeemCode = useMutation(api.users.redeemReferral);
+//   const user = useQuery(api.users.viewer);
+//   const generateCode = useMutation(api.users.generateReferralCode);
+//   const redeemCode = useMutation(api.users.redeemReferral);
 
   const [inputCode, setInputCode] = useState('');
   const [loading, setLoading] = useState(false);
@@ -115,3 +115,4 @@ export function ReferralSystem() {
     </Card>
   );
 }
+

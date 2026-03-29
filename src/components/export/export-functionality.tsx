@@ -1,20 +1,20 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { 
-  Download, 
-  FileText, 
-  Table as TableIcon, 
-  FileJson,
-  Calendar,
-  Ticket,
-  Users,
-  Loader2
-} from 'lucide-react';
-import { useQuery } from 'convex/react';
-import { api } from '../../../convex/_generated/api';
+// import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+// import { Button } from '@/components/ui/button';
+// import { 
+//   Download, 
+//   FileText, 
+//   Table as TableIcon, 
+//   FileJson,
+//   Calendar,
+//   Ticket,
+//   Users,
+//   Loader2
+// } from 'lucide-react';
+// // import { useQuery } from 'convex/react';
+// import { api } from '../../../convex/_generated/api';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 
@@ -22,12 +22,12 @@ export default function ExportFunctionality() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [exporting, setExporting] = useState<string | null>(null);
-
-  const myEvents = useQuery(api.events.getByOrganizer, user ? { organizerId: user._id || user.id as any } : "skip" as any) || [];
-  const myTickets = useQuery(api.tickets.getByUserId, user ? { userId: user._id || user.id as any } : "skip" as any) || [];
-
-  const downloadFile = (content: string, fileName: string, contentType: string) => {
-    const blob = new Blob([content], { type: contentType });
+// 
+//   const myEvents = useQuery(api.events.getByOrganizer, user ? { organizerId: user._id || user.id as any } : "skip" as any) || [];
+//   const myTickets = useQuery(api.tickets.getByUserId, user ? { userId: user._id || user.id as any } : "skip" as any) || [];
+// 
+//   const downloadFile = (content: string, fileName: string, contentType: string) => {
+//     const blob = new Blob([content], { type: contentType });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;

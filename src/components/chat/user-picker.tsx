@@ -1,12 +1,12 @@
 'use client';
-
-import { useState } from 'react';
-import { useQuery } from 'convex/react';
-import { api } from '../../../convex/_generated/api';
-import { Input } from '@/components/ui/input';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Search, Loader2 } from 'lucide-react';
-import { Id } from '../../../convex/_generated/dataModel';
+// 
+// import { useState } from 'react';
+// // import { useQuery } from 'convex/react';
+// import { api } from '../../../convex/_generated/api';
+// import { Input } from '@/components/ui/input';
+// import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+// import { Search, Loader2 } from 'lucide-react';
+// // import { Id } from '../../../convex/_generated/dataModel';
 
 interface UserPickerProps {
   onSelect: (userId: Id<"users">, name: string) => void;
@@ -15,11 +15,11 @@ interface UserPickerProps {
 
 export function UserPicker({ onSelect, excludeIds = [] }: UserPickerProps) {
   const [query, setQuery] = useState('');
-  const searchResults = useQuery(api.users.searchForDM, { query }) || [];
-  
-  const filteredUsers = searchResults.filter((u: any) => 
-    !excludeIds.includes(u._id)
-  );
+//   const searchResults = useQuery(api.users.searchForDM, { query }) || [];
+//   
+//   const filteredUsers = searchResults.filter((u: any) => 
+//     !excludeIds.includes(u._id)
+//   );
 
   return (
     <div className="space-y-4">
@@ -60,3 +60,4 @@ export function UserPicker({ onSelect, excludeIds = [] }: UserPickerProps) {
     </div>
   );
 }
+

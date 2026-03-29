@@ -1,33 +1,33 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Separator } from '@/components/ui/separator';
-import {
-  ArrowLeft,
-  Calendar,
-  Clock,
-  MapPin,
-  Users,
-  Heart,
-  Share2,
-  Ticket,
-  CheckCircle,
-  Loader2,
-  Edit,
-  Copy,
-} from 'lucide-react';
-import { cn } from '@/core/utils/utils';
-import { useAuth } from '@/hooks/use-auth';
-import { useToast } from '@/hooks/use-toast';
-import { useQuery, useMutation } from 'convex/react';
-import { api } from '../../../convex/_generated/api';
+// import { useRouter } from 'next/navigation';
+// import Link from 'next/link';
+// import { Button } from '@/components/ui/button';
+// import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+// import { Badge } from '@/components/ui/badge';
+// import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+// import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+// import { Separator } from '@/components/ui/separator';
+// import {
+//   ArrowLeft,
+//   Calendar,
+//   Clock,
+//   MapPin,
+//   Users,
+//   Heart,
+//   Share2,
+//   Ticket,
+//   CheckCircle,
+//   Loader2,
+//   Edit,
+//   Copy,
+// } from 'lucide-react';
+// import { cn } from '@/core/utils/utils';
+// import { useAuth } from '@/hooks/use-auth';
+// import { useToast } from '@/hooks/use-toast';
+// // import { useQuery, useMutation } from 'convex/react';
+// import { api } from '../../../convex/_generated/api';
 import { EventChatbot, ChatbotTrigger } from '@/components/ai/event-chatbot';
 import { Progress } from '@/components/ui/progress';
 import { createCheckoutSession } from '@/app/actions/payments';
@@ -53,11 +53,11 @@ export default function EventDetailsClient({ eventId }: { eventId: string }) {
   const router = useRouter();
   const { user, updateUser } = useAuth();
   const { toast } = useToast();
-
-  const event = useQuery(api.events.getById, { id: eventId as any });
-  const registration = useQuery(api.registrations.getRegistration, { eventId: eventId as any });
-  const registerMutation = useMutation(api.registrations.register);
-  const cloneEventMutation = useMutation(api.events.cloneEvent);
+// 
+//   const event = useQuery(api.events.getById, { id: eventId as any });
+//   const registration = useQuery(api.registrations.getRegistration, { eventId: eventId as any });
+//   const registerMutation = useMutation(api.registrations.register);
+//   const cloneEventMutation = useMutation(api.events.cloneEvent);
   
   const [registering, setRegistering] = useState(false);
   const [cloning, setCloning] = useState(false);
@@ -85,11 +85,11 @@ export default function EventDetailsClient({ eventId }: { eventId: string }) {
       setGeneratingSummary(false);
     }
   };
-
-  const validateDiscount = useQuery(api.discounts.validate, { 
-    code: discountCode, 
-    eventId: eventId as any 
-  });
+// 
+//   const validateDiscount = useQuery(api.discounts.validate, { 
+//     code: discountCode, 
+//     eventId: eventId as any 
+//   });
 
   const handleApplyDiscount = () => {
     if (!discountCode) return;

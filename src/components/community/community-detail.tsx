@@ -1,20 +1,20 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { 
-  Users, MessageSquare, Plus, Search, ChevronRight, Lock, Calendar, Loader2, CheckCircle2,
-  MoreVertical, ThumbsUp, MessageCircle, Flag, Info
-} from 'lucide-react';
-import { useAuth } from '@/hooks/use-auth';
-import { useQuery, useMutation, usePaginatedQuery } from 'convex/react';
-import { api } from '../../../convex/_generated/api';
+// import { useRouter } from 'next/navigation';
+// import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+// import { Badge } from '@/components/ui/badge';
+// import { Button } from '@/components/ui/button';
+// import { Input } from '@/components/ui/input';
+// import { Textarea } from '@/components/ui/textarea';
+// import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+// import { 
+//   Users, MessageSquare, Plus, Search, ChevronRight, Lock, Calendar, Loader2, CheckCircle2,
+//   MoreVertical, ThumbsUp, MessageCircle, Flag, Info
+// } from 'lucide-react';
+// import { useAuth } from '@/hooks/use-auth';
+// // import { useQuery, useMutation, usePaginatedQuery } from 'convex/react';
+// import { api } from '../../../convex/_generated/api';
 import { useToast } from '@/hooks/use-toast';
 import { moderateContent } from '@/app/actions/moderation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -24,26 +24,26 @@ export function CommunityDetailClient({ communityId }: { communityId: string }) 
   const { user } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
-  
-  const community = useQuery(api.communities.getById, { id: communityId as any });
-  const memberStatus = useQuery(api.communities.getMemberStatus, { communityId: communityId as any });
-  
-  const { results: posts, status: postsStatus, loadMore: loadMorePosts } = usePaginatedQuery(
-    api.posts.listByCommunity,
-    { communityId: communityId as any },
-    { initialNumItems: 10 }
-  );
-
-  const { results: members, status: membersStatus, loadMore: loadMoreMembers } = usePaginatedQuery(
-    api.communities.getMembers,
-    { communityId: communityId as any },
-    { initialNumItems: 20 }
-  );
-
-  const joinMutation = useMutation(api.communities.join);
-  const createPostMutation = useMutation(api.posts.create);
-  const flagPostMutation = useMutation(api.moderation.flagPost);
-  const likePostMutation = useMutation(api.posts.like);
+//   
+//   const community = useQuery(api.communities.getById, { id: communityId as any });
+//   const memberStatus = useQuery(api.communities.getMemberStatus, { communityId: communityId as any });
+//   
+//   const { results: posts, status: postsStatus, loadMore: loadMorePosts } = usePaginatedQuery(
+//     api.posts.listByCommunity,
+//     { communityId: communityId as any },
+//     { initialNumItems: 10 }
+//   );
+// 
+//   const { results: members, status: membersStatus, loadMore: loadMoreMembers } = usePaginatedQuery(
+//     api.communities.getMembers,
+//     { communityId: communityId as any },
+//     { initialNumItems: 20 }
+//   );
+// 
+//   const joinMutation = useMutation(api.communities.join);
+//   const createPostMutation = useMutation(api.posts.create);
+//   const flagPostMutation = useMutation(api.moderation.flagPost);
+//   const likePostMutation = useMutation(api.posts.like);
   
   const [showCreatePost, setShowCreatePost] = useState(false);
   const [newPostContent, setNewPostContent] = useState('');
@@ -296,3 +296,5 @@ export function CommunityDetailClient({ communityId }: { communityId: string }) 
     </div>
   );
 }
+
+

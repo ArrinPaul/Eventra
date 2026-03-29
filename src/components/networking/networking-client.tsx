@@ -1,29 +1,29 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { 
-  Users, 
-  Zap, 
-  Sparkles, 
-  Loader2, 
-  RefreshCw,
-  Search,
-  UserPlus,
-  MessageSquare,
-  Trophy,
-  Target,
-  Check,
-  X,
-  UserMinus
-} from 'lucide-react';
-import { useAuth } from '@/hooks/use-auth';
-import { useToast } from '@/hooks/use-toast';
-import { useQuery, useMutation } from 'convex/react';
-import { api } from '../../../convex/_generated/api';
+// import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+// import { Button } from '@/components/ui/button';
+// import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+// import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+// import { 
+//   Users, 
+//   Zap, 
+//   Sparkles, 
+//   Loader2, 
+//   RefreshCw,
+//   Search,
+//   UserPlus,
+//   MessageSquare,
+//   Trophy,
+//   Target,
+//   Check,
+//   X,
+//   UserMinus
+// } from 'lucide-react';
+// import { useAuth } from '@/hooks/use-auth';
+// import { useToast } from '@/hooks/use-toast';
+// // import { useQuery, useMutation } from 'convex/react';
+// import { api } from '../../../convex/_generated/api';
 import { getMatchmakingRecommendations, MatchmakingResult } from '@/app/actions/matchmaking';
 import { MatchmakingCard } from './matchmaking-card';
 import { MatchmakingSection } from './matchmaking-section';
@@ -35,12 +35,12 @@ export default function NetworkingClient() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
-
-  const publicUsers = useQuery(api.users.listPublicUsers, { limit: 12 }) || [];
-  const connections = useQuery(api.connections.getMyConnections) || [];
-  const sendConnectionRequest = useMutation(api.connections.sendRequest);
-  const respondToRequest = useMutation(api.connections.respondToRequest);
-  const removeConnection = useMutation(api.connections.removeConnection);
+// 
+//   const publicUsers = useQuery(api.users.listPublicUsers, { limit: 12 }) || [];
+//   const connections = useQuery(api.connections.getMyConnections) || [];
+//   const sendConnectionRequest = useMutation(api.connections.sendRequest);
+//   const respondToRequest = useMutation(api.connections.respondToRequest);
+//   const removeConnection = useMutation(api.connections.removeConnection);
 
   const acceptedConnections = connections.filter((c: any) => c.status === 'accepted');
   const pendingReceived = connections.filter((c: any) => c.status === 'pending' && c.direction === 'received');
@@ -237,4 +237,5 @@ export default function NetworkingClient() {
     </div>
   );
 }
+
 

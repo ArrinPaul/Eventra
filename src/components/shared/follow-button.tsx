@@ -1,8 +1,8 @@
 'use client';
-
-import { useMutation, useQuery } from 'convex/react';
-import { api } from '../../../convex/_generated/api';
-import { Id } from '../../../convex/_generated/dataModel';
+// 
+// import { useMutation, useQuery } from 'convex/react';
+// import { api } from '../../../convex/_generated/api';
+// import { Id } from '../../../convex/_generated/dataModel';
 import { Button } from '@/components/ui/button';
 import { UserPlus, UserMinus, Loader2 } from 'lucide-react';
 import { useState } from 'react';
@@ -16,9 +16,9 @@ interface FollowButtonProps {
 export function FollowButton({ userId, className }: FollowButtonProps) {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
-  const stats = useQuery(api.users.getFollowStats, { userId });
-  const follow = useMutation(api.users.follow);
-  const unfollow = useMutation(api.users.unfollow);
+//   const stats = useQuery(api.users.getFollowStats, { userId });
+//   const follow = useMutation(api.users.follow);
+//   const unfollow = useMutation(api.users.unfollow);
 
   const handleToggle = async () => {
     setLoading(true);
@@ -57,3 +57,4 @@ export function FollowButton({ userId, className }: FollowButtonProps) {
     </Button>
   );
 }
+

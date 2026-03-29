@@ -1,14 +1,14 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Ticket, ShoppingCart, Calendar, MapPin, Loader2, QrCode, CheckCircle2 } from 'lucide-react';
-import { useAuth } from '@/hooks/use-auth';
-import { useQuery, useMutation } from 'convex/react';
-import { api } from '../../../convex/_generated/api';
+// import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+// import { Button } from '@/components/ui/button';
+// import { Badge } from '@/components/ui/badge';
+// import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+// import { Ticket, ShoppingCart, Calendar, MapPin, Loader2, QrCode, CheckCircle2 } from 'lucide-react';
+// import { useAuth } from '@/hooks/use-auth';
+// // import { useQuery, useMutation } from 'convex/react';
+// import { api } from '../../../convex/_generated/api';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { cn } from '@/core/utils/utils';
@@ -18,10 +18,10 @@ export function TicketingClient() {
   const { user } = useAuth();
   const { toast } = useToast();
   const userId = user?._id || user?.id;
-  
-  const events = useQuery(api.events.get) || [];
-  const myTicketsRaw = useQuery(api.tickets.getByUserId, userId ? { userId: userId as any } : "skip") || [];
-  const registerMutation = useMutation(api.registrations.register);
+//   
+//   const events = useQuery(api.events.get) || [];
+//   const myTicketsRaw = useQuery(api.tickets.getByUserId, userId ? { userId: userId as any } : "skip") || [];
+//   const registerMutation = useMutation(api.registrations.register);
   
   const [activeTab, setActiveTab] = useState('explore');
   const [bookingId, setBookingId] = useState<string | null>(null);

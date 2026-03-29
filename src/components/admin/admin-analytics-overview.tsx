@@ -1,10 +1,10 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useQuery } from 'convex/react';
-import { api } from '../../../convex/_generated/api';
+// import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+// import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+// // import { useQuery } from 'convex/react';
+// import { api } from '../../../convex/_generated/api';
 import {
   Users,
   Calendar,
@@ -35,9 +35,9 @@ import {
 
 export default function AdminAnalyticsOverview() {
   const [activeTab, setActiveTab] = useState('overview');
-  
-  const stats = useQuery(api.admin.getDashboardStats);
-  const detailed = useQuery(api.admin.getDetailedAnalytics);
+//   
+//   const stats = useQuery(api.admin.getDashboardStats);
+//   const detailed = useQuery(api.admin.getDetailedAnalytics);
   
   const loading = !stats || !detailed;
 

@@ -1,20 +1,20 @@
 'use client';
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
-import { Target, Trophy, Calendar, CheckCircle2, Clock } from 'lucide-react';
-import { useQuery, useMutation } from 'convex/react';
-import { api } from '@/convex/_generated/api';
-import { useToast } from '@/hooks/use-toast';
-import { Id } from '@/convex/_generated/dataModel';
+// import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+// import { Button } from '@/components/ui/button';
+// import { Progress } from '@/components/ui/progress';
+// import { Badge } from '@/components/ui/badge';
+// import { Target, Trophy, Calendar, CheckCircle2, Clock } from 'lucide-react';
+// // import { useQuery, useMutation } from 'convex/react';
+// import { api } from '@/convex/_generated/api';
+// import { useToast } from '@/hooks/use-toast';
+// // import { Id } from '@/convex/_generated/dataModel';
 
 export function ChallengesHub() {
-  const challenges = useQuery(api.gamification.getChallenges);
-  const userChallenges = useQuery(api.gamification.getUserChallenges);
-  const joinChallenge = useMutation(api.gamification.joinChallenge);
+//   const challenges = useQuery(api.gamification.getChallenges);
+//   const userChallenges = useQuery(api.gamification.getUserChallenges);
+//   const joinChallenge = useMutation(api.gamification.joinChallenge);
   const { toast } = useToast();
 
   const handleJoinChallenge = async (challengeId: Id<'challenges'>) => {

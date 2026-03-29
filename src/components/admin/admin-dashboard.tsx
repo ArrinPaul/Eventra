@@ -1,8 +1,8 @@
 'use client';
-import { useState } from 'react';
-import { useAuth } from '@/hooks/use-auth';
-import { useQuery } from 'convex/react';
-import { api } from '../../../convex/_generated/api';
+// import { useState } from 'react';
+// import { useAuth } from '@/hooks/use-auth';
+// // import { useQuery } from 'convex/react';
+// import { api } from '../../../convex/_generated/api';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -41,7 +41,7 @@ function downloadCSV(data: any[], filename: string) {
 
 export default function AdminDashboardClient() {
     const { user: adminUser } = useAuth();
-    const allUsersRaw = useQuery(api.users.list);
+//     const allUsersRaw = useQuery(api.users.list);
     
     const [activeTab, setActiveTab] = useState('dashboard');
     const [filterRole, setFilterRole] = useState<UserRole | 'all'>('all');
@@ -134,3 +134,4 @@ export default function AdminDashboardClient() {
         </div>
     );
 }
+

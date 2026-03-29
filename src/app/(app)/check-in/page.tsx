@@ -1,34 +1,34 @@
 'use client';
-import { useState } from 'react';
-import { useAuth } from "@/hooks/use-auth";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import Image from "next/image";
-import { Check, QrCode } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import QrScanner from '@/components/check-in/qr-scanner';
-import { useToast } from '@/hooks/use-toast';
-import { useQuery } from 'convex/react';
-import { api } from '../../../../convex/_generated/api';
+// import { useState } from 'react';
+// import { useAuth } from "@/hooks/use-auth";
+// import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+// import { Button } from "@/components/ui/button";
+// import Image from "next/image";
+// import { Check, QrCode } from "lucide-react";
+// import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+// import QrScanner from '@/components/check-in/qr-scanner';
+// import { useToast } from '@/hooks/use-toast';
+// // import { useQuery } from 'convex/react';
+// import { api } from '../../../../convex/_generated/api';
 
 
 export default function CheckInPage() {
     const { user } = useAuth();
     const [isScannerOpen, setIsScannerOpen] = useState(false);
     const { toast } = useToast();
-    const myTickets = useQuery(api.tickets.getMyTickets) ?? [];
-    
-    if (!user) return null;
-
-    const isOrganizer = user.role === 'organizer' || user.role === 'admin';
-    
-    // Use ticketNumber as QR data (plain string) – must match what scanner expects
-    const firstTicket = myTickets[0];
-    const qrData = firstTicket?.ticketNumber ?? user.registrationId ?? 'NO-TICKET';
-    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(qrData)}`;
-    
-    const handleScanSuccess = (scannedData: any) => {
-        setIsScannerOpen(false);
+//     const myTickets = useQuery(api.tickets.getMyTickets) ?? [];
+//     
+//     if (!user) return null;
+// 
+//     const isOrganizer = user.role === 'organizer' || user.role === 'admin';
+//     
+//     // Use ticketNumber as QR data (plain string) – must match what scanner expects
+//     const firstTicket = myTickets[0];
+//     const qrData = firstTicket?.ticketNumber ?? user.registrationId ?? 'NO-TICKET';
+//     const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(qrData)}`;
+//     
+//     const handleScanSuccess = (scannedData: any) => {
+//         setIsScannerOpen(false);
         toast({
             title: 'Scan Captured',
             description: `Scanned: ${typeof scannedData === 'string' ? scannedData : scannedData?.name ?? 'Unknown'}. Use the Check-in Scanner page for full processing.`,
@@ -105,3 +105,4 @@ export default function CheckInPage() {
         </div>
     );
 }
+

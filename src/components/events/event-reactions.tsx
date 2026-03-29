@@ -1,8 +1,8 @@
 'use client';
-
-import { useQuery, useMutation } from 'convex/react';
-import { api } from '../../../convex/_generated/api';
-import { Id } from '../../../convex/_generated/dataModel';
+// 
+// import { useQuery, useMutation } from 'convex/react';
+// import { api } from '../../../convex/_generated/api';
+// import { Id } from '../../../convex/_generated/dataModel';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/core/utils/utils';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -14,8 +14,8 @@ interface EventReactionsProps {
 const EMOJIS = ["❤️", "🔥", "🙌", "😮", "👍"];
 
 export function EventReactions({ eventId }: EventReactionsProps) {
-  const reactions = useQuery(api.events.getReactions, { eventId }) || {};
-  const addReaction = useMutation(api.events.addReaction);
+//   const reactions = useQuery(api.events.getReactions, { eventId }) || {};
+//   const addReaction = useMutation(api.events.addReaction);
 
   return (
     <div className="flex flex-wrap gap-2 py-4">
@@ -46,3 +46,4 @@ export function EventReactions({ eventId }: EventReactionsProps) {
     </div>
   );
 }
+

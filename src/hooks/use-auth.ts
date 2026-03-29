@@ -1,50 +1,74 @@
 'use client';
 
-import { useConvexAuth, useQuery, useMutation } from "convex/react";
-import { api } from "../../convex/_generated/api";
-import { useAuthActions } from "@convex-dev/auth/react";
-import { User } from "@/types";
+import { useState, useEffect } from 'react';
+import { User } from '@/types';
 
-export const useAuth = () => {
-  const { isLoading, isAuthenticated } = useConvexAuth();
-  const user = useQuery(api.users.viewer);
-  const { signOut, signIn } = useAuthActions();
-  
-  const updateUserMutation = useMutation(api.users.update);
-  const awardPointsMutation = useMutation(api.users.awardPoints);
-  const checkInMutation = useMutation(api.users.checkIn);
+/**
+ * Mock Auth Hook for Project Rework
+ * Replaces Convex/Firebase logic with a placeholder.
+ */
+export function useAuth() {
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    // Simulate loading
+    const timer = setTimeout(() => {
+      setLoading(false);
+      // For rework, let's keep it as guest by default
+      setUser(null);
+      setIsAuthenticated(false);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  const logout = async () => {
+    setUser(null);
+    setIsAuthenticated(false);
+  };
+
+  const updateUser = async (updatedUser: Partial<User>) => {
+    if (user) {
+      setUser({ ...user, ...updatedUser });
+    }
+    return user;
+  };
+
+  const awardPoints = async (points: number) => {
+    console.log(`Awarded ${points} points (MOCK)`);
+  };
+
+  const checkInUser = async () => {
+    console.log('User checked in (MOCK)');
+  };
+
+  const signIn = async () => {
+    // Placeholder for Google OAuth
+    console.log('Sign in requested (MOCK)');
+    setUser({
+      id: 'mock-user-1',
+      name: 'Eventra Professional',
+      email: 'pro@eventra.app',
+      role: 'professional',
+      xp: 1200,
+      level: 5,
+      badges: [],
+      onboardingCompleted: true
+    } as any);
+    setIsAuthenticated(true);
+  };
 
   return {
     user,
-    loading: isLoading || (isAuthenticated && user === undefined),
+    loading,
     isAuthenticated,
-    logout: signOut,
-    signIn,
-    updateUser: async (data: Partial<User>) => {
-        try {
-            return await updateUserMutation(data as any);
-        } catch (e) {
-            console.error("Update user failed", e);
-            throw e;
-        }
-    },
-    awardPoints: async (points: number) => {
-        try {
-            return await awardPointsMutation({ points });
-        } catch (e) {
-            console.error("Award points failed", e);
-        }
-    },
-    checkInUser: async () => {
-        try {
-            return await checkInMutation();
-        } catch (e) {
-            console.error("Check-in failed", e);
-        }
-    },
-    register: async (data: Partial<User>) => {
-        return updateUserMutation(data as any);
-    },
-    users: [],
+    logout,
+    updateUser,
+    awardPoints,
+    checkInUser,
+    signIn
   };
-};
+}
+

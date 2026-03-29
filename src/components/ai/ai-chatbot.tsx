@@ -1,39 +1,39 @@
 'use client';
-
-import { useState, useEffect, useRef } from 'react';
-import { Button } from '../ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { Badge } from '../ui/badge';
-import {
-  MessageCircle,
-  Send,
-  Bot,
-  User,
-  Settings,
-  Sparkles,
-  Calendar,
-  Users,
-  FileText,
-  Clock,
-  ChevronDown,
-  ChevronUp,
-  X,
-  Minimize2,
-  Maximize2,
-  RotateCcw,
-  Download,
-  Share2,
-  Mic,
-  MicOff,
-  Image,
-  Paperclip,
-  Trash2
-} from 'lucide-react';
-import { useAuth } from '@/hooks/use-auth';
-import { useToast } from '../../hooks/use-toast';
-import { useQuery, useMutation } from 'convex/react';
-import { api } from '../../../convex/_generated/api';
-import { Id } from '../../../convex/_generated/dataModel';
+// 
+// import { useState, useEffect, useRef } from 'react';
+// import { Button } from '../ui/button';
+// import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+// import { Badge } from '../ui/badge';
+// import {
+//   MessageCircle,
+//   Send,
+//   Bot,
+//   User,
+//   Settings,
+//   Sparkles,
+//   Calendar,
+//   Users,
+//   FileText,
+//   Clock,
+//   ChevronDown,
+//   ChevronUp,
+//   X,
+//   Minimize2,
+//   Maximize2,
+//   RotateCcw,
+//   Download,
+//   Share2,
+//   Mic,
+//   MicOff,
+//   Image,
+//   Paperclip,
+//   Trash2
+// } from 'lucide-react';
+// import { useAuth } from '@/hooks/use-auth';
+// import { useToast } from '../../hooks/use-toast';
+// // import { useQuery, useMutation } from 'convex/react';
+// import { api } from '../../../convex/_generated/api';
+// import { Id } from '../../../convex/_generated/dataModel';
 
 // Web Speech API types
 interface SpeechRecognitionResult {
@@ -105,16 +105,16 @@ export default function AIChatbot({
 }: AIChatbotProps) {
   const { user } = useAuth();
   const { toast } = useToast();
-  
-  const sessions = useQuery(api.aiChat.getSessions) || [];
-  const createSession = useMutation(api.aiChat.createSession);
-  const deleteSession = useMutation(api.aiChat.deleteSession);
-  const addMessageMutation = useMutation(api.aiChat.addMessage);
+//   
+//   const sessions = useQuery(api.aiChat.getSessions) || [];
+//   const createSession = useMutation(api.aiChat.createSession);
+//   const deleteSession = useMutation(api.aiChat.deleteSession);
+//   const addMessageMutation = useMutation(api.aiChat.addMessage);
   
   const [currentSessionId, setCurrentSessionId] = useState<Id<"ai_chat_sessions"> | null>(null);
-  const messages = useQuery(api.aiChat.getSessionMessages, currentSessionId ? { sessionId: currentSessionId } : "skip" as any) || [];
-  
-  const [inputMessage, setInputMessage] = useState('');
+//   const messages = useQuery(api.aiChat.getSessionMessages, currentSessionId ? { sessionId: currentSessionId } : "skip" as any) || [];
+//   
+//   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [showSettings, setShowSettings] = useState(false);

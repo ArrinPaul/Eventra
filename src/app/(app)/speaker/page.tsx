@@ -1,34 +1,34 @@
 'use client';
 
 import React from 'react';
-import { Mic, Calendar, Users, Award, TrendingUp, Settings, Loader2, MapPin, Clock } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import Link from 'next/link';
-import { useAuth } from '@/hooks/use-auth';
-import { useQuery } from 'convex/react';
-import { api } from '../../../../convex/_generated/api';
+// import { Mic, Calendar, Users, Award, TrendingUp, Settings, Loader2, MapPin, Clock } from 'lucide-react';
+// import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+// import { Button } from '@/components/ui/button';
+// import { Badge } from '@/components/ui/badge';
+// import Link from 'next/link';
+// import { useAuth } from '@/hooks/use-auth';
+// // import { useQuery } from 'convex/react';
+// import { api } from '../../../../convex/_generated/api';
 import { format, isPast, isFuture } from 'date-fns';
 
 export default function SpeakerDashboard() {
   const { user } = useAuth();
-  
-  const sessions = useQuery(api.events.getBySpeaker, user?.name ? { speakerName: user.name } : "skip" as any) || [];
-  const speakerStats = useQuery(api.events.getSpeakerStats, user?.name ? { speakerName: user.name } : "skip" as any);
-  const notifications = useQuery(api.notifications.get, { limit: 20 }) || [];
-
-  const stats = {
-    totalSessions: speakerStats?.totalSessions ?? sessions.length,
-    upcomingSessions: speakerStats?.upcomingSessions ?? sessions.filter((s: any) => isFuture(new Date(s.startDate))).length,
-    completedSessions: speakerStats?.completedSessions ?? sessions.filter((s: any) => isPast(new Date(s.startDate)) || s.status === 'completed').length,
-    totalAttendees: speakerStats?.totalAttendees ?? sessions.reduce((sum: number, s: any) => sum + (s.registeredCount || 0), 0),
-    averageRating: speakerStats?.averageRating ?? 0,
-  };
-
-  const upcomingSessions = sessions
-    .filter((s: any) => isFuture(new Date(s.startDate)) && s.status === 'published')
-    .sort((a: any, b: any) => a.startDate - b.startDate);
+//   
+//   const sessions = useQuery(api.events.getBySpeaker, user?.name ? { speakerName: user.name } : "skip" as any) || [];
+//   const speakerStats = useQuery(api.events.getSpeakerStats, user?.name ? { speakerName: user.name } : "skip" as any);
+//   const notifications = useQuery(api.notifications.get, { limit: 20 }) || [];
+// 
+//   const stats = {
+//     totalSessions: speakerStats?.totalSessions ?? sessions.length,
+//     upcomingSessions: speakerStats?.upcomingSessions ?? sessions.filter((s: any) => isFuture(new Date(s.startDate))).length,
+//     completedSessions: speakerStats?.completedSessions ?? sessions.filter((s: any) => isPast(new Date(s.startDate)) || s.status === 'completed').length,
+//     totalAttendees: speakerStats?.totalAttendees ?? sessions.reduce((sum: number, s: any) => sum + (s.registeredCount || 0), 0),
+//     averageRating: speakerStats?.averageRating ?? 0,
+//   };
+// 
+//   const upcomingSessions = sessions
+//     .filter((s: any) => isFuture(new Date(s.startDate)) && s.status === 'published')
+//     .sort((a: any, b: any) => a.startDate - b.startDate);
 
   const speakerActivity = notifications
     .filter((n: any) => n.message.toLowerCase().includes('session') || n.message.toLowerCase().includes('event'))
@@ -179,3 +179,4 @@ export default function SpeakerDashboard() {
 function cn(...inputs: any[]) {
   return inputs.filter(Boolean).join(' ');
 }
+

@@ -1,24 +1,24 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { 
-  Award, 
-  Download, 
-  ExternalLink, 
-  Search, 
-  Loader2,
-  Calendar,
-  ShieldCheck,
-  CheckCircle2,
-  XCircle
-} from 'lucide-react';
-import { useAuth } from '@/hooks/use-auth';
-import { useQuery, useConvex } from 'convex/react';
-import { api } from '../../../../convex/_generated/api';
+// import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+// import { Button } from '@/components/ui/button';
+// import { Badge } from '@/components/ui/badge';
+// import { Input } from '@/components/ui/input';
+// import { 
+//   Award, 
+//   Download, 
+//   ExternalLink, 
+//   Search, 
+//   Loader2,
+//   Calendar,
+//   ShieldCheck,
+//   CheckCircle2,
+//   XCircle
+// } from 'lucide-react';
+// import { useAuth } from '@/hooks/use-auth';
+// // import { useQuery, useConvex } from 'convex/react';
+// import { api } from '../../../../convex/_generated/api';
 import { format } from 'date-fns';
 import {
   Dialog,
@@ -33,7 +33,7 @@ import { generateCertificateHtml } from '@/core/utils/certificate-generator';
 export function CertificatesClient() {
   const { user } = useAuth();
   const convex = useConvex();
-  const certificatesRaw = useQuery(api.certificates.getByUser);
+//   const certificatesRaw = useQuery(api.certificates.getByUser);
   const certificates = certificatesRaw ?? [];
   const [searchTerm, setSearchTerm] = useState('');
   const [verifyNumber, setVerifyNumber] = useState('');

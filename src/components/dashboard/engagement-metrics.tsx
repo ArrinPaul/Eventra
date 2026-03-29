@@ -1,8 +1,8 @@
 'use client';
-
-import { useQuery } from 'convex/react';
-import { api } from '../../../convex/_generated/api';
-import { Id } from '../../../convex/_generated/dataModel';
+// 
+// import { useQuery } from 'convex/react';
+// import { api } from '../../../convex/_generated/api';
+// import { Id } from '../../../convex/_generated/dataModel';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { 
@@ -21,7 +21,7 @@ interface EngagementMetricsProps {
 }
 
 export function EngagementMetrics({ userId }: EngagementMetricsProps) {
-  const data = useQuery(api.users.getEngagementScore, { userId });
+//   const data = useQuery(api.users.getEngagementScore, { userId });
 
   if (data === undefined) return <div className="h-40 animate-pulse bg-white/5 rounded-2xl" />;
   if (!data) return null;
@@ -86,3 +86,4 @@ function Badge({ children, className }: { children: React.ReactNode, className?:
     </span>
   );
 }
+

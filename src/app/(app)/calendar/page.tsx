@@ -1,8 +1,8 @@
 'use client';
-
-import { useState, useMemo } from 'react';
-import { useQuery } from 'convex/react';
-import { api } from '../../../../convex/_generated/api';
+// 
+// import { useState, useMemo } from 'react';
+// // import { useQuery } from 'convex/react';
+// import { api } from '../../../../convex/_generated/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -11,8 +11,8 @@ import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSam
 import Link from 'next/link';
 
 export default function CalendarPage() {
-  const events = useQuery(api.events.get) ?? [];
-  const [currentMonth, setCurrentMonth] = useState(new Date());
+//   const events = useQuery(api.events.get) ?? [];
+//   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
   const days = useMemo(() => {
@@ -169,3 +169,4 @@ export default function CalendarPage() {
     </div>
   );
 }
+

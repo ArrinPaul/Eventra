@@ -2,8 +2,6 @@
 import { ThemeProvider } from 'next-themes';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useState, useEffect } from 'react';
-import { ConvexClientProvider } from '@/components/providers/convex-client-provider';
-import { AuthProvider } from '@/context/auth-context';
 
 export function Providers({ children }: { children: React.ReactNode }) {
   useEffect(() => {
@@ -38,11 +36,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-        <ConvexClientProvider>
-          <AuthProvider>
-            {children}
-          </AuthProvider>
-        </ConvexClientProvider>
+        {children}
       </ThemeProvider>
     </QueryClientProvider>
   );

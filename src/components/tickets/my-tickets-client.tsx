@@ -1,9 +1,9 @@
 'use client';
-
-import { useState } from 'react';
-import { useAuth } from '@/hooks/use-auth';
-import { useQuery } from 'convex/react';
-import { api } from '../../../convex/_generated/api';
+// 
+// import { useState } from 'react';
+// import { useAuth } from '@/hooks/use-auth';
+// // import { useQuery } from 'convex/react';
+// import { api } from '../../../convex/_generated/api';
 import { EventTicket } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -119,7 +119,7 @@ function TicketCard({ ticket, onViewTicket, onPrint, onCancel, onDownloadInvoice
 export default function MyTicketsClient() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const allTicketsRaw = useQuery(api.tickets.getByUserId, user ? { userId: (user._id || user.id) as any } : "skip");
+//   const allTicketsRaw = useQuery(api.tickets.getByUserId, user ? { userId: (user._id || user.id) as any } : "skip");
   const [selectedTicket, setSelectedTicket] = useState<EventTicket | null>(null);
   const [activeTab, setActiveTab] = useState('upcoming');
   const [cancellingId, setCancellingId] = useState<string | null>(null);
@@ -354,3 +354,4 @@ export default function MyTicketsClient() {
     </div>
   );
 }
+

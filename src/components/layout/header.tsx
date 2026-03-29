@@ -136,8 +136,6 @@ export default function Header() {
             
             {user ? (
               <>
-                <NotificationBell />
-                
                 {/* User Menu */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>

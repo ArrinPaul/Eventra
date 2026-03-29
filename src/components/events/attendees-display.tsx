@@ -1,15 +1,15 @@
 'use client';
 
 import React from 'react';
-import { useQuery } from 'convex/react';
-import { api } from '../../../convex/_generated/api';
+// import { useQuery } from 'convex/react';
+// import { api } from '../../../convex/_generated/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Users, Loader2 } from 'lucide-react';
 
 export default function AttendeesDisplay({ eventId }: { eventId: string }) {
-  const attendeesRaw = useQuery(api.events.getAttendees, { eventId: eventId as any });
+//   const attendeesRaw = useQuery(api.events.getAttendees, { eventId: eventId as any });
 
   if (attendeesRaw === undefined) return <div className="flex justify-center p-10"><Loader2 className="animate-spin" /></div>;
 

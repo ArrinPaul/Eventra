@@ -1,9 +1,9 @@
 'use client';
-import { useState } from 'react';
-import type { Event } from '@/types';
-import { useAuth } from '@/hooks/use-auth';
-import { useQuery, useMutation } from 'convex/react';
-import { api } from '../../../convex/_generated/api';
+// import { useState } from 'react';
+// import type { Event } from '@/types';
+// import { useAuth } from '@/hooks/use-auth';
+// // import { useQuery, useMutation } from 'convex/react';
+// import { api } from '../../../convex/_generated/api';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -63,10 +63,10 @@ export default function EventsClient() {
   const { toast } = useToast();
   
   // Convex Hooks
-  const allEventsRaw = useQuery(api.events.get);
-  const createEventMutation = useMutation(api.events.create);
-  const updateEventMutation = useMutation(api.events.update);
-  const deleteEventMutation = useMutation(api.events.deleteEvent);
+//   const allEventsRaw = useQuery(api.events.get);
+//   const createEventMutation = useMutation(api.events.create);
+//   const updateEventMutation = useMutation(api.events.update);
+//   const deleteEventMutation = useMutation(api.events.deleteEvent);
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);

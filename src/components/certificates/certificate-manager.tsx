@@ -1,25 +1,25 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { 
-  Award, 
-  Users, 
-  CheckCircle2, 
-  Loader2, 
-  RefreshCw,
-  Send,
-  Search,
-  ChevronRight,
-  FileText
-} from 'lucide-react';
-import { useQuery, useMutation } from 'convex/react';
-import { api } from '../../../convex/_generated/api';
-import { useAuth } from '@/hooks/use-auth';
-import { useToast } from '@/hooks/use-toast';
-import { Id } from '../../../convex/_generated/dataModel';
+// import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+// import { Button } from '@/components/ui/button';
+// import { Badge } from '@/components/ui/badge';
+// import { 
+//   Award, 
+//   Users, 
+//   CheckCircle2, 
+//   Loader2, 
+//   RefreshCw,
+//   Send,
+//   Search,
+//   ChevronRight,
+//   FileText
+// } from 'lucide-react';
+// // import { useQuery, useMutation } from 'convex/react';
+// import { api } from '../../../convex/_generated/api';
+// import { useAuth } from '@/hooks/use-auth';
+// import { useToast } from '@/hooks/use-toast';
+// // import { Id } from '../../../convex/_generated/dataModel';
 
 export function CertificateManager() {
   const { user } = useAuth();
@@ -30,15 +30,15 @@ export function CertificateManager() {
   const [searchTerm, setSearchTerm] = useState('');
 
   // Fetch events organized by current user
-  const events = useQuery(api.events.getByOrganizer, user ? { organizerId: user._id || user.id as any } : "skip" as any) || [];
-  
-  // Fetch registrations for selected event
-  const attendees = useQuery(api.registrations.getByEvent, selectedEventId ? { eventId: selectedEventId } : "skip" as any) || [];
-  
-  // Fetch already issued certificates
-  const issuedCertificates = useQuery(api.certificates.getByEvent, selectedEventId ? { eventId: selectedEventId } : "skip" as any) || [];
-  
-  const bulkIssueMutation = useMutation(api.certificates.bulkIssue);
+//   const events = useQuery(api.events.getByOrganizer, user ? { organizerId: user._id || user.id as any } : "skip" as any) || [];
+//   
+//   // Fetch registrations for selected event
+//   const attendees = useQuery(api.registrations.getByEvent, selectedEventId ? { eventId: selectedEventId } : "skip" as any) || [];
+//   
+//   // Fetch already issued certificates
+//   const issuedCertificates = useQuery(api.certificates.getByEvent, selectedEventId ? { eventId: selectedEventId } : "skip" as any) || [];
+//   
+//   const bulkIssueMutation = useMutation(api.certificates.bulkIssue);
 
   const selectedEvent = events.find((e: any) => e._id === selectedEventId);
   const issuedUserIds = new Set(issuedCertificates.map((c: any) => c.userId));
@@ -213,3 +213,4 @@ export function CertificateManager() {
     </div>
   );
 }
+

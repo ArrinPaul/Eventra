@@ -1,23 +1,23 @@
 'use client';
-
-import { useState, useRef } from 'react';
-import { useRouter } from 'next/navigation';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Progress } from '@/components/ui/progress';
-import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/hooks/use-auth';
-import { useMutation } from 'convex/react';
-import { api } from '../../../convex/_generated/api';
+// 
+// import { useState, useRef } from 'react';
+// import { useRouter } from 'next/navigation';
+// import { useForm } from 'react-hook-form';
+// import { zodResolver } from '@hookform/resolvers/zod';
+// import * as z from 'zod';
+// import { Button } from '@/components/ui/button';
+// import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+// import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
+// import { Input } from '@/components/ui/input';
+// import { Textarea } from '@/components/ui/textarea';
+// import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+// import { Badge } from '@/components/ui/badge';
+// import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+// import { Progress } from '@/components/ui/progress';
+// import { useToast } from '@/hooks/use-toast';
+// import { useAuth } from '@/hooks/use-auth';
+// // import { useMutation } from 'convex/react';
+// import { api } from '../../../convex/_generated/api';
 import { useStorage } from '@/lib/storage';
 import { 
   ChevronLeft, 
@@ -91,7 +91,7 @@ export function OnboardingWizard() {
   const router = useRouter();
   const { toast } = useToast();
   const { user } = useAuth();
-  const { uploadFile } = useStorage();
+//   const { uploadFile } = useStorage();
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [currentStep, setCurrentStep] = useState(1);
@@ -184,8 +184,8 @@ export function OnboardingWizard() {
       }
     }
   };
-
-  const updateProfile = useMutation(api.users.update);
+// 
+//   const updateProfile = useMutation(api.users.update);
 
   const handleComplete = async () => {
     setIsSubmitting(true);

@@ -56,8 +56,6 @@ export default async function RootLayout({
           <Providers>
             {children}
             <Toaster />
-            <NotificationWatcher />
-            <FloatingAiChat />
           </Providers>
         </NextIntlClientProvider>
       </body>

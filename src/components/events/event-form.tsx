@@ -47,7 +47,7 @@ function getLocationString(event: Event): string {
 
 export function EventForm({ onSave, event }: EventFormProps) {
   const { user } = useAuth();
-  const { uploadFile } = useStorage();
+//   const { uploadFile } = useStorage();
   const [imageUrl, setImageUrl] = useState<string | null>(event?.imageUrl || null);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);

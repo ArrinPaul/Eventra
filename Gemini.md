@@ -1,73 +1,22 @@
-# Eventra Project Analysis - February 6, 2026 (Updated)
+# Eventra Project Status - March 29, 2026
 
 ## 1. Project Overview
-**Eventra** is a comprehensive, AI-powered event management and attendee engagement platform. Built with **Next.js 15** and **Convex**, it provides a seamless experience for organizers to manage events and for attendees to discover, register, and engage with content.
+**Eventra** is an event management and attendee engagement platform currently undergoing a major rework. 
 
-The project has successfully completed its architectural migration from Firebase/Firestore to a fully **Convex-native** implementation.
+## 2. Recent Actions
+- Removed all **Convex** dependencies, configuration, and server-side logic.
+- Removed all **Vercel** configuration and deployment metadata.
+- Cleaned up **Firebase** legacy references.
+- Removed **E2E tests** and **unit tests** that were tied to the previous stack.
+- Reset **package.json** to a clean state with essential UI and AI (Genkit) dependencies.
 
----
+## 3. Current Focus
+- Identifying a new backend/database architecture.
+- Cleaning up UI components from old backend hooks.
+- Fixing all TypeScript issues and build errors.
 
-## 2. Current Tech Stack
-- **Framework:** Next.js 15 (App Router) with Turbopack.
-- **Backend/Database:** Convex (Fully Native).
-- **Authentication:** Convex Auth (Google OAuth-only).
-- **AI Integration:** Genkit (Google AI / OpenAI) - *In Progress: Wiring to Convex data*.
+## 4. Tech Stack (Simplified)
+- **Framework:** Next.js 15 (App Router)
 - **UI/UX:** Tailwind CSS, Radix UI, Lucide Icons, Framer Motion.
-- **Analytics:** Internal Convex-based tracking.
-- **Testing:** Vitest (Unit/Integration), Playwright (E2E).
-
----
-
-## 3. Feature Map & Implementation Status
-
-### ✅ Core Features (Completed & Functional)
-- **Multi-Persona Support:** Functional dashboards for Students, Professionals, Organizers, and Admins.
-- **Event Management:** full CRUD for events, registration flow, and attendee tracking.
-- **Ticketing System:** Automatic ticket generation (QR-ready) upon registration.
-- **Onboarding:** Multi-step wizard with Convex Storage for profile photos.
-- **Real-time Engagement:** Functional Chat (Direct/Group) and Notification center.
-- **Gamification Engine:** Points (XP) system, Level tracking, and Badge awarding logic.
-- **Community:** Community creation, joining, and social feed posts.
-- **AI Recommendations:** Fully integrated personalized event discovery.
-- **AI Event Planning:** Professional agenda and description generation for organizers.
-- **Matchmaking:** AI-driven networking recommendations with conversation starters.
-- **Analytics Dashboard:** Comprehensive metrics with AI-generated performance insights.
-- **Certificates:** Automated AI-powered certificate issuance and verification.
-- **Smart Notifications:** Personalized AI-crafted reminders and engagement picks.
-
-### ⚠️ In-Progress Features
-- **Advanced Integrations:** External calendar sync (planned).
-- **Global Search:** Multi-table search optimization.
-
----
-
-## 4. Technical Achievements
-1.  **Zero Firebase Dependency:** All legacy Firebase SDKs, configs, and service workers have been removed.
-2.  **Type Safety:** Resolved 170+ TypeScript errors; project passes `tsc` check.
-3.  **Unified Auth:** Single source of truth via Convex Auth and a centralized `useAuth` hook.
-4.  **Schema Expansion:** Scalable schema in `convex/schema.ts` covering 16 tables.
-5.  **Convex-Native AI:** Integrated Genkit flows directly with Convex database queries via server actions.
-6.  **Codebase Optimization:** Cleaned up over 400MB of legacy logs, unused config folders (`.idx`, `.orchids`), and temporary scripts.
-
----
-
-## 5. Roadmap for Completion
-
-### Phase 4: AI & Data Intelligence (Current Focus)
-- [ ] **AI Recommendation Engine:** Connect `src/app/actions/ai-recommendations.ts` to Convex queries.
-- [ ] **AI Chatbot:** Enhance `ai-chatbot.tsx` to answer event-specific questions using the Convex database.
-- [ ] **Genkit Wiring:** Implement Convex HTTP actions or server-side flows for Genkit prompts.
-
-### Phase 5: Advanced Engagement
-- [ ] **Certificate Engine:** Implement server-side certificate generation using Convex files.
-- [ ] **Matchmaking Logic:** Build an AI-driven query to find "similar" users based on interests and role.
-- [ ] **Analytics Deep-Dive:** Add more comprehensive aggregation queries in Convex for organizer insights.
-
-### Phase 6: Polishing & Deployment
-- [ ] **Final Vercel Deployment:** Verify environment variables and OAuth redirects.
-- [ ] **Performance Tuning:** Optimize Convex indexes for large-scale event data.
-
----
-
-## 6. Project Vision
-Eventra is now a high-end "Community-as-a-Service" platform, uniquely positioned with its **AI-driven personalization** and **fully-integrated gamification** built on a high-performance reactive backend.
+- **AI:** Genkit (Google AI) - *Base setup remains*.
+- **State Management:** TanStack Query - *Remains for future data fetching*.

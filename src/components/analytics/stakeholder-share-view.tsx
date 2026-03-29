@@ -1,20 +1,20 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { Share2, Copy, Check, ExternalLink, Users, Calendar, BarChart3, Globe } from 'lucide-react';
-import { useMutation, useQuery } from 'convex/react';
-import { api } from '../../../convex/_generated/api';
-import { useToast } from '@/hooks/use-toast';
-import { Id } from '../../../convex/_generated/dataModel';
+// import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+// import { Button } from '@/components/ui/button';
+// import { Badge } from '@/components/ui/badge';
+// import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+// import { Share2, Copy, Check, ExternalLink, Users, Calendar, BarChart3, Globe } from 'lucide-react';
+// // import { useMutation, useQuery } from 'convex/react';
+// import { api } from '../../../convex/_generated/api';
+// import { useToast } from '@/hooks/use-toast';
+// // import { Id } from '../../../convex/_generated/dataModel';
 import { format } from 'date-fns';
 
 export function StakeholderShareDialog({ eventId, eventName, open, onOpenChange }: { eventId: Id<"events">, eventName: string, open?: boolean, onOpenChange?: (open: boolean) => void }) {
   const { toast } = useToast();
-  const createShareLink = useMutation(api.analytics.createShareLink);
+//   const createShareLink = useMutation(api.analytics.createShareLink);
   const [loading, setLoading] = useState(false);
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -82,8 +82,8 @@ export function StakeholderShareDialog({ eventId, eventName, open, onOpenChange 
 }
 
 export function StakeholderReportView({ token }: { token: string }) {
-  const report = useQuery(api.analytics.getSharedReport, { token });
-  const incrementReportView = useMutation(api.analytics.incrementReportView);
+//   const report = useQuery(api.analytics.getSharedReport, { token });
+//   const incrementReportView = useMutation(api.analytics.incrementReportView);
   const hasIncrementedRef = useRef(false);
 
   useEffect(() => {
@@ -157,3 +157,4 @@ export function StakeholderReportView({ token }: { token: string }) {
 function Loader2({ className }: { className?: string }) {
   return <div className={className}>...</div>;
 }
+

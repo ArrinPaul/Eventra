@@ -1,9 +1,9 @@
 'use client';
-
-import { useState } from 'react';
-import { useAuth } from '@/hooks/use-auth';
-import { useQuery } from 'convex/react';
-import { api } from '../../../convex/_generated/api';
+// 
+// import { useState } from 'react';
+// import { useAuth } from '@/hooks/use-auth';
+// // import { useQuery } from 'convex/react';
+// import { api } from '../../../convex/_generated/api';
 import { Event } from '@/types';
 import { MyEventCard } from '@/components/events/my-event-card';
 import { Button } from '@/components/ui/button';
@@ -36,9 +36,9 @@ const getEventDate = (event: Event): Date => {
 export default function MyEventsClient() {
   const { user, updateUser } = useAuth();
   const { toast } = useToast();
-  
-  const allEventsRaw = useQuery(api.events.get);
-  const myRegistrations = useQuery(api.registrations.getByUser);
+//   
+//   const allEventsRaw = useQuery(api.events.get);
+//   const myRegistrations = useQuery(api.registrations.getByUser);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('registered');
 
