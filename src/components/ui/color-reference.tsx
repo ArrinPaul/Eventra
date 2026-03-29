@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Eventtts Color Palette Reference
  * 

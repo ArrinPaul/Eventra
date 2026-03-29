@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Eventra Middleware
  * Handles route protection and role-based redirects

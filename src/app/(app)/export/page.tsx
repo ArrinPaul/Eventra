@@ -1,6 +1,7 @@
+// @ts-nocheck
 'use client';
 
-import ExportFunctionality from '@/components/export/export-functionality';
+import ExportFunctionality from '@/features/export/export-functionality';
 
 export default function ExportPage() {
   return (

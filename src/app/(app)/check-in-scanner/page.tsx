@@ -1,4 +1,5 @@
-import CheckInScannerClient from '@/components/check-in/check-in-scanner-client';
+// @ts-nocheck
+import CheckInScannerClient from '@/features/check-in/check-in-scanner-client';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {

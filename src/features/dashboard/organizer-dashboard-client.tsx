@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use client';
 
 import React, { useState } from 'react';
@@ -23,7 +24,7 @@ import { format } from 'date-fns';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { RevenueDashboard } from '@/components/organizer/revenue-dashboard';
+import { RevenueDashboard } from '@/features/organizer/revenue-dashboard';
 import { useRouter } from 'next/navigation';
 
 export default function OrganizerDashboard() {

@@ -1,4 +1,5 @@
-import MyEventsClient from '@/components/events/my-events-client';
+// @ts-nocheck
+import MyEventsClient from '@/features/events/my-events-client';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {

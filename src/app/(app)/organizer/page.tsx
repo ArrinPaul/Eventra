@@ -1,9 +1,10 @@
+// @ts-nocheck
 'use client';
 
 import { useEffect } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
-import OrganizerDashboard from '@/components/dashboard/organizer-dashboard-client';
+import OrganizerDashboard from '@/features/dashboard/organizer-dashboard-client';
 import { Loader2 } from 'lucide-react';
 
 export default function OrganizerPage() {

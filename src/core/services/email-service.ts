@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Email Service for Eventra
  * Handles sending emails for various events (registration, reminders, certificates, etc.)

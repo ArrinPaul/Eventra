@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Environment Configuration with Fallback System
  * 

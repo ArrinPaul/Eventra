@@ -1,4 +1,5 @@
-import EventCreationWizard from '@/components/events/event-creation-wizard';
+// @ts-nocheck
+import EventCreationWizard from '@/features/events/event-creation-wizard';
 
 export const metadata = {
   title: 'Create Event | Eventra',

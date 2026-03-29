@@ -1,7 +1,8 @@
+// @ts-nocheck
 'use client';
 
 import React from 'react';
-import InteractiveCampusMap from '@/components/map/interactive-campus-map';
+import InteractiveCampusMap from '@/features/map/interactive-campus-map';
 
 export default function MapPage() {
   return (

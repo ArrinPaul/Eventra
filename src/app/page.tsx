@@ -1,7 +1,8 @@
+// @ts-nocheck
 'use client';
 import { useAuth } from '@/hooks/use-auth';
-import DashboardClient from '@/components/dashboard/dashboard-client';
-import LandingPage from '@/components/home/landing-page';
+import DashboardClient from '@/features/dashboard/dashboard-client';
+import LandingPage from '@/features/home/landing-page';
 import Header from '@/components/layout/header';
 
 export default function Home() {

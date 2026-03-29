@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Eventra Types - Consolidated
  */

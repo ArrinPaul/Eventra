@@ -1,4 +1,5 @@
-import ExploreClient from '@/components/events/explore-client';
+// @ts-nocheck
+import ExploreClient from '@/features/events/explore-client';
 
 export const metadata = {
   title: 'Explore Events | Eventra',

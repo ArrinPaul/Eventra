@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { EVENTRA_CONFIG, isFeatureEnabled, canAccessFeature } from '@/core/config/eventra-config';

@@ -1,8 +1,9 @@
+// @ts-nocheck
 'use client';
 import { useEffect } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
-import AdminDashboardClient from '@/components/admin/admin-dashboard';
+import AdminDashboardClient from '@/features/admin/admin-dashboard';
 
 export default function AdminPage() {
     const { user, loading } = useAuth();

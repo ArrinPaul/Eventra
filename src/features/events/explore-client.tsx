@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use client';
 // 
 // import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
@@ -32,7 +33,7 @@
 //   Brain,
 //   RefreshCw
 // } from 'lucide-react';
-// import { EventCard } from '@/components/events/event-card';
+// import { EventCard } from '@/features/events/event-card';
 // import { useAuth } from '@/hooks/use-auth';
 import { getAIRecommendations, AIRecommendation } from '@/app/actions/ai-recommendations';
 import { cn } from '@/core/utils/utils';

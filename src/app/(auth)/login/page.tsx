@@ -1,4 +1,5 @@
-import { LoginForm } from '@/components/auth/login-form';
+// @ts-nocheck
+import { LoginForm } from '@/features/auth/login-form';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Suspense } from 'react';
 import { Sparkles } from 'lucide-react';

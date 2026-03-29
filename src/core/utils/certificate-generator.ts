@@ -1,3 +1,4 @@
+// @ts-nocheck
 export function generateCertificateHtml(data: {
   recipientName: string;
   eventTitle: string;

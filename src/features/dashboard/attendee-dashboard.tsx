@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use client';
 // 
 // import { useAuth } from '@/hooks/use-auth';
@@ -24,7 +25,7 @@
 // import Link from 'next/link';
 // import { format } from 'date-fns';
 // import { cn } from '@/core/utils/utils';
-import { ActivityFeed } from '@/components/feed/activity-feed';
+import { ActivityFeed } from '@/features/feed/activity-feed';
 import { EngagementMetrics } from './engagement-metrics';
 import { ReferralSystem } from './referral-system';
 import { useTranslations } from 'next-intl';

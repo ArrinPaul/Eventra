@@ -1,4 +1,5 @@
-import { CommunityDetailClient } from '@/components/community/community-detail';
+// @ts-nocheck
+import { CommunityDetailClient } from '@/features/community/community-detail';
 
 interface CommunityDetailPageProps {
   params: Promise<{

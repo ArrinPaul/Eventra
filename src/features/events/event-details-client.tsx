@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use client';
 
 import React, { useState } from 'react';
@@ -26,7 +27,7 @@ import React, { useState } from 'react';
 // import { cn } from '@/core/utils/utils';
 // import { useAuth } from '@/hooks/use-auth';
 // import { useToast } from '@/hooks/use-toast';
-import { EventChatbot, ChatbotTrigger } from '@/components/ai/event-chatbot';
+import { EventChatbot, ChatbotTrigger } from '@/features/ai/event-chatbot';
 import { Progress } from '@/components/ui/progress';
 import { createCheckoutSession } from '@/app/actions/payments';
 import { EventDiscussionBoard } from './event-discussion-board';

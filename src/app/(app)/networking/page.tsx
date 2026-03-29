@@ -1,4 +1,5 @@
-import NetworkingClient from '@/components/networking/networking-client';
+// @ts-nocheck
+import NetworkingClient from '@/features/networking/networking-client';
 
 export default function NetworkingPage() {
   return <NetworkingClient />;

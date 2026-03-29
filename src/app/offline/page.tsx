@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { WifiOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';

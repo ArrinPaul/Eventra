@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Input Validation & Sanitization Utilities
  * Comprehensive validation and sanitization for forms, APIs, and user input

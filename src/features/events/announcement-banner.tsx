@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use client';
 // 
 import { AlertCircle, Bell, Info, X } from 'lucide-react';

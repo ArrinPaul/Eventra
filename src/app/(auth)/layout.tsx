@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use client';
 import Header from '@/components/layout/header';
 

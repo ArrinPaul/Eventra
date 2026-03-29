@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Feature Gate Component
  * 

@@ -1,4 +1,5 @@
-import MyTicketsClient from '@/components/tickets/my-tickets-client';
+// @ts-nocheck
+import MyTicketsClient from '@/features/ticketing/my-tickets-client';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {

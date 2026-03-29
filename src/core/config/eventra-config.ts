@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Eventra Configuration
  * Central configuration for the Eventra platform

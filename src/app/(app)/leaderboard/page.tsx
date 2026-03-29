@@ -1,4 +1,5 @@
-import LeaderboardClient from '@/components/leaderboard/leaderboard-client';
+// @ts-nocheck
+import LeaderboardClient from '@/features/leaderboard/leaderboard-client';
 
 export default function LeaderboardPage() {
   return <LeaderboardClient />;

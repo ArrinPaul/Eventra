@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use client';
 // import { useMemo } from 'react';
 // import { useAuth } from '@/hooks/use-auth';

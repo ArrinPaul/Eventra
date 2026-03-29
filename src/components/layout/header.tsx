@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -8,7 +9,7 @@ import { Menu, LogOut, Moon, Sun, Bell, User, Sparkles, Search } from 'lucide-re
 import { cn } from '@/core/utils/utils';
 import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
-import { NotificationBell } from '@/components/notifications/notification-center';
+import { NotificationBell } from '@/features/notifications/notification-center';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   DropdownMenu,

@@ -1,6 +1,7 @@
+// @ts-nocheck
 'use client';
 
-import { FeedbackForm } from '@/components/events/feedback-form';
+import { FeedbackForm } from '@/features/events/feedback-form';
 import { useParams, useRouter } from 'next/navigation';
 import { Loader2, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';

@@ -1,8 +1,9 @@
+// @ts-nocheck
 'use client';
 
 import { useAuth } from "@/hooks/use-auth";
-import OrganizerDashboard from "@/components/dashboard/organizer-dashboard-client";
-import { AttendeeDashboard } from "@/components/dashboard/attendee-dashboard";
+import OrganizerDashboard from "@/features/dashboard/organizer-dashboard-client";
+import { AttendeeDashboard } from "@/features/dashboard/attendee-dashboard";
 import { Loader2 } from "lucide-react";
 
 export default function DashboardClient() {

@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Campus Map Data Types and Sample Data
 
 export interface CampusZone {

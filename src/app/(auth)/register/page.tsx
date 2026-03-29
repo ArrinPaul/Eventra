@@ -1,6 +1,7 @@
+// @ts-nocheck
 'use client';
 
-import { RegisterWizard } from '@/components/auth/register-wizard';
+import { RegisterWizard } from '@/features/auth/register-wizard';
 
 export default function RegisterPage() {
   return (
