@@ -49,11 +49,12 @@ export default function AiRecommendationDashboard() {
   const [contentRecommendations, setContentRecommendations] = useState<ContentRecommendation[]>([]);
   const [connectionRecommendations, setConnectionRecommendations] = useState<ConnectionRecommendation[]>([]);
   const [insights, setInsights] = useState<InsightCard[]>([]);
-// 
-// 
-//   const loadRecommendations = useCallback(async () => {
-//     if (!user) return;
-//     setLoading(true);
+
+  const events: any[] = []; // Placeholder for events
+
+  const loadRecommendations = useCallback(async () => {
+    if (!user) return;
+    setLoading(true);
     try {
       const [eventsRes, contentRes, connectionsRes] = await Promise.all([
         getAIRecommendations(user._id || user.id),

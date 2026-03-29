@@ -14,18 +14,12 @@ export default function EventModeration() {
   const [activeTab, setActiveTab] = useState('pending');
   const pageSize = 10;
   
-  const {
-    results: events,
-    status: paginationStatus,
-    loadMore,
-    {
-      status: activeTab === 'pending' ? 'published' : 'all',
-    },
-    { initialNumItems: pageSize }
-  );
-//   
+  const events: any[] = []; // Placeholder for events
+  const paginationStatus = 'Exhausted';
+  const loadMore = () => {};
+  const moderateMutation = async (args: any) => {};
 
-  const handleModerate = async (eventId: Id<'events'>, action: 'approve' | 'reject' | 'suspend') => {
+  const handleModerate = async (eventId: string, action: 'approve' | 'reject' | 'suspend') => {
     try {
       await moderateMutation({ eventId, action });
       toast({ title: `Event ${action}ed` });

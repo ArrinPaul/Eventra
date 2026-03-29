@@ -85,23 +85,27 @@ export function NotificationBell() {
 
 export function NotificationCenter() {
   const router = useRouter();
-//     {},
-//     { initialNumItems: 10 }
-//   );
   
+  const results: any[] = [];
   const notifications = results || [];
-// 
-// 
-//   return (
-//     <div className="container py-8 space-y-6 text-white">
-//       <div className="flex justify-between items-center">
-//         <div><h1 className="text-3xl font-bold">Notifications</h1><p className="text-gray-400">{unreadCount} unread</p></div>
-//         <Button onClick={() => markAllRead()} variant="outline" className="border-white/10">Mark all as read</Button>
-//       </div>
-//       <Card className="bg-white/5 border-white/10">
-//         <div className="divide-y divide-white/10">
-//           {notifications.map((n: any) => (
-//             <div key={n._id} className={cn("p-6 flex justify-between items-start cursor-pointer hover:bg-white/5 transition-colors", !n.read && "bg-cyan-500/5")} onClick={() => { if (!n.read) markRead({ id: n._id }); if (n.link) router.push(n.link); }}>
+  const unreadCount = 0;
+  const markAllRead = () => {};
+  const markRead = (data: any) => {};
+  const deleteMutation = (data: any) => {};
+  const status = 'Exhausted';
+  const loadMore = (num: number) => {};
+
+
+  return (
+    <div className="container py-8 space-y-6 text-white">
+      <div className="flex justify-between items-center">
+        <div><h1 className="text-3xl font-bold">Notifications</h1><p className="text-gray-400">{unreadCount} unread</p></div>
+        <Button onClick={() => markAllRead()} variant="outline" className="border-white/10">Mark all as read</Button>
+      </div>
+      <Card className="bg-white/5 border-white/10">
+        <div className="divide-y divide-white/10">
+          {notifications.map((n: any) => (
+            <div key={n._id} className={cn("p-6 flex justify-between items-start cursor-pointer hover:bg-white/5 transition-colors", !n.read && "bg-cyan-500/5")} onClick={() => { if (!n.read) markRead({ id: n._id }); if (n.link) router.push(n.link); }}>
               <div>
                 <h3 className="font-bold">{n.title}</h3>
                 <p className="text-gray-300 mt-1">{n.message}</p>

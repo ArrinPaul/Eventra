@@ -9,14 +9,15 @@ import { useToast } from '@/hooks/use-toast';
 export default function RecommendedSessions() {
     const { user, updateUser } = useAuth();
     const { toast } = useToast();
-// 
-//     const recommendations = useMemo(() => {
-//         if (!user) return [];
-// 
-//         const interests = (user.interests || '')
-//             .split(',')
-//             .map((i: string) => i.trim().toLowerCase())
-//             .filter(Boolean);
+    const publishedEvents: any[] = []; // Placeholder
+
+    const recommendations = useMemo(() => {
+        if (!user) return [];
+
+        const interests = (user.interests || '')
+            .split(',')
+            .map((i: string) => i.trim().toLowerCase())
+            .filter(Boolean);
 
         return publishedEvents
             .filter((event: any) => !(user.myEvents || []).includes(event._id))

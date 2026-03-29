@@ -7,9 +7,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { 
-//   Plus, Heart, MessageCircle, Share2, Loader2, Search, MoreVertical, Edit2, Trash2
-// } from 'lucide-react';
+import { Plus, Heart, MessageCircle, Share2, Loader2, Search, MoreVertical, Edit2, Trash2 } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/core/utils/utils';
@@ -24,11 +22,12 @@ import {
 export default function FeedClient() {
   const { user } = useAuth();
   const { toast } = useToast();
-//   
-//     {},
-//     { initialNumItems: 10 }
-//   );
-//   
+
+  const communities: any[] = [];
+  const createPostMutation = async (data: any) => {};
+  const updatePostMutation = async (data: any) => {};
+  const deletePostMutation = async (data: any) => {};
+  const likePostMutation = async (data: any) => {};
   
   const [showCreatePost, setShowCreatePost] = useState(false);
   const [showEditPost, setShowEditPost] = useState(false);

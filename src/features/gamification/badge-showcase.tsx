@@ -23,19 +23,20 @@ const rarityIcons: Record<string, React.ReactNode> = {
 };
 
 export function BadgeShowcase({ userId, compact }: { userId: string; stats?: any; compact?: boolean }) {
-// 
-//   if (compact) {
-//     return (
-//       <div className="flex flex-wrap gap-2">
-//         {badges.length === 0 && <p className="text-sm text-gray-500">No badges yet</p>}
-//         {badges.map((b: any) => (
-//           <div key={b.badgeId} className={cn('inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-medium', rarityColors[b.rarity] || rarityColors.common)} title={b.description}>
-//             {rarityIcons[b.rarity] || rarityIcons.common}
-//             {b.name}
-//           </div>
-//         ))}
-//       </div>
-//     );
+  const badges: any[] = []; // Placeholder
+
+  if (compact) {
+    return (
+      <div className="flex flex-wrap gap-2">
+        {badges.length === 0 && <p className="text-sm text-gray-500">No badges yet</p>}
+        {badges.map((b: any) => (
+          <div key={b.badgeId} className={cn('inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-medium', rarityColors[b.rarity] || rarityColors.common)} title={b.description}>
+            {rarityIcons[b.rarity] || rarityIcons.common}
+            {b.name}
+          </div>
+        ))}
+      </div>
+    );
   }
 
   return (

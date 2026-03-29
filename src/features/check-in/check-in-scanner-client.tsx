@@ -57,17 +57,20 @@ export default function CheckInScannerClient() {
   
   const scannerRef = useRef<any>(null);
 
+  const allEventsRaw: any[] = [];
+  const checkInTicketMutation = async (data: any) => ({ ticket: {} });
+
   const events: Event[] = (allEventsRaw || []).map((e: any) => ({ ...e, id: e._id }));
   const organizerEvents = events.filter(e => e.organizerId === (user?._id || user?.id) || user?.role === 'admin');
 
   // Dashboard Queries
-//   const checkInCount = registrations.filter((r: any) => r.checkedIn).length;
-//   const totalRegistrations = registrations.length;
-//   const checkInRate = totalRegistrations > 0 ? Math.round((checkInCount / totalRegistrations) * 100) : 0;
-// 
-//   useEffect(() => {
-//     if (organizerEvents.length > 0 && !selectedEvent) {
-//       setSelectedEvent(organizerEvents[0].id);
+  const checkInCount = 0;
+  const totalRegistrations = 0;
+  const checkInRate = 0;
+
+  useEffect(() => {
+    if (organizerEvents.length > 0 && !selectedEvent) {
+      setSelectedEvent(organizerEvents[0].id);
     }
   }, [organizerEvents, selectedEvent]);
 

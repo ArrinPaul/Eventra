@@ -43,6 +43,7 @@ export async function POST(request: NextRequest) {
 
     if (sendgridApiKey) {
       // Use SendGrid
+      const response = await fetch('https://api.sendgrid.com/v3/mail/send', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${sendgridApiKey}`,
@@ -76,6 +77,7 @@ export async function POST(request: NextRequest) {
     
     if (resendApiKey) {
       // Use Resend
+      const response = await fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${resendApiKey}`,

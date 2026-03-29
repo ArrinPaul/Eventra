@@ -14,17 +14,19 @@ export default function CheckInPage() {
     const { user } = useAuth();
     const [isScannerOpen, setIsScannerOpen] = useState(false);
     const { toast } = useToast();
-//     
-//     if (!user) return null;
-// 
-//     const isOrganizer = user.role === 'organizer' || user.role === 'admin';
-//     
-//     // Use ticketNumber as QR data (plain string) – must match what scanner expects
-//     const firstTicket = myTickets[0];
-//     const qrData = firstTicket?.ticketNumber ?? user.registrationId ?? 'NO-TICKET';
-//     
-//     const handleScanSuccess = (scannedData: any) => {
-//         setIsScannerOpen(false);
+    
+    if (!user) return null;
+
+    const isOrganizer = user?.role === 'organizer' || user?.role === 'admin';
+    
+    // TODO: Fetch tickets and QR URL properly
+    const myTickets: any[] = [];
+    const firstTicket = myTickets[0];
+    const qrData = firstTicket?.ticketNumber ?? user?.id ?? 'NO-TICKET';
+    const qrUrl = '/grid.svg'; // Placeholder
+    
+    const handleScanSuccess = (scannedData: any) => {
+        setIsScannerOpen(false);
         toast({
             title: 'Scan Captured',
             description: `Scanned: ${typeof scannedData === 'string' ? scannedData : scannedData?.name ?? 'Unknown'}. Use the Check-in Scanner page for full processing.`,

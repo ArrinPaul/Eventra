@@ -16,17 +16,18 @@ export default function GlobalSearch({ className }: GlobalSearchProps) {
   const [isOpen, setIsOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-// 
-// 
-//   const hasResults = (searchResults.events?.length ?? 0) > 0 || 
-//                      (searchResults.users?.length ?? 0) > 0 || 
-//                      (searchResults.communities?.length ?? 0) > 0;
-// 
-//   // Close on outside click
-//   useEffect(() => {
-//     const handler = (e: MouseEvent) => {
-//       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-//         setIsOpen(false);
+
+  const searchResults: any = { events: [], users: [], communities: [] };
+
+  const hasResults = (searchResults.events?.length ?? 0) > 0 || 
+                     (searchResults.users?.length ?? 0) > 0 || 
+                     (searchResults.communities?.length ?? 0) > 0;
+
+  // Close on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
       }
     };
     document.addEventListener('mousedown', handler);

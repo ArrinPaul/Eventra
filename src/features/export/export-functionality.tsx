@@ -20,10 +20,11 @@ export default function ExportFunctionality() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [exporting, setExporting] = useState<string | null>(null);
-// 
-// 
-//   const downloadFile = (content: string, fileName: string, contentType: string) => {
-//     const blob = new Blob([content], { type: contentType });
+  const myEvents: any[] = [];
+  const myTickets: any[] = [];
+
+  const downloadFile = (content: string, fileName: string, contentType: string) => {
+    const blob = new Blob([content], { type: contentType });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
