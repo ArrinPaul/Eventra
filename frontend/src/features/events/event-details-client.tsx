@@ -73,11 +73,16 @@ export default function EventDetailsClient({ eventId }: { eventId: string }) {
     setGeneratingSummary(true);
     try {
       const result = await generateEventSummary(eventId);
-      if (result.success) {
+      const success = typeof result === 'string' || (typeof result === 'object' && result !== null && 'success' in result && Boolean((result as { success?: boolean }).success));
+      if (success) {
         toast({ title: 'Summary generated! ✨', description: 'View it in the About tab.' });
         setActiveTab('about');
       } else {
-        throw new Error(result.error);
+        const errorMessage =
+          typeof result === 'object' && result !== null && 'error' in result
+            ? String((result as { error?: unknown }).error || 'Failed to generate summary')
+            : 'Failed to generate summary';
+        throw new Error(errorMessage);
       }
     } catch (e: any) {
       toast({ title: 'Generation failed', description: e.message, variant: 'destructive' });
@@ -137,12 +142,12 @@ export default function EventDetailsClient({ eventId }: { eventId: string }) {
 
       if (isPaid && price && price > 0) {
         // Stripe Flow
-        const { url } = await createCheckoutSession(
-          eventId, 
-          user._id || user.id, 
-          tierName, 
-          appliedDiscount ? discountCode : undefined
-        );
+        const { url } = await createCheckoutSession({
+          eventId,
+          userId: user._id || user.id,
+          tierName,
+          discountCode: appliedDiscount ? discountCode : undefined,
+        });
         if (url) {
           window.location.href = url;
         } else {

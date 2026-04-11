@@ -10,11 +10,22 @@ import { getMatchmakingRecommendations, MatchmakingResult } from '@/app/actions/
 import { MatchmakingCard } from './matchmaking-card';
 import { cn } from '@/core/utils/utils';
 
+type MatchmakingViewState = {
+  error?: string;
+  strategy?: { weeklyPlan: string };
+  recommendations: Array<{
+    userId: string;
+    name: string;
+    score: number;
+    rationale: string;
+  }>;
+};
+
 export function MatchmakingSection() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
-  const [result, setResult] = useState<MatchmakingResult | null>(null);
+  const [result, setResult] = useState<MatchmakingViewState | null>(null);
   const sendConnectionRequest = async (_payload: any) => Promise.resolve();
 // 
 
@@ -32,9 +43,28 @@ export function MatchmakingSection() {
     setLoading(true);
     try {
       const data = await getMatchmakingRecommendations(user._id || user.id);
-      setResult(data);
+      const recommendations = data.map((match: MatchmakingResult) => ({
+        userId: match.id,
+        name: match.name,
+        score: match.matchScore,
+        rationale: match.reason,
+      }));
+
+      setResult({
+        recommendations,
+        strategy: {
+          weeklyPlan:
+            recommendations.length > 0
+              ? 'Prioritize high-match connections first, then follow up within 24 hours after each conversation.'
+              : 'Complete your profile and interests to unlock stronger match recommendations.',
+        },
+      });
     } catch (error) {
       console.error('Failed to fetch matches:', error);
+      setResult({
+        error: 'Unable to load recommendations right now.',
+        recommendations: [],
+      });
       toast({ title: 'Error', description: 'Failed to load matchmaking recommendations', variant: 'destructive' });
     } finally {
       setLoading(false);

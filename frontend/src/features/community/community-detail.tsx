@@ -86,8 +86,8 @@ export function CommunityDetailClient({ communityId }: { communityId: string }) 
       toast({ title: 'Posted successfully' });
 
       // 2. Async AI Moderation check
-      const moderation = await moderateContent(newPostContent, user?.name);
-      if (moderation.success && moderation.isFlagged) {
+      const moderation = await moderateContent(newPostContent);
+      if (!moderation.approved) {
         await flagPostMutation({
           postId: postId as any,
           reason: moderation.reason || 'AI Flagged'
