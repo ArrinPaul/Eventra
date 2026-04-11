@@ -2,8 +2,6 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { Providers } from '@/components/providers';
 import { Toaster } from '@/components/ui/toaster';
-import FloatingAiChat from '@/features/chat/floating-ai-chat';
-import { NotificationWatcher } from '@/features/notifications/notification-watcher';
 import { Outfit, Inter } from 'next/font/google';
 import { baseMetadata, viewport as seoViewport, generateOrganizationSchema } from '@/core/services/seo';
 
@@ -31,20 +29,15 @@ const inter = Inter({
   display: 'swap',
 });
 
-import { NextIntlClientProvider } from 'next-intl';
-import { getMessages, getLocale } from 'next-intl/server';
-
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   const organizationSchema = generateOrganizationSchema();
-  const locale = await getLocale();
-  const messages = await getMessages();
   
   return (
-    <html lang={locale} suppressHydrationWarning className={`${outfit.variable} ${inter.variable}`}>
+    <html lang="en" suppressHydrationWarning className={`${outfit.variable} ${inter.variable}`}>
       <head>
         <script
           type="application/ld+json"
@@ -52,12 +45,10 @@ export default async function RootLayout({
         />
       </head>
       <body className="font-body antialiased bg-background text-foreground selection:bg-primary/20 selection:text-primary">
-        <NextIntlClientProvider messages={messages}>
-          <Providers>
-            {children}
-            <Toaster />
-          </Providers>
-        </NextIntlClientProvider>
+        <Providers>
+          {children}
+          <Toaster />
+        </Providers>
       </body>
     </html>
   );

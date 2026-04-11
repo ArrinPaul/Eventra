@@ -6,8 +6,12 @@ const COOKIE_NAME = 'NEXT_LOCALE';
 const DEFAULT_LOCALE = 'en';
 
 export async function getUserLocale() {
-  const cookieStore = await cookies();
-  return cookieStore.get(COOKIE_NAME)?.value || DEFAULT_LOCALE;
+  try {
+    const cookieStore = await cookies();
+    return cookieStore.get(COOKIE_NAME)?.value || DEFAULT_LOCALE;
+  } catch (error) {
+    return DEFAULT_LOCALE;
+  }
 }
 
 export async function setUserLocale(locale: string) {

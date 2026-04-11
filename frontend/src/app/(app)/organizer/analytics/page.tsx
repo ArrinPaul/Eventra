@@ -1,6 +1,8 @@
 import { Metadata } from 'next';
 import OrganizerAnalyticsDashboard from '@/features/analytics/organizer-analytics-dashboard';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'Organizer Analytics | Eventra',
   description: 'Track your event performance, registration funnels, demographics, and revenue'
