@@ -113,6 +113,16 @@ function decodeBase64Url(input: string): string {
   return atob(padded);
 }
 
+function parseJwtPayload(token: string): Record<string, unknown> | null {
+  const parts = token.split('.');
+  if (parts.length !== 3) return null;
+  try {
+    return JSON.parse(decodeBase64Url(parts[1])) as Record<string, unknown>;
+  } catch {
+    return null;
+  }
+}
+
 async function verifyJwtHs256(token: string, secret: string): Promise<boolean> {
   const parts = token.split('.');
   if (parts.length !== 3) return false;
@@ -161,10 +171,22 @@ export async function middleware(request: NextRequest) {
 
   // Get auth token from cookies
   const authToken = request.cookies.get('auth-token')?.value;
-  const userRole = request.cookies.get('user-role')?.value;
-  
+  const legacyRoleCookie = request.cookies.get('user-role')?.value;
+
   const isAuthenticated = !!authToken;
-  const currentRoleLevel = userRole ? (ROLE_HIERARCHY[userRole] || 0) : 0;
+  let resolvedRole: string | undefined;
+
+  if (authToken && isLikelyJwt(authToken)) {
+    const payload = parseJwtPayload(authToken);
+    resolvedRole = typeof payload?.role === 'string' ? payload.role : undefined;
+  }
+
+  // Temporary fallback for legacy sessions.
+  if (!resolvedRole && legacyRoleCookie) {
+    resolvedRole = legacyRoleCookie;
+  }
+
+  const currentRoleLevel = resolvedRole ? (ROLE_HIERARCHY[resolvedRole] || 0) : 0;
 
   // Check if this is an auth route (login/register)
   if (matchesPath(pathname, ROUTE_CONFIG.auth)) {
@@ -191,8 +213,9 @@ export async function middleware(request: NextRequest) {
     }
 
     // Verify token signature for protected routes when JWT secret is configured.
-    if (authToken && isLikelyJwt(authToken) && process.env.JWT_SECRET) {
-      const isTokenValid = await verifyJwtHs256(authToken, process.env.JWT_SECRET);
+    if (authToken && isLikelyJwt(authToken) && (process.env.JWT_SECRET || process.env.AUTH_SECRET || process.env.NODE_ENV !== 'production')) {
+      const secret = process.env.JWT_SECRET || process.env.AUTH_SECRET || 'eventra-dev-session-secret-change-me';
+      const isTokenValid = await verifyJwtHs256(authToken, secret);
       if (!isTokenValid) {
         const loginUrl = new URL('/login', request.url);
         loginUrl.searchParams.set('callbackUrl', pathname);

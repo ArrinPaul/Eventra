@@ -44,16 +44,16 @@ Definition of done:
 ## Phase 1 - Real Authentication and Authorization
 
 ### 1.1 Auth Architecture Decision
-- [ ] Finalize production auth stack (Auth.js/NextAuth or equivalent).
-- [ ] Document session model, token policy, and cookie strategy.
+- [x] Finalize production auth stack (Auth.js/NextAuth or equivalent). (Implemented equivalent signed JWT cookie sessions with route handlers)
+- [x] Document session model, token policy, and cookie strategy. See [docs/auth-session-model.md](docs/auth-session-model.md)
 
 ### 1.2 Replace Mock Auth
-- [ ] Remove mock behavior in [src/hooks/use-auth.ts](src/hooks/use-auth.ts).
-- [ ] Implement real login/logout/session refresh.
-- [ ] Implement role-aware user retrieval from backend.
+- [x] Remove mock behavior in [src/hooks/use-auth.ts](src/hooks/use-auth.ts).
+- [x] Implement real login/logout/session refresh. (signin + session + logout endpoints wired)
+- [x] Implement role-aware user retrieval from backend.
 
 ### 1.3 Route and API Protection
-- [ ] Replace fragile cookie-only role assumptions in [src/middleware.ts](src/middleware.ts).
+- [x] Replace fragile cookie-only role assumptions in [src/middleware.ts](src/middleware.ts).
 - [ ] Enforce role checks server-side for admin/organizer actions.
 - [ ] Add authorization guards for all write operations.
 

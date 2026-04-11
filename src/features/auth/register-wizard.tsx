@@ -43,7 +43,7 @@ export function RegisterWizard() {
   const handleSignIn = () => {
     // We'll store the role in session storage or similar to use after OAuth redirect in onboarding
     sessionStorage.setItem('preferred_role', selectedRole);
-    signIn();
+    signIn({ role: selectedRole });
   };
 
   return (
