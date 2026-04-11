@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { Providers } from '@/components/providers';
 import { Toaster } from '@/components/ui/toaster';
-import { Outfit, Inter } from 'next/font/google';
+import { Fraunces, Manrope } from 'next/font/google';
 import { baseMetadata, viewport as seoViewport, generateOrganizationSchema } from '@/core/services/seo';
 import { NextIntlClientProvider } from 'next-intl';
 import { getUserLocale } from '@/core/services/locale-service';
@@ -21,13 +21,13 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = seoViewport;
 
-const outfit = Outfit({
+const fraunces = Fraunces({
   subsets: ['latin'],
   variable: '--font-heading',
   display: 'swap',
 });
 
-const inter = Inter({
+const manrope = Manrope({
   subsets: ['latin'],
   variable: '--font-body',
   display: 'swap',
@@ -49,7 +49,7 @@ export default async function RootLayout({
   const organizationSchema = generateOrganizationSchema();
   
   return (
-    <html lang={safeLocale} suppressHydrationWarning className={`${outfit.variable} ${inter.variable}`}>
+    <html lang={safeLocale} suppressHydrationWarning className={`${fraunces.variable} ${manrope.variable}`}>
       <head>
         <script
           type="application/ld+json"

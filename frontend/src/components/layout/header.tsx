@@ -75,7 +75,7 @@ export default function Header() {
       className={cn(
         "fixed top-0 left-0 right-0 z-50 transition-all duration-500",
         scrolled 
-          ? "bg-black/80 backdrop-blur-xl border-b border-white/10" 
+          ? "bg-background/85 backdrop-blur-xl border-b border-white/10" 
           : "bg-transparent"
       )}
       initial={{ y: -100 }}
@@ -87,7 +87,7 @@ export default function Header() {
           
           {/* Logo */}
           <Link href="/" className="flex items-center gap-3">
-            <span className="text-2xl font-bold text-purple-400">
+            <span className="text-2xl font-semibold text-cyan-300 tracking-tight">
               Eventra
             </span>
           </Link>
@@ -103,15 +103,15 @@ export default function Header() {
                   className={cn(
                     "relative px-4 py-2 text-sm font-medium rounded-full transition-all duration-300",
                     isActive 
-                      ? "text-white bg-white/10" 
-                      : "text-gray-400 hover:text-white hover:bg-white/5"
+                      ? "text-slate-100 bg-white/10 border border-white/20" 
+                      : "text-gray-300 hover:text-white hover:bg-white/10"
                   )}
                 >
                   {link.label}
                   {isActive && (
                     <motion.div
                       layoutId="nav-indicator"
-                      className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-purple-500"
+                      className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-cyan-400"
                       transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                     />
                   )}
@@ -194,7 +194,7 @@ export default function Header() {
                 <Button asChild variant="ghost" className="text-gray-300 hover:text-white hover:bg-white/10 rounded-full">
                   <Link href="/login">Sign In</Link>
                 </Button>
-                <Button asChild className="bg-purple-500 hover:bg-purple-400 text-white font-semibold border-0 rounded-full">
+                <Button asChild className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-slate-950 font-semibold border-0 rounded-full">
                   <Link href="/register">Sign Up</Link>
                 </Button>
               </div>

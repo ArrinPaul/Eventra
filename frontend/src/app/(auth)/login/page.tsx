@@ -6,19 +6,19 @@ import { Sparkles } from 'lucide-react';
 function LoginFormFallback() {
   return (
     <div className="flex items-center justify-center h-48">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
     </div>
   );
 }
 
 export default function LoginPage() {
   return (
-    <div className="relative min-h-[calc(100vh-4rem)] flex items-center justify-center overflow-hidden bg-[#0a0b14]">
+    <div className="relative min-h-[calc(100vh-4rem)] flex items-center justify-center overflow-hidden bg-background">
       {/* Animated Background Elements */}
       <div className="absolute inset-0 z-0">
         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-cyan-600/20 blur-[120px] animate-pulse" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-blue-600/20 blur-[120px] animate-pulse delay-1000" />
-        <div className="absolute top-[40%] left-[40%] w-[20%] h-[20%] rounded-full bg-cyan-500/10 blur-[100px] animate-pulse delay-2000" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-orange-500/20 blur-[120px] animate-pulse delay-1000" />
+        <div className="absolute top-[40%] left-[40%] w-[20%] h-[20%] rounded-full bg-blue-500/10 blur-[100px] animate-pulse delay-2000" />
       </div>
 
       <div className="w-full max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 items-center gap-12 p-4 relative z-10">
@@ -31,7 +31,7 @@ export default function LoginPage() {
             </div>
             <h1 className="text-5xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">
               Welcome to <br />
-              <span className="bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">Eventra</span>
+              <span className="bg-gradient-to-r from-cyan-300 to-orange-300 bg-clip-text text-transparent">Eventra</span>
             </h1>
             <p className="text-xl text-gray-400 max-w-md leading-relaxed">
               Your intelligent companion for seamless event experiences. Discover, connect, and engage like never before with AI-powered insights.

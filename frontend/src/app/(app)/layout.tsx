@@ -19,8 +19,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen bg-[#0a0b14]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-500"></div>
+      <div className="flex items-center justify-center h-screen bg-background">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
       </div>
     );
   }
@@ -30,7 +30,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#0a0b14]">
+    <div className="flex flex-col min-h-screen bg-background">
       <ErrorBoundary>
         <Header />
       </ErrorBoundary>
