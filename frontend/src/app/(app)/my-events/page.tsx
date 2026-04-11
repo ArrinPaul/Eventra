@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import MyEventsClient from '@/features/events/my-events-client';
 import { Metadata } from 'next';
 

@@ -28,13 +28,14 @@ import {
   ChevronDown,
   CheckCircle2,
   ArrowUpRight,
-  Instagram,
-  Twitter,
-  Linkedin,
-  Github,
+  Camera,
+  MessageSquare,
+  Briefcase,
+  Code,
   Mail,
   Phone,
 } from 'lucide-react';
+
 import { cn } from '@/core/utils/utils';
 import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
 
@@ -660,16 +661,16 @@ function Footer() {
             </p>
             <div className="flex items-center gap-4">
               <a href="#" className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors">
-                <Twitter className="w-5 h-5 text-gray-400" />
+                <MessageSquare className="w-5 h-5 text-gray-400" />
               </a>
               <a href="#" className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors">
-                <Instagram className="w-5 h-5 text-gray-400" />
+                <Camera className="w-5 h-5 text-gray-400" />
               </a>
               <a href="#" className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors">
-                <Linkedin className="w-5 h-5 text-gray-400" />
+                <Briefcase className="w-5 h-5 text-gray-400" />
               </a>
               <a href="#" className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors">
-                <Github className="w-5 h-5 text-gray-400" />
+                <Code className="w-5 h-5 text-gray-400" />
               </a>
             </div>
           </div>

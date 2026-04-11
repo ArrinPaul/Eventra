@@ -4,6 +4,10 @@ import { Providers } from '@/components/providers';
 import { Toaster } from '@/components/ui/toaster';
 import { Outfit, Inter } from 'next/font/google';
 import { baseMetadata, viewport as seoViewport, generateOrganizationSchema } from '@/core/services/seo';
+import { NextIntlClientProvider } from 'next-intl';
+import { getUserLocale } from '@/core/services/locale-service';
+import enMessages from '../../messages/en.json';
+import esMessages from '../../messages/es.json';
 
 // Export SEO metadata
 export const metadata: Metadata = {
@@ -29,15 +33,23 @@ const inter = Inter({
   display: 'swap',
 });
 
-export default function RootLayout({
+const messagesByLocale: Record<string, Record<string, unknown>> = {
+  en: enMessages as Record<string, unknown>,
+  es: esMessages as Record<string, unknown>,
+};
+
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = await getUserLocale();
+  const safeLocale = locale in messagesByLocale ? locale : 'en';
+  const messages = messagesByLocale[safeLocale];
   const organizationSchema = generateOrganizationSchema();
   
   return (
-    <html lang="en" suppressHydrationWarning className={`${outfit.variable} ${inter.variable}`}>
+    <html lang={safeLocale} suppressHydrationWarning className={`${outfit.variable} ${inter.variable}`}>
       <head>
         <script
           type="application/ld+json"
@@ -45,10 +57,12 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body antialiased bg-background text-foreground selection:bg-primary/20 selection:text-primary">
-        <Providers>
-          {children}
-          <Toaster />
-        </Providers>
+        <NextIntlClientProvider locale={safeLocale} messages={messages}>
+          <Providers>
+            {children}
+            <Toaster />
+          </Providers>
+        </NextIntlClientProvider>
       </body>
     </html>
   );

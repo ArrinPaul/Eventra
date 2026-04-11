@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
-import { Loader2, Sparkles, Copy, Check, Twitter, Linkedin, Instagram, Share2 } from 'lucide-react';
+import { Loader2, Sparkles, Copy, Check, MessageSquare, Briefcase, Camera, Share2 } from 'lucide-react';
 import { generateSocialMediaPosts } from '@/app/actions/event-insights';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -18,7 +18,7 @@ export function SocialPostGenerator({ eventId }: { eventId: string }) {
     setLoading(true);
     try {
       const result = await generateSocialMediaPosts(eventId);
-      setPosts(result.map((content) => ({ platform: 'X (Twitter)', content })));
+      setPosts(result.map((content) => ({ platform: 'X (MessageSquare)', content })));
       toast({ title: 'Social posts generated! 🚀' });
     } catch (e: any) {
       toast({ title: 'Generation failed', description: e.message, variant: 'destructive' });
@@ -56,13 +56,13 @@ export function SocialPostGenerator({ eventId }: { eventId: string }) {
             Generate Promo Posts
           </Button>
         ) : (
-          <Tabs defaultValue="X (Twitter)" className="w-full">
+          <Tabs defaultValue="X (MessageSquare)" className="w-full">
             <TabsList className="bg-white/5 border-white/10 w-full justify-start overflow-x-auto">
               {posts.map((p) => (
                 <TabsTrigger key={p.platform} value={p.platform} className="text-xs data-[state=active]:bg-purple-600">
-                  {p.platform === 'X (Twitter)' && <Twitter className="h-3 w-3 mr-1" />}
-                  {p.platform === 'LinkedIn' && <Linkedin className="h-3 w-3 mr-1" />}
-                  {p.platform === 'Instagram' && <Instagram className="h-3 w-3 mr-1" />}
+                  {p.platform === 'X (MessageSquare)' && <MessageSquare className="h-3 w-3 mr-1" />}
+                  {p.platform === 'Briefcase' && <Briefcase className="h-3 w-3 mr-1" />}
+                  {p.platform === 'Camera' && <Camera className="h-3 w-3 mr-1" />}
                   {p.platform.split(' ')[0]}
                 </TabsTrigger>
               ))}

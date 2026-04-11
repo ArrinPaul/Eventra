@@ -1,6 +1,8 @@
 import { Suspense } from 'react';
 import CertificateVerifyClient from './verify-client';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata = {
   title: 'Verify Certificate | Eventra',
   description: 'Verify the authenticity of a certificate',
