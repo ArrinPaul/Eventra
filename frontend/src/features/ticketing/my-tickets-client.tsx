@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { EventTicket } from '@/types';
+import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -70,8 +71,8 @@ function TicketCard({ ticket, onViewTicket, onPrint, onCancel, onDownloadInvoice
     <Card className="bg-white/5 border-white/10 text-white overflow-hidden group hover:border-white/20 transition-all">
       <CardContent className="p-5">
         <div className="flex gap-4">
-          <div className="w-24 h-24 rounded-lg bg-cyan-900/20 flex items-center justify-center">
-            {ticket.event?.imageUrl ? <img src={ticket.event.imageUrl} className="w-full h-full object-cover rounded-lg" alt="" /> : <Ticket size={32} />}
+          <div className="relative w-24 h-24 rounded-lg bg-cyan-900/20 flex items-center justify-center">
+            {ticket.event?.imageUrl ? <Image src={ticket.event.imageUrl} fill sizes="96px" className="object-cover rounded-lg" alt="" /> : <Ticket size={32} />}
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex justify-between items-start">

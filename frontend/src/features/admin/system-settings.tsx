@@ -23,7 +23,7 @@ export default function SystemSettings() {
   const [localChanges, setLocalChanges] = useState<Record<string, string>>({});
   
   // TODO: Fetch settings from backend
-  const settingsRaw: any[] = [];
+  const settingsRaw: any[] = useMemo(() => [], []);
   const updateSettingMutation = async (data: any) => {
     // TODO: Implement real setting update via server action
     return Promise.resolve();

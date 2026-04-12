@@ -7,11 +7,14 @@ import { Badge } from '@/components/ui/badge';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, MapPin, Clock } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, isToday } from 'date-fns';
 import Link from 'next/link';
+import type { Event as EventraEvent } from '@/types';
 
 export default function CalendarPage() {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const events: any[] = []; // TODO: Fetch from backend
+  
+  // TODO: Fetch from backend
+  const events: any[] = useMemo(() => [], []);
 
   const days = useMemo(() => {
     const start = startOfMonth(currentMonth);
@@ -129,8 +132,8 @@ export default function CalendarPage() {
               {selectedDate && selectedEvents.length === 0 && (
                 <p className="text-gray-500 text-sm">No events on this date.</p>
               )}
-              {selectedEvents.map((event: any) => (
-                <Link href={`/events/${event._id}`} key={event._id}>
+              {selectedEvents.map((event: EventraEvent) => (
+                <Link href={`/events/${event.id}`} key={event.id}>
                   <div className="p-4 rounded-xl bg-white/5 border border-white/10 hover:border-cyan-500/50 transition-all cursor-pointer">
                     <div className="flex items-start justify-between mb-2">
                       <h4 className="font-semibold line-clamp-2">{event.title}</h4>
@@ -141,7 +144,7 @@ export default function CalendarPage() {
                     <div className="flex items-center gap-3 text-xs text-gray-400">
                       <span className="flex items-center gap-1">
                         <Clock className="h-3 w-3" />
-                        {format(new Date(event.startDate), 'h:mm a')}
+                        {event.startDate && format(new Date(event.startDate), 'h:mm a')}
                       </span>
                       {event.location?.venue && (
                         <span className="flex items-center gap-1">

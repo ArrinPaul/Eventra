@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -20,10 +20,11 @@ export default function PaymentSuccessPage() {
   const [loading, setLoading] = useState(true);
 
   // Stub implementation for missing registerMutation
-  const registerMutation = async (params: any) => {
+  const registerMutation = useCallback(async (params: any) => {
     // TODO: Implement actual registration mutation
+    console.log('Registering with params:', params);
     return Promise.resolve();
-  };
+  }, []);
 
   useEffect(() => {
     async function confirm() {

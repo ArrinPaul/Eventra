@@ -81,7 +81,7 @@ export default function ExploreClient() {
   const [showOnlyFree, setShowOnlyFree] = useState(false);
 
   // TODO: wire to backend pagination query
-  const paginatedEvents: any[] = [];
+  const paginatedEvents: (Event & { _id: string })[] = [];
   const status: string = 'Exhausted';
   const loading = false;
   const loadMore = (_count: number) => {};
@@ -94,7 +94,7 @@ export default function ExploreClient() {
   const [filteredEvents, setFilteredEvents] = useState<Event[]>([]);
   
   // AI Recommendations state
-  const [aiRecommendations, setAiRecommendations] = useState<any[]>([]);
+  const [aiRecommendations, setAiRecommendations] = useState<Array<{ eventId?: string }>>([]);
   const [aiLoading, setAiLoading] = useState(false);
   const [aiInsights, setAiInsights] = useState<{ weeklyPlan?: string; learningPath?: string[] } | null>(null);
   const [aiError, setAiError] = useState<string | null>(null);
@@ -102,7 +102,7 @@ export default function ExploreClient() {
   
   const ITEMS_PER_PAGE = 12;
 
-  const events: Event[] = useMemo(() => (paginatedEvents || []).map((e: any) => ({
+  const events: Event[] = useMemo(() => (paginatedEvents || []).map((e) => ({
     ...e,
     id: e._id,
   })), [paginatedEvents]);

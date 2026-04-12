@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { useStorage } from '@/lib/storage';
 import { useAuth } from '@/hooks/use-auth';
+import Image from 'next/image';
 import { ImagePlus, Loader2, X } from 'lucide-react';
 import type { Event } from '@/types';
 
@@ -56,17 +57,61 @@ export function EventForm({ onSave, event }: EventFormProps) {
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
+    
     setUploading(true);
     try {
-      const storageId = await uploadFile(file);
-      // Storage URL is returned from saveFile — use the storageId as a reference
+      // Client-side resize to 520x520 for fast uploading and rendering
+      const resizedFile = await resizeImage(file, 520, 520);
+      const storageId = await uploadFile(resizedFile);
       setImageUrl(`/api/storage/${storageId}`);
-    } catch {
-      // fallback: use object URL for preview
+    } catch (err) {
+      console.error('Resize/Upload failed:', err);
       setImageUrl(URL.createObjectURL(file));
     } finally {
       setUploading(false);
     }
+  };
+
+  // Helper to resize image on client side
+  const resizeImage = (file: File, maxWidth: number, maxHeight: number): Promise<File> => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new (window.Image)();
+        img.src = event.target?.result as string;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > maxWidth) {
+              height *= maxWidth / width;
+              width = maxWidth;
+            }
+          } else {
+            if (height > maxHeight) {
+              width *= maxHeight / height;
+              height = maxHeight;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0, width, height);
+          
+          canvas.toBlob((blob) => {
+            if (blob) {
+              resolve(new File([blob], file.name, { type: 'image/jpeg', lastModified: Date.now() }));
+            } else {
+              resolve(file);
+            }
+          }, 'image/jpeg', 0.8);
+        };
+      };
+    });
   };
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -127,7 +172,7 @@ export function EventForm({ onSave, event }: EventFormProps) {
           <div className="flex items-center gap-4">
             {imageUrl ? (
               <div className="relative w-full h-48 rounded-lg overflow-hidden border border-white/10 bg-white/5">
-                <img src={imageUrl} alt="Event" className="w-full h-full object-cover" />
+                <Image src={imageUrl} alt="Event" fill className="object-cover" unoptimized={imageUrl.startsWith('blob:') || imageUrl.startsWith('data:')} />
                 <Button type="button" size="icon" variant="ghost" className="absolute top-2 right-2 bg-black/50 hover:bg-black/70 h-8 w-8" onClick={() => { setImageUrl(null); if (fileInputRef.current) fileInputRef.current.value = ''; }}>
                   <X className="h-4 w-4" />
                 </Button>

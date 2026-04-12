@@ -1,6 +1,7 @@
 'use client';
 // 
 import { useState, useRef } from 'react';
+import Image from 'next/image';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -50,11 +51,13 @@ export function EventGallery({ eventId, isRegistered }: EventGalleryProps) {
 
     setUploading(true);
     try {
+      // Client-side resize to 520x520 for fast uploading and rendering
+      const resizedFile = await resizeImage(file, 520, 520);
       const postUrl = await generateUploadUrl();
       const result = await fetch(postUrl, {
         method: "POST",
-        headers: { "Content-Type": file.type },
-        body: file,
+        headers: { "Content-Type": resizedFile.type },
+        body: resizedFile,
       });
       const { storageId } = await result.json();
       
@@ -70,6 +73,48 @@ export function EventGallery({ eventId, isRegistered }: EventGalleryProps) {
     } finally {
       setUploading(false);
     }
+  };
+
+  // Helper to resize image on client side
+  const resizeImage = (file: File, maxWidth: number, maxHeight: number): Promise<File> => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new (window.Image)();
+        img.src = event.target?.result as string;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > maxWidth) {
+              height *= maxWidth / width;
+              width = maxWidth;
+            }
+          } else {
+            if (height > maxHeight) {
+              width *= maxHeight / height;
+              height = maxHeight;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0, width, height);
+          
+          canvas.toBlob((blob) => {
+            if (blob) {
+              resolve(new File([blob], file.name, { type: 'image/jpeg', lastModified: Date.now() }));
+            } else {
+              resolve(file);
+            }
+          }, 'image/jpeg', 0.8);
+        };
+      };
+    });
   };
 
   return (
@@ -114,10 +159,12 @@ export function EventGallery({ eventId, isRegistered }: EventGalleryProps) {
               className="relative aspect-square rounded-2xl overflow-hidden group cursor-pointer border border-white/5"
               onClick={() => setSelectedPhoto(photo)}
             >
-              <img 
+              <Image 
                 src={photo.imageUrl} 
                 alt="event" 
-                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
+                fill
+                sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+                className="object-cover transition-transform duration-500 group-hover:scale-110" 
               />
               <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                 <Maximize2 className="text-white w-6 h-6" />
@@ -143,11 +190,12 @@ export function EventGallery({ eventId, isRegistered }: EventGalleryProps) {
         <DialogContent className="max-w-4xl p-0 bg-black/90 border-white/10 overflow-hidden">
           {selectedPhoto && (
             <div className="relative flex flex-col md:flex-row h-full max-h-[80vh]">
-              <div className="flex-1 bg-black flex items-center justify-center p-4">
-                <img 
+              <div className="relative flex-1 bg-black flex items-center justify-center p-4">
+                <Image 
                   src={selectedPhoto.imageUrl} 
                   alt="full view" 
-                  className="max-w-full max-h-full object-contain"
+                  fill
+                  className="object-contain"
                 />
               </div>
               <div className="w-full md:w-80 bg-gray-900 p-6 flex flex-col justify-between">

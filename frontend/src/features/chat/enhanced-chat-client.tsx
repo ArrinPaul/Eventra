@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '@/hooks/use-auth';
+import Image from 'next/image';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -61,20 +62,63 @@ export default function EnhancedChatClient({ initialRoomId }: { initialRoomId?: 
 
     setIsUploading(true);
     try {
+      let fileToUpload = file;
+      if (file.type.startsWith('image/')) {
+        fileToUpload = await resizeImage(file, 520, 520);
+      }
+
       const postUrl = await generateUploadUrl();
       const result = await fetch(postUrl, {
         method: "POST",
-        headers: { "Content-Type": file.type },
-        body: file,
+        headers: { "Content-Type": fileToUpload.type },
+        body: fileToUpload,
       });
       const { storageId } = await result.json();
       const url = String(storageId || '');
-      setPendingFile({ url, type: file.type, name: file.name });
+      setPendingFile({ url, type: fileToUpload.type, name: fileToUpload.name });
     } catch (e) {
       toast({ title: 'Upload failed', variant: 'destructive' });
     } finally {
       setIsUploading(false);
     }
+  };
+
+  const resizeImage = (file: File, maxWidth: number, maxHeight: number): Promise<File> => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new (window.Image)();
+        img.src = event.target?.result as string;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+          if (width > height) {
+            if (width > maxWidth) {
+              height *= maxWidth / width;
+              width = maxWidth;
+            }
+          } else {
+            if (height > maxHeight) {
+              width *= maxHeight / height;
+              height = maxHeight;
+            }
+          }
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0, width, height);
+          canvas.toBlob((blob) => {
+            if (blob) {
+              resolve(new File([blob], file.name, { type: 'image/jpeg', lastModified: Date.now() }));
+            } else {
+              resolve(file);
+            }
+          }, 'image/jpeg', 0.8);
+        };
+      };
+    });
   };
 
   const handleStartDM = async (otherUserId: any, name: string) => {
@@ -258,7 +302,7 @@ export default function EnhancedChatClient({ initialRoomId }: { initialRoomId?: 
                         {m.fileUrl && (
                           <div className="mb-2">
                             {m.fileType?.startsWith('image/') ? (
-                              <img src={m.fileUrl} className="max-w-full rounded-lg cursor-pointer hover:opacity-90" onClick={() => window.open(m.fileUrl)} alt="shared" />
+                              <Image src={m.fileUrl} width={300} height={300} className="max-w-full h-auto rounded-lg cursor-pointer hover:opacity-90" onClick={() => window.open(m.fileUrl)} alt="shared" unoptimized={m.fileUrl.startsWith('blob:')} />
                             ) : (
                               <a href={m.fileUrl} target="_blank" className="flex items-center gap-2 p-2 bg-black/20 rounded-lg hover:bg-black/40 transition-colors">
                                 <FileText size={20} className="text-cyan-400" />

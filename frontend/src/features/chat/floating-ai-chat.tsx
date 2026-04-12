@@ -9,7 +9,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useAuth } from '@/hooks/use-auth';
 import { getKnowledgeBotAnswer } from '@/core/actions/actions';
-import { AGENDA_STRING } from '@/core/data/data';
+const AGENDA_STRING = "";
 import { cn } from '@/core/utils/utils';
 
 type Message = {
