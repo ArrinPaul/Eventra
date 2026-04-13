@@ -35,6 +35,7 @@ import {
 import { EventCard } from '@/features/events/event-card';
 import { useAuth } from '@/hooks/use-auth';
 import { getAIRecommendations } from '@/app/actions/ai-recommendations';
+import { getEvents } from '@/app/actions/events';
 import { cn } from '@/core/utils/utils';
 import type { Event } from '@/types';
 import { getUserInterests, getUserSkills, getUserAttendedEvents } from '@/types';
@@ -80,32 +81,25 @@ export default function ExploreClient() {
   const [locationFilter, setLocationFilter] = useState(searchParams.get('location') || '');
   const [showOnlyFree, setShowOnlyFree] = useState(false);
 
-  // TODO: wire to backend pagination query
-  const paginatedEvents: (Event & { _id: string })[] = [];
+  // Data state
+  const [events, setEvents] = useState<Event[]>([]);
+  const [loading, setLoading] = useState(true);
   const status: string = 'Exhausted';
-  const loading = false;
   const loadMore = (_count: number) => {};
 
-//     { status: "published" },
-//     { initialNumItems: 12 }
-//   );
-
-  // State
-  const [filteredEvents, setFilteredEvents] = useState<Event[]>([]);
-  
-  // AI Recommendations state
-  const [aiRecommendations, setAiRecommendations] = useState<Array<{ eventId?: string }>>([]);
-  const [aiLoading, setAiLoading] = useState(false);
-  const [aiInsights, setAiInsights] = useState<{ weeklyPlan?: string; learningPath?: string[] } | null>(null);
-  const [aiError, setAiError] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  
-  const ITEMS_PER_PAGE = 12;
-
-  const events: Event[] = useMemo(() => (paginatedEvents || []).map((e) => ({
-    ...e,
-    id: e._id,
-  })), [paginatedEvents]);
+  useEffect(() => {
+    async function loadData() {
+      setLoading(true);
+      const data = await getEvents({
+        category: selectedCategory,
+        search: searchQuery
+      });
+      // Type casting to Event[] since our types are compatible
+      setEvents(data as any);
+      setLoading(false);
+    }
+    loadData();
+  }, [selectedCategory, searchQuery]);
 
   // Fetch AI Recommendations when events are loaded
   const fetchAIRecommendations = useCallback(async () => {

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -25,34 +25,54 @@ import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RevenueDashboard } from '@/features/organizer/revenue-dashboard';
 import { useRouter } from 'next/navigation';
+import { getEvents, deleteEvent } from '@/app/actions/events';
+import type { Event } from '@/types';
 
 export default function OrganizerDashboard() {
   const { user } = useAuth();
   const { toast } = useToast();
   const router = useRouter();
-  // TODO: wire to backend
-  const managedEvents: any[] = [];
-  const deleteEventMutation = async (_args: any) => Promise.resolve();
-  const cloneEventMutation = async (_args: any) => 'cloned-event-id';
   
+  const [managedEvents, setManagedEvents] = useState<Event[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState('events');
   const [isCloning, setIsCloning] = useState<string | null>(null);
 
-  const filteredEvents = managedEvents.filter((e: any) => 
+  async function loadData() {
+    if (!user) return;
+    setLoading(true);
+    try {
+      const data = await getEvents({ 
+        organizerId: user.id,
+        status: 'published' // Organizer might want to see drafts too in future
+      });
+      setManagedEvents(data as any);
+    } catch (error) {
+      toast({ title: 'Error', description: 'Failed to load events.', variant: 'destructive' });
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    loadData();
+  }, [user]);
+
+  const filteredEvents = managedEvents.filter((e: Event) => 
     e.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const totalRegistrations = managedEvents.reduce((sum: number, e: any) => sum + (e.registeredCount || 0), 0);
-  const activeEvents = managedEvents.filter((e: any) => e.status === 'published').length;
-  // Fallback for revenue if stats hasn't loaded in RevenueDashboard yet
-  const totalRevenue = managedEvents.reduce((sum: number, e: any) => sum + (e.isPaid ? (e.price || 0) * (e.registeredCount || 0) : 0), 0);
+  const totalRegistrations = managedEvents.reduce((sum: number, e: Event) => sum + (e.registeredCount || 0), 0);
+  const activeEvents = managedEvents.filter((e: Event) => e.status === 'published').length;
+  const totalRevenue = managedEvents.reduce((sum: number, e: Event) => sum + (e.isPaid ? Number(e.price || 0) * (e.registeredCount || 0) : 0), 0);
 
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this event?')) return;
     try {
-      await deleteEventMutation({ id: id as any });
+      await deleteEvent(id);
       toast({ title: 'Event deleted' });
+      loadData();
     } catch (e) {
       toast({ title: 'Failed to delete', variant: 'destructive' });
     }
@@ -61,9 +81,8 @@ export default function OrganizerDashboard() {
   const handleClone = async (id: string) => {
     setIsCloning(id);
     try {
-      const newId = await cloneEventMutation({ id: id as any });
-      toast({ title: 'Event cloned successfully!', description: 'Opening the new event editor.' });
-      router.push(`/events/${newId}/edit`);
+      // TODO: Implement actual clone logic in events action
+      toast({ title: 'Cloning coming soon', description: 'This feature is being ported.' });
     } catch (e) {
       toast({ title: 'Failed to clone event', variant: 'destructive' });
     } finally {

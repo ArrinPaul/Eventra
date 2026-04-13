@@ -47,17 +47,16 @@ import { Tag } from 'lucide-react';
 import { generateEventSummary } from '@/app/actions/event-insights';
 import { Sparkles, MessageSquare } from 'lucide-react';
 
-export default function EventDetailsClient({ eventId }: { eventId: string }) {
+import { registerForEvent, getRegistrationStatus } from '@/app/actions/registrations';
+import { updateEvent } from '@/app/actions/events';
+
+export default function EventDetailsClient({ eventId, initialEvent }: { eventId: string, initialEvent: any }) {
   const router = useRouter();
   const { user, updateUser } = useAuth();
   const { toast } = useToast();
 
-  // TODO: wire these to real backend queries/mutations
-  const event: any = null;
-  const registration: any = null;
-  const validateDiscount: any = null;
-  const registerMutation = async (_args: any) => Promise.resolve();
-  const cloneEventMutation = async (_args: any) => `${eventId}-clone`;
+  const [event, setEvent] = useState(initialEvent);
+  const [registration, setRegistration] = useState<any>(null);
   
   const [registering, setRegistering] = useState(false);
   const [cloning, setCloning] = useState(false);
@@ -69,49 +68,15 @@ export default function EventDetailsClient({ eventId }: { eventId: string }) {
   const [appliedDiscount, setAppliedDiscount] = useState<any>(null);
   const [generatingSummary, setGeneratingSummary] = useState(false);
 
-  const handleGenerateSummary = async () => {
-    setGeneratingSummary(true);
-    try {
-      const result = await generateEventSummary(eventId);
-      const success = typeof result === 'string' || (typeof result === 'object' && result !== null && 'success' in result && Boolean((result as { success?: boolean }).success));
-      if (success) {
-        toast({ title: 'Summary generated! ✨', description: 'View it in the About tab.' });
-        setActiveTab('about');
-      } else {
-        const errorMessage =
-          typeof result === 'object' && result !== null && 'error' in result
-            ? String((result as { error?: unknown }).error || 'Failed to generate summary')
-            : 'Failed to generate summary';
-        throw new Error(errorMessage);
+  useEffect(() => {
+    async function loadStatus() {
+      if (user) {
+        const status = await getRegistrationStatus(eventId);
+        setRegistration(status);
       }
-    } catch (e: any) {
-      toast({ title: 'Generation failed', description: e.message, variant: 'destructive' });
-    } finally {
-      setGeneratingSummary(false);
     }
-  };
-// 
-//     code: discountCode, 
-//     eventId: eventId as any 
-//   });
-
-  const handleApplyDiscount = () => {
-    if (!discountCode) return;
-    setIsValidatingDiscount(true);
-    // The query automatically updates, we just check the result
-    if (validateDiscount?.valid) {
-      setAppliedDiscount(validateDiscount);
-      toast({ title: 'Discount applied! 🎫' });
-    } else {
-      setAppliedDiscount(null);
-      toast({ 
-        title: 'Invalid code', 
-        description: validateDiscount?.message || 'Please check the code and try again',
-        variant: 'destructive' 
-      });
-    }
-    setIsValidatingDiscount(false);
-  };
+    loadStatus();
+  }, [eventId, user]);
 
   const handleRegister = async (tierName?: string) => {
     if (!user) {
@@ -119,48 +84,18 @@ export default function EventDetailsClient({ eventId }: { eventId: string }) {
       return;
     }
     
-    // If event has tiers and no tier is selected, show selection
-    if (!tierName && event?.ticketTiers && event.ticketTiers.length > 0) {
-      setShowTierSelection(true);
-      return;
-    }
-    
     setRegistering(true);
-    setShowTierSelection(false);
     try {
-      // Determine if it's a paid flow
-      let isPaid = event?.isPaid;
-      let price = event?.price;
-      
-      if (tierName && event?.ticketTiers) {
-        const tier = (event.ticketTiers as any[]).find((t: any) => t.name === tierName);
-        if (tier) {
-          isPaid = tier.price > 0;
-          price = tier.price;
-        }
-      }
-
-      if (isPaid && price && price > 0) {
-        // Stripe Flow
-        const { url } = await createCheckoutSession({
-          eventId,
-          userId: user._id || user.id,
-          tierName,
-          discountCode: appliedDiscount ? discountCode : undefined,
-        });
-        if (url) {
-          window.location.href = url;
-        } else {
-          throw new Error("Failed to create checkout session");
-        }
+      const result = await registerForEvent(eventId, { tierName });
+      if (result.success) {
+        toast({ title: 'Registered! 🎉', description: `Your ticket number is ${result.ticketNumber}` });
+        const status = await getRegistrationStatus(eventId);
+        setRegistration(status);
       } else {
-        // Free Registration Flow
-        await registerMutation({ eventId: eventId as any, tierName });
-        toast({ title: 'Registered! 🎉' });
+        toast({ title: 'Already Registered', description: result.message, variant: 'default' });
       }
     } catch (e: any) {
-      console.error(e);
-      toast({ title: 'Registration Failed', description: e.message || "Please try again", variant: 'destructive' });
+      toast({ title: 'Registration Failed', description: e.message, variant: 'destructive' });
     } finally {
       setRegistering(false);
     }
@@ -218,7 +153,7 @@ export default function EventDetailsClient({ eventId }: { eventId: string }) {
       <div className="container -mt-20 relative z-10">
         <div className="grid lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-6">
-            <AnnouncementBanner eventId={event._id} />
+            <AnnouncementBanner eventId={event.id} />
             <Card className="bg-white/5 border-white/10 text-white">
               <CardContent className="p-8">
                 <div className="flex items-center gap-2 mb-4">
@@ -246,7 +181,7 @@ export default function EventDetailsClient({ eventId }: { eventId: string }) {
                   <Progress value={capacityPercent} className="h-2" />
                 </div>
 
-                <EventReactions eventId={event._id} />
+                <EventReactions eventId={event.id} />
 
                 <div className="mt-6">
                   <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -320,15 +255,15 @@ export default function EventDetailsClient({ eventId }: { eventId: string }) {
                     </TabsContent>
 
                     <TabsContent value="discussion">
-                      <EventDiscussionBoard eventId={event._id} />
+                      <EventDiscussionBoard eventId={event.id} />
                     </TabsContent>
 
                     <TabsContent value="photos">
-                      <EventGallery eventId={event._id} isRegistered={isRegistered} />
+                      <EventGallery eventId={event.id} isRegistered={isRegistered} />
                     </TabsContent>
 
                     <TabsContent value="polls">
-                      <EventPolls eventId={event._id} isOrganizer={!!isOrganizer} />
+                      <EventPolls eventId={event.id} isOrganizer={!!isOrganizer} />
                     </TabsContent>
                   </Tabs>
                 </div>
@@ -424,7 +359,7 @@ export default function EventDetailsClient({ eventId }: { eventId: string }) {
 
                   event={{
 
-                    id: event._id,
+                    id: event.id,
 
                     title: event.title,
 

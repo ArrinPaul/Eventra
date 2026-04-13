@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { Event } from '@/types';
 import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
@@ -10,6 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { EventForm } from './event-form';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import Link from 'next/link';
+import { getEvents, createEvent, updateEvent, deleteEvent } from '@/app/actions/events';
 
 function EventCard({ event, isOrganizer, onEdit, onDelete }: { event: Event; isOrganizer: boolean; onEdit: (event: Event) => void; onDelete: (eventId: string) => void; }) {
   const displayDate = event.startDate ? new Date(event.startDate) : (event.date ? new Date(event.date) : new Date());
@@ -60,56 +61,41 @@ export default function EventsClient() {
   const { user } = useAuth();
   const { toast } = useToast();
 
-  // TODO: wire to backend actions/queries
-  const allEventsRaw: any[] = [];
-  const createEventMutation = async (_data: any) => Promise.resolve();
-  const updateEventMutation = async (_data: any) => Promise.resolve();
-  const deleteEventMutation = async (_data: any) => Promise.resolve();
-  
-
+  const [events, setEvents] = useState<Event[]>([]);
+  const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
 
-  const loading = allEventsRaw === undefined;
   const isOrganizer = user?.role === 'organizer' || user?.role === 'admin';
 
-  const events: Event[] = (allEventsRaw || []).map((e: any) => ({
-    ...e,
-    id: e._id,
-  }));
+  async function loadEvents() {
+    setLoading(true);
+    try {
+      const data = await getEvents();
+      setEvents(data as any);
+    } catch (error) {
+      toast({ title: 'Error', description: 'Failed to load events.', variant: 'destructive' });
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    loadEvents();
+  }, []);
 
   const handleSave = async (eventData: Omit<Event, 'id'>) => {
     try {
       if (editingEvent) {
-        await updateEventMutation({ 
-          id: editingEvent.id as any, 
-          updates: {
-            ...eventData,
-            startDate: new Date(eventData.startDate).getTime(),
-            endDate: new Date(eventData.endDate).getTime(),
-          } 
-        });
+        await updateEvent(editingEvent.id, eventData);
         toast({ title: 'Event Updated', description: `"${eventData.title}" has been updated.` });
       } else {
-        const newEvent = {
-          ...eventData,
-          organizationId: user?.organizationId || 'default',
-          startDate: new Date(eventData.startDate || Date.now()).getTime(),
-          endDate: new Date(eventData.endDate || Date.now()).getTime(),
-          status: 'published',
-          registeredCount: 0,
-          capacity: eventData.capacity || 100,
-          organizerId: (user?._id || user?.id) as any,
-          type: eventData.type || 'event',
-          category: eventData.category || 'general',
-          description: eventData.description || '',
-          location: eventData.location || {},
-        };
-        await createEventMutation(newEvent);
+        await createEvent(eventData);
         toast({ title: 'Event Created', description: `"${eventData.title}" has been added.` });
       }
       setEditingEvent(null);
       setIsDialogOpen(false);
+      loadEvents(); // Refresh list
     } catch (error) {
       console.error('Error saving event:', error);
       toast({ title: 'Error', description: 'Failed to save event.', variant: 'destructive' });
@@ -123,8 +109,9 @@ export default function EventsClient() {
   
   const handleDelete = async (eventId: string) => {
     try {
-      await deleteEventMutation({ id: eventId as any });
+      await deleteEvent(eventId);
       toast({ title: 'Event Deleted', variant: 'destructive' });
+      loadEvents(); // Refresh list
     } catch (error) {
       console.error('Error deleting event:', error);
       toast({ title: 'Error', description: 'Failed to delete event.', variant: 'destructive' });
