@@ -1,182 +1,133 @@
 'use client';
-// 
+
 import { useEffect, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
+import { supabase } from '@/lib/supabase/client';
+import { markNotificationRead } from '@/app/actions/notifications';
 
 /**
  * Global component that watches for new notifications and shows a toast
+ * and handles push notifications/emails triggers
  */
 export function NotificationWatcher() {
   const { user } = useAuth();
   const { toast } = useToast();
   const lastNotifIdRef = useRef<string | null>(null);
-  // TODO: wire to backend queries/actions
-  const latestNotification: any[] = [];
-  const subscribePush = async (_args: any) => Promise.resolve();
-  const markRead = async (_args: any) => Promise.resolve();
 
   useEffect(() => {
-    // Request notification permission on mount
+    // 1. Request browser notification permission on mount
     if (typeof window !== 'undefined' && 'Notification' in window) {
       if (Notification.permission === 'default') {
-        Notification.requestPermission().then(permission => {
-          if (permission === 'granted' && user) {
-            setupPushSubscription();
-          }
-        });
-      } else if (Notification.permission === 'granted' && user) {
-        setupPushSubscription();
+        Notification.requestPermission();
       }
     }
-  }, [user]);
-
-  const setupPushSubscription = async () => {
-    if (!('serviceWorker' in navigator) || !user) return;
-
-    try {
-      const registration = await navigator.serviceWorker.ready;
-      
-      // Check if we already have a subscription
-      let subscription = await registration.pushManager.getSubscription();
-      
-      if (!subscription) {
-        // In a real app, the VAPID_PUBLIC_KEY would come from environment variables via an API or public config
-        // For this implementation, we check if it's available in the window or use a placeholder if not set
-        const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
-        
-        if (!VAPID_PUBLIC_KEY) {
-          console.warn("VAPID Public Key not found. Push subscription skipped.");
-          return;
-        }
-
-        subscription = await registration.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey: VAPID_PUBLIC_KEY
-        });
-      }
-
-      // Send subscription to server
-      const p256dh = btoa(String.fromCharCode.apply(null, new Uint8Array(subscription.getKey('p256dh')!) as any));
-      const auth = btoa(String.fromCharCode.apply(null, new Uint8Array(subscription.getKey('auth')!) as any));
-
-      await subscribePush({
-        endpoint: subscription.endpoint,
-        p256dh,
-        auth,
-        userAgent: navigator.userAgent
-      });
-    } catch (error) {
-      console.error('Push subscription failed:', error);
-    }
-  };
+  }, []);
 
   useEffect(() => {
-    if (!latestNotification || latestNotification.length === 0) return;
+    if (!user) return;
 
-    const newest = latestNotification[0];
-    
-    // If it's a new notification ID we haven't seen this session, and it's unread
-    if (newest._id !== lastNotifIdRef.current && !newest.read) {
-      // Don't toast if it's older than 1 minute
-      const isRecent = Date.now() - newest.createdAt < 60000;
-      
-      if (isRecent) {
-        // Special case: Email triggers
-        if (newest.type === 'email') {
-          if (newest.message.startsWith('CONFIRMATION_EMAIL:')) {
-            handleEmailTrigger(newest, 'confirmation');
+    // 2. Real-time Subscription for notifications
+    const channel = supabase
+      .channel(`watcher:${user.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${user.id}`,
+        },
+        async (payload) => {
+          const newest = payload.new as any;
+          
+          // Prevent double processing if already handled by other components
+          if (newest.id === lastNotifIdRef.current) return;
+          lastNotifIdRef.current = newest.id;
+
+          // Special case: Email triggers
+          // These are "hidden" notifications that trigger background actions
+          if (newest.type === 'email' || newest.message.startsWith('EMAIL_TRIGGER:')) {
+            handleEmailTrigger(newest);
             return;
           }
-          if (newest.message.startsWith('CERTIFICATE_EMAIL:')) {
-            handleEmailTrigger(newest, 'certificate');
-            return;
-          }
-          if (newest.message.startsWith('REMINDER_EMAIL:')) {
-            handleEmailTrigger(newest, 'reminder');
-            return;
-          }
-        }
 
-        // 1. Show Toast
-        toast({
-          title: newest.title,
-          description: newest.message,
-        });
-
-        // 2. Show Browser Notification if permitted
-        if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
-          new Notification(newest.title, {
-            body: newest.message,
-            icon: '/favicon.ico',
+          // 1. Show Toast
+          toast({
+            title: newest.title,
+            description: newest.message,
           });
-        }
-      }
-      
-      lastNotifIdRef.current = newest._id;
-    }
-  }, [latestNotification, toast]);
 
-  const handleEmailTrigger = async (notif: any, type: 'confirmation' | 'certificate' | 'reminder') => {
+          // 2. Show Browser Notification if permitted
+          if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+            new Notification(newest.title, {
+              body: newest.message,
+              icon: '/favicon.ico',
+            });
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, toast]);
+
+  const handleEmailTrigger = async (notif: any) => {
     if (!user?.email) return;
     
-    // Mark as read immediately to prevent multiple triggers
-    await markRead({ id: notif._id });
+    // Mark as read immediately to prevent multiple triggers if subscription re-fires
+    await markNotificationRead(notif.id);
 
     try {
-      const parts = notif.message.split(':');
+      // Logic for different email types based on message content
       let subject = '';
       let html = '';
+      
+      const message = notif.message.replace('EMAIL_TRIGGER:', '');
+      const parts = message.split('|');
+      const type = parts[0]; // confirmation, certificate, reminder
 
       if (type === 'confirmation') {
-        const ticketNumber = parts[2];
-        subject = `Registration Confirmed! - ${ticketNumber}`;
+        const ticketNumber = parts[1] || 'N/A';
+        const eventTitle = parts[2] || 'the event';
+        subject = `Registration Confirmed: ${eventTitle}`;
         html = `
-          <div style="font-family: sans-serif; padding: 20px; color: #333;">
-            <h1 style="color: #06b6d4;">Registration Confirmed! 🎉</h1>
+          <div style="font-family: sans-serif; padding: 20px; color: #333; max-width: 600px; margin: auto; border: 1px solid #eee; border-radius: 10px;">
+            <h1 style="color: #06b6d4; text-align: center;">Registration Confirmed! 🎉</h1>
             <p>Hello ${user.name || 'Attendee'},</p>
-            <p>Your registration for the event has been successfully confirmed.</p>
-            <div style="background: #f8fafc; padding: 15px; border-radius: 10px; margin: 20px 0;">
-              <p><strong>Ticket Number:</strong> ${ticketNumber}</p>
-              <p><strong>Status:</strong> Confirmed</p>
+            <p>Your registration for <strong>${eventTitle}</strong> has been successfully confirmed.</p>
+            <div style="background: #f8fafc; padding: 20px; border-radius: 10px; margin: 20px 0; border-left: 4px solid #06b6d4;">
+              <p style="margin: 0; font-size: 14px; color: #64748b;">Ticket Number</p>
+              <p style="margin: 5px 0 0 0; font-size: 24px; font-weight: bold; color: #0f172a; letter-spacing: 2px;">${ticketNumber}</p>
             </div>
-            <p>You can view and download your full ticket in the Eventra app.</p>
-            <br/>
-            <p>See you there!</p>
-            <p>The Eventra Team</p>
+            <p>You can view and download your QR code ticket in the Eventra app under "My Tickets".</p>
+            <div style="text-align: center; margin-top: 30px;">
+              <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://eventra.com'}/tickets" style="background: #06b6d4; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">View My Tickets</a>
+            </div>
+            <p style="margin-top: 40px; font-size: 12px; color: #94a3b8; text-align: center;">The Eventra Team</p>
           </div>
         `;
       } else if (type === 'certificate') {
-        const certNumber = parts[2];
-        subject = `Your Certificate is Ready! 🏆`;
+        const eventTitle = parts[1] || 'the event';
+        subject = `Congratulations! Your certificate for ${eventTitle} is ready`;
         html = `
-          <div style="font-family: sans-serif; padding: 20px; color: #333;">
-            <h1 style="color: #06b6d4;">Congratulations! 🏆</h1>
+          <div style="font-family: sans-serif; padding: 20px; color: #333; max-width: 600px; margin: auto; border: 1px solid #eee; border-radius: 10px;">
+            <h1 style="color: #06b6d4; text-align: center;">Certificate Ready! 🏆</h1>
             <p>Hello ${user.name || 'Attendee'},</p>
-            <p>You have successfully completed the event, and your certificate of participation is now available.</p>
-            <div style="background: #f8fafc; padding: 15px; border-radius: 10px; margin: 20px 0;">
-              <p><strong>Certificate ID:</strong> ${certNumber}</p>
+            <p>Congratulations on completing <strong>${eventTitle}</strong>! Your official certificate of participation is now available for download.</p>
+            <p>You can access it from your profile under the "Certificates" tab.</p>
+            <div style="text-align: center; margin-top: 30px;">
+              <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://eventra.com'}/profile" style="background: #06b6d4; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Download Certificate</a>
             </div>
-            <p>You can download it from your profile under "Certificates".</p>
-            <br/>
-            <p>Best regards,</p>
-            <p>The Eventra Team</p>
+            <p style="margin-top: 40px; font-size: 12px; color: #94a3b8; text-align: center;">Well done from the Eventra Team!</p>
           </div>
         `;
-      } else if (type === 'reminder') {
-        const eventTitle = parts[2];
-        subject = `Reminder: ${eventTitle} is starting soon! ⏰`;
-        html = `
-          <div style="font-family: sans-serif; padding: 20px; color: #333;">
-            <h1 style="color: #06b6d4;">Event Reminder ⏰</h1>
-            <p>Hello ${user.name || 'Attendee'},</p>
-            <p>This is a friendly reminder that <strong>"${eventTitle}"</strong> is starting soon.</p>
-            <p>Make sure you have your ticket ready for check-in!</p>
-            <br/>
-            <p>See you soon,</p>
-            <p>The Eventra Team</p>
-          </div>
-        `;
+      } else {
+        // Generic email fallback
+        subject = notif.title;
+        html = `<p>${notif.message}</p>`;
       }
       
       await fetch('/api/send-email', {
@@ -189,10 +140,11 @@ export function NotificationWatcher() {
         })
       });
     } catch (e) {
-      console.error("Failed to send email:", e);
+      console.error("Failed to send email trigger:", e);
     }
   };
 
   return null;
 }
+
 

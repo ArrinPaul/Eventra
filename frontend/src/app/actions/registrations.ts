@@ -1,11 +1,14 @@
 'use server';
 
 import { db } from '@/lib/db';
-import { tickets, events, waitlist, ticketTiers } from '@/lib/db/schema';
+import { tickets, events, waitlist, ticketTiers, notifications } from '@/lib/db/schema';
 import { auth } from '@/auth';
 import { eq, and, desc, sql } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { validateRole } from '@/lib/auth-utils';
+
+import { logActivity } from './feed';
+import { awardXP } from './gamification';
 
 /**
  * Register a user for an event (Create a ticket or join waitlist)
@@ -80,7 +83,29 @@ export async function registerForEvent(eventId: string, data?: { tierId?: string
           .set({ registeredCount: sql`${ticketTiers.registeredCount} + 1` })
           .where(eq(ticketTiers.id, data.tierId));
       }
+
+      // Create notification to trigger email
+      await tx.insert(notifications).values({
+        userId: user.id,
+        title: 'Registration Confirmed',
+        message: `EMAIL_TRIGGER:confirmation|${ticketNumber}|${event.title}`,
+        type: 'email',
+      });
     });
+
+    // Log Activity
+    await logActivity({
+      userId: user.id,
+      type: 'registration',
+      targetId: eventId,
+      metadata: {
+        eventTitle: event.title,
+        ticketNumber
+      }
+    });
+
+    // Award XP
+    await awardXP(user.id, 100, `Registering for ${event.title}`);
 
     revalidatePath(`/events/${eventId}`);
     revalidatePath('/tickets');

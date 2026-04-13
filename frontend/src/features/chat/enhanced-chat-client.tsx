@@ -84,10 +84,34 @@ export default function EnhancedChatClient({ initialRoomId }: { initialRoomId?: 
           filter: `room_id=eq.${selectedRoomId}`,
         },
         async (payload) => {
-          // In a real app, we'd fetch the sender info too. 
-          // For now, let's just re-fetch or append if we have info.
-          const newMsg = await getChatMessages(selectedRoomId, 1);
-          setMessages((prev) => [...prev, ...newMsg]);
+          // Fetch sender info for the new message
+          const { data: userData } = await supabase
+            .from('users')
+            .select('id, name, image')
+            .eq('id', payload.new.sender_id)
+            .single();
+
+          const formattedMsg = {
+            message: {
+              id: payload.new.id,
+              content: payload.new.content,
+              imageUrl: payload.new.image_url,
+              senderId: payload.new.sender_id,
+              createdAt: payload.new.created_at,
+            },
+            sender: userData || { id: payload.new.sender_id, name: 'Unknown', image: null }
+          };
+
+          setMessages((prev) => {
+            // Prevent duplicates (e.g. if my own message comes back via realtime)
+            if (prev.some(m => m.message.id === formattedMsg.message.id)) return prev;
+            return [...prev, formattedMsg];
+          });
+          
+          // Scroll to bottom
+          setTimeout(() => {
+            messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+          }, 100);
         }
       )
       .subscribe();

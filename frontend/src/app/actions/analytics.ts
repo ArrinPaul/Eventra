@@ -2,7 +2,7 @@
 
 import { validateRole } from '@/lib/auth-utils';
 import { db } from '@/lib/db';
-import { events, registrations, ticketTiers } from '@/lib/db/schema';
+import { events, tickets, ticketTiers } from '@/lib/db/schema';
 import { eq, sql, sum } from 'drizzle-orm';
 import { ai } from '@/lib/ai';
 
@@ -36,9 +36,9 @@ export async function getOrganizerAnalytics(organizerId: string): Promise<Organi
     
     // Revenue (Sum of all confirmed registrations for organizer's events)
     const revenueData = await db
-      .select({ total: sum(registrations.price) })
-      .from(registrations)
-      .innerJoin(events, eq(registrations.eventId, events.id))
+      .select({ total: sum(tickets.price) })
+      .from(tickets)
+      .innerJoin(events, eq(tickets.eventId, events.id))
       .where(eq(events.organizerId, organizerId));
     
     const totalRevenue = Number(revenueData[0]?.total || 0);

@@ -9,7 +9,7 @@ export async function POST(req: Request) {
   const session = await auth();
   const userId = session?.user?.id;
 
-  const { question, agenda, eventId } = await req.json();
+  const { question, eventContext, eventId } = await req.json();
 
   if (!question || !eventId) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -57,9 +57,10 @@ export async function POST(req: Request) {
     // 3. Run AI Flow
     const { answer } = await aiChatbotFlow({
       question,
-      eventContext: agenda,
-      history,
+      eventContext,
+      messages: history,
     });
+
 
     // 4. Save messages to DB if authenticated
     if (userId) {

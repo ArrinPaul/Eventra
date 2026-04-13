@@ -3,9 +3,9 @@
 import { validateEventOwnership, validateRole } from '@/lib/auth-utils';
 import { db } from '@/lib/db';
 import { events, eventFeedback } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, and, gte } from 'drizzle-orm';
 import { eventSummarizerFlow, socialMediaPostFlow, predictiveAttendanceFlow, aiSentimentAnalysisFlow } from '@/lib/ai';
-import { registrations } from '@/lib/db/schema';
+import { tickets } from '@/lib/db/schema';
 import { sql } from 'drizzle-orm';
 
 export async function generateSocialMediaPosts(eventId: string) {
@@ -56,8 +56,8 @@ export async function getPredictiveAttendance(eventId: string) {
         count: sql<number>`count(*)::int`,
         date: sql<string>`DATE(purchase_date)`
       })
-      .from(registrations)
-      .where(sql`event_id = ${eventId} AND purchase_date >= ${sevenDaysAgo.toISOString()}`)
+      .from(tickets)
+      .where(and(eq(tickets.eventId, eventId), gte(tickets.purchaseDate, sevenDaysAgo)))
       .groupBy(sql`DATE(purchase_date)`)
       .orderBy(sql`DATE(purchase_date)`);
 

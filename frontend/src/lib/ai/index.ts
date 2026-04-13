@@ -1,4 +1,4 @@
-import { genkit, embed } from 'genkit';
+import { genkit } from 'genkit';
 import { googleAI, textEmbedding004 } from '@genkit-ai/googleai';
 import { z } from 'zod';
 
@@ -13,7 +13,7 @@ export const ai = genkit({
  * Generate embeddings for a given text
  */
 export async function generateEmbedding(text: string) {
-  const result = await embed({
+  const result = await ai.embed({
     embedder: textEmbedding004,
     content: text,
   });
@@ -29,7 +29,7 @@ export const aiChatbotFlow = ai.defineFlow(
     inputSchema: z.object({
       question: z.string(),
       eventContext: z.string(),
-      history: z.array(z.any()).optional(),
+      messages: z.array(z.any()).optional(),
     }),
     outputSchema: z.object({
       answer: z.string(),
@@ -50,7 +50,7 @@ export const aiChatbotFlow = ai.defineFlow(
 
     const result = await ai.generate({
       prompt,
-      history: input.history,
+      messages: input.messages,
     });
 
     return { answer: result.text };

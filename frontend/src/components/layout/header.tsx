@@ -131,6 +131,7 @@ export default function Header() {
               <Search className="w-5 h-5" />
             </Button>
 
+            <NotificationBell />
             <LanguageSwitcher />
             <ThemeToggle />
             

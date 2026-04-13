@@ -19,8 +19,8 @@ export function AttendancePredictor({ eventId }: { eventId: string }) {
     try {
       const result = await getPredictiveAttendance(eventId);
       setPrediction({
-        predictedShowRate: result.confidence,
-        predictedAttendance: result.predicted,
+        predictedShowRate: result.confidenceScore * 100,
+        predictedAttendance: result.predictedTotal,
         insights: [
           'Current registration momentum suggests a healthy turnout.',
           'Reminder notifications 24h before start can improve attendance.',
@@ -63,9 +63,9 @@ export function AttendancePredictor({ eventId }: { eventId: string }) {
           <div className="space-y-6 animate-in fade-in duration-500">
             <div className="text-center p-4 bg-emerald-500/10 rounded-2xl border border-emerald-500/20">
               <p className="text-xs text-emerald-400 uppercase font-bold tracking-widest mb-1">Predicted Show Rate</p>
-              <p className="text-4xl font-black text-white">{(prediction.predictedShowRate * 100).toFixed(0)}%</p>
+              <p className="text-4xl font-black text-white">{prediction.predictedShowRate.toFixed(0)}%</p>
               <div className="mt-3 space-y-1">
-                <Progress value={prediction.predictedShowRate * 100} className="h-1.5 bg-white/5" />
+                <Progress value={prediction.predictedShowRate} className="h-1.5 bg-white/5" />
                 <p className="text-[10px] text-gray-500">
                   Estimated {prediction.predictedAttendance} attendees
                 </p>

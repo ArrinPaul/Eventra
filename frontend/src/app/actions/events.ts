@@ -1,7 +1,7 @@
 'use server';
 
 import { db } from '@/lib/db';
-import { events, users, registrations } from '@/lib/db/schema';
+import { events, users, tickets } from '@/lib/db/schema';
 import { auth } from '@/auth';
 import { eq, desc, and, gte, lte, or, ilike, sql } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
@@ -9,6 +9,9 @@ import type { EventraEvent } from '@/types';
 import { validateRole, validateEventOwnership } from '@/lib/auth-utils';
 import { generateEmbedding } from '@/lib/ai';
 import { RRule } from 'rrule';
+
+import { logActivity } from './feed';
+import { awardXP } from './gamification';
 
 /**
  * Fetch events with optional filtering
@@ -107,6 +110,18 @@ export async function createEvent(data: any) {
     }).returning();
 
     const parentEvent = newEvent[0];
+
+    // Log Activity
+    await logActivity({
+      userId: user.id,
+      type: 'event_created',
+      targetId: parentEvent.id,
+      content: parentEvent.title,
+      metadata: { category: parentEvent.category }
+    });
+
+    // Award XP
+    await awardXP(user.id, 100, 'Creating an event');
 
     // Generate embedding in background
     updateEventEmbedding(parentEvent.id).catch(err => console.error('Initial embedding failed:', err));
@@ -287,9 +302,12 @@ export async function updateEventEmbedding(eventId: string) {
     const contentToEmbed = `${event.title} ${event.category} ${event.description}`;
     const embeddingResponse = await generateEmbedding(contentToEmbed);
     
+    // The embedding is in embeddingResponse[0].embedding
+    const vectorData = embeddingResponse[0].embedding;
+
     await db
       .update(events)
-      .set({ embedding: embeddingResponse.values })
+      .set({ embedding: vectorData })
       .where(eq(events.id, eventId));
 
     return { success: true };
@@ -311,7 +329,7 @@ export async function getRecommendedEventsByVector(userId: string) {
     if (!user || !user.interests) return [];
 
     const userEmbeddingResponse = await generateEmbedding(user.interests);
-    const userVector = userEmbeddingResponse.values;
+    const userVector = userEmbeddingResponse[0].embedding;
 
     // Fetch all events with embeddings
     const allEvents = await db
@@ -333,7 +351,8 @@ export async function getRecommendedEventsByVector(userId: string) {
       let dotProduct = 0;
       let magA = 0;
       let magB = 0;
-      for (let i = 0; i < Math.min(userVector.length, eventVector.length); i++) {
+      const len = Math.min(userVector.length, eventVector.length);
+      for (let i = 0; i < len; i++) {
         dotProduct += userVector[i] * eventVector[i];
         magA += userVector[i] * userVector[i];
         magB += eventVector[i] * eventVector[i];

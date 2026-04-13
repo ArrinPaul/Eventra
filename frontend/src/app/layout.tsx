@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { Providers } from '@/components/providers';
 import { Toaster } from '@/components/ui/toaster';
+import { NotificationWatcher } from '@/features/notifications/notification-watcher';
 import { Fraunces, Manrope } from 'next/font/google';
 import { baseMetadata, viewport as seoViewport, generateOrganizationSchema } from '@/core/services/seo';
 import { NextIntlClientProvider } from 'next-intl';
@@ -60,6 +61,7 @@ export default async function RootLayout({
         <NextIntlClientProvider locale={safeLocale} messages={messages}>
           <Providers>
             {children}
+            <NotificationWatcher />
             <Toaster />
           </Providers>
         </NextIntlClientProvider>

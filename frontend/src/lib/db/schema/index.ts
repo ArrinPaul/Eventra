@@ -1,5 +1,13 @@
-import { pgTable, text, timestamp, integer, boolean, uuid, jsonb, decimal, primaryKey } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, integer, boolean, uuid, jsonb, decimal, primaryKey, customType } from 'drizzle-orm/pg-core';
+import { relations } from 'drizzle-orm';
 import type { AdapterAccount } from "next-auth/adapters";
+
+// Custom type for pgvector
+const vector = customType<{ data: number[] }>({
+  dataType() {
+    return 'vector(768)';
+  },
+});
 
 // --- Auth.js / NextAuth Required Tables ---
 
@@ -39,7 +47,7 @@ export const users = pgTable('users', {
   mobile: text('mobile'),
 
   // AI Context
-  embedding: jsonb('embedding'),
+  embedding: vector('embedding'),
 
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
@@ -98,7 +106,7 @@ export const events = pgTable('events', {
   visibility: text('visibility').default('public').notNull(), // public, private, unlisted
   
   // AI Context
-  embedding: jsonb('embedding'), // Store as JSONB for now if vector extension is not guaranteed, or use custom type
+  embedding: vector('embedding'),
   
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
@@ -125,6 +133,7 @@ export const tickets = pgTable('tickets', {
   purchaseDate: timestamp('purchase_date').defaultNow().notNull(),
   price: decimal('price', { precision: 10, scale: 2 }).notNull(),
   qrCode: text('qr_code'),
+  personalizedMessage: text('personalized_message'), // AI Generated
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
@@ -261,3 +270,103 @@ export const eventFeedback = pgTable('event_feedback', {
   comment: text('content'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
+
+export const activityFeed = pgTable('activity_feed', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: text('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  type: text('type').notNull(), // 'registration', 'post', 'comment', 'event_created', 'badge_awarded'
+  actorId: text('actor_id').references(() => users.id), // Who performed the action
+  targetId: text('target_id'), // UUID of the related entity (event, post, etc.)
+  content: text('content'), // Optional text snippet
+  metadata: jsonb('metadata'), // Extra context (e.g. { eventTitle: '...', postExcerpt: '...' })
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+// --- Relations ---
+
+export const eventsRelations = relations(events, ({ many }) => ({
+  ticketTiers: many(ticketTiers),
+  tickets: many(tickets),
+  waitlist: many(waitlist),
+  chatRooms: many(chatRooms),
+  aiChatSessions: many(aiChatSessions),
+  feedback: many(eventFeedback),
+}));
+
+export const ticketTiersRelations = relations(ticketTiers, ({ one }) => ({
+  event: one(events, {
+    fields: [ticketTiers.eventId],
+    references: [events.id],
+  }),
+}));
+
+export const ticketsRelations = relations(tickets, ({ one }) => ({
+  event: one(events, {
+    fields: [tickets.eventId],
+    references: [events.id],
+  }),
+  user: one(users, {
+    fields: [tickets.userId],
+    references: [users.id],
+  }),
+  tier: one(ticketTiers, {
+    fields: [tickets.tierId],
+    references: [ticketTiers.id],
+  }),
+}));
+
+export const usersRelations = relations(users, ({ many }) => ({
+  tickets: many(tickets),
+  communities: many(communities),
+  communityMembers: many(communityMembers),
+  posts: many(posts),
+  comments: many(comments),
+  notifications: many(notifications),
+  userBadges: many(userBadges),
+  aiChatSessions: many(aiChatSessions),
+  feedback: many(eventFeedback),
+  activityLogs: many(activityFeed),
+}));
+
+export const communitiesRelations = relations(communities, ({ one, many }) => ({
+  creator: one(users, {
+    fields: [communities.creatorId],
+    references: [users.id],
+  }),
+  members: many(communityMembers),
+  posts: many(posts),
+}));
+
+export const communityMembersRelations = relations(communityMembers, ({ one }) => ({
+  community: one(communities, {
+    fields: [communityMembers.communityId],
+    references: [communities.id],
+  }),
+  user: one(users, {
+    fields: [communityMembers.userId],
+    references: [users.id],
+  }),
+}));
+
+export const postsRelations = relations(posts, ({ one, many }) => ({
+  author: one(users, {
+    fields: [posts.authorId],
+    references: [users.id],
+  }),
+  community: one(communities, {
+    fields: [posts.communityId],
+    references: [communities.id],
+  }),
+  comments: many(comments),
+}));
+
+export const commentsRelations = relations(comments, ({ one }) => ({
+  author: one(users, {
+    fields: [comments.authorId],
+    references: [users.id],
+  }),
+  post: one(posts, {
+    fields: [comments.postId],
+    references: [posts.id],
+  }),
+}));

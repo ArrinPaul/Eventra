@@ -27,8 +27,9 @@ export async function getMatches() {
     if (!user.embedding && (user.interests || user.bio)) {
       const content = `${user.interests || ''} ${user.bio || ''} ${user.role}`;
       const embedding = await generateEmbedding(content);
-      await db.update(users).set({ embedding: embedding.values }).where(eq(users.id, user.id));
-      user.embedding = embedding.values;
+      const vectorData = embedding[0].embedding;
+      await db.update(users).set({ embedding: vectorData }).where(eq(users.id, user.id));
+      user.embedding = vectorData;
     }
 
     // 3. Get potential matches using vector proximity if embeddings exist
@@ -52,10 +53,13 @@ export async function getMatches() {
       // Manual similarity for candidate selection
       potentialMatches = others.map(other => {
         const otherVector = other.embedding as number[];
+        if (!otherVector) return { ...other, similarity: 0 };
+        
         let dotProduct = 0;
         let magA = 0;
         let magB = 0;
-        for (let i = 0; i < Math.min(userVector.length, otherVector.length); i++) {
+        const len = Math.min(userVector.length, otherVector.length);
+        for (let i = 0; i < len; i++) {
           dotProduct += userVector[i] * otherVector[i];
           magA += userVector[i] * userVector[i];
           magB += otherVector[i] * otherVector[i];

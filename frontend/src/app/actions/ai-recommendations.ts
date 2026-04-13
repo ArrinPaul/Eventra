@@ -40,7 +40,7 @@ export async function getAIRecommendations(userId: string) {
       .limit(20);
 
     // 3. Run AI Recommendation Flow
-    const interests = user.interests ? user.interests.split(',').map(i => i.trim()) : [];
+    const interests = user.interests ? user.interests.split(',').map((i: string) => i.trim()) : [];
     
     const { recommendations } = await recommendationFlow({
       userInterests: interests,
@@ -82,7 +82,7 @@ export async function getAIContentRecommendations(userId: string) {
       { id: '3', title: 'Sustainability in Large Scale Gatherings', category: 'Environment' }
     ];
 
-    const interests = user.interests ? user.interests.split(',').map(i => i.trim()) : [];
+    const interests = user.interests ? user.interests.split(',').map((i: string) => i.trim()) : [];
 
     const { recommendedContent } = await contentRecommendationFlow({
       userInterests: interests,
