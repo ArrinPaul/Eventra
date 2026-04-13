@@ -50,7 +50,7 @@ export async function registerForEvent(eventId: string, data?: { tierName?: stri
     await db.transaction(async (tx) => {
       await tx.insert(tickets).values({
         eventId,
-        userId: session.user.id,
+        userId: user.id,
         ticketNumber,
         status: 'confirmed',
         price: event.price,

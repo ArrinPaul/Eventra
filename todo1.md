@@ -3,12 +3,12 @@
 This document tracks the systematic restoration of high-level features from the original vision into the new Supabase + Next.js 15 architecture.
 
 ## 1. Role-Based Access Control (RBAC) & Security 🔐
-- [ ] **Server-side Middleware Guards**: Protect routes based on session roles (e.g., `/admin/*`, `/organizer/*`).
-- [ ] **Action Authorization Utility**: Create a `validateRole` helper for Server Actions to prevent unauthorized database mutations.
-- [ ] **Owner-only Protection**: Ensure organizers can only edit/delete their own events.
+- [x] **Server-side Middleware Guards**: Protect routes based on session roles (e.g., `/admin/*`, `/organizer/*`).
+- [x] **Action Authorization Utility**: Created `validateRole` helper for Server Actions.
+- [x] **Owner-only Protection**: Implemented `validateEventOwnership`.
 
 ## 2. Event Engine Completion 🎫
-- [ ] **Event Cloning**: Restore the `cloneEvent` capability with deep copy of metadata.
+- [x] **Event Cloning**: Restored the `cloneEvent` capability with deep copy of metadata.
 - [ ] **Recurring Events**: Implement the recurrence logic (Daily, Weekly, Monthly).
 - [ ] **Waitlist Logic**: Re-implement the auto-promotion logic when tickets are cancelled.
 - [ ] **Stripe Payments**: Replace the "Free" stub with real Stripe Checkout sessions and Webhook handling.

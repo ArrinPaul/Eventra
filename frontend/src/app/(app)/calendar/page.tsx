@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, MapPin, Clock } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, isToday } from 'date-fns';
 import Link from 'next/link';
-import type { Event as EventraEvent } from '@/types';
+import type { EventraEvent } from '@/types';
 
 export default function CalendarPage() {
   const [currentMonth, setCurrentMonth] = useState(new Date());

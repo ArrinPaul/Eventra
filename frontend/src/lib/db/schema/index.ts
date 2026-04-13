@@ -17,7 +17,27 @@ export const users = pgTable('users', {
   xp: integer('xp').default(0).notNull(),
   bio: text('bio'),
   skills: text('skills').array(),
-  interests: text('interests').array(),
+  interests: text('interests'), // Stored as comma-separated string for now or use array()
+  
+  // Student fields
+  college: text('college'),
+  degree: text('degree'),
+  year: integer('year'),
+
+  // Professional fields
+  company: text('company'),
+  designation: text('designation'),
+  country: text('country'),
+  gender: text('gender'),
+  bloodGroup: text('blood_group'),
+  
+  // Organizer fields
+  organizationName: text('organization_name'),
+  website: text('website'),
+
+  phone: text('phone'),
+  mobile: text('mobile'),
+
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
@@ -142,5 +162,56 @@ export const notifications = pgTable('notifications', {
   type: text('type').notNull(), // 'info', 'success', 'warning', 'error'
   link: text('link'),
   read: boolean('read').default(false).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+// --- New Tables for Social, Chat, and AI ---
+
+export const comments = pgTable('comments', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  content: text('content').notNull(),
+  authorId: text('author_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  postId: uuid('post_id').references(() => posts.id, { onDelete: 'cascade' }).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const follows = pgTable('follows', {
+  followerId: text('follower_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  followingId: text('following_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (t) => ({
+  pk: primaryKey({ columns: [t.followerId, t.followingId] }),
+}));
+
+export const chatRooms = pgTable('chat_rooms', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  name: text('name'),
+  type: text('type').default('direct').notNull(), // direct, group, event
+  eventId: uuid('event_id').references(() => events.id, { onDelete: 'cascade' }),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const chatMessages = pgTable('chat_messages', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  roomId: uuid('room_id').references(() => chatRooms.id, { onDelete: 'cascade' }).notNull(),
+  senderId: text('sender_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  content: text('content').notNull(),
+  imageUrl: text('image_url'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const aiChatSessions = pgTable('ai_chat_sessions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: text('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  eventId: uuid('event_id').references(() => events.id, { onDelete: 'cascade' }),
+  title: text('title').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const aiChatMessages = pgTable('ai_chat_messages', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  sessionId: uuid('session_id').references(() => aiChatSessions.id, { onDelete: 'cascade' }).notNull(),
+  role: text('role').notNull(), // user, assistant
+  content: text('content').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });

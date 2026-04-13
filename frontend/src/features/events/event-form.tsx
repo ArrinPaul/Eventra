@@ -12,7 +12,7 @@ import { useStorage } from '@/lib/storage';
 import { useAuth } from '@/hooks/use-auth';
 import Image from 'next/image';
 import { ImagePlus, Loader2, X } from 'lucide-react';
-import type { Event } from '@/types';
+import type { EventraEvent } from '@/types';
 
 const formSchema = z.object({
   title: z.string().min(3),
@@ -28,11 +28,11 @@ const formSchema = z.object({
 });
 
 type EventFormProps = {
-  onSave: (event: Omit<Event, 'id'>) => Promise<void> | void;
-  event: Event | null;
+  onSave: (event: Omit<EventraEvent, 'id'>) => Promise<void> | void;
+  event: EventraEvent | null;
 };
 
-function getDateString(event: Event): string {
+function getDateString(event: EventraEvent): string {
   if (event.startDate) {
     const date = event.startDate instanceof Date ? event.startDate : new Date(event.startDate);
     return date.toISOString().split('T')[0];
@@ -40,7 +40,7 @@ function getDateString(event: Event): string {
   return '';
 }
 
-function getLocationString(event: Event): string {
+function getLocationString(event: EventraEvent): string {
   if (typeof event.location === 'string') return event.location;
   if (typeof event.location?.venue === 'string') return event.location.venue;
   if (event.location?.venue?.name) return event.location.venue.name;
@@ -143,7 +143,7 @@ export function EventForm({ onSave, event }: EventFormProps) {
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     const startDate = new Date(values.date + 'T' + values.time);
-    const eventData: Omit<Event, 'id'> = {
+    const eventData: Omit<EventraEvent, 'id'> = {
       title: values.title,
       description: values.description,
       startDate: startDate.getTime(),

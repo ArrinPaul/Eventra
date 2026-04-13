@@ -15,7 +15,7 @@ import { cn } from '@/core/utils/utils';
 import type { Id } from '@/types';
 
 interface EngagementMetricsProps {
-  userId: Id<"users">;
+  userId: string;
 }
 
 export function EngagementMetrics({ userId }: EngagementMetricsProps) {

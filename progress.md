@@ -18,10 +18,10 @@ Eventra is envisioned as a high-performance, production-grade event management a
 ## 3. Roadmap to Completion
 
 ### Phase 1: Foundation & Infrastructure (High Priority)
-- [ ] **Database Selection**: Finalize the new database choice (PostgreSQL recommended).
-- [ ] **ORM Setup**: Implement Drizzle ORM or Prisma for type-safe database access.
-- [ ] **Authentication**: Implement a robust Auth solution (e.g., Auth.js / NextAuth) with Google OAuth.
-- [ ] **Schema Design**: Port and improve the 30+ tables from the previous Convex schema to the new DB.
+- [x] **Database Selection**: Finalized the new database choice (PostgreSQL).
+- [x] **ORM Setup**: Implemented Drizzle ORM for type-safe database access.
+- [x] **Authentication**: Implemented Auth.js (NextAuth v5) with Google OAuth and Drizzle Adapter.
+- [x] **Schema Design**: Ported and expanded core tables from the previous Convex schema to the new DB.
 
 ### Phase 2: Core Feature Rework
 - [ ] **Event Engine**: Implement CRUD operations for events using Server Actions.

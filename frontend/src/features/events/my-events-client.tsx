@@ -2,7 +2,7 @@
 // 
 import { useState } from 'react';
 import { useAuth } from '@/hooks/use-auth';
-import { Event } from '@/types';
+import { EventraEvent } from '@/types';
 import { MyEventCard } from '@/features/events/my-event-card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -25,7 +25,7 @@ import Link from 'next/link';
 import { cn } from '@/core/utils/utils';
 import { format, isPast, isFuture, isToday } from 'date-fns';
 
-const getEventDate = (event: Event): Date => {
+const getEventDate = (event: EventraEvent): Date => {
   const dateValue = event.startDate || event.date;
   if (!dateValue) return new Date();
   return new Date(dateValue);
@@ -43,7 +43,7 @@ export default function MyEventsClient() {
 
   const loading = allEventsRaw === undefined;
   
-  const events: Event[] = (allEventsRaw || []).map((e: any) => ({
+  const events: EventraEvent[] = (allEventsRaw || []).map((e: any) => ({
     ...e,
     id: e._id,
   }));
@@ -62,7 +62,7 @@ export default function MyEventsClient() {
 
   const wishlisted = user?.wishlist || [];
 
-  const filterEvents = (events: Event[], tab: string) => {
+  const filterEvents = (events: EventraEvent[], tab: string) => {
     let filtered = events;
     if (searchQuery) {
       filtered = filtered.filter(event =>

@@ -37,8 +37,10 @@ import { useAuth } from '@/hooks/use-auth';
 import { getAIRecommendations } from '@/app/actions/ai-recommendations';
 import { getEvents } from '@/app/actions/events';
 import { cn } from '@/core/utils/utils';
-import type { Event } from '@/types';
+import type { EventraEvent } from '@/types';
 import { getUserInterests, getUserSkills, getUserAttendedEvents } from '@/types';
+
+const ITEMS_PER_PAGE = 12;
 
 const categories = [
   'All',
@@ -80,12 +82,22 @@ export default function ExploreClient() {
   const [sortBy, setSortBy] = useState(searchParams.get('sort') || 'date-desc');
   const [locationFilter, setLocationFilter] = useState(searchParams.get('location') || '');
   const [showOnlyFree, setShowOnlyFree] = useState(false);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+
+  // AI state
+  const [aiRecommendations, setAiRecommendations] = useState<any[]>([]);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
+  const [aiInsights, setAiInsights] = useState<any>(null);
 
   // Data state
-  const [events, setEvents] = useState<Event[]>([]);
+  const [events, setEvents] = useState<EventraEvent[]>([]);
   const [loading, setLoading] = useState(true);
-  const status: string = 'Exhausted';
-  const loadMore = (_count: number) => {};
+  const [status, setStatus] = useState<'Idle' | 'LoadingFirstPage' | 'CanLoadMore' | 'LoadingMore' | 'Exhausted'>('Idle');
+  const loadMore = (count: number) => {
+    // Basic loadMore implementation for now
+    console.log(`Loading ${count} more events`);
+  };
 
   useEffect(() => {
     async function loadData() {

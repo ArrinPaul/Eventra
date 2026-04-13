@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -48,7 +48,7 @@ import { generateEventSummary } from '@/app/actions/event-insights';
 import { Sparkles, MessageSquare } from 'lucide-react';
 
 import { registerForEvent, getRegistrationStatus } from '@/app/actions/registrations';
-import { updateEvent } from '@/app/actions/events';
+import { updateEvent, cloneEvent } from '@/app/actions/events';
 
 export default function EventDetailsClient({ eventId, initialEvent }: { eventId: string, initialEvent: any }) {
   const router = useRouter();
@@ -104,13 +104,45 @@ export default function EventDetailsClient({ eventId, initialEvent }: { eventId:
   const handleClone = async () => {
     setCloning(true);
     try {
-      const newId = await cloneEventMutation({ id: eventId as any });
+      const newId = await cloneEvent(eventId);
       toast({ title: 'Event cloned successfully! 📋', description: 'Redirecting to the new event editor.' });
       router.push(`/events/${newId}/edit`);
     } catch (e: any) {
       toast({ title: 'Clone failed', description: e.message, variant: 'destructive' });
     } finally {
       setCloning(false);
+    }
+  };
+
+  const handleGenerateSummary = async () => {
+    setGeneratingSummary(true);
+    try {
+      const result = await generateEventSummary(eventId);
+      if (result.success) {
+        setEvent({ ...event, summary: result.summary });
+        toast({ title: 'Summary generated!', description: 'AI has analyzed the event details.' });
+      }
+    } catch (e: any) {
+      toast({ title: 'Failed to generate summary', description: e.message, variant: 'destructive' });
+    } finally {
+      setGeneratingSummary(false);
+    }
+  };
+
+  const handleApplyDiscount = async () => {
+    setIsValidatingDiscount(true);
+    try {
+      // Mock discount validation for now as per current Phase 1 status
+      if (discountCode.toLowerCase() === 'welcome10') {
+        setAppliedDiscount({ type: 'percentage', value: 10 });
+        toast({ title: 'Code applied!', description: '10% discount has been applied to your ticket.' });
+      } else {
+        toast({ title: 'Invalid code', description: 'This promo code is not valid or has expired.', variant: 'destructive' });
+      }
+    } catch (e: any) {
+      toast({ title: 'Error', description: 'Could not validate discount code.', variant: 'destructive' });
+    } finally {
+      setIsValidatingDiscount(false);
     }
   };
 

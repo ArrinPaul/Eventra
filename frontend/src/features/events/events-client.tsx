@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import type { Event } from '@/types';
+import type { EventraEvent } from '@/types';
 import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,7 +12,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import Link from 'next/link';
 import { getEvents, createEvent, updateEvent, deleteEvent } from '@/app/actions/events';
 
-function EventCard({ event, isOrganizer, onEdit, onDelete }: { event: Event; isOrganizer: boolean; onEdit: (event: Event) => void; onDelete: (eventId: string) => void; }) {
+function EventCard({ event, isOrganizer, onEdit, onDelete }: { event: EventraEvent; isOrganizer: boolean; onEdit: (event: EventraEvent) => void; onDelete: (eventId: string) => void; }) {
   const displayDate = event.startDate ? new Date(event.startDate) : (event.date ? new Date(event.date) : new Date());
   
   return (
@@ -61,10 +61,10 @@ export default function EventsClient() {
   const { user } = useAuth();
   const { toast } = useToast();
 
-  const [events, setEvents] = useState<Event[]>([]);
+  const [events, setEvents] = useState<EventraEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingEvent, setEditingEvent] = useState<Event | null>(null);
+  const [editingEvent, setEditingEvent] = useState<EventraEvent | null>(null);
 
   const isOrganizer = user?.role === 'organizer' || user?.role === 'admin';
 
@@ -84,7 +84,7 @@ export default function EventsClient() {
     loadEvents();
   }, []);
 
-  const handleSave = async (eventData: Omit<Event, 'id'>) => {
+  const handleSave = async (eventData: Omit<EventraEvent, 'id'>) => {
     try {
       if (editingEvent) {
         await updateEvent(editingEvent.id, eventData);
@@ -102,7 +102,7 @@ export default function EventsClient() {
     }
   };
   
-  const handleEdit = (event: Event) => {
+  const handleEdit = (event: EventraEvent) => {
     setEditingEvent(event);
     setIsDialogOpen(true);
   };

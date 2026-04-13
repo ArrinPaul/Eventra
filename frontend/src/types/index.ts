@@ -71,7 +71,7 @@ export interface AgendaItem {
   type?: string;
 }
 
-export interface Event {
+export interface EventraEvent {
   _id?: string;
   id: string;
   title: string;
@@ -117,7 +117,7 @@ export interface EventTicket {
   ticketTypeId?: string;
   attendeeName?: string;
   attendeeEmail?: string;
-  event?: Partial<Event>;
+  event?: Partial<EventraEvent>;
 }
 
 export interface Session {

@@ -18,9 +18,9 @@ import {
 // import { cn } from '@/core/utils/utils';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
-import type { Event } from '@/types';
+import type { EventraEvent } from '@/types';
 
-export function EventCard({ event, variant = 'default' }: { event: Event, variant?: 'default' | 'compact' | 'featured' }) {
+export function EventCard({ event, variant = 'default' }: { event: EventraEvent, variant?: 'default' | 'compact' | 'featured' }) {
   const router = useRouter();
   const { user } = useAuth();
   const { toast } = useToast();

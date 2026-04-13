@@ -18,11 +18,11 @@ import {
   ExternalLink
 } from 'lucide-react';
 import { cn } from '@/core/utils/utils';
-import type { Event } from '@/types';
+import type { EventraEvent } from '@/types';
 import { format, isPast, isFuture, isToday, differenceInHours, differenceInMinutes } from 'date-fns';
 
 interface MyEventCardProps {
-  event: Event;
+  event: EventraEvent;
   variant?: 'upcoming' | 'past' | 'wishlist';
   onRemoveWishlist?: (eventId: string) => void;
   onRate?: (eventId: string, rating: number) => void;

@@ -2,7 +2,7 @@
 // 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '@/hooks/use-auth';
-import { EventTicket, Event } from '@/types';
+import { EventTicket, EventraEvent } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -60,7 +60,7 @@ export default function CheckInScannerClient() {
   const allEventsRaw: any[] = [];
   const checkInTicketMutation = async (data: any) => ({ ticket: {} });
 
-  const events: Event[] = (allEventsRaw || []).map((e: any) => ({ ...e, id: e._id }));
+  const events: EventraEvent[] = (allEventsRaw || []).map((e: any) => ({ ...e, id: e._id }));
   const organizerEvents = events.filter(e => e.organizerId === (user?._id || user?.id) || user?.role === 'admin');
 
   // Dashboard Queries

@@ -166,3 +166,42 @@ export async function deleteEvent(id: string) {
     throw new Error('Database operation failed');
   }
 }
+
+/**
+ * Clone an existing event
+ */
+export async function cloneEvent(id: string) {
+  // Guard: Must be the owner or an admin
+  const user = await validateEventOwnership(id);
+
+  try {
+    const originalEvent = await db.query.events.findFirst({
+      where: eq(events.id, id)
+    });
+
+    if (!originalEvent) throw new Error('Original event not found');
+
+    const clonedEvent = await db.insert(events).values({
+      title: `${originalEvent.title} (Clone)`,
+      description: originalEvent.description,
+      startDate: originalEvent.startDate,
+      endDate: originalEvent.endDate,
+      imageUrl: originalEvent.imageUrl,
+      category: originalEvent.category,
+      status: 'draft',
+      type: originalEvent.type,
+      location: originalEvent.location,
+      capacity: originalEvent.capacity,
+      organizerId: user.id,
+      price: originalEvent.price,
+      isPaid: originalEvent.isPaid,
+    }).returning();
+
+    revalidatePath('/organizer');
+    
+    return clonedEvent[0].id;
+  } catch (error) {
+    console.error('Failed to clone event:', error);
+    throw new Error('Database operation failed');
+  }
+}

@@ -26,14 +26,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RevenueDashboard } from '@/features/organizer/revenue-dashboard';
 import { useRouter } from 'next/navigation';
 import { getEvents, deleteEvent } from '@/app/actions/events';
-import type { Event } from '@/types';
+import type { EventraEvent } from '@/types';
 
 export default function OrganizerDashboard() {
   const { user } = useAuth();
   const { toast } = useToast();
   const router = useRouter();
   
-  const [managedEvents, setManagedEvents] = useState<Event[]>([]);
+  const [managedEvents, setManagedEvents] = useState<EventraEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState('events');
@@ -59,13 +59,13 @@ export default function OrganizerDashboard() {
     loadData();
   }, [user]);
 
-  const filteredEvents = managedEvents.filter((e: Event) => 
+  const filteredEvents = managedEvents.filter((e: EventraEvent) => 
     e.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const totalRegistrations = managedEvents.reduce((sum: number, e: Event) => sum + (e.registeredCount || 0), 0);
-  const activeEvents = managedEvents.filter((e: Event) => e.status === 'published').length;
-  const totalRevenue = managedEvents.reduce((sum: number, e: Event) => sum + (e.isPaid ? Number(e.price || 0) * (e.registeredCount || 0) : 0), 0);
+  const totalRegistrations = managedEvents.reduce((sum: number, e: EventraEvent) => sum + (e.registeredCount || 0), 0);
+  const activeEvents = managedEvents.filter((e: EventraEvent) => e.status === 'published').length;
+  const totalRevenue = managedEvents.reduce((sum: number, e: EventraEvent) => sum + (e.isPaid ? Number(e.price || 0) * (e.registeredCount || 0) : 0), 0);
 
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this event?')) return;

@@ -3,6 +3,7 @@
 import { useSession, signIn as nextAuthSignIn, signOut as nextAuthSignOut } from 'next-auth/react';
 import { User } from '@/types';
 import { getErrorMessage } from '@/core/utils/utils';
+import { updateUserDetails } from '@/app/actions/users';
 
 export function useAuth() {
   const { data: session, status, update } = useSession();
@@ -41,21 +42,37 @@ export function useAuth() {
 
   const updateUser = async (updatedUser: Partial<User>) => {
     if (!user) return null;
-    const merged = { ...user, ...updatedUser };
-    await update(merged);
-    return merged;
+    
+    try {
+      // 1. Persist to Database
+      const result = await updateUserDetails(updatedUser);
+      
+      // 2. Update Session (triggers session callback on server)
+      await update(result.user);
+      
+      return result.user;
+    } catch (error) {
+      console.error('Failed to update user:', error);
+      throw error;
+    }
   };
 
-  // Mocked points functionality until DB is wired
+  /**
+   * Award points to the current user and persist to DB
+   */
   const awardPoints = async (points: number) => {
     if (!user) return;
+    
     const nextXp = (user.xp || 0) + points;
     const nextLevel = Math.floor(nextXp / 500) + 1;
-    await updateUser({ xp: nextXp, level: nextLevel });
+    const nextPoints = (user.points || 0) + points;
+    
+    await updateUser({ xp: nextXp, level: nextLevel, points: nextPoints });
   };
 
-  const checkInUser = async () => {
+  const checkInUser = async (eventId: string) => {
     if (!user) return;
+    // For now we update user profile, but this could also be a separate check-in action
     await updateUser({ checkedIn: true });
   };
 
