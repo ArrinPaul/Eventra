@@ -76,8 +76,10 @@ export async function getEventById(id: string) {
   }
 }
 
+import { RRule } from 'rrule';
+
 /**
- * Create a new event
+ * Create a new event, with optional recurrence support
  */
 export async function createEvent(data: any) {
   // Guard: Only organizers or admins can create events
@@ -91,22 +93,79 @@ export async function createEvent(data: any) {
       endDate: new Date(data.endDate),
       imageUrl: data.imageUrl,
       category: data.category,
-      status: 'published', // Default to published for now
+      status: 'published',
       type: data.type || 'physical',
       location: data.location || { venue: 'TBD' },
       capacity: data.capacity || 100,
       organizerId: user.id,
       price: data.price || '0',
       isPaid: data.isPaid || false,
+      isRecurring: data.isRecurring || false,
+      recurrenceRule: data.recurrenceRule,
+      waitlistEnabled: data.waitlistEnabled || false,
+      visibility: data.visibility || 'public',
     }).returning();
+
+    const parentEvent = newEvent[0];
+
+    // If it's recurring, generate the first few instances (e.g., next 10 or 3 months)
+    if (data.isRecurring && data.recurrenceRule) {
+      await generateRecurringInstances(parentEvent.id, data.recurrenceRule);
+    }
 
     revalidatePath('/explore');
     revalidatePath('/organizer');
     
-    return { success: true, event: newEvent[0] };
+    return { success: true, event: parentEvent };
   } catch (error) {
     console.error('Failed to create event:', error);
     throw new Error('Database operation failed');
+  }
+}
+
+/**
+ * Helper to generate child instances for a recurring event
+ */
+export async function generateRecurringInstances(parentId: string, ruleString: string) {
+  const parent = await db.query.events.findFirst({ where: eq(events.id, parentId) });
+  if (!parent) return;
+
+  try {
+    const rule = RRule.fromString(ruleString);
+    // Generate instances for the next 3 months, max 12 instances
+    const now = new Date();
+    const threeMonthsFromNow = new Date();
+    threeMonthsFromNow.setMonth(now.getMonth() + 3);
+    
+    const dates = rule.between(now, threeMonthsFromNow, true).slice(1, 13); // Skip first date as it's the parent
+
+    if (dates.length === 0) return;
+
+    const duration = parent.endDate.getTime() - parent.startDate.getTime();
+
+    const instances = dates.map(date => ({
+      title: parent.title,
+      description: parent.description,
+      startDate: date,
+      endDate: new Date(date.getTime() + duration),
+      imageUrl: parent.imageUrl,
+      category: parent.category,
+      status: 'published',
+      type: parent.type,
+      location: parent.location,
+      capacity: parent.capacity,
+      organizerId: parent.organizerId,
+      price: parent.price,
+      isPaid: parent.isPaid,
+      isRecurring: false, // Child instances are not recurring themselves
+      parentEventId: parent.id,
+      waitlistEnabled: parent.waitlistEnabled,
+      visibility: parent.visibility,
+    }));
+
+    await db.insert(events).values(instances);
+  } catch (error) {
+    console.error('Failed to generate recurring instances:', error);
   }
 }
 

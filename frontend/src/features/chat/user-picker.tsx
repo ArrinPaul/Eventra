@@ -1,24 +1,43 @@
 'use client';
-// 
-import { useState } from 'react';
+
+import { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Search, Loader2 } from 'lucide-react';
-import type { Id } from '@/types';
+import { searchUsers } from '@/app/actions/users';
+import { useDebounce } from '@/hooks/use-debounce';
 
 interface UserPickerProps {
-  onSelect: (userId: Id<"users">, name: string) => void;
+  onSelect: (userId: string, name: string) => void;
   excludeIds?: string[];
 }
 
 export function UserPicker({ onSelect, excludeIds = [] }: UserPickerProps) {
   const [query, setQuery] = useState('');
-  const searchResults: any[] = [];
-  const filteredUsers = searchResults.filter((u: any) => !excludeIds.includes(u._id));
-//   
-//   const filteredUsers = searchResults.filter((u: any) => 
-//     !excludeIds.includes(u._id)
-//   );
+  const [loading, setLoading] = useState(false);
+  const [users, setUsers] = useState<any[]>([]);
+  const debouncedQuery = useDebounce(query, 300);
+
+  useEffect(() => {
+    async function performSearch() {
+      if (!debouncedQuery) {
+        setUsers([]);
+        return;
+      }
+
+      setLoading(true);
+      try {
+        const results = await searchUsers(debouncedQuery);
+        setUsers(results.filter((u: any) => !excludeIds.includes(u.id)));
+      } catch (error) {
+        console.error('Search failed:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    performSearch();
+  }, [debouncedQuery, excludeIds]);
 
   return (
     <div className="space-y-4">
@@ -30,18 +49,19 @@ export function UserPicker({ onSelect, excludeIds = [] }: UserPickerProps) {
           onChange={(e) => setQuery(e.target.value)}
           className="pl-9 bg-white/5 border-white/10 text-white"
         />
+        {loading && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-gray-500" />}
       </div>
       
       <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2">
-        {query && filteredUsers.length === 0 ? (
+        {debouncedQuery && !loading && users.length === 0 ? (
           <p className="text-center py-10 text-gray-500 text-sm">No users found.</p>
-        ) : !query ? (
+        ) : !debouncedQuery ? (
            <p className="text-center py-10 text-gray-500 text-sm">Type a name to search...</p>
         ) : (
-          filteredUsers.map((u: any) => (
+          users.map((u: any) => (
             <button
-              key={u._id}
-              onClick={() => onSelect(u._id, u.name || 'User')}
+              key={u.id}
+              onClick={() => onSelect(u.id, u.name || 'User')}
               className="w-full flex items-center gap-3 p-2 hover:bg-white/5 rounded-lg transition-colors text-left"
             >
               <Avatar className="h-10 w-10">
@@ -59,5 +79,3 @@ export function UserPicker({ onSelect, excludeIds = [] }: UserPickerProps) {
     </div>
   );
 }
-
-

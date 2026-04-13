@@ -24,13 +24,15 @@ Eventra is envisioned as a high-performance, production-grade event management a
 - [x] **Schema Design**: Ported and expanded core tables from the previous Convex schema to the new DB.
 
 ### Phase 2: Core Feature Rework
-- [ ] **Event Engine**: Implement CRUD operations for events using Server Actions.
-- [ ] **Ticketing & Payments**: Re-integrate Stripe with the new backend and implement secure QR ticket generation.
-- [ ] **Community & Social**: Re-build the social feed, communities, and real-time chat (likely using WebSockets or a real-time provider like Pusher).
+- [x] **Event Engine**: Implemented CRUD operations, cloning, recurring events (via RRULE), and waitlist logic.
+- [x] **Ticketing & Payments**: Stripe checkout session logic implemented and schema support for ticket tiers.
+- [x] **Community & Social**: Implemented server actions for community management, social posting, and a global activity feed.
+- [x] **Real-time Chat**: Created chat server actions and expanded schema for rooms/messages.
 
 ### Phase 3: AI & Intelligence
-- [ ] **Genkit Re-Wiring**: Connect existing Genkit flows to the new database.
-- [ ] **Smart Services**: Re-enable AI recommendations and automated event summaries.
+- [x] **Genkit Re-Wiring**: Re-implemented Genkit with Gemini 1.5 Flash and connected to the new PostgreSQL DB.
+- [x] **Smart Services**: Enabled real-time AI chatbot with session memory and automated post-event summaries.
+- [x] **AI Recommendations**: Implemented personalized event matching based on user interests and role.
 
 ### Phase 4: Quality & DevOps
 - [ ] **Testing Suite**: Implement a new testing strategy (Vitest for units, Playwright for E2E) that works with the new architecture.

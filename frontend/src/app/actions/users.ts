@@ -3,7 +3,7 @@
 import { db } from '@/lib/db';
 import { users } from '@/lib/db/schema';
 import { auth } from '@/auth';
-import { eq } from 'drizzle-orm';
+import { eq, and, ilike, sql } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 
 /**
@@ -62,19 +62,32 @@ export async function getCurrentUserProfile() {
 }
 
 /**
- * Get a user profile by ID
+ * Search users by name for chat/networking
  */
-export async function getUserProfileById(id: string) {
+export async function searchUsers(query: string) {
+  const session = await auth();
+  if (!session?.user?.id) return [];
+
   try {
     const result = await db
-      .select()
+      .select({
+        id: users.id,
+        name: users.name,
+        image: users.image,
+        role: users.role,
+      })
       .from(users)
-      .where(eq(users.id, id))
-      .limit(1);
+      .where(
+        and(
+          ilike(users.name, `%${query}%`),
+          sql`${users.id} != ${session.user.id}`
+        )
+      )
+      .limit(10);
     
-    return result[0] || null;
+    return result;
   } catch (error) {
-    console.error('Failed to fetch user profile:', error);
-    return null;
+    console.error('Failed to search users:', error);
+    return [];
   }
 }

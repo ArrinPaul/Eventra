@@ -1,12 +1,11 @@
 'use client';
-import { useState, useEffect, useRef, useCallback } from 'react';
+
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import Image from 'next/image';
-import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -26,25 +25,20 @@ import {
 import { cn } from '@/core/utils/utils';
 import { useToast } from '@/hooks/use-toast';
 import { UserPicker } from './user-picker';
+import { getChatRooms, getChatMessages, sendMessage, createChatRoom } from '@/app/actions/chat';
+import { useStorage } from '@/lib/storage';
+import { supabase } from '@/lib/supabase/client';
 
 export default function EnhancedChatClient({ initialRoomId }: { initialRoomId?: string }) {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { uploadFile } = useStorage();
 
   const [selectedRoomId, setSelectedRoomId] = useState<string | null>(initialRoomId || null);
-  // TODO: replace with backend data/mutations
-  const chatRooms: any[] = [];
-  const messages: any[] = [];
-  const status: string = 'Exhausted';
-  const loadMore = (_count: number) => {};
-  const generateUploadUrl = async () => '';
-  const createRoomMutation = async (_args: any) => 'room-id';
-  const sendMessageMutation = async (_args: any) => Promise.resolve();
-//   
-//     selectedRoomId ? { roomId: selectedRoomId as any } : "skip" as any,
-//     { initialNumItems: 20 }
-//   );
-// 
+  const [chatRooms, setChatRooms] = useState<any[]>([]);
+  const [messages, setMessages] = useState<any[]>([]);
+  const [loadingRooms, setLoadingRooms] = useState(true);
+  const [loadingMessages, setLoadingMessages] = useState(false);
   
   const [newMessage, setNewMessage] = useState('');
   const [isCreatingRoom, setIsCreatingRoom] = useState(false);
@@ -56,26 +50,61 @@ export default function EnhancedChatClient({ initialRoomId }: { initialRoomId?: 
 
   const [newRoom, setNewRoom] = useState({ name: '', type: 'group' as const });
 
+  // 1. Fetch Rooms
+  useEffect(() => {
+    async function loadRooms() {
+      const rooms = await getChatRooms();
+      setChatRooms(rooms);
+      setLoadingRooms(false);
+    }
+    loadRooms();
+  }, []);
+
+  // 2. Fetch Messages when room changes
+  useEffect(() => {
+    if (!selectedRoomId) return;
+
+    async function loadMessages() {
+      setLoadingMessages(true);
+      const msgs = await getChatMessages(selectedRoomId);
+      setMessages(msgs);
+      setLoadingMessages(false);
+    }
+    loadMessages();
+
+    // 3. Real-time Subscription
+    const channel = supabase
+      .channel(`room:${selectedRoomId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'chat_messages',
+          filter: `room_id=eq.${selectedRoomId}`,
+        },
+        async (payload) => {
+          // In a real app, we'd fetch the sender info too. 
+          // For now, let's just re-fetch or append if we have info.
+          const newMsg = await getChatMessages(selectedRoomId, 1);
+          setMessages((prev) => [...prev, ...newMsg]);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [selectedRoomId]);
+
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file || !user) return;
 
     setIsUploading(true);
     try {
-      let fileToUpload = file;
-      if (file.type.startsWith('image/')) {
-        fileToUpload = await resizeImage(file, 520, 520);
-      }
-
-      const postUrl = await generateUploadUrl();
-      const result = await fetch(postUrl, {
-        method: "POST",
-        headers: { "Content-Type": fileToUpload.type },
-        body: fileToUpload,
-      });
-      const { storageId } = await result.json();
-      const url = String(storageId || '');
-      setPendingFile({ url, type: fileToUpload.type, name: fileToUpload.name });
+      const url = await uploadFile(file);
+      setPendingFile({ url, type: file.type, name: file.name });
     } catch (e) {
       toast({ title: 'Upload failed', variant: 'destructive' });
     } finally {
@@ -83,66 +112,20 @@ export default function EnhancedChatClient({ initialRoomId }: { initialRoomId?: 
     }
   };
 
-  const resizeImage = (file: File, maxWidth: number, maxHeight: number): Promise<File> => {
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = (event) => {
-        const img = new (window.Image)();
-        img.src = event.target?.result as string;
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          let width = img.width;
-          let height = img.height;
-          if (width > height) {
-            if (width > maxWidth) {
-              height *= maxWidth / width;
-              width = maxWidth;
-            }
-          } else {
-            if (height > maxHeight) {
-              width *= maxHeight / height;
-              height = maxHeight;
-            }
-          }
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext('2d');
-          ctx?.drawImage(img, 0, 0, width, height);
-          canvas.toBlob((blob) => {
-            if (blob) {
-              resolve(new File([blob], file.name, { type: 'image/jpeg', lastModified: Date.now() }));
-            } else {
-              resolve(file);
-            }
-          }, 'image/jpeg', 0.8);
-        };
-      };
-    });
-  };
-
-  const handleStartDM = async (otherUserId: any, name: string) => {
+  const handleStartDM = async (otherUserId: string, name: string) => {
     if (!user) return;
     try {
-      const roomId = await createRoomMutation({
-        name: `${user.name} & ${name}`,
-        type: 'direct',
-        participants: [user._id || user.id, otherUserId] as any
+      const room = await createChatRoom({
+        name: `Chat with ${name}`,
+        type: 'direct'
       });
-      setSelectedRoomId(roomId);
+      setChatRooms(prev => [room, ...prev]);
+      setSelectedRoomId(room.id);
       setIsStartingDM(false);
     } catch (e) {
       toast({ title: 'Failed to start message', variant: 'destructive' });
     }
   };
-
-  // Order messages chronologically for display
-  const sortedMessages = [...(messages || [])].sort((a, b) => a.sentAt - b.sentAt);
-
-  useEffect(() => {
-    if (status === "LoadingFirstPage") return;
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages?.length, status]);
 
   const handleSendMessage = async () => {
     if ((!newMessage.trim() && !pendingFile) || !selectedRoomId) return;
@@ -153,11 +136,10 @@ export default function EnhancedChatClient({ initialRoomId }: { initialRoomId?: 
     setPendingFile(null);
     
     try {
-      await sendMessageMutation({ 
-        roomId: selectedRoomId as any, 
+      await sendMessage({ 
+        roomId: selectedRoomId, 
         content: content || (file ? `Shared a ${file.type.startsWith('image/') ? 'photo' : 'file'}` : ''),
-        fileUrl: file?.url,
-        fileType: file?.type
+        imageUrl: file?.url,
       });
     } catch (e) {
       toast({ title: 'Failed to send', variant: 'destructive' });
@@ -169,11 +151,12 @@ export default function EnhancedChatClient({ initialRoomId }: { initialRoomId?: 
   const handleCreateRoom = async () => {
     if (!newRoom.name.trim() || !user) return;
     try {
-      await createRoomMutation({ 
+      const room = await createChatRoom({ 
         name: newRoom.name, 
-        type: newRoom.type, 
-        participants: [user._id || user.id] as any 
+        type: newRoom.type 
       });
+      setChatRooms(prev => [room, ...prev]);
+      setSelectedRoomId(room.id);
       setIsCreatingRoom(false);
       setNewRoom({ name: '', type: 'group' });
     } catch (e) {
@@ -181,7 +164,7 @@ export default function EnhancedChatClient({ initialRoomId }: { initialRoomId?: 
     }
   };
 
-  const selectedRoom = chatRooms.find((r: any) => r._id === selectedRoomId);
+  const selectedRoom = chatRooms.find((r: any) => r.id === selectedRoomId);
 
   return (
     <div className="flex h-[calc(100vh-4rem)] bg-black text-white">
@@ -198,7 +181,7 @@ export default function EnhancedChatClient({ initialRoomId }: { initialRoomId?: 
               </DialogTrigger>
               <DialogContent className="bg-gray-900 text-white border-white/10">
                 <DialogHeader><DialogTitle>Start a conversation</DialogTitle></DialogHeader>
-                <UserPicker onSelect={handleStartDM} excludeIds={[user?._id || user?.id || '']} />
+                <UserPicker onSelect={handleStartDM} excludeIds={[user?.id || '']} />
               </DialogContent>
             </Dialog>
 
@@ -224,102 +207,78 @@ export default function EnhancedChatClient({ initialRoomId }: { initialRoomId?: 
           </div>
         </div>
         <ScrollArea className="flex-1">
-          <div className="p-2 space-y-1">
-            {chatRooms.map((room: any) => (
-              <button 
-                key={room._id} 
-                className={cn(
-                  "w-full text-left p-3 rounded-xl transition-all flex items-center gap-3", 
-                  selectedRoomId === room._id ? "bg-white/10 text-white" : "text-gray-400 hover:bg-white/5"
-                )} 
-                onClick={() => setSelectedRoomId(room._id)}
-              >
-                <div className="w-10 h-10 rounded-full bg-cyan-500/10 flex items-center justify-center text-cyan-400 shrink-0 font-bold">
-                  {room.type === 'direct' ? room.participantNames?.[0]?.[0] || '?' : '#'}
-                </div>
-                <div className="truncate">
-                  <p className="font-medium truncate text-sm">
-                    {room.type === 'direct' ? (room.participantNames?.join(', ') || 'Direct Message') : room.name}
-                  </p>
-                  {room.lastMessagePreview && (
-                    <p className="text-xs text-gray-500 truncate">{room.lastMessagePreview}</p>
-                  )}
-                </div>
-                {room.unreadCount > 0 && (
-                  <Badge className="ml-auto bg-cyan-600 h-5 w-5 p-0 flex items-center justify-center rounded-full text-[10px]">
-                    {room.unreadCount}
-                  </Badge>
-                )}
-              </button>
-            ))}
-          </div>
+          {loadingRooms ? (
+            <div className="flex justify-center p-8"><Loader2 className="animate-spin text-cyan-500" /></div>
+          ) : (
+            <div className="p-2 space-y-1">
+              {chatRooms.map((room: any) => (
+                <button 
+                  key={room.id} 
+                  className={cn(
+                    "w-full text-left p-3 rounded-xl transition-all flex items-center gap-3", 
+                    selectedRoomId === room.id ? "bg-white/10 text-white" : "text-gray-400 hover:bg-white/5"
+                  )} 
+                  onClick={() => setSelectedRoomId(room.id)}
+                >
+                  <div className="w-10 h-10 rounded-full bg-cyan-500/10 flex items-center justify-center text-cyan-400 shrink-0 font-bold">
+                    {room.type === 'direct' ? room.name?.[0] || '?' : '#'}
+                  </div>
+                  <div className="truncate">
+                    <p className="font-medium truncate text-sm">{room.name || 'Untitled Room'}</p>
+                    <p className="text-[10px] text-gray-500">{room.type}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
         </ScrollArea>
       </div>
 
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col">
-        {selectedRoom ? (
+        {selectedRoomId ? (
           <>
             <div className="p-4 border-b border-white/10 flex items-center justify-between bg-black/40">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-lg bg-cyan-500/20 flex items-center justify-center text-cyan-400">
-                  {selectedRoom.type === 'direct' ? <MessageCircle size={16} /> : <Shield size={16} />}
+                  {selectedRoom?.type === 'direct' ? <MessageCircle size={16} /> : <Shield size={16} />}
                 </div>
-                <h2 className="font-bold text-white">
-                  {selectedRoom.type === 'direct' ? (selectedRoom.participantNames?.join(', ') || 'Direct Message') : selectedRoom.name}
-                </h2>
+                <h2 className="font-bold text-white">{selectedRoom?.name || 'Loading...'}</h2>
               </div>
             </div>
 
             <ScrollArea className="flex-1 p-4">
               <div className="space-y-6">
-                {status === "CanLoadMore" && (
-                  <div className="flex justify-center py-2">
-                    <Button variant="ghost" size="sm" onClick={() => loadMore(20)} className="text-[10px] h-7 text-gray-500 hover:text-cyan-400">
-                      <ChevronUp className="w-3 h-3 mr-1" /> Load earlier messages
-                    </Button>
-                  </div>
-                )}
-                
-                {status === "LoadingMore" && (
-                  <div className="flex justify-center py-2">
-                    <Loader2 className="w-4 h-4 animate-spin text-cyan-500" />
-                  </div>
-                )}
-
-                {sortedMessages.map((m: any) => {
-                  const isMe = m.senderId === (user?._id || user?.id);
-                  return (
-                    <div key={m._id} className={cn("flex flex-col max-w-[80%]", isMe ? "ml-auto items-end" : "items-start")}>
-                      {!isMe && m.senderName && (
-                        <p className="text-[10px] font-bold text-gray-500 mb-1 ml-1 uppercase tracking-tighter">{m.senderName}</p>
-                      )}
-                      
-                      <div className={cn(
-                        "p-3 rounded-2xl text-sm relative group", 
-                        isMe ? "bg-cyan-600 text-white rounded-tr-none" : "bg-white/10 text-gray-200 rounded-tl-none"
-                      )}>
-                        {m.fileUrl && (
-                          <div className="mb-2">
-                            {m.fileType?.startsWith('image/') ? (
-                              <Image src={m.fileUrl} width={300} height={300} className="max-w-full h-auto rounded-lg cursor-pointer hover:opacity-90" onClick={() => window.open(m.fileUrl)} alt="shared" unoptimized={m.fileUrl.startsWith('blob:')} />
-                            ) : (
-                              <a href={m.fileUrl} target="_blank" className="flex items-center gap-2 p-2 bg-black/20 rounded-lg hover:bg-black/40 transition-colors">
-                                <FileText size={20} className="text-cyan-400" />
-                                <span className="text-xs underline truncate max-w-[150px]">View Attachment</span>
-                              </a>
-                            )}
-                          </div>
+                {loadingMessages ? (
+                   <div className="flex justify-center p-8"><Loader2 className="animate-spin text-cyan-500" /></div>
+                ) : (
+                  messages.map((m: any) => {
+                    const isMe = m.message.senderId === user?.id;
+                    return (
+                      <div key={m.message.id} className={cn("flex flex-col max-w-[80%]", isMe ? "ml-auto items-end" : "items-start")}>
+                        {!isMe && (
+                          <p className="text-[10px] font-bold text-gray-500 mb-1 ml-1 uppercase tracking-tighter">{m.sender.name}</p>
                         )}
-                        <p className="leading-relaxed">{m.content}</p>
+                        
+                        <div className={cn(
+                          "p-3 rounded-2xl text-sm relative group", 
+                          isMe ? "bg-cyan-600 text-white rounded-tr-none" : "bg-white/10 text-gray-200 rounded-tl-none"
+                        )}>
+                          {m.message.imageUrl && (
+                            <div className="mb-2">
+                              <Image src={m.message.imageUrl} width={300} height={300} className="max-w-full h-auto rounded-lg" alt="shared" unoptimized />
+                            </div>
+                          )}
+                          <p className="leading-relaxed">{m.message.content}</p>
+                        </div>
+                        
+                        <p className="text-[9px] text-gray-600 mt-1 mx-1 font-mono">
+                          {new Date(m.message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </p>
                       </div>
-                      
-                      <p className="text-[9px] text-gray-600 mt-1 mx-1 font-mono">
-                        {new Date(m.sentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </p>
-                    </div>
-                  );
-                })}
+                    );
+                  })
+                )}
                 <div ref={messagesEndRef} />
               </div>
             </ScrollArea>
@@ -356,7 +315,7 @@ export default function EnhancedChatClient({ initialRoomId }: { initialRoomId?: 
                   className="min-h-[40px] max-h-32 resize-none bg-white/5 border-white/10 focus-visible:ring-cyan-500 rounded-xl" 
                 />
                 
-                <Button onClick={handleSendMessage} disabled={!newMessage.trim() && !pendingFile} className="h-10 w-10 shrink-0 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl">
+                <Button onClick={handleSendMessage} disabled={(!newMessage.trim() && !pendingFile) || !selectedRoomId} className="h-10 w-10 shrink-0 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl">
                   <Send className="h-4 w-4" />
                 </Button>
               </div>
@@ -378,4 +337,3 @@ export default function EnhancedChatClient({ initialRoomId }: { initialRoomId?: 
     </div>
   );
 }
-

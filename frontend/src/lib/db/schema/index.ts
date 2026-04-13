@@ -17,7 +17,7 @@ export const users = pgTable('users', {
   xp: integer('xp').default(0).notNull(),
   bio: text('bio'),
   skills: text('skills').array(),
-  interests: text('interests'), // Stored as comma-separated string for now or use array()
+  interests: text('interests'), // Stored as comma-separated string
   
   // Student fields
   college: text('college'),
@@ -84,19 +84,50 @@ export const events = pgTable('events', {
   organizerId: text('organizer_id').references(() => users.id).notNull(),
   price: decimal('price', { precision: 10, scale: 2 }).default('0').notNull(),
   isPaid: boolean('is_paid').default(false).notNull(),
+  
+  // Recurrence
+  isRecurring: boolean('is_recurring').default(false).notNull(),
+  recurrenceRule: text('recurrence_rule'), // iCal RRULE format
+  parentEventId: uuid('parent_event_id'), // Self-reference for series
+
+  // Settings
+  waitlistEnabled: boolean('waitlist_enabled').default(false).notNull(),
+  visibility: text('visibility').default('public').notNull(), // public, private, unlisted
+
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const ticketTiers = pgTable('ticket_tiers', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  eventId: uuid('event_id').references(() => events.id, { onDelete: 'cascade' }).notNull(),
+  name: text('name').notNull(),
+  description: text('description'),
+  price: decimal('price', { precision: 10, scale: 2 }).notNull(),
+  capacity: integer('capacity').notNull(),
+  registeredCount: integer('registered_count').default(0).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
 export const tickets = pgTable('tickets', {
   id: uuid('id').primaryKey().defaultRandom(),
   eventId: uuid('event_id').references(() => events.id).notNull(),
   userId: text('user_id').references(() => users.id).notNull(),
+  tierId: uuid('tier_id').references(() => ticketTiers.id),
   ticketNumber: text('ticket_number').notNull().unique(),
   status: text('status').default('confirmed').notNull(), // confirmed, pending, cancelled, checked_in, refunded
   purchaseDate: timestamp('purchase_date').defaultNow().notNull(),
   price: decimal('price', { precision: 10, scale: 2 }).notNull(),
   qrCode: text('qr_code'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const waitlist = pgTable('waitlist', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  eventId: uuid('event_id').references(() => events.id, { onDelete: 'cascade' }).notNull(),
+  userId: text('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  position: integer('position').notNull(),
+  status: text('status').default('waiting').notNull(), // waiting, promoted, cancelled
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
@@ -213,5 +244,14 @@ export const aiChatMessages = pgTable('ai_chat_messages', {
   sessionId: uuid('session_id').references(() => aiChatSessions.id, { onDelete: 'cascade' }).notNull(),
   role: text('role').notNull(), // user, assistant
   content: text('content').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const eventFeedback = pgTable('event_feedback', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  eventId: uuid('event_id').references(() => events.id, { onDelete: 'cascade' }).notNull(),
+  userId: text('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  rating: integer('rating').notNull(),
+  comment: text('content'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });

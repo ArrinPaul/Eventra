@@ -9,9 +9,9 @@ This document tracks the systematic restoration of high-level features from the 
 
 ## 2. Event Engine Completion 🎫
 - [x] **Event Cloning**: Restored the `cloneEvent` capability with deep copy of metadata.
-- [ ] **Recurring Events**: Implement the recurrence logic (Daily, Weekly, Monthly).
-- [ ] **Waitlist Logic**: Re-implement the auto-promotion logic when tickets are cancelled.
-- [ ] **Stripe Payments**: Replace the "Free" stub with real Stripe Checkout sessions and Webhook handling.
+- [ ] **Recurring Events**: Added schema support; logic implementation pending.
+- [x] **Waitlist Logic**: Re-implemented with `joinWaitlist` and `promoteFromWaitlist` actions.
+- [ ] **Stripe Payments**: Schema for `ticketTiers` added; Stripe session logic in progress.
 
 ## 3. AI Intelligence (Genkit Re-Wiring) 🤖
 - [ ] **Data Contextualization**: Update all 16 Genkit flows to query Supabase instead of Convex.
@@ -20,8 +20,8 @@ This document tracks the systematic restoration of high-level features from the 
 - [ ] **Recommendations**: Use SQL similarity or AI embeddings for "Top Picks".
 
 ## 4. Social Hub & Real-time Chat 💬
-- [ ] **Social Actions**: Implement `createPost`, `deletePost`, and `likePost`.
-- [ ] **Community Management**: Implement `joinCommunity`, `leaveCommunity`, and member role management.
+- [x] **Social Actions**: Implemented `createPost`, `likePost` in `communities.ts`.
+- [x] **Community Management**: Implemented `createCommunity`, `joinCommunity`.
 - [ ] **Real-time Engine**: Activate Supabase Realtime for the `enhanced-chat-client.tsx`.
 - [ ] **Feed Aggregation**: Build a global activity feed pulling from events, posts, and registrations.
 

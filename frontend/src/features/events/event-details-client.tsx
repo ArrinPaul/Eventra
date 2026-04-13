@@ -78,7 +78,7 @@ export default function EventDetailsClient({ eventId, initialEvent }: { eventId:
     loadStatus();
   }, [eventId, user]);
 
-  const handleRegister = async (tierName?: string) => {
+  const handleRegister = async (tierId?: string) => {
     if (!user) {
       router.push(`/login?callbackUrl=/events/${eventId}`);
       return;
@@ -86,13 +86,17 @@ export default function EventDetailsClient({ eventId, initialEvent }: { eventId:
     
     setRegistering(true);
     try {
-      const result = await registerForEvent(eventId, { tierName });
+      const result = await registerForEvent(eventId, { tierId });
       if (result.success) {
-        toast({ title: 'Registered! 🎉', description: `Your ticket number is ${result.ticketNumber}` });
+        if ((result as any).ticketNumber) {
+          toast({ title: 'Registered! 🎉', description: `Your ticket number is ${(result as any).ticketNumber}` });
+        } else {
+          toast({ title: 'Waitlist Joined', description: `You are at position ${(result as any).position}` });
+        }
         const status = await getRegistrationStatus(eventId);
         setRegistration(status);
       } else {
-        toast({ title: 'Already Registered', description: result.message, variant: 'default' });
+        toast({ title: 'Status', description: result.message, variant: 'default' });
       }
     } catch (e: any) {
       toast({ title: 'Registration Failed', description: e.message, variant: 'destructive' });
