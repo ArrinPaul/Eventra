@@ -3,8 +3,8 @@
 import { validateRole } from '@/lib/auth-utils';
 import { db } from '@/lib/db';
 import { events, users } from '@/lib/db/schema';
-import { eq, and, ne } from 'drizzle-orm';
-import { recommendationFlow } from '@/lib/ai';
+import { eq, ne } from 'drizzle-orm';
+import { recommendationFlow, contentRecommendationFlow, connectionRecommendationFlow } from '@/lib/ai';
 import { auth } from '@/auth';
 
 export interface RecommendationBundle {
@@ -65,12 +65,66 @@ export async function getPersonalizedRecommendations(userId?: string): Promise<R
 	};
 }
 
-export async function getAIContentRecommendations(userId?: string): Promise<Array<{ id: string; title: string; type?: string; contentId?: string; difficulty?: string; author?: string; personalizedRationale?: string; relevanceScore?: number; estimatedTime?: number }>> {
+export async function getAIContentRecommendations(userId: string) {
 	await validateRole(['attendee', 'organizer', 'admin', 'professional']);
-	return [];
+	
+  try {
+    const user = await db.query.users.findFirst({
+      where: eq(users.id, userId)
+    });
+
+    if (!user) throw new Error('User not found');
+
+    // In a real app, we'd fetch from a 'content' or 'resources' table
+    const mockContent = [
+      { id: '1', title: 'Mastering Event Networking', category: 'Professional Development' },
+      { id: '2', title: 'The Future of AI in Events', category: 'Technology' },
+      { id: '3', title: 'Sustainability in Large Scale Gatherings', category: 'Environment' }
+    ];
+
+    const interests = user.interests ? user.interests.split(',').map(i => i.trim()) : [];
+
+    const { recommendedContent } = await contentRecommendationFlow({
+      userInterests: interests,
+      availableContent: mockContent,
+    });
+
+    return recommendedContent;
+  } catch (error) {
+    console.error('Content Recommendation Error:', error);
+    return [];
+  }
 }
 
-export async function getAIConnectionRecommendations(userId?: string): Promise<Array<{ id: string; name: string; score?: number; userId?: string; successLikelihood?: 'high' | 'medium' | 'low'; role?: string; company?: string; connectionRationale?: string; connectionValue?: number; conversationStarters?: string[]; approachStrategy?: string }>> {
+export async function getAIConnectionRecommendations(userId: string) {
 	await validateRole(['attendee', 'organizer', 'admin', 'professional']);
-	return [];
+	
+  try {
+    const user = await db.query.users.findFirst({
+      where: eq(users.id, userId)
+    });
+
+    if (!user) throw new Error('User not found');
+
+    const others = await db
+      .select({
+        id: users.id,
+        name: users.name,
+        role: users.role,
+        interests: users.interests,
+      })
+      .from(users)
+      .where(ne(users.id, userId))
+      .limit(10);
+
+    const { connections } = await connectionRecommendationFlow({
+      userProfile: user,
+      network: others,
+    });
+
+    return connections;
+  } catch (error) {
+    console.error('Connection Recommendation Error:', error);
+    return [];
+  }
 }

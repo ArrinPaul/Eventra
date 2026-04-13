@@ -1,12 +1,14 @@
 'use server';
 
 import { db } from '@/lib/db';
-import { events, users } from '@/lib/db/schema';
+import { events, users, registrations } from '@/lib/db/schema';
 import { auth } from '@/auth';
-import { eq, desc, and, gte, lte, or, ilike } from 'drizzle-orm';
+import { eq, desc, and, gte, lte, or, ilike, sql } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import type { EventraEvent } from '@/types';
 import { validateRole, validateEventOwnership } from '@/lib/auth-utils';
+import { generateEmbedding } from '@/lib/ai';
+import { RRule } from 'rrule';
 
 /**
  * Fetch events with optional filtering
@@ -76,8 +78,6 @@ export async function getEventById(id: string) {
   }
 }
 
-import { RRule } from 'rrule';
-
 /**
  * Create a new event, with optional recurrence support
  */
@@ -107,6 +107,9 @@ export async function createEvent(data: any) {
     }).returning();
 
     const parentEvent = newEvent[0];
+
+    // Generate embedding in background
+    updateEventEmbedding(parentEvent.id).catch(err => console.error('Initial embedding failed:', err));
 
     // If it's recurring, generate the first few instances (e.g., next 10 or 3 months)
     if (data.isRecurring && data.recurrenceRule) {
@@ -195,6 +198,11 @@ export async function updateEvent(id: string, data: any) {
       .where(eq(events.id, id))
       .returning();
 
+    // Refresh embedding if title or description changed
+    if (data.title || data.description) {
+      updateEventEmbedding(id).catch(err => console.error('Embedding refresh failed:', err));
+    }
+
     revalidatePath('/explore');
     revalidatePath(`/events/${id}`);
     revalidatePath('/organizer');
@@ -262,5 +270,84 @@ export async function cloneEvent(id: string) {
   } catch (error) {
     console.error('Failed to clone event:', error);
     throw new Error('Database operation failed');
+  }
+}
+
+/**
+ * Generate and store embedding for an event
+ */
+export async function updateEventEmbedding(eventId: string) {
+  try {
+    const event = await db.query.events.findFirst({
+      where: eq(events.id, eventId)
+    });
+
+    if (!event) throw new Error('Event not found');
+
+    const contentToEmbed = `${event.title} ${event.category} ${event.description}`;
+    const embeddingResponse = await generateEmbedding(contentToEmbed);
+    
+    await db
+      .update(events)
+      .set({ embedding: embeddingResponse.values })
+      .where(eq(events.id, eventId));
+
+    return { success: true };
+  } catch (error) {
+    console.error('Failed to update embedding:', error);
+    return { success: false };
+  }
+}
+
+/**
+ * Get events by proximity (Cosine similarity)
+ */
+export async function getRecommendedEventsByVector(userId: string) {
+  try {
+    const user = await db.query.users.findFirst({
+      where: eq(users.id, userId)
+    });
+
+    if (!user || !user.interests) return [];
+
+    const userEmbeddingResponse = await generateEmbedding(user.interests);
+    const userVector = userEmbeddingResponse.values;
+
+    // Fetch all events with embeddings
+    const allEvents = await db
+      .select({
+        id: events.id,
+        title: events.title,
+        category: events.category,
+        embedding: events.embedding,
+      })
+      .from(events)
+      .where(sql`embedding IS NOT NULL`)
+      .limit(100);
+
+    // Manual cosine similarity
+    const withScore = allEvents.map(event => {
+      const eventVector = event.embedding as number[];
+      if (!eventVector || !Array.isArray(eventVector)) return { ...event, score: 0 };
+      
+      let dotProduct = 0;
+      let magA = 0;
+      let magB = 0;
+      for (let i = 0; i < Math.min(userVector.length, eventVector.length); i++) {
+        dotProduct += userVector[i] * eventVector[i];
+        magA += userVector[i] * userVector[i];
+        magB += eventVector[i] * eventVector[i];
+      }
+      const similarity = dotProduct / (Math.sqrt(magA) * Math.sqrt(magB));
+      return { ...event, score: similarity };
+    });
+
+    return withScore
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 5);
+
+  } catch (error) {
+    console.error('Vector Recommendation Error:', error);
+    return [];
   }
 }

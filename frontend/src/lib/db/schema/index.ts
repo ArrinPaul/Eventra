@@ -38,6 +38,9 @@ export const users = pgTable('users', {
   phone: text('phone'),
   mobile: text('mobile'),
 
+  // AI Context
+  embedding: jsonb('embedding'),
+
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
@@ -93,7 +96,10 @@ export const events = pgTable('events', {
   // Settings
   waitlistEnabled: boolean('waitlist_enabled').default(false).notNull(),
   visibility: text('visibility').default('public').notNull(), // public, private, unlisted
-
+  
+  // AI Context
+  embedding: jsonb('embedding'), // Store as JSONB for now if vector extension is not guaranteed, or use custom type
+  
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });

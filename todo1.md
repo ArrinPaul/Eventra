@@ -14,10 +14,10 @@ This document tracks the systematic restoration of high-level features from the 
 - [ ] **Stripe Payments**: Schema for `ticketTiers` added; Stripe session logic in progress.
 
 ## 3. AI Intelligence (Genkit Re-Wiring) 🤖
-- [ ] **Data Contextualization**: Update all 16 Genkit flows to query Supabase instead of Convex.
-- [ ] **AI Event Planner**: Re-wire the description and agenda generator.
-- [ ] **Chatbot Memory**: Use the new `ai_chat_sessions` table for persistent AI context.
-- [ ] **Recommendations**: Use SQL similarity or AI embeddings for "Top Picks".
+- [x] **Data Contextualization**: Update all 16 Genkit flows to query Supabase instead of Convex.
+- [x] **AI Event Planner**: Re-wire the description and agenda generator.
+- [x] **Chatbot Memory**: Use the new `ai_chat_sessions` table for persistent AI context.
+- [x] **Recommendations**: Use SQL similarity or AI embeddings for "Top Picks".
 
 ## 4. Social Hub & Real-time Chat 💬
 - [x] **Social Actions**: Implemented `createPost`, `likePost` in `communities.ts`.

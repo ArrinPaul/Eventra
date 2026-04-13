@@ -42,10 +42,10 @@ export function MatchmakingSection() {
     if (!user) return;
     setLoading(true);
     try {
-      const data = await getMatchmakingRecommendations(user._id || user.id);
+      const data = await getMatchmakingRecommendations();
       const recommendations = data.map((match: MatchmakingResult) => ({
-        userId: match.id,
-        name: match.name,
+        userId: match.userId,
+        name: 'Member', // Ideally fetch from users table or include in action
         score: match.matchScore,
         rationale: match.reason,
       }));

@@ -1,15 +1,24 @@
-import { genkit } from 'genkit';
-import { googleAI } from '@genkit-ai/googleai';
-import { dotprompt } from '@genkit-ai/dotprompt';
+import { genkit, embed } from 'genkit';
+import { googleAI, textEmbedding004 } from '@genkit-ai/googleai';
 import { z } from 'zod';
 
 export const ai = genkit({
   plugins: [
     googleAI(),
-    dotprompt(),
   ],
   model: 'googleai/gemini-1.5-flash',
 });
+
+/**
+ * Generate embeddings for a given text
+ */
+export async function generateEmbedding(text: string) {
+  const result = await embed({
+    embedder: textEmbedding004,
+    content: text,
+  });
+  return result;
+}
 
 /**
  * Flow for the Event Chatbot
@@ -20,10 +29,7 @@ export const aiChatbotFlow = ai.defineFlow(
     inputSchema: z.object({
       question: z.string(),
       eventContext: z.string(),
-      history: z.array(z.object({
-        role: z.enum(['user', 'model']),
-        content: z.array(z.object({ text: z.string() })),
-      })).optional(),
+      history: z.array(z.any()).optional(),
     }),
     outputSchema: z.object({
       answer: z.string(),
@@ -132,5 +138,421 @@ export const recommendationFlow = ai.defineFlow(
 
     const parsed = result.output as any;
     return { recommendations: Array.isArray(parsed) ? parsed : (parsed.recommendations || []) };
+  }
+);
+
+/**
+ * Flow for AI Event Planning (Description & Agenda)
+ */
+export const eventPlannerFlow = ai.defineFlow(
+  {
+    name: 'eventPlannerFlow',
+    inputSchema: z.object({
+      title: z.string(),
+      category: z.string(),
+      description: z.string().optional(),
+    }),
+    outputSchema: z.object({
+      suggestedDescription: z.string(),
+      suggestedAgenda: z.array(z.object({
+        time: z.string(),
+        title: z.string(),
+        description: z.string(),
+      })),
+    }),
+  },
+  async (input) => {
+    const prompt = `
+      You are an expert event planner. Generate a detailed description and a 3-item sample agenda for an event.
+      
+      Title: ${input.title}
+      Category: ${input.category}
+      Current Info: ${input.description || 'None'}
+      
+      Return as JSON with suggestedDescription and suggestedAgenda array.
+    `;
+
+    const result = await ai.generate({
+      prompt,
+      output: { format: 'json' },
+    });
+
+    return result.output as any;
+  }
+);
+
+/**
+ * Flow for Social Media Post Generation
+ */
+export const socialMediaPostFlow = ai.defineFlow(
+  {
+    name: 'socialMediaPostFlow',
+    inputSchema: z.object({
+      eventTitle: z.string(),
+      platform: z.enum(['twitter', 'linkedin', 'instagram']),
+    }),
+    outputSchema: z.object({
+      post: z.string(),
+    }),
+  },
+  async (input) => {
+    const prompt = `Create a viral ${input.platform} post for the event "${input.eventTitle}". Include hashtags.`;
+    const result = await ai.generate(prompt);
+    return { post: result.text };
+  }
+);
+
+/**
+ * Flow for AI Content Moderation
+ */
+export const aiModerationFlow = ai.defineFlow(
+  {
+    name: 'aiModerationFlow',
+    inputSchema: z.object({
+      content: z.string(),
+    }),
+    outputSchema: z.object({
+      isFlagged: z.boolean(),
+      reason: z.string().optional(),
+    }),
+  },
+  async (input) => {
+    const prompt = `
+      Analyze this content for community guideline violations (hate speech, spam, harassment).
+      Content: "${input.content}"
+      Return JSON with isFlagged (boolean) and reason.
+    `;
+    const result = await ai.generate({
+      prompt,
+      output: { format: 'json' },
+    });
+    return result.output as any;
+  }
+);
+
+/**
+ * Flow for Networking Matchmaking
+ */
+export const matchmakingFlow = ai.defineFlow(
+  {
+    name: 'matchmakingFlow',
+    inputSchema: z.object({
+      userProfile: z.any(),
+      potentialMatches: z.array(z.any()),
+    }),
+    outputSchema: z.object({
+      matches: z.array(z.object({
+        userId: z.string(),
+        matchScore: z.number(),
+        reason: z.string(),
+      })),
+    }),
+  },
+  async (input) => {
+    const prompt = `
+      Match this user with the best potential connections based on shared interests and roles.
+      User: ${JSON.stringify(input.userProfile)}
+      Matches: ${JSON.stringify(input.potentialMatches)}
+      Return top 3 as JSON array of objects with userId, matchScore, and reason.
+    `;
+    const result = await ai.generate({
+      prompt,
+      output: { format: 'json' },
+    });
+    const parsed = result.output as any;
+    return { matches: Array.isArray(parsed) ? parsed : (parsed.matches || []) };
+  }
+);
+
+/**
+ * Flow for Smart Scheduling (Optimal Time Suggestions)
+ */
+export const smartSchedulerFlow = ai.defineFlow(
+  {
+    name: 'smartSchedulerFlow',
+    inputSchema: z.object({
+      eventTitle: z.string(),
+      category: z.string(),
+      targetAudience: z.string().optional(),
+    }),
+    outputSchema: z.object({
+      bestDays: z.array(z.string()),
+      bestTimeSlots: z.array(z.string()),
+      reasoning: z.string(),
+    }),
+  },
+  async (input) => {
+    const prompt = `
+      As an expert event strategist, suggest the best days of the week and time slots for an event.
+      Event: ${input.eventTitle}
+      Category: ${input.category}
+      Target Audience: ${input.targetAudience || 'General'}
+      
+      Return as JSON with bestDays (e.g. ["Friday", "Saturday"]), bestTimeSlots (e.g. ["18:00", "19:00"]), and reasoning.
+    `;
+    const result = await ai.generate({
+      prompt,
+      output: { format: 'json' },
+    });
+    return result.output as any;
+  }
+);
+
+/**
+ * Flow for Predictive Attendance Estimation
+ */
+export const predictiveAttendanceFlow = ai.defineFlow(
+  {
+    name: 'predictiveAttendanceFlow',
+    inputSchema: z.object({
+      eventDetails: z.any(),
+      registrationTrend: z.array(z.number()),
+      historicalData: z.any().optional(),
+    }),
+    outputSchema: z.object({
+      predictedTotal: z.number(),
+      confidenceScore: z.number(),
+      factors: z.array(z.string()),
+    }),
+  },
+  async (input) => {
+    const prompt = `
+      Analyze event data and registration trends to predict final attendance.
+      Details: ${JSON.stringify(input.eventDetails)}
+      Recent Registrations (last 7 days): ${input.registrationTrend.join(', ')}
+      
+      Return as JSON with predictedTotal (number), confidenceScore (0-1), and factors (array of strings).
+    `;
+    const result = await ai.generate({
+      prompt,
+      output: { format: 'json' },
+    });
+    return result.output as any;
+  }
+);
+
+/**
+ * Flow for AI Sentiment Analysis (Event Feedback)
+ */
+export const aiSentimentAnalysisFlow = ai.defineFlow(
+  {
+    name: 'aiSentimentAnalysisFlow',
+    inputSchema: z.object({
+      feedback: z.array(z.string()),
+    }),
+    outputSchema: z.object({
+      overallSentiment: z.enum(['positive', 'neutral', 'negative']),
+      keyThemes: z.array(z.string()),
+      averageRating: z.number(),
+    }),
+  },
+  async (input) => {
+    const prompt = `
+      Analyze the following attendee feedback comments.
+      Feedback: ${input.feedback.join('\n- ')}
+      
+      Return JSON with overallSentiment, keyThemes (3-5 items), and averageRating (1-5 scale).
+    `;
+    const result = await ai.generate({
+      prompt,
+      output: { format: 'json' },
+    });
+    return result.output as any;
+  }
+);
+
+/**
+ * Flow for Certificate Personalized Messages
+ */
+export const certificatePersonalizedMessageFlow = ai.defineFlow(
+  {
+    name: 'certificatePersonalizedMessageFlow',
+    inputSchema: z.object({
+      userName: z.string(),
+      eventTitle: z.string(),
+      performanceMetrics: z.any().optional(),
+    }),
+    outputSchema: z.object({
+      personalizedMessage: z.string(),
+    }),
+  },
+  async (input) => {
+    const prompt = `
+      Create a unique, congratulatory message for a certificate of completion.
+      Attendee: ${input.userName}
+      Event: ${input.eventTitle}
+      
+      Make it professional yet inspiring. Max 2 sentences.
+    `;
+    const result = await ai.generate(prompt);
+    return { personalizedMessage: result.text };
+  }
+);
+
+/**
+ * Flow for Personalized Event Reminders
+ */
+export const personalizedEventReminderFlow = ai.defineFlow(
+  {
+    name: 'personalizedEventReminderFlow',
+    inputSchema: z.object({
+      userName: z.string(),
+      eventTitle: z.string(),
+      startTime: z.string(),
+      interests: z.array(z.string()),
+    }),
+    outputSchema: z.object({
+      reminderText: z.string(),
+      subjectLine: z.string(),
+    }),
+  },
+  async (input) => {
+    const prompt = `
+      Create a personalized reminder for an upcoming event.
+      User: ${input.userName}
+      Event: ${input.eventTitle}
+      Starts At: ${input.startTime}
+      User Interests: ${input.interests.join(', ')}
+      
+      Highlight why this event matches their interests.
+    `;
+    const result = await ai.generate({
+      prompt,
+      output: { format: 'json' },
+    });
+    return result.output as any;
+  }
+);
+
+/**
+ * Flow for Engagement Picks (Hyper-personalized)
+ */
+export const engagementPicksFlow = ai.defineFlow(
+  {
+    name: 'engagementPicksFlow',
+    inputSchema: z.object({
+      userActivity: z.any(),
+      upcomingItems: z.array(z.any()),
+    }),
+    outputSchema: z.object({
+      topPickId: z.string(),
+      rationale: z.string(),
+    }),
+  },
+  async (input) => {
+    const prompt = `
+      Select the absolute best next action or item for this user based on their recent activity.
+      Activity: ${JSON.stringify(input.userActivity)}
+      Options: ${JSON.stringify(input.upcomingItems)}
+      
+      Return as JSON with topPickId and rationale.
+    `;
+    const result = await ai.generate({
+      prompt,
+      output: { format: 'json' },
+    });
+    return result.output as any;
+  }
+);
+
+/**
+ * Flow for Content Recommendations
+ */
+export const contentRecommendationFlow = ai.defineFlow(
+  {
+    name: 'contentRecommendationFlow',
+    inputSchema: z.object({
+      userInterests: z.array(z.string()),
+      availableContent: z.array(z.any()),
+    }),
+    outputSchema: z.object({
+      recommendedContent: z.array(z.object({
+        contentId: z.string(),
+        relevanceScore: z.number(),
+        reason: z.string(),
+      })),
+    }),
+  },
+  async (input) => {
+    const prompt = `
+      Recommend educational or engaging content (articles, videos, resources) based on user interests.
+      Interests: ${input.userInterests.join(', ')}
+      Content: ${JSON.stringify(input.availableContent)}
+      
+      Return top 3 as JSON array.
+    `;
+    const result = await ai.generate({
+      prompt,
+      output: { format: 'json' },
+    });
+    const parsed = result.output as any;
+    return { recommendedContent: Array.isArray(parsed) ? parsed : (parsed.recommendedContent || []) };
+  }
+);
+
+/**
+ * Flow for Connection Recommendations (Deep Match)
+ */
+export const connectionRecommendationFlow = ai.defineFlow(
+  {
+    name: 'connectionRecommendationFlow',
+    inputSchema: z.object({
+      userProfile: z.any(),
+      network: z.array(z.any()),
+    }),
+    outputSchema: z.object({
+      connections: z.array(z.object({
+        userId: z.string(),
+        strength: z.number(),
+        conversationStarter: z.string(),
+      })),
+    }),
+  },
+  async (input) => {
+    const prompt = `
+      Suggest professional connections and provide a conversation starter for each.
+      User: ${JSON.stringify(input.userProfile)}
+      Potential Network: ${JSON.stringify(input.network)}
+      
+      Return top 3 as JSON array with userId, strength (0-100), and conversationStarter.
+    `;
+    const result = await ai.generate({
+      prompt,
+      output: { format: 'json' },
+    });
+    const parsed = result.output as any;
+    return { connections: Array.isArray(parsed) ? parsed : (parsed.connections || []) };
+  }
+);
+
+/**
+ * Flow for A/B Testing Event Descriptions
+ */
+export const abTestingFlow = ai.defineFlow(
+  {
+    name: 'abTestingFlow',
+    inputSchema: z.object({
+      originalDescription: z.string(),
+      goal: z.string(), // e.g., "increase registrations", "improve professional tone"
+    }),
+    outputSchema: z.object({
+      variantA: z.string(),
+      variantB: z.string(),
+      predictedWinner: z.string(),
+    }),
+  },
+  async (input) => {
+    const prompt = `
+      Generate two high-converting variants for an event description to test which performs better.
+      Original: ${input.originalDescription}
+      Goal: ${input.goal}
+      
+      Return as JSON with variantA, variantB, and predictedWinner explanation.
+    `;
+    const result = await ai.generate({
+      prompt,
+      output: { format: 'json' },
+    });
+    return result.output as any;
   }
 );

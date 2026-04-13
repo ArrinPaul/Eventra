@@ -66,7 +66,7 @@ export default function EnhancedChatClient({ initialRoomId }: { initialRoomId?: 
 
     async function loadMessages() {
       setLoadingMessages(true);
-      const msgs = await getChatMessages(selectedRoomId);
+      const msgs = await getChatMessages(selectedRoomId!);
       setMessages(msgs);
       setLoadingMessages(false);
     }
