@@ -1,5 +1,7 @@
 'use server';
 
+import { validateRole } from '@/lib/auth-utils';
+
 export interface MatchmakingResult {
   id: string;
   name: string;
@@ -9,5 +11,7 @@ export interface MatchmakingResult {
 }
 
 export async function getMatchmakingRecommendations(_userId: string): Promise<MatchmakingResult[]> {
+  // Guard: Authenticated
+  await validateRole(['attendee', 'organizer', 'admin', 'professional']);
   return [];
 }

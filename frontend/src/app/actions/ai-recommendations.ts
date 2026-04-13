@@ -1,5 +1,7 @@
 'use server';
 
+import { validateRole } from '@/lib/auth-utils';
+
 export interface RecommendationBundle {
 	events: Array<{ id: string; title: string; category?: string; score?: number }>;
 	sessions: Array<{ id: string; title: string; track?: string; score?: number }>;
@@ -16,7 +18,8 @@ function scoreFromSeed(seed: number, offset: number): number {
 }
 
 export async function getPersonalizedRecommendations(userId?: string): Promise<RecommendationBundle> {
-	const seed = getSeed(userId);
+	await validateRole(['attendee', 'organizer', 'admin', 'professional']);
+    const seed = getSeed(userId);
 
 	return {
 		events: [
@@ -35,7 +38,8 @@ export async function getPersonalizedRecommendations(userId?: string): Promise<R
 }
 
 export async function getAIRecommendations(userId?: string): Promise<Array<{ id: string; title: string; score?: number; eventId?: string; relevanceScore?: number; reason?: string; pitch?: string; confidenceLevel?: 'high' | 'medium' | 'low' }>> {
-	const seed = getSeed(userId);
+	await validateRole(['attendee', 'organizer', 'admin', 'professional']);
+    const seed = getSeed(userId);
 
 	return [
 		{
@@ -62,7 +66,8 @@ export async function getAIRecommendations(userId?: string): Promise<Array<{ id:
 }
 
 export async function getAIContentRecommendations(userId?: string): Promise<Array<{ id: string; title: string; type?: string; contentId?: string; difficulty?: string; author?: string; personalizedRationale?: string; relevanceScore?: number; estimatedTime?: number }>> {
-	const seed = getSeed(userId);
+	await validateRole(['attendee', 'organizer', 'admin', 'professional']);
+    const seed = getSeed(userId);
 
 	return [
 		{
@@ -91,7 +96,8 @@ export async function getAIContentRecommendations(userId?: string): Promise<Arra
 }
 
 export async function getAIConnectionRecommendations(userId?: string): Promise<Array<{ id: string; name: string; score?: number; userId?: string; successLikelihood?: 'high' | 'medium' | 'low'; role?: string; company?: string; connectionRationale?: string; connectionValue?: number; conversationStarters?: string[]; approachStrategy?: string }>> {
-	const seed = getSeed(userId);
+	await validateRole(['attendee', 'organizer', 'admin', 'professional']);
+    const seed = getSeed(userId);
 
 	return [
 		{

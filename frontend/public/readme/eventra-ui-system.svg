@@ -1,0 +1,51 @@
+<svg width="1600" height="880" viewBox="0 0 1600 880" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1600" height="880" fill="#0A162A"/>
+
+  <text x="72" y="82" fill="#EDF4FF" font-size="44" font-weight="700" font-family="Segoe UI, Arial, sans-serif">Eventra Meridian Design System</text>
+  <text x="72" y="122" fill="#9AB2D0" font-size="24" font-family="Segoe UI, Arial, sans-serif">Tokenized palette, typography hierarchy, and reusable UI primitives.</text>
+
+  <g>
+    <rect x="72" y="170" width="420" height="190" rx="18" fill="#0F223C" stroke="#2B4B72"/>
+    <text x="100" y="218" fill="#DCE9F8" font-size="26" font-weight="700" font-family="Segoe UI, Arial, sans-serif">Primary</text>
+    <rect x="100" y="240" width="360" height="46" rx="10" fill="#16C4A2"/>
+    <text x="100" y="326" fill="#9EC2DE" font-size="20" font-family="Segoe UI, Arial, sans-serif">HSL 171 74% 44%</text>
+  </g>
+
+  <g>
+    <rect x="528" y="170" width="420" height="190" rx="18" fill="#0F223C" stroke="#2B4B72"/>
+    <text x="556" y="218" fill="#DCE9F8" font-size="26" font-weight="700" font-family="Segoe UI, Arial, sans-serif">Accent</text>
+    <rect x="556" y="240" width="360" height="46" rx="10" fill="#4F88E8"/>
+    <text x="556" y="326" fill="#9EC2DE" font-size="20" font-family="Segoe UI, Arial, sans-serif">HSL 205 74% 55%</text>
+  </g>
+
+  <g>
+    <rect x="984" y="170" width="544" height="190" rx="18" fill="#0F223C" stroke="#2B4B72"/>
+    <text x="1012" y="218" fill="#DCE9F8" font-size="26" font-weight="700" font-family="Segoe UI, Arial, sans-serif">Secondary</text>
+    <rect x="1012" y="240" width="488" height="46" rx="10" fill="#F5A845"/>
+    <text x="1012" y="326" fill="#9EC2DE" font-size="20" font-family="Segoe UI, Arial, sans-serif">HSL 35 93% 61%</text>
+  </g>
+
+  <g>
+    <rect x="72" y="408" width="710" height="380" rx="20" fill="#0E1D34" stroke="#2B4B72"/>
+    <text x="104" y="460" fill="#E2EEFC" font-size="30" font-weight="700" font-family="Segoe UI, Arial, sans-serif">Typography</text>
+    <text x="104" y="514" fill="#EEF5FF" font-size="46" font-weight="700" font-family="Georgia, Segoe UI, serif">Fraunces Headline Example</text>
+    <text x="104" y="566" fill="#A8C0DD" font-size="24" font-family="Segoe UI, Arial, sans-serif">Modern editorial headline for hero and section titles.</text>
+    <text x="104" y="632" fill="#EEF5FF" font-size="30" font-family="Segoe UI, Arial, sans-serif">Manrope body copy for readable product interfaces.</text>
+    <text x="104" y="678" fill="#A8C0DD" font-size="22" font-family="Segoe UI, Arial, sans-serif">Balanced for forms, cards, and dense dashboard information.</text>
+  </g>
+
+  <g>
+    <rect x="820" y="408" width="708" height="380" rx="20" fill="#0E1D34" stroke="#2B4B72"/>
+    <text x="852" y="460" fill="#E2EEFC" font-size="30" font-weight="700" font-family="Segoe UI, Arial, sans-serif">Component Tokens</text>
+
+    <rect x="852" y="500" width="270" height="66" rx="14" fill="#16C4A2"/>
+    <text x="934" y="542" fill="#06231D" font-size="24" font-weight="700" font-family="Segoe UI, Arial, sans-serif">Button</text>
+
+    <rect x="1152" y="500" width="340" height="66" rx="14" fill="#112846" stroke="#2E567C"/>
+    <text x="1250" y="542" fill="#DCEAFF" font-size="24" font-family="Segoe UI, Arial, sans-serif">Input Field</text>
+
+    <rect x="852" y="604" width="640" height="144" rx="22" fill="#142846" stroke="#355A84"/>
+    <text x="884" y="654" fill="#E7F2FF" font-size="30" font-weight="700" font-family="Segoe UI, Arial, sans-serif">Card Surface</text>
+    <text x="884" y="698" fill="#AFC6E2" font-size="22" font-family="Segoe UI, Arial, sans-serif">rounded-2xl, layered shadows, subtle border translucency</text>
+  </g>
+</svg>

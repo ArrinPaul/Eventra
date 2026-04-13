@@ -6,6 +6,7 @@ import { auth } from '@/auth';
 import { eq, desc, and, gte, lte, or, ilike } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import type { EventraEvent } from '@/types';
+import { validateRole, validateEventOwnership } from '@/lib/auth-utils';
 
 /**
  * Fetch events with optional filtering
@@ -79,11 +80,8 @@ export async function getEventById(id: string) {
  * Create a new event
  */
 export async function createEvent(data: any) {
-  const session = await auth();
-  
-  if (!session?.user) {
-    throw new Error('Unauthorized');
-  }
+  // Guard: Only organizers or admins can create events
+  const user = await validateRole(['organizer', 'admin']);
 
   try {
     const newEvent = await db.insert(events).values({
@@ -97,7 +95,7 @@ export async function createEvent(data: any) {
       type: data.type || 'physical',
       location: data.location || { venue: 'TBD' },
       capacity: data.capacity || 100,
-      organizerId: session.user.id,
+      organizerId: user.id,
       price: data.price || '0',
       isPaid: data.isPaid || false,
     }).returning();
@@ -116,11 +114,8 @@ export async function createEvent(data: any) {
  * Update an existing event
  */
 export async function updateEvent(id: string, data: any) {
-  const session = await auth();
-  
-  if (!session?.user) {
-    throw new Error('Unauthorized');
-  }
+  // Guard: Must be the owner or an admin
+  await validateEventOwnership(id);
 
   try {
     const updatedEvent = await db
@@ -156,11 +151,8 @@ export async function updateEvent(id: string, data: any) {
  * Delete an event
  */
 export async function deleteEvent(id: string) {
-  const session = await auth();
-  
-  if (!session?.user) {
-    throw new Error('Unauthorized');
-  }
+  // Guard: Must be the owner or an admin
+  await validateEventOwnership(id);
 
   try {
     await db.delete(events).where(eq(events.id, id));

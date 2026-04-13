@@ -5,16 +5,14 @@ import { tickets, events } from '@/lib/db/schema';
 import { auth } from '@/auth';
 import { eq, and, desc } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
+import { validateRole } from '@/lib/auth-utils';
 
 /**
  * Register a user for an event (Create a ticket)
  */
 export async function registerForEvent(eventId: string, data?: { tierName?: string }) {
-  const session = await auth();
-  
-  if (!session?.user) {
-    throw new Error('Unauthorized');
-  }
+  // Guard: Must be authenticated
+  const user = await validateRole(['attendee', 'organizer', 'admin', 'professional']);
 
   try {
     // 1. Check if already registered
@@ -24,7 +22,7 @@ export async function registerForEvent(eventId: string, data?: { tierName?: stri
       .where(
         and(
           eq(tickets.eventId, eventId),
-          eq(tickets.userId, session.user.id)
+          eq(tickets.userId, user.id)
         )
       )
       .limit(1);

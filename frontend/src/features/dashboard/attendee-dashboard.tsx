@@ -296,7 +296,8 @@ export default function AttendeeDashboard() {
         </div>
       </div>
     </div>
-  );
+  </div>
+);
 }
 
 

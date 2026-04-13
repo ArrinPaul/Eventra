@@ -1,0 +1,63 @@
+<svg width="1600" height="900" viewBox="0 0 1600 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1600" y2="900" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#091426"/>
+      <stop offset="1" stop-color="#112643"/>
+    </linearGradient>
+    <radialGradient id="g1" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(260 130) rotate(25) scale(540 320)">
+      <stop offset="0" stop-color="#16C4A2" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#16C4A2" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="g2" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1330 170) rotate(-18) scale(420 280)">
+      <stop offset="0" stop-color="#F5A845" stop-opacity="0.3"/>
+      <stop offset="1" stop-color="#F5A845" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="g3" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(850 770) rotate(15) scale(720 360)">
+      <stop offset="0" stop-color="#4F88E8" stop-opacity="0.3"/>
+      <stop offset="1" stop-color="#4F88E8" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1600" height="900" fill="url(#bg)"/>
+  <rect width="1600" height="900" fill="url(#g1)"/>
+  <rect width="1600" height="900" fill="url(#g2)"/>
+  <rect width="1600" height="900" fill="url(#g3)"/>
+
+  <g opacity="0.2" stroke="#87D9E6" stroke-width="1">
+    <path d="M0 120H1600"/>
+    <path d="M0 250H1600"/>
+    <path d="M0 380H1600"/>
+    <path d="M0 510H1600"/>
+    <path d="M0 640H1600"/>
+    <path d="M0 770H1600"/>
+    <path d="M190 0V900"/>
+    <path d="M430 0V900"/>
+    <path d="M670 0V900"/>
+    <path d="M910 0V900"/>
+    <path d="M1150 0V900"/>
+    <path d="M1390 0V900"/>
+  </g>
+
+  <rect x="120" y="112" width="1360" height="676" rx="28" fill="#0B1A30" fill-opacity="0.72" stroke="#2D557F"/>
+
+  <text x="170" y="240" fill="#9DEBDA" font-size="30" font-family="Segoe UI, Arial, sans-serif" letter-spacing="1.5">EVENTRA PLATFORM</text>
+  <text x="170" y="340" fill="#F2F7FF" font-size="86" font-weight="700" font-family="Segoe UI, Arial, sans-serif">Modern Event Management</text>
+  <text x="170" y="428" fill="#F2F7FF" font-size="86" font-weight="700" font-family="Segoe UI, Arial, sans-serif">for Communities and Teams</text>
+
+  <text x="170" y="506" fill="#B8C8DE" font-size="34" font-family="Segoe UI, Arial, sans-serif">
+    Intelligent scheduling, ticketing, analytics, networking, and AI-assisted operations.
+  </text>
+
+  <g>
+    <rect x="170" y="572" width="256" height="66" rx="14" fill="#16C4A2"/>
+    <text x="204" y="614" fill="#072321" font-size="28" font-weight="700" font-family="Segoe UI, Arial, sans-serif">Next.js 15</text>
+
+    <rect x="446" y="572" width="276" height="66" rx="14" fill="#4F88E8"/>
+    <text x="480" y="614" fill="#F5FAFF" font-size="28" font-weight="700" font-family="Segoe UI, Arial, sans-serif">TypeScript</text>
+
+    <rect x="742" y="572" width="316" height="66" rx="14" fill="#F5A845"/>
+    <text x="778" y="614" fill="#2A1A07" font-size="28" font-weight="700" font-family="Segoe UI, Arial, sans-serif">Tailwind CSS</text>
+  </g>
+
+  <text x="170" y="708" fill="#89A6C8" font-size="24" font-family="Segoe UI, Arial, sans-serif">Production-ready documentation and deployment setup</text>
+</svg>
