@@ -45,8 +45,10 @@ export default function EnhancedChatClient({ initialRoomId }: { initialRoomId?: 
   const [isStartingDM, setIsStartingDM] = useState(false);
   const [uploading, setIsUploading] = useState(false);
   const [pendingFile, setPendingFile] = useState<{ url: string, type: string, name: string } | null>(null);
+  
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const userCacheRef = useRef<Record<string, { id: string, name: string, image: string | null }>>({});
 
   const [newRoom, setNewRoom] = useState({ name: '', type: 'group' as const });
 
@@ -67,8 +69,21 @@ export default function EnhancedChatClient({ initialRoomId }: { initialRoomId?: 
     async function loadMessages() {
       setLoadingMessages(true);
       const msgs = await getChatMessages(selectedRoomId!);
+      
+      // Cache users from historical messages
+      msgs.forEach(m => {
+        if (m.sender && !userCacheRef.current[m.sender.id]) {
+          userCacheRef.current[m.sender.id] = m.sender;
+        }
+      });
+
       setMessages(msgs);
       setLoadingMessages(false);
+      
+      // Scroll to bottom after loading
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
+      }, 100);
     }
     loadMessages();
 
@@ -84,31 +99,38 @@ export default function EnhancedChatClient({ initialRoomId }: { initialRoomId?: 
           filter: `room_id=eq.${selectedRoomId}`,
         },
         async (payload) => {
-          // Fetch sender info for the new message
-          const { data: userData } = await supabase
-            .from('users')
-            .select('id, name, image')
-            .eq('id', payload.new.sender_id)
-            .single();
+          const newest = payload.new as any;
+          const senderId = newest.sender_id;
+          let senderInfo = userCacheRef.current[senderId];
+
+          // If not in cache, fetch once and cache it
+          if (!senderInfo) {
+            const { data: userData } = await supabase
+              .from('users')
+              .select('id, name, image')
+              .eq('id', senderId)
+              .single();
+            
+            senderInfo = userData || { id: senderId, name: 'Unknown', image: null };
+            userCacheRef.current[senderId] = senderInfo;
+          }
 
           const formattedMsg = {
             message: {
-              id: payload.new.id,
-              content: payload.new.content,
-              imageUrl: payload.new.image_url,
-              senderId: payload.new.sender_id,
-              createdAt: payload.new.created_at,
+              id: newest.id,
+              content: newest.content,
+              imageUrl: newest.image_url,
+              senderId: newest.sender_id,
+              createdAt: newest.created_at,
             },
-            sender: userData || { id: payload.new.sender_id, name: 'Unknown', image: null }
+            sender: senderInfo
           };
 
           setMessages((prev) => {
-            // Prevent duplicates (e.g. if my own message comes back via realtime)
             if (prev.some(m => m.message.id === formattedMsg.message.id)) return prev;
             return [...prev, formattedMsg];
           });
           
-          // Scroll to bottom
           setTimeout(() => {
             messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
           }, 100);
@@ -141,7 +163,8 @@ export default function EnhancedChatClient({ initialRoomId }: { initialRoomId?: 
     try {
       const room = await createChatRoom({
         name: `Chat with ${name}`,
-        type: 'direct'
+        type: 'direct',
+        participantIds: [otherUserId]
       });
       setChatRooms(prev => [room, ...prev]);
       setSelectedRoomId(room.id);
@@ -249,7 +272,7 @@ export default function EnhancedChatClient({ initialRoomId }: { initialRoomId?: 
                   </div>
                   <div className="truncate">
                     <p className="font-medium truncate text-sm">{room.name || 'Untitled Room'}</p>
-                    <p className="text-[10px] text-gray-500">{room.type}</p>
+                    <p className="text-[10px] text-gray-500 uppercase">{room.type}</p>
                   </div>
                 </button>
               ))}
@@ -289,11 +312,18 @@ export default function EnhancedChatClient({ initialRoomId }: { initialRoomId?: 
                           isMe ? "bg-cyan-600 text-white rounded-tr-none" : "bg-white/10 text-gray-200 rounded-tl-none"
                         )}>
                           {m.message.imageUrl && (
-                            <div className="mb-2">
-                              <Image src={m.message.imageUrl} width={300} height={300} className="max-w-full h-auto rounded-lg" alt="shared" unoptimized />
+                            <div className="mb-2 overflow-hidden rounded-lg">
+                              <Image 
+                                src={m.message.imageUrl} 
+                                width={300} 
+                                height={300} 
+                                className="max-w-full h-auto hover:scale-105 transition-transform" 
+                                alt="shared" 
+                                unoptimized 
+                              />
                             </div>
                           )}
-                          <p className="leading-relaxed">{m.message.content}</p>
+                          <p className="leading-relaxed whitespace-pre-wrap">{m.message.content}</p>
                         </div>
                         
                         <p className="text-[9px] text-gray-600 mt-1 mx-1 font-mono">

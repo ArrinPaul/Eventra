@@ -53,7 +53,7 @@ export const aiChatbotFlow = ai.defineFlow(
       messages: input.messages,
     });
 
-    return { answer: result.text };
+    return { answer: result.text || "I'm sorry, I couldn't generate an answer." };
   }
 );
 
@@ -90,7 +90,7 @@ export const eventSummarizerFlow = ai.defineFlow(
     `;
 
     const result = await ai.generate(prompt);
-    return { summary: result.text };
+    return { summary: result.text || "Summary generation failed." };
   }
 );
 
@@ -136,8 +136,14 @@ export const recommendationFlow = ai.defineFlow(
       output: { format: 'json' },
     });
 
-    const parsed = result.output as any;
-    return { recommendations: Array.isArray(parsed) ? parsed : (parsed.recommendations || []) };
+    try {
+      const parsed = result.output as any;
+      if (!parsed) return { recommendations: [] };
+      const recommendations = Array.isArray(parsed) ? parsed : (parsed.recommendations || []);
+      return { recommendations: recommendations.slice(0, 3) };
+    } catch (e) {
+      return { recommendations: [] };
+    }
   }
 );
 
@@ -177,7 +183,7 @@ export const eventPlannerFlow = ai.defineFlow(
       output: { format: 'json' },
     });
 
-    return result.output as any;
+    return (result.output as any) || { suggestedDescription: "", suggestedAgenda: [] };
   }
 );
 
@@ -198,7 +204,7 @@ export const socialMediaPostFlow = ai.defineFlow(
   async (input) => {
     const prompt = `Create a viral ${input.platform} post for the event "${input.eventTitle}". Include hashtags.`;
     const result = await ai.generate(prompt);
-    return { post: result.text };
+    return { post: result.text || "" };
   }
 );
 
@@ -226,7 +232,7 @@ export const aiModerationFlow = ai.defineFlow(
       prompt,
       output: { format: 'json' },
     });
-    return result.output as any;
+    return (result.output as any) || { isFlagged: false };
   }
 );
 
@@ -259,13 +265,20 @@ export const matchmakingFlow = ai.defineFlow(
       prompt,
       output: { format: 'json' },
     });
-    const parsed = result.output as any;
-    return { matches: Array.isArray(parsed) ? parsed : (parsed.matches || []) };
+    
+    try {
+      const parsed = result.output as any;
+      if (!parsed) return { matches: [] };
+      const matches = Array.isArray(parsed) ? parsed : (parsed.matches || []);
+      return { matches: matches.slice(0, 3) };
+    } catch (e) {
+      return { matches: [] };
+    }
   }
 );
 
 /**
- * Flow for Smart Scheduling (Optimal Time Suggestions)
+ * Flow for Smart Scheduling
  */
 export const smartSchedulerFlow = ai.defineFlow(
   {
@@ -282,19 +295,9 @@ export const smartSchedulerFlow = ai.defineFlow(
     }),
   },
   async (input) => {
-    const prompt = `
-      As an expert event strategist, suggest the best days of the week and time slots for an event.
-      Event: ${input.eventTitle}
-      Category: ${input.category}
-      Target Audience: ${input.targetAudience || 'General'}
-      
-      Return as JSON with bestDays (e.g. ["Friday", "Saturday"]), bestTimeSlots (e.g. ["18:00", "19:00"]), and reasoning.
-    `;
-    const result = await ai.generate({
-      prompt,
-      output: { format: 'json' },
-    });
-    return result.output as any;
+    const prompt = `Suggest best days and times for: ${input.eventTitle}. Category: ${input.category}. Return JSON.`;
+    const result = await ai.generate({ prompt, output: { format: 'json' } });
+    return (result.output as any) || { bestDays: [], bestTimeSlots: [], reasoning: "" };
   }
 );
 
@@ -307,7 +310,6 @@ export const predictiveAttendanceFlow = ai.defineFlow(
     inputSchema: z.object({
       eventDetails: z.any(),
       registrationTrend: z.array(z.number()),
-      historicalData: z.any().optional(),
     }),
     outputSchema: z.object({
       predictedTotal: z.number(),
@@ -316,18 +318,9 @@ export const predictiveAttendanceFlow = ai.defineFlow(
     }),
   },
   async (input) => {
-    const prompt = `
-      Analyze event data and registration trends to predict final attendance.
-      Details: ${JSON.stringify(input.eventDetails)}
-      Recent Registrations (last 7 days): ${input.registrationTrend.join(', ')}
-      
-      Return as JSON with predictedTotal (number), confidenceScore (0-1), and factors (array of strings).
-    `;
-    const result = await ai.generate({
-      prompt,
-      output: { format: 'json' },
-    });
-    return result.output as any;
+    const prompt = `Predict final attendance based on trend: ${input.registrationTrend.join(',')}. Return JSON.`;
+    const result = await ai.generate({ prompt, output: { format: 'json' } });
+    return (result.output as any) || { predictedTotal: 0, confidenceScore: 0, factors: [] };
   }
 );
 
@@ -357,7 +350,7 @@ export const aiSentimentAnalysisFlow = ai.defineFlow(
       prompt,
       output: { format: 'json' },
     });
-    return result.output as any;
+    return (result.output as any) || { overallSentiment: 'neutral', keyThemes: [], averageRating: 3 };
   }
 );
 
@@ -385,7 +378,7 @@ export const certificatePersonalizedMessageFlow = ai.defineFlow(
       Make it professional yet inspiring. Max 2 sentences.
     `;
     const result = await ai.generate(prompt);
-    return { personalizedMessage: result.text };
+    return { personalizedMessage: result.text || "Congratulations on completing the event!" };
   }
 );
 
@@ -407,20 +400,9 @@ export const personalizedEventReminderFlow = ai.defineFlow(
     }),
   },
   async (input) => {
-    const prompt = `
-      Create a personalized reminder for an upcoming event.
-      User: ${input.userName}
-      Event: ${input.eventTitle}
-      Starts At: ${input.startTime}
-      User Interests: ${input.interests.join(', ')}
-      
-      Highlight why this event matches their interests.
-    `;
-    const result = await ai.generate({
-      prompt,
-      output: { format: 'json' },
-    });
-    return result.output as any;
+    const prompt = `Create personalized reminder for ${input.userName} about ${input.eventTitle}. Return JSON.`;
+    const result = await ai.generate({ prompt, output: { format: 'json' } });
+    return (result.output as any) || { reminderText: "", subjectLine: "" };
   }
 );
 
@@ -440,18 +422,9 @@ export const engagementPicksFlow = ai.defineFlow(
     }),
   },
   async (input) => {
-    const prompt = `
-      Select the absolute best next action or item for this user based on their recent activity.
-      Activity: ${JSON.stringify(input.userActivity)}
-      Options: ${JSON.stringify(input.upcomingItems)}
-      
-      Return as JSON with topPickId and rationale.
-    `;
-    const result = await ai.generate({
-      prompt,
-      output: { format: 'json' },
-    });
-    return result.output as any;
+    const prompt = `Pick best next item for user based on activity. Return JSON.`;
+    const result = await ai.generate({ prompt, output: { format: 'json' } });
+    return (result.output as any) || { topPickId: "", rationale: "" };
   }
 );
 
@@ -474,19 +447,20 @@ export const contentRecommendationFlow = ai.defineFlow(
     }),
   },
   async (input) => {
-    const prompt = `
-      Recommend educational or engaging content (articles, videos, resources) based on user interests.
-      Interests: ${input.userInterests.join(', ')}
-      Content: ${JSON.stringify(input.availableContent)}
-      
-      Return top 3 as JSON array.
-    `;
+    const prompt = `Recommend content based on interests. Return JSON array.`;
     const result = await ai.generate({
       prompt,
       output: { format: 'json' },
     });
-    const parsed = result.output as any;
-    return { recommendedContent: Array.isArray(parsed) ? parsed : (parsed.recommendedContent || []) };
+    
+    try {
+      const parsed = result.output as any;
+      if (!parsed) return { recommendedContent: [] };
+      const recommendations = Array.isArray(parsed) ? parsed : (parsed.recommendedContent || []);
+      return { recommendedContent: recommendations.slice(0, 3) };
+    } catch (e) {
+      return { recommendedContent: [] };
+    }
   }
 );
 
@@ -509,19 +483,20 @@ export const connectionRecommendationFlow = ai.defineFlow(
     }),
   },
   async (input) => {
-    const prompt = `
-      Suggest professional connections and provide a conversation starter for each.
-      User: ${JSON.stringify(input.userProfile)}
-      Potential Network: ${JSON.stringify(input.network)}
-      
-      Return top 3 as JSON array with userId, strength (0-100), and conversationStarter.
-    `;
+    const prompt = `Suggest connections based on profile. Return JSON array.`;
     const result = await ai.generate({
       prompt,
       output: { format: 'json' },
     });
-    const parsed = result.output as any;
-    return { connections: Array.isArray(parsed) ? parsed : (parsed.connections || []) };
+    
+    try {
+      const parsed = result.output as any;
+      if (!parsed) return { connections: [] };
+      const connections = Array.isArray(parsed) ? parsed : (parsed.connections || []);
+      return { connections: connections.slice(0, 3) };
+    } catch (e) {
+      return { connections: [] };
+    }
   }
 );
 
@@ -533,7 +508,7 @@ export const abTestingFlow = ai.defineFlow(
     name: 'abTestingFlow',
     inputSchema: z.object({
       originalDescription: z.string(),
-      goal: z.string(), // e.g., "increase registrations", "improve professional tone"
+      goal: z.string(),
     }),
     outputSchema: z.object({
       variantA: z.string(),
@@ -542,17 +517,8 @@ export const abTestingFlow = ai.defineFlow(
     }),
   },
   async (input) => {
-    const prompt = `
-      Generate two high-converting variants for an event description to test which performs better.
-      Original: ${input.originalDescription}
-      Goal: ${input.goal}
-      
-      Return as JSON with variantA, variantB, and predictedWinner explanation.
-    `;
-    const result = await ai.generate({
-      prompt,
-      output: { format: 'json' },
-    });
-    return result.output as any;
+    const prompt = `Generate 2 high-converting description variants. Return JSON.`;
+    const result = await ai.generate({ prompt, output: { format: 'json' } });
+    return (result.output as any) || { variantA: "", variantB: "", predictedWinner: "" };
   }
 );

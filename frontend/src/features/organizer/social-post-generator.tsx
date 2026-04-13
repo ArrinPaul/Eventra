@@ -18,7 +18,7 @@ export function SocialPostGenerator({ eventId }: { eventId: string }) {
     setLoading(true);
     try {
       const result = await generateSocialMediaPosts(eventId);
-      setPosts(result.map((content) => ({ platform: 'X (MessageSquare)', content })));
+      setPosts(result.map((content: string) => ({ platform: 'X (MessageSquare)', content })));
       toast({ title: 'Social posts generated! 🚀' });
     } catch (e: any) {
       toast({ title: 'Generation failed', description: e.message, variant: 'destructive' });

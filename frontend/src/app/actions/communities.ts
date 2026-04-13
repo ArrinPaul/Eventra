@@ -6,50 +6,79 @@ import { auth } from '@/auth';
 import { eq, and, desc, sql } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { validateRole } from '@/lib/auth-utils';
+import { z } from 'zod';
 
 import { logActivity } from './feed';
 import { awardXP } from './gamification';
 
+// --- SCHEMAS ---
+
+const communitySchema = z.object({
+  name: z.string().min(3).max(50),
+  description: z.string().min(10).max(500),
+  category: z.string(),
+  isPrivate: z.boolean().default(false),
+  image: z.string().url().optional().or(z.literal('')),
+});
+
+const postSchema = z.object({
+  content: z.string().min(1).max(2000),
+  communityId: z.string().uuid().optional(),
+  imageUrl: z.string().url().optional().or(z.literal('')),
+});
+
+const commentSchema = z.object({
+  postId: z.string().uuid(),
+  content: z.string().min(1).max(1000),
+});
+
+// --- ACTIONS ---
+
 /**
  * Create a new community
  */
-export async function createCommunity(data: { name: string, description: string, category: string, isPrivate?: boolean }) {
+export async function createCommunity(rawInput: any) {
   const user = await validateRole(['attendee', 'organizer', 'admin', 'professional']);
+  const validated = communitySchema.safeParse(rawInput);
+  
+  if (!validated.success) {
+    return { success: false, error: validated.error.flatten().fieldErrors };
+  }
 
   try {
-    const newCommunity = await db.insert(communities).values({
-      name: data.name,
-      description: data.description,
-      category: data.category,
-      isPrivate: data.isPrivate || false,
-      creatorId: user.id,
-    }).returning();
+    const result = await db.transaction(async (tx) => {
+      const newCommunity = await tx.insert(communities).values({
+        ...validated.data,
+        creatorId: user.id,
+      }).returning();
 
-    const communityId = newCommunity[0].id;
+      const communityId = newCommunity[0].id;
 
-    // Creator automatically becomes an admin member
-    await db.insert(communityMembers).values({
-      communityId,
-      userId: user.id,
-      role: 'admin',
+      // Creator automatically becomes an admin member
+      await tx.insert(communityMembers).values({
+        communityId,
+        userId: user.id,
+        role: 'admin',
+      });
+
+      return newCommunity[0];
     });
 
-    // Log Activity
-    await logActivity({
+    // Background tasks
+    logActivity({
       userId: user.id,
       type: 'community_joined',
-      targetId: communityId,
-      content: `Created community: ${data.name}`,
-    });
+      targetId: result.id,
+      content: `Created community: ${result.name}`,
+    }).catch(console.error);
 
-    // Award XP
-    await awardXP(user.id, 50, 'Creating a community');
+    awardXP(user.id, 50, 'Creating a community').catch(console.error);
 
     revalidatePath('/community');
-    return { success: true, community: newCommunity[0] };
+    return { success: true, community: result };
   } catch (error) {
-    console.error('Failed to create community:', error);
-    throw new Error('Database operation failed');
+    console.error('createCommunity Error:', error);
+    return { success: false, error: 'Database operation failed' };
   }
 }
 
@@ -80,28 +109,34 @@ export async function joinCommunity(communityId: string) {
         .where(eq(communities.id, communityId));
     });
 
-    // Log Activity
-    await logActivity({
+    logActivity({
       userId: user.id,
       type: 'community_joined',
       targetId: communityId,
-    });
+    }).catch(console.error);
 
-    // Award XP
-    await awardXP(user.id, 10, 'Joining a community');
+    awardXP(user.id, 10, 'Joining a community').catch(console.error);
 
     revalidatePath(`/community/${communityId}`);
     return { success: true };
   } catch (error) {
-    throw new Error('Failed to join community');
+    console.error('joinCommunity Error:', error);
+    return { success: false, error: 'Failed to join community' };
   }
 }
 
 /**
- * Create a post in a community or globally
+ * Create a post
  */
-export async function createPost(data: { content: string, communityId?: string, imageUrl?: string }) {
+export async function createPost(rawInput: any) {
   const user = await validateRole(['attendee', 'organizer', 'admin', 'professional']);
+  const validated = postSchema.safeParse(rawInput);
+
+  if (!validated.success) {
+    return { success: false, error: validated.error.flatten().fieldErrors };
+  }
+
+  const data = validated.data;
 
   try {
     const newPost = await db.insert(posts).values({
@@ -113,8 +148,7 @@ export async function createPost(data: { content: string, communityId?: string, 
 
     const postId = newPost[0].id;
 
-    // Log Activity
-    await logActivity({
+    logActivity({
       userId: user.id,
       type: 'post',
       targetId: postId,
@@ -123,15 +157,15 @@ export async function createPost(data: { content: string, communityId?: string, 
         communityId: data.communityId,
         imageUrl: data.imageUrl,
       }
-    });
+    }).catch(console.error);
 
-    // Award XP
-    await awardXP(user.id, 20, 'Posting to the community');
+    awardXP(user.id, 20, 'Posting to the community').catch(console.error);
 
     revalidatePath(data.communityId ? `/community/${data.communityId}` : '/feed');
     return { success: true, post: newPost[0] };
   } catch (error) {
-    throw new Error('Failed to create post');
+    console.error('createPost Error:', error);
+    return { success: false, error: 'Failed to create post' };
   }
 }
 
@@ -142,76 +176,55 @@ export async function likePost(postId: string) {
   const user = await validateRole(['attendee', 'organizer', 'admin', 'professional']);
 
   try {
-    // In a full implementation, we'd have a post_likes table to prevent double likes
-    // For now, we increment the count
     await db
       .update(posts)
       .set({ likes: sql`${posts.likes} + 1` })
       .where(eq(posts.id, postId));
 
-    // Award XP (small amount for liking)
-    await awardXP(user.id, 2, 'Liking a post');
+    awardXP(user.id, 2, 'Liking a post').catch(console.error);
 
     revalidatePath('/feed');
     return { success: true };
   } catch (error) {
-    throw new Error('Failed to like post');
+    console.error('likePost Error:', error);
+    return { success: false, error: 'Failed to like post' };
   }
 }
 
 /**
- * Create a comment on a post
+ * Create a comment
  */
-export async function createComment(data: { postId: string, content: string }) {
+export async function createComment(rawInput: any) {
   const user = await validateRole(['attendee', 'organizer', 'admin', 'professional']);
+  const validated = commentSchema.safeParse(rawInput);
+
+  if (!validated.success) {
+    return { success: false, error: validated.error.flatten().fieldErrors };
+  }
+
+  const { postId, content } = validated.data;
 
   try {
     const newComment = await db.insert(comments).values({
-      postId: data.postId,
+      postId,
       authorId: user.id,
-      content: data.content,
+      content,
     }).returning();
 
-    // Log Activity
-    await logActivity({
+    logActivity({
       userId: user.id,
       type: 'comment',
-      targetId: data.postId,
-      content: data.content.substring(0, 50),
-    });
+      targetId: postId,
+      content: content.substring(0, 50),
+    }).catch(console.error);
 
-    // Award XP
-    await awardXP(user.id, 5, 'Commenting on a post');
+    awardXP(user.id, 5, 'Commenting on a post').catch(console.error);
 
     revalidatePath('/feed');
     return { success: true, comment: newComment[0] };
   } catch (error) {
-    throw new Error('Failed to create comment');
-  }
-}
-
-/**
- * Get comments for a post
- */
-export async function getPostComments(postId: string) {
-  try {
-    const result = await db
-      .select({
-        comment: comments,
-        author: {
-          id: users.id,
-          name: users.name,
-          image: users.image,
-        }
-      })
-      .from(comments)
-      .innerJoin(users, eq(comments.authorId, users.id))
-      .where(eq(comments.postId, postId))
-      .orderBy(desc(comments.createdAt));
-    
-    return result;
-  } catch (error) {
-    return [];
+    console.error('createComment Error:', error);
+    return { success: false, error: 'Failed to create comment' };
   }
 }
 
@@ -236,6 +249,33 @@ export async function getCommunityPosts(communityId: string) {
     
     return result;
   } catch (error) {
+    console.error('getCommunityPosts Error:', error);
+    return [];
+  }
+}
+
+/**
+ * Get comments for a post
+ */
+export async function getPostComments(postId: string) {
+  try {
+    const result = await db
+      .select({
+        comment: comments,
+        author: {
+          id: users.id,
+          name: users.name,
+          image: users.image,
+        }
+      })
+      .from(comments)
+      .innerJoin(users, eq(comments.authorId, users.id))
+      .where(eq(comments.postId, postId))
+      .orderBy(desc(comments.createdAt));
+    
+    return result;
+  } catch (error) {
+    console.error('getPostComments Error:', error);
     return [];
   }
 }

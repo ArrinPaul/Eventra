@@ -1,20 +1,41 @@
 'use server';
 
 import { db } from '@/lib/db';
-import { events, users, tickets } from '@/lib/db/schema';
-import { auth } from '@/auth';
-import { eq, desc, and, gte, lte, or, ilike, sql } from 'drizzle-orm';
+import { events, users } from '@/lib/db/schema';
+import { eq, desc, and, or, ilike, sql } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
-import type { EventraEvent } from '@/types';
 import { validateRole, validateEventOwnership } from '@/lib/auth-utils';
 import { generateEmbedding } from '@/lib/ai';
 import { RRule } from 'rrule';
+import { z } from 'zod';
 
 import { logActivity } from './feed';
 import { awardXP } from './gamification';
 
+// --- SCHEMAS ---
+
+const eventSchema = z.object({
+  title: z.string().min(3).max(100),
+  description: z.string().min(10),
+  startDate: z.string().or(z.date()),
+  endDate: z.string().or(z.date()),
+  category: z.string(),
+  type: z.enum(['physical', 'virtual', 'hybrid']).default('physical'),
+  location: z.any(),
+  capacity: z.number().int().positive(),
+  price: z.string().default('0'),
+  isPaid: z.boolean().default(false),
+  isRecurring: z.boolean().default(false),
+  recurrenceRule: z.string().optional(),
+  waitlistEnabled: z.boolean().default(false),
+  visibility: z.enum(['public', 'private', 'unlisted']).default('public'),
+  imageUrl: z.string().url().optional().or(z.literal('')),
+});
+
+// --- ACTIONS ---
+
 /**
- * Fetch events with optional filtering
+ * Fetch events with optimized filtering
  */
 export async function getEvents(filters?: {
   category?: string;
@@ -24,8 +45,6 @@ export async function getEvents(filters?: {
   status?: string;
 }) {
   try {
-    const query = db.select().from(events);
-    
     const conditions = [];
 
     if (filters?.status) {
@@ -47,18 +66,18 @@ export async function getEvents(filters?: {
         or(
           ilike(events.title, `%${filters.search}%`),
           ilike(events.description, `%${filters.search}%`)
-        ) as any
+        )
       );
     }
 
-    const result = await query
+    const result = await db.select().from(events)
       .where(and(...conditions))
       .orderBy(desc(events.startDate))
       .limit(filters?.limit || 50);
 
     return result;
   } catch (error) {
-    console.error('Failed to fetch events:', error);
+    console.error('getEvents Error:', error);
     return [];
   }
 }
@@ -76,59 +95,50 @@ export async function getEventById(id: string) {
     
     return result[0] || null;
   } catch (error) {
-    console.error('Failed to fetch event:', error);
+    console.error('getEventById Error:', id, error);
     return null;
   }
 }
 
 /**
- * Create a new event, with optional recurrence support
+ * Create a new event
  */
-export async function createEvent(data: any) {
-  // Guard: Only organizers or admins can create events
+export async function createEvent(rawInput: any) {
   const user = await validateRole(['organizer', 'admin']);
+  
+  const validated = eventSchema.safeParse(rawInput);
+  if (!validated.success) {
+    return { success: false, error: validated.error.flatten().fieldErrors };
+  }
+
+  const data = validated.data;
 
   try {
     const newEvent = await db.insert(events).values({
-      title: data.title,
-      description: data.description,
+      ...data,
+      location: data.location || { venue: 'TBD' },
       startDate: new Date(data.startDate),
       endDate: new Date(data.endDate),
-      imageUrl: data.imageUrl,
-      category: data.category,
-      status: 'published',
-      type: data.type || 'physical',
-      location: data.location || { venue: 'TBD' },
-      capacity: data.capacity || 100,
       organizerId: user.id,
-      price: data.price || '0',
-      isPaid: data.isPaid || false,
-      isRecurring: data.isRecurring || false,
-      recurrenceRule: data.recurrenceRule,
-      waitlistEnabled: data.waitlistEnabled || false,
-      visibility: data.visibility || 'public',
+      status: 'published',
     }).returning();
 
     const parentEvent = newEvent[0];
 
-    // Log Activity
-    await logActivity({
+    // Background tasks
+    logActivity({
       userId: user.id,
       type: 'event_created',
       targetId: parentEvent.id,
       content: parentEvent.title,
       metadata: { category: parentEvent.category }
-    });
+    }).catch(console.error);
 
-    // Award XP
-    await awardXP(user.id, 100, 'Creating an event');
+    awardXP(user.id, 100, 'Creating an event').catch(console.error);
+    updateEventEmbedding(parentEvent.id).catch(console.error);
 
-    // Generate embedding in background
-    updateEventEmbedding(parentEvent.id).catch(err => console.error('Initial embedding failed:', err));
-
-    // If it's recurring, generate the first few instances (e.g., next 10 or 3 months)
     if (data.isRecurring && data.recurrenceRule) {
-      await generateRecurringInstances(parentEvent.id, data.recurrenceRule);
+      generateRecurringInstances(parentEvent.id, data.recurrenceRule).catch(console.error);
     }
 
     revalidatePath('/explore');
@@ -136,8 +146,8 @@ export async function createEvent(data: any) {
     
     return { success: true, event: parentEvent };
   } catch (error) {
-    console.error('Failed to create event:', error);
-    throw new Error('Database operation failed');
+    console.error('createEvent Error:', error);
+    return { success: false, error: 'Database operation failed' };
   }
 }
 
@@ -150,101 +160,86 @@ export async function generateRecurringInstances(parentId: string, ruleString: s
 
   try {
     const rule = RRule.fromString(ruleString);
-    // Generate instances for the next 3 months, max 12 instances
     const now = new Date();
     const threeMonthsFromNow = new Date();
     threeMonthsFromNow.setMonth(now.getMonth() + 3);
     
-    const dates = rule.between(now, threeMonthsFromNow, true).slice(1, 13); // Skip first date as it's the parent
-
+    const dates = rule.between(now, threeMonthsFromNow, true).slice(1, 13);
     if (dates.length === 0) return;
 
     const duration = parent.endDate.getTime() - parent.startDate.getTime();
 
     const instances = dates.map(date => ({
-      title: parent.title,
-      description: parent.description,
+      ...parent,
+      id: crypto.randomUUID() as any, // Need new UUIDs
       startDate: date,
       endDate: new Date(date.getTime() + duration),
-      imageUrl: parent.imageUrl,
-      category: parent.category,
-      status: 'published',
-      type: parent.type,
-      location: parent.location,
-      capacity: parent.capacity,
-      organizerId: parent.organizerId,
-      price: parent.price,
-      isPaid: parent.isPaid,
-      isRecurring: false, // Child instances are not recurring themselves
+      isRecurring: false,
       parentEventId: parent.id,
-      waitlistEnabled: parent.waitlistEnabled,
-      visibility: parent.visibility,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      embedding: null,
     }));
 
-    await db.insert(events).values(instances);
+    await db.insert(events).values(instances as any);
   } catch (error) {
-    console.error('Failed to generate recurring instances:', error);
+    console.error('generateRecurringInstances Error:', error);
   }
 }
 
 /**
- * Update an existing event
+ * Update event
  */
-export async function updateEvent(id: string, data: any) {
-  // Guard: Must be the owner or an admin
+export async function updateEvent(id: string, rawInput: any) {
   await validateEventOwnership(id);
 
+  const validated = eventSchema.partial().safeParse(rawInput);
+  if (!validated.success) {
+    return { success: false, error: validated.error.flatten().fieldErrors };
+  }
+
+  const data = validated.data;
+
   try {
-    const updatedEvent = await db
+    const updateData: any = { ...data };
+    if (data.startDate) updateData.startDate = new Date(data.startDate);
+    if (data.endDate) updateData.endDate = new Date(data.endDate);
+    updateData.updatedAt = new Date();
+
+    const result = await db
       .update(events)
-      .set({
-        title: data.title,
-        description: data.description,
-        startDate: new Date(data.startDate),
-        endDate: new Date(data.endDate),
-        imageUrl: data.imageUrl,
-        category: data.category,
-        type: data.type,
-        location: data.location,
-        capacity: data.capacity,
-        status: data.status,
-        updatedAt: new Date(),
-      })
+      .set(updateData)
       .where(eq(events.id, id))
       .returning();
 
-    // Refresh embedding if title or description changed
     if (data.title || data.description) {
-      updateEventEmbedding(id).catch(err => console.error('Embedding refresh failed:', err));
+      updateEventEmbedding(id).catch(console.error);
     }
 
     revalidatePath('/explore');
     revalidatePath(`/events/${id}`);
     revalidatePath('/organizer');
     
-    return { success: true, event: updatedEvent[0] };
+    return { success: true, event: result[0] };
   } catch (error) {
-    console.error('Failed to update event:', error);
-    throw new Error('Database operation failed');
+    console.error('updateEvent Error:', error);
+    return { success: false, error: 'Database operation failed' };
   }
 }
 
 /**
- * Delete an event
+ * Delete event
  */
 export async function deleteEvent(id: string) {
-  // Guard: Must be the owner or an admin
   await validateEventOwnership(id);
 
   try {
     await db.delete(events).where(eq(events.id, id));
-
     revalidatePath('/explore');
     revalidatePath('/organizer');
-    
     return { success: true };
   } catch (error) {
-    console.error('Failed to delete event:', error);
+    console.error('deleteEvent Error:', error);
     throw new Error('Database operation failed');
   }
 }
@@ -253,7 +248,6 @@ export async function deleteEvent(id: string) {
  * Clone an existing event
  */
 export async function cloneEvent(id: string) {
-  // Guard: Must be the owner or an admin
   const user = await validateEventOwnership(id);
 
   try {
@@ -263,33 +257,26 @@ export async function cloneEvent(id: string) {
 
     if (!originalEvent) throw new Error('Original event not found');
 
+    const { id: _, createdAt: __, updatedAt: ___, embedding: ____, ...cloneData } = originalEvent;
+
     const clonedEvent = await db.insert(events).values({
+      ...cloneData,
       title: `${originalEvent.title} (Clone)`,
-      description: originalEvent.description,
-      startDate: originalEvent.startDate,
-      endDate: originalEvent.endDate,
-      imageUrl: originalEvent.imageUrl,
-      category: originalEvent.category,
       status: 'draft',
-      type: originalEvent.type,
-      location: originalEvent.location,
-      capacity: originalEvent.capacity,
       organizerId: user.id,
-      price: originalEvent.price,
-      isPaid: originalEvent.isPaid,
-    }).returning();
+    } as any).returning();
 
     revalidatePath('/organizer');
     
-    return clonedEvent[0].id;
+    return { success: true, id: clonedEvent[0].id };
   } catch (error) {
     console.error('Failed to clone event:', error);
-    throw new Error('Database operation failed');
+    return { success: false, error: 'Database operation failed' };
   }
 }
 
 /**
- * Generate and store embedding for an event
+ * Store embedding for an event
  */
 export async function updateEventEmbedding(eventId: string) {
   try {
@@ -297,28 +284,23 @@ export async function updateEventEmbedding(eventId: string) {
       where: eq(events.id, eventId)
     });
 
-    if (!event) throw new Error('Event not found');
+    if (!event) return;
 
     const contentToEmbed = `${event.title} ${event.category} ${event.description}`;
     const embeddingResponse = await generateEmbedding(contentToEmbed);
-    
-    // The embedding is in embeddingResponse[0].embedding
     const vectorData = embeddingResponse[0].embedding;
 
     await db
       .update(events)
       .set({ embedding: vectorData })
       .where(eq(events.id, eventId));
-
-    return { success: true };
   } catch (error) {
-    console.error('Failed to update embedding:', error);
-    return { success: false };
+    console.error('updateEventEmbedding Error:', error);
   }
 }
 
 /**
- * Get events by proximity (Cosine similarity)
+ * Optimized vector similarity
  */
 export async function getRecommendedEventsByVector(userId: string) {
   try {
@@ -329,44 +311,19 @@ export async function getRecommendedEventsByVector(userId: string) {
     if (!user || !user.interests) return [];
 
     const userEmbeddingResponse = await generateEmbedding(user.interests);
-    const userVector = userEmbeddingResponse[0].embedding;
+    const userVector = JSON.stringify(userEmbeddingResponse[0].embedding);
 
-    // Fetch all events with embeddings
-    const allEvents = await db
-      .select({
-        id: events.id,
-        title: events.title,
-        category: events.category,
-        embedding: events.embedding,
-      })
-      .from(events)
-      .where(sql`embedding IS NOT NULL`)
-      .limit(100);
+    const results = await db.execute(sql`
+      SELECT id, title, category, image_url, start_date
+      FROM events
+      WHERE status = 'published' AND embedding IS NOT NULL
+      ORDER BY embedding <=> ${userVector}::vector
+      LIMIT 5
+    `);
 
-    // Manual cosine similarity
-    const withScore = allEvents.map(event => {
-      const eventVector = event.embedding as number[];
-      if (!eventVector || !Array.isArray(eventVector)) return { ...event, score: 0 };
-      
-      let dotProduct = 0;
-      let magA = 0;
-      let magB = 0;
-      const len = Math.min(userVector.length, eventVector.length);
-      for (let i = 0; i < len; i++) {
-        dotProduct += userVector[i] * eventVector[i];
-        magA += userVector[i] * userVector[i];
-        magB += eventVector[i] * eventVector[i];
-      }
-      const similarity = dotProduct / (Math.sqrt(magA) * Math.sqrt(magB));
-      return { ...event, score: similarity };
-    });
-
-    return withScore
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 5);
-
+    return results as any;
   } catch (error) {
-    console.error('Vector Recommendation Error:', error);
+    console.error('getRecommendedEventsByVector Error:', error);
     return [];
   }
 }
