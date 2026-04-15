@@ -92,6 +92,7 @@ export const events = pgTable('events', {
   waitlistEnabled: boolean('waitlist_enabled').default(false).notNull(),
   visibility: text('visibility').default('public').notNull(),
   embedding: vector('embedding'),
+  feedbackTemplateId: uuid('feedback_template_id'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 }, (table) => ({
@@ -126,6 +127,7 @@ export const tickets = pgTable('tickets', {
   qrCode: text('qr_code'),
   personalizedMessage: text('personalized_message'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
 }, (table) => ({
   eventIdx: index('tickets_event_idx').on(table.eventId),
   userIdx: index('tickets_user_idx').on(table.userId),
@@ -285,12 +287,23 @@ export const aiChatMessages = pgTable('ai_chat_messages', {
   sessionIdx: index('ai_chat_messages_session_idx').on(table.sessionId),
 }));
 
+export const feedbackTemplates = pgTable('feedback_templates', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  eventId: uuid('event_id').references(() => events.id, { onDelete: 'cascade' }),
+  title: text('title').notNull(),
+  description: text('description'),
+  questions: jsonb('questions').notNull(), // Array of { id, type, label, options? }
+  isDefault: boolean('is_default').default(false).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
 export const eventFeedback = pgTable('event_feedback', {
   id: uuid('id').primaryKey().defaultRandom(),
   eventId: uuid('event_id').references(() => events.id, { onDelete: 'cascade' }).notNull(),
   userId: text('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
   rating: integer('rating').notNull(),
   comment: text('content'),
+  responses: jsonb('responses'), // Key-value pairs for custom questions
   createdAt: timestamp('created_at').defaultNow().notNull(),
 }, (table) => ({
   eventIdx: index('event_feedback_event_idx').on(table.eventId),

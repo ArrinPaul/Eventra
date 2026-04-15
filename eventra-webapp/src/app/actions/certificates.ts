@@ -2,16 +2,16 @@
 
 import { db } from '@/lib/db';
 import { tickets, events, users, notifications } from '@/lib/db/schema';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, desc, sql } from 'drizzle-orm';
 import { validateRole, validateEventOwnership } from '@/lib/auth-utils';
 import { certificatePersonalizedMessageFlow } from '@/lib/ai';
 import { revalidatePath } from 'next/cache';
+import { auth } from '@/auth';
 
 /**
- * Issue a certificate for a ticket, generating a personalized AI message
+ * Issue a certificate for a single ticket, generating a personalized AI message
  */
 export async function issueCertificate(ticketId: string) {
-  // Guard: Organizer or Admin
   const ticketData = await db
     .select({
       ticket: tickets,
@@ -27,71 +27,145 @@ export async function issueCertificate(ticketId: string) {
   if (ticketData.length === 0) throw new Error('Ticket not found');
   
   const { ticket, event, user } = ticketData[0];
-  
   await validateEventOwnership(event.id);
 
+  if (ticket.status !== 'checked-in') {
+    throw new Error('Attendee must be checked in to receive a certificate');
+  }
+
   try {
-    // 1. Generate Personalized Message
+    // 1. Generate Personalized Message using AI
     const { personalizedMessage } = await certificatePersonalizedMessageFlow({
       userName: user.name || 'Attendee',
       eventTitle: event.title,
     });
 
-    // 2. Update Ticket with the message
+    // 2. Update Ticket with the message and mark as "issued" (using a status or just the message presence)
     await db
       .update(tickets)
       .set({ 
         personalizedMessage,
-        status: 'checked_in' 
+        updatedAt: new Date()
       })
       .where(eq(tickets.id, ticketId));
 
-    // 3. Create notification to trigger certificate email
+    // 3. Notify user
     await db.insert(notifications).values({
       userId: user.id,
-      title: 'Certificate Ready',
-      message: `EMAIL_TRIGGER:certificate|${event.title}`,
-      type: 'email',
+      title: 'Your Certificate is Ready!',
+      message: `Congratulations! Your certificate for ${event.title} is now available for download.`,
+      type: 'achievement',
+      link: `/certificates`
     });
 
-    revalidatePath(`/tickets/${ticketId}`);
+    revalidatePath(`/certificates`);
     return { success: true, message: personalizedMessage };
   } catch (error) {
     console.error('Certificate Issue Error:', error);
-    return { success: false, error: 'Failed to generate AI certificate message' };
+    throw new Error('Failed to generate certificate');
   }
 }
 
 /**
- * Get certificate data for a ticket
+ * Bulk issue certificates for all checked-in attendees of an event
  */
-export async function getCertificateData(ticketId: string) {
+export async function bulkIssueCertificates(eventId: string) {
+  await validateEventOwnership(eventId);
+
+  const checkedInTickets = await db
+    .select()
+    .from(tickets)
+    .where(and(
+      eq(tickets.eventId, eventId),
+      eq(tickets.status, 'checked-in'),
+      sql`${tickets.personalizedMessage} IS NULL`
+    ));
+
+  if (checkedInTickets.length === 0) {
+    return { success: true, count: 0, message: 'No pending certificates for checked-in attendees' };
+  }
+
+  // Process in background or small batches to avoid timeouts
+  let issuedCount = 0;
+  for (const ticket of checkedInTickets) {
+    try {
+      await issueCertificate(ticket.id);
+      issuedCount++;
+    } catch (e) {
+      console.error(`Failed to issue bulk certificate for ticket ${ticket.id}:`, e);
+    }
+  }
+
+  revalidatePath('/organizer');
+  return { success: true, count: issuedCount };
+}
+
+/**
+ * Fetch all certificates for the current user
+ */
+export async function getUserCertificates() {
+  const session = await auth();
+  if (!session?.user) return [];
+
   try {
-    const ticketData = await db
+    const result = await db
       .select({
-        ticket: tickets,
-        event: events,
-        user: users,
+        id: tickets.id,
+        certificateNumber: tickets.ticketNumber,
+        personalizedMessage: tickets.personalizedMessage,
+        issueDate: tickets.updatedAt,
+        event: {
+          title: events.title,
+          startDate: events.startDate,
+        }
       })
       .from(tickets)
       .innerJoin(events, eq(tickets.eventId, events.id))
+      .where(and(
+        eq(tickets.userId, session.user.id),
+        sql`${tickets.personalizedMessage} IS NOT NULL`
+      ))
+      .orderBy(desc(tickets.updatedAt));
+
+    return result;
+  } catch (error) {
+    console.error('getUserCertificates Error:', error);
+    return [];
+  }
+}
+
+/**
+ * Verify a certificate by its number
+ */
+export async function verifyCertificate(certificateNumber: string) {
+  try {
+    const result = await db
+      .select({
+        certificateNumber: tickets.ticketNumber,
+        issueDate: tickets.updatedAt,
+        userName: users.name,
+        eventTitle: events.title,
+        personalizedMessage: tickets.personalizedMessage
+      })
+      .from(tickets)
       .innerJoin(users, eq(tickets.userId, users.id))
-      .where(eq(tickets.id, ticketId))
+      .innerJoin(events, eq(tickets.eventId, events.id))
+      .where(and(
+        eq(tickets.ticketNumber, certificateNumber.toUpperCase()),
+        sql`${tickets.personalizedMessage} IS NOT NULL`
+      ))
       .limit(1);
 
-    if (ticketData.length === 0) return null;
+    if (result.length === 0) {
+      return { valid: false };
+    }
 
-    const { ticket, event, user } = ticketData[0];
-
-    return {
-      recipientName: user.name,
-      eventTitle: event.title,
-      eventDate: event.startDate.toLocaleDateString(),
-      verificationCode: ticket.ticketNumber,
-      personalizedMessage: ticket.personalizedMessage,
+    return { 
+      valid: true, 
+      ...result[0] 
     };
   } catch (error) {
-    console.error('Fetch Certificate Error:', error);
-    return null;
+    console.error('verifyCertificate Error:', error);
+    return { valid: false };
   }
 }

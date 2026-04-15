@@ -6,7 +6,7 @@ import { auth } from '@/auth';
 import { eq, desc, and, or, sql, inArray } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 
-export type ActivityType = 'registration' | 'post' | 'comment' | 'event_created' | 'badge_awarded' | 'community_joined';
+export type ActivityType = 'registration' | 'post' | 'comment' | 'event_created' | 'event_checkin' | 'badge_awarded' | 'community_joined';
 
 /**
  * Log a new activity to the feed
