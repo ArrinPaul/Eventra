@@ -48,7 +48,7 @@ export default function EnhancedChatClient({ initialRoomId }: { initialRoomId?: 
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const userCacheRef = useRef<Record<string, { id: string, name: string, image: string | null }>>({});
+  const userCacheRef = useRef<Record<string, { id: string, name: string | null, image: string | null }>>({});
 
   const [newRoom, setNewRoom] = useState({ name: '', type: 'group' as const });
 
