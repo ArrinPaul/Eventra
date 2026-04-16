@@ -69,12 +69,13 @@ export async function registerForEvent(eventId: string, data?: { tierId?: string
         ticketNumber,
         status: 'confirmed',
         price: price,
+        qrCode: ticketNumber, // Use ticket number as QR payload by default
       });
 
       // Update registration counts
       await tx
         .update(events)
-        .set({ registeredCount: event.registeredCount + 1 })
+        .set({ registeredCount: sql`${events.registeredCount} + 1` })
         .where(eq(events.id, eventId));
 
       if (data?.tierId) {

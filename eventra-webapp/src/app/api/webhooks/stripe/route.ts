@@ -43,6 +43,7 @@ export async function POST(req: Request) {
           ticketNumber,
           status: 'confirmed',
           price: (session.amount_total! / 100).toString(),
+          qrCode: ticketNumber, // Use ticket number as QR payload by default
         });
 
         // 2. Update registration counts

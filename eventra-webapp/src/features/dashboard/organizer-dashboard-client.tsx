@@ -139,6 +139,8 @@ export default function OrganizerDashboard() {
         <TabsList className="bg-white/5 border-white/10">
           <TabsTrigger value="events" className="data-[state=active]:bg-cyan-600">My Events</TabsTrigger>
           <TabsTrigger value="revenue" className="data-[state=active]:bg-cyan-600">Revenue Analytics</TabsTrigger>
+          <TabsTrigger value="insights" className="data-[state=active]:bg-cyan-600">Deep Insights (AI)</TabsTrigger>
+          <TabsTrigger value="feedback" className="data-[state=active]:bg-cyan-600">Feedback System</TabsTrigger>
         </TabsList>
 
         <TabsContent value="events">
@@ -217,6 +219,75 @@ export default function OrganizerDashboard() {
 
         <TabsContent value="revenue">
           <RevenueDashboard />
+        </TabsContent>
+
+        <TabsContent value="insights">
+          <Card className="bg-white/5 border-white/10 text-white">
+            <CardHeader>
+              <CardTitle>Event Intelligence</CardTitle>
+              <CardDescription>Select an event to view deep AI insights and predictions.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {managedEvents.map(event => (
+                  <Card key={event.id} className="bg-white/5 border-white/5 hover:border-cyan-500/30 transition-all cursor-pointer overflow-hidden group">
+                    <CardHeader className="pb-2">
+                      <div className="flex justify-between items-start">
+                        <CardTitle className="text-sm font-bold truncate pr-4">{event.title}</CardTitle>
+                        <BrainCircuit size={16} className="text-cyan-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </div>
+                    </CardHeader>
+                    <CardFooter>
+                      <Button variant="link" className="text-cyan-400 p-0 h-auto text-xs" asChild>
+                        <Link href={`/organizer/insights/${event.id}`}>View Deep Insights <ChevronRight size={12} /></Link>
+                      </Button>
+                    </CardFooter>
+                  </Card>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="feedback">
+          <Card className="bg-white/5 border-white/10 text-white">
+            <CardHeader>
+              <div className="flex justify-between items-center">
+                <div>
+                  <CardTitle>Interactive Feedback System</CardTitle>
+                  <CardDescription>Manage custom questionnaires and view attendee satisfaction trends.</CardDescription>
+                </div>
+                <Button asChild variant="outline" className="border-white/10">
+                  <Link href="/organizer/certificates"><Award className="mr-2 h-4 w-4" /> Certificates</Link>
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {managedEvents.map(event => (
+                  <div key={event.id} className="flex items-center justify-between p-4 bg-white/5 rounded-lg border border-white/10 group hover:border-purple-500/30 transition-all">
+                    <div className="flex items-center gap-4">
+                      <div className="h-10 w-10 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-400">
+                        <MessageSquare size={18} />
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-bold">{event.title}</h3>
+                        <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest">{event.status}</p>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button size="sm" variant="ghost" className="text-xs hover:bg-white/5" asChild>
+                         <Link href={`/organizer/feedback/builder/${event.id}`}>Edit Form</Link>
+                      </Button>
+                      <Button size="sm" variant="outline" className="text-xs border-white/10" asChild>
+                         <Link href={`/organizer/feedback/analytics/${event.id}`}>Analytics</Link>
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </div>

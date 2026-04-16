@@ -52,6 +52,7 @@ function TicketStatusBadge({ status }: { status: EventTicket['status'] }) {
     'checked-in': { label: 'Checked In', className: 'bg-primary/10 text-primary border-primary/20' },
     'cancelled': { label: 'Cancelled', className: 'bg-destructive/10 text-destructive border-destructive/20' },
     'refunded': { label: 'Refunded', className: 'bg-muted text-muted-foreground border-muted' },
+    'expired': { label: 'Expired', className: 'bg-red-500/10 text-red-500 border-red-500/20' },
   };
   const config = statusConfig[status] || statusConfig['pending'];
   return <Badge variant="outline" className={config.className}>{config.label}</Badge>;
@@ -65,7 +66,7 @@ function TicketCard({ ticket, onViewTicket, onPrint, onCancel, onDownloadInvoice
   onDownloadInvoice: (ticket: EventTicket) => void;
 }) {
   const eventDate = getTicketEventDate(ticket);
-  const isCancellable = ticket.status !== 'cancelled' && ticket.status !== 'refunded' && !isPast(eventDate);
+  const isCancellable = ticket.status !== 'cancelled' && ticket.status !== 'refunded' && ticket.status !== 'expired' && !isPast(eventDate);
 
   return (
     <Card className="bg-white/5 border-white/10 text-white overflow-hidden group hover:border-white/20 transition-all">
@@ -89,7 +90,7 @@ function TicketCard({ ticket, onViewTicket, onPrint, onCancel, onDownloadInvoice
           <Button size="sm" className="flex-[2] bg-cyan-600 hover:bg-cyan-500" onClick={() => onViewTicket(ticket)}>View QR</Button>
           <Button size="sm" variant="outline" className="flex-1 border-white/10" title="Download Ticket" onClick={() => onPrint(ticket)}><Download className="h-4 w-4" /></Button>
           
-          {ticket.price > 0 && (
+          {(ticket.price > 0) && (
             <Button size="sm" variant="outline" className="flex-1 border-white/10" title="Download Invoice" onClick={() => onDownloadInvoice(ticket)}><FileText className="h-4 w-4" /></Button>
           )}
 
@@ -115,17 +116,23 @@ function TicketCard({ ticket, onViewTicket, onPrint, onCancel, onDownloadInvoice
   );
 }
 
-export default function MyTicketsClient() {
+export default function MyTicketsClient({ initialTickets = [] }: { initialTickets?: any[] }) {
   const { user } = useAuth();
   const { toast } = useToast();
-  // TODO: wire to backend
-  const allTicketsRaw: any[] = [];
+  
+  const [tickets, setTickets] = useState<EventTicket[]>(
+    initialTickets.map((t: any) => ({
+      ...(t.ticket || t),
+      event: t.event || t.ticket?.event || {},
+      id: t.id || t.ticket?.id || t._id
+    }))
+  );
+  
   const [selectedTicket, setSelectedTicket] = useState<EventTicket | null>(null);
   const [activeTab, setActiveTab] = useState('upcoming');
   const [cancellingId, setCancellingId] = useState<string | null>(null);
 
-  const loading = allTicketsRaw === undefined;
-  const tickets: EventTicket[] = (allTicketsRaw || []).map((t: any) => ({ ...t, id: t._id }));
+  const loading = user === undefined;
 
   const handleCancel = async (ticket: EventTicket) => {
     const confirmMsg = ticket.price > 0 

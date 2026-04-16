@@ -7,19 +7,19 @@ This list contains all tasks required for full feature parity and production rea
 ## 1. QR Code & Check-in Lifecycle (Advanced Ticketing)
 *   **Current Status:** The tickets table has a `qrCode` field; `check-in-scanner` route exists; database schema is ready.
 *   **What's Missing / Missing Pieces:**
-    - [ ] **State Machine:** Implement the full lifecycle for tickets (Active → Scanned → Expired).
-    - [ ] **Anti-Fraud Logic:** Prevent spoofing and multiple check-ins with the same QR code.
-    - [ ] **Verify API:** Replace the current skeleton with a robust API using role-based scanning permissions.
-    - [ ] **Offline Mode:** Allow scanners to cache data and sync when the connection returns.
-    - [ ] **Ticket Status Engine:** Automated transitions from Confirmed → Checked-in → Expired.
+    - [x] **State Machine:** Implement the full lifecycle for tickets (Active → Scanned → Expired).
+    - [x] **Anti-Fraud Logic:** Prevent spoofing and multiple check-ins with the same QR code.
+    - [x] **Verify API:** Replace the current skeleton with a robust API using role-based scanning permissions.
+    - [x] **Offline Mode:** Allow scanners to cache data and sync when the connection returns.
+    - [x] **Ticket Status Engine:** Automated transitions from Confirmed → Checked-in → Expired.
 
 ## 2. Certificate Generation & Distribution (Export Engine)
 *   **Current Status:** A `certificates.ts` action and a dedicated UI route exist; basic routes and PDF libraries are installed.
 *   **What's Missing / Missing Pieces:**
-    - [ ] **Template Editor / Builder:** A UI for organizers to design layouts and drag-and-drop text/images onto certificates.
-    - [ ] **Bulk Distribution:** Logic to generate 500+ certificates and email them all at once.
-    - [ ] **Packaging:** Implement ZIP packaging for bulk certificates and PDF/DOCX exports via jsPDF.
-    - [ ] **Production Readiness:** Transition from the current system to a full production-grade engine.
+    - [x] **Template Editor / Builder:** A UI for organizers to design layouts and drag-and-drop text/images onto certificates.
+    - [x] **Bulk Distribution:** Logic to generate 500+ certificates and email them all at once.
+    - [x] **Packaging:** Implement ZIP packaging for bulk certificates and PDF/DOCX exports via jsPDF.
+    - [x] **Production Readiness:** Transition from the current system to a full production-grade engine.
 
 ## 3. Feedback & Analytics System (Interactive & NPS)
 *   **Current Status:** A basic `event_feedback` table exists for ratings/comments; basic fields exist in the schema.

@@ -109,7 +109,7 @@ export interface EventTicket {
   eventId: string;
   userId: string;
   ticketNumber: string;
-  status: 'confirmed' | 'pending' | 'cancelled' | 'checked-in' | 'refunded';
+  status: 'confirmed' | 'pending' | 'cancelled' | 'checked-in' | 'refunded' | 'expired';
   purchaseDate: number | Date;
   price: number;
   currency?: string;

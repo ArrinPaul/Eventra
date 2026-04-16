@@ -48,8 +48,8 @@ export async function validateEventOwnership(eventId: string) {
     throw new Error('Event not found');
   }
 
-  if (event.organizerId !== userId) {
-    throw new Error('Forbidden: You do not own this event');
+  if (event.organizerId !== userId && !(event.coOrganizerIds?.includes(userId))) {
+    throw new Error('Forbidden: You do not have permission to manage this event');
   }
 
   return user.user;

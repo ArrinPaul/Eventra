@@ -91,6 +91,7 @@ export const events = pgTable('events', {
   parentEventId: uuid('parent_event_id'),
   waitlistEnabled: boolean('waitlist_enabled').default(false).notNull(),
   visibility: text('visibility').default('public').notNull(),
+  coOrganizerIds: text('co_organizer_ids').array(),
   embedding: vector('embedding'),
   feedbackTemplateId: uuid('feedback_template_id'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
@@ -297,6 +298,25 @@ export const feedbackTemplates = pgTable('feedback_templates', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
+export const certificateTemplates = pgTable('certificate_templates', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  eventId: uuid('event_id').references(() => events.id, { onDelete: 'cascade' }),
+  title: text('title').notNull(),
+  description: text('description'),
+  layout: jsonb('layout').notNull(), // { backgroundUrl, fields: [{ id, type, x, y, size, color, value }] }
+  html: text('html'), // Static HTML version for rendering
+  isDefault: boolean('is_default').default(false).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const certificateTemplatesRelations = relations(certificateTemplates, ({ one }) => ({
+  event: one(events, {
+    fields: [certificateTemplates.eventId],
+    references: [events.id],
+  }),
+}));
+
 export const eventFeedback = pgTable('event_feedback', {
   id: uuid('id').primaryKey().defaultRandom(),
   eventId: uuid('event_id').references(() => events.id, { onDelete: 'cascade' }).notNull(),
@@ -324,13 +344,26 @@ export const activityFeed = pgTable('activity_feed', {
 
 // --- Relations ---
 
-export const eventsRelations = relations(events, ({ many }) => ({
+export const eventsRelations = relations(events, ({ many, one }) => ({
   ticketTiers: many(ticketTiers),
   tickets: many(tickets),
   waitlist: many(waitlist),
   chatRooms: many(chatRooms),
   aiChatSessions: many(aiChatSessions),
   feedback: many(eventFeedback),
+  certificateTemplates: many(certificateTemplates),
+  feedbackTemplate: one(feedbackTemplates, {
+    fields: [events.feedbackTemplateId],
+    references: [feedbackTemplates.id],
+  }),
+}));
+
+export const feedbackTemplatesRelations = relations(feedbackTemplates, ({ one, many }) => ({
+  event: one(events, {
+    fields: [feedbackTemplates.eventId],
+    references: [events.id],
+  }),
+  events: many(events), // Global templates used by many events
 }));
 
 export const ticketTiersRelations = relations(ticketTiers, ({ one }) => ({

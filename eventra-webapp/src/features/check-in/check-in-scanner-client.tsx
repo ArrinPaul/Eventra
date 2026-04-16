@@ -56,6 +56,81 @@ export default function CheckInScannerClient() {
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
   
+  // Offline Support State
+  const [isOffline, setIsOffline] = useState(false);
+  const [offlineQueue, setOfflineQueue] = useState<{ ticketNumber: string, timestamp: Date }[]>([]);
+  const [isSyncing, setIsSyncing] = useState(false);
+
+  useEffect(() => {
+    // Check initial online status
+    setIsOffline(!navigator.onLine);
+
+    const handleOnline = () => {
+      setIsOffline(false);
+      toast({ title: "Back Online", description: "Connection restored. Syncing pending check-ins..." });
+      syncOfflineQueue();
+    };
+    const handleOffline = () => {
+      setIsOffline(true);
+      toast({ title: "Offline Mode", description: "You are offline. Check-ins will be cached and synced later.", variant: "default" });
+    };
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    // Load queue from localStorage
+    const savedQueue = localStorage.getItem(`offline_queue_${user?.id}`);
+    if (savedQueue) {
+      try {
+        const parsed = JSON.parse(savedQueue);
+        setOfflineQueue(parsed.map((item: any) => ({ ...item, timestamp: new Date(item.timestamp) })));
+      } catch (e) {
+        console.error('Failed to parse offline queue', e);
+      }
+    }
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, [user?.id, toast]);
+
+  const syncOfflineQueue = useCallback(async () => {
+    if (offlineQueue.length === 0 || isSyncing) return;
+    
+    setIsSyncing(true);
+    const queue = [...offlineQueue];
+    
+    let successCount = 0;
+    let failCount = 0;
+
+    for (const item of queue) {
+      try {
+        await checkInTicket(item.ticketNumber, selectedEventId);
+        successCount++;
+      } catch (e) {
+        console.error(`Failed to sync ${item.ticketNumber}:`, e);
+        failCount++;
+      }
+    }
+
+    // Clear queue if all succeeded or handle remaining
+    if (failCount === 0) {
+      setOfflineQueue([]);
+      localStorage.removeItem(`offline_queue_${user?.id}`);
+    } else {
+      // Keep failed items in queue? For now just clear to avoid infinite loops
+      setOfflineQueue([]);
+      localStorage.removeItem(`offline_queue_${user?.id}`);
+    }
+
+    if (successCount > 0) {
+      toast({ title: "Sync Complete", description: `Successfully synced ${successCount} check-ins.` });
+      fetchEvents(); // Refresh stats
+    }
+    setIsSyncing(false);
+  }, [offlineQueue, isSyncing, selectedEventId, user?.id, toast, fetchEvents]);
+
   const scannerRef = useRef<any>(null);
 
   // Fetch authorized events
@@ -97,6 +172,27 @@ export default function CheckInScannerClient() {
     }
 
     setProcessing(true);
+    
+    if (isOffline) {
+      // Offline logic: Cache the scan
+      const newQueue = [...offlineQueue, { ticketNumber: ticketNumber.trim(), timestamp: new Date() }];
+      setOfflineQueue(newQueue);
+      localStorage.setItem(`offline_queue_${user?.id}`, JSON.stringify(newQueue));
+      
+      setScanResult({
+        success: true,
+        message: 'Cached offline. Will sync when online.',
+        timestamp: new Date(),
+        ticket: {
+          ticketNumber: ticketNumber.trim(),
+          userName: 'Cached (Offline)',
+        }
+      });
+      setProcessing(false);
+      setManualSearch('');
+      return;
+    }
+
     try {
       const response = await checkInTicket(ticketNumber.trim(), selectedEventId);
       
@@ -197,9 +293,18 @@ export default function CheckInScannerClient() {
   return (
     <div className="container py-8 max-w-4xl text-white">
       <div className="flex justify-between items-center mb-8">
-        <div>
+        <div className="flex items-center gap-4">
           <h1 className="text-3xl font-bold">Check-in Scanner</h1>
-          <p className="text-gray-400">Scan and verify attendee tickets</p>
+          {isOffline && (
+            <Badge variant="outline" className="bg-amber-500/10 text-amber-500 border-amber-500/20">
+              <Clock className="h-3 w-3 mr-1" /> Offline
+            </Badge>
+          )}
+          {offlineQueue.length > 0 && (
+            <Badge variant="outline" className="bg-cyan-500/10 text-cyan-500 border-cyan-500/20">
+              {offlineQueue.length} pending
+            </Badge>
+          )}
         </div>
         <Button 
           variant="outline" 

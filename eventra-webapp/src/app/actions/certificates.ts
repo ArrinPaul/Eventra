@@ -1,12 +1,127 @@
 'use server';
 
 import { db } from '@/lib/db';
-import { tickets, events, users, notifications } from '@/lib/db/schema';
+import { tickets, events, users, notifications, certificateTemplates } from '@/lib/db/schema';
 import { eq, and, desc, sql } from 'drizzle-orm';
 import { validateRole, validateEventOwnership } from '@/lib/auth-utils';
 import { certificatePersonalizedMessageFlow } from '@/lib/ai';
 import { revalidatePath } from 'next/cache';
 import { auth } from '@/auth';
+
+/**
+ * Create or update a certificate template
+ */
+export async function upsertCertificateTemplate(data: {
+  id?: string;
+  eventId?: string;
+  title: string;
+  description?: string;
+  layout: any;
+  html?: string;
+  isDefault?: boolean;
+}) {
+  const user = await validateRole(['organizer', 'admin']);
+  
+  if (data.eventId) {
+    await validateEventOwnership(data.eventId);
+  }
+
+  try {
+    if (data.id) {
+      const [updated] = await db
+        .update(certificateTemplates)
+        .set({
+          title: data.title,
+          description: data.description,
+          layout: data.layout,
+          html: data.html,
+          isDefault: data.isDefault ?? false,
+          updatedAt: new Date(),
+        })
+        .where(eq(certificateTemplates.id, data.id))
+        .returning();
+      
+      revalidatePath('/organizer/certificates');
+      return updated;
+    } else {
+      const [created] = await db
+        .insert(certificateTemplates)
+        .values({
+          eventId: data.eventId,
+          title: data.title,
+          description: data.description,
+          layout: data.layout,
+          html: data.html,
+          isDefault: data.isDefault ?? false,
+        })
+        .returning();
+      
+      revalidatePath('/organizer/certificates');
+      return created;
+    }
+  } catch (error) {
+    console.error('upsertCertificateTemplate Error:', error);
+    throw new Error('Failed to save certificate template');
+  }
+}
+
+/**
+ * Get all templates for an event or global defaults
+ */
+export async function getCertificateTemplates(eventId?: string) {
+  try {
+    const conditions = [];
+    if (eventId) {
+      conditions.push(sql`${certificateTemplates.eventId} = ${eventId} OR ${certificateTemplates.isDefault} = true`);
+    } else {
+      conditions.push(eq(certificateTemplates.isDefault, true));
+    }
+
+    const result = await db
+      .select()
+      .from(certificateTemplates)
+      .where(conditions.length > 0 ? and(...conditions) : undefined)
+      .orderBy(desc(certificateTemplates.createdAt));
+
+    return result;
+  } catch (error) {
+    console.error('getCertificateTemplates Error:', error);
+    return [];
+  }
+}
+
+/**
+ * Get all attendees for an event who have checked in
+ */
+export async function getCheckedInAttendees(eventId: string) {
+  await validateEventOwnership(eventId);
+
+  try {
+    const result = await db
+      .select({
+        id: users.id,
+        name: users.name,
+        email: users.email,
+        ticketNumber: tickets.ticketNumber,
+        personalizedMessage: tickets.personalizedMessage,
+      })
+      .from(tickets)
+      .innerJoin(users, eq(tickets.userId, users.id))
+      .where(and(
+        eq(tickets.eventId, eventId),
+        eq(tickets.status, 'checked-in')
+      ));
+
+    return result.map(r => ({
+      ...r,
+      name: r.name || 'Attendee',
+      status: 'pending' as const
+    }));
+  } catch (error) {
+    console.error('getCheckedInAttendees Error:', error);
+    return [];
+  }
+}
 
 /**
  * Issue a certificate for a single ticket, generating a personalized AI message

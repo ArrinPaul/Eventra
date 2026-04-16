@@ -18,7 +18,7 @@ export async function getScannerEvents() {
   try {
     const conditions = [];
     if ((user as any).role !== 'admin') {
-      conditions.push(eq(events.organizerId, user.id));
+      conditions.push(eq(events.organizerId, user.id!));
     }
 
     const result = await db
@@ -27,7 +27,9 @@ export async function getScannerEvents() {
         title: events.title,
         registeredCount: events.registeredCount,
         capacity: events.capacity,
-        organizerId: events.organizerId
+        organizerId: events.organizerId,
+        startDate: events.startDate,
+        endDate: events.endDate
       })
       .from(events)
       .where(conditions.length > 0 ? and(...conditions) : undefined);
@@ -59,20 +61,11 @@ export async function getScannerEvents() {
  * Process a check-in for a specific ticket number and event.
  */
 export async function checkInTicket(ticketNumber: string, eventId: string) {
-  const user = await validateRole(['organizer', 'admin']);
-  
-  // Security check: Ensure the user has permission to scan for this specific event
-  if ((user as any).role !== 'admin') {
-    const event = await db.query.events.findFirst({
-      where: and(eq(events.id, eventId), eq(events.organizerId, user.id))
-    });
-    if (!event) {
-      throw new Error('Unauthorized: You do not have permission to scan for this event');
-    }
-  }
+  // 1. Security check: Ensure the user has permission to scan for this specific event
+  await validateEventOwnership(eventId);
 
   try {
-    // 1. Find the ticket
+    // 2. Find the ticket and event details
     const ticket = await db.query.tickets.findFirst({
       where: and(
         eq(tickets.ticketNumber, ticketNumber),
@@ -88,7 +81,22 @@ export async function checkInTicket(ticketNumber: string, eventId: string) {
       throw new Error('Invalid Ticket: No matching record found for this event');
     }
 
-    // 2. State Machine & Anti-Fraud Logic
+    // 3. Event Timing Validation
+    const now = new Date();
+    const event = ticket.event;
+    
+    // Buffer for early check-in (e.g., 2 hours before)
+    const checkInStartTime = new Date(event.startDate.getTime() - (2 * 60 * 60 * 1000));
+    
+    if (now < checkInStartTime) {
+      throw new Error(`Too Early: Check-in for this event starts at ${checkInStartTime.toLocaleTimeString()}`);
+    }
+    
+    if (now > event.endDate) {
+      throw new Error(`Event Finished: This event ended at ${event.endDate.toLocaleString()}`);
+    }
+
+    // 4. State Machine & Anti-Fraud Logic
     if (ticket.status === 'checked-in') {
       throw new Error(`Already Scanned: This ticket was checked in at ${ticket.updatedAt?.toLocaleString() || 'an earlier time'}`);
     }
@@ -96,8 +104,12 @@ export async function checkInTicket(ticketNumber: string, eventId: string) {
     if (ticket.status === 'cancelled' || ticket.status === 'refunded') {
       throw new Error(`Invalid Ticket: This registration has been ${ticket.status}`);
     }
+    
+    if (ticket.status === 'expired') {
+      throw new Error('Invalid Ticket: This ticket has expired');
+    }
 
-    // 3. Perform Check-in
+    // 5. Perform Check-in
     const updatedTicket = await db.transaction(async (tx) => {
       const [result] = await tx
         .update(tickets)
@@ -111,7 +123,7 @@ export async function checkInTicket(ticketNumber: string, eventId: string) {
       return result;
     });
 
-    // 4. Post-Check-in Actions (Background)
+    // 6. Post-Check-in Actions (Background)
     
     // Award XP to the attendee for showing up
     awardXP(ticket.userId, 50, `Attending ${ticket.event.title}`).catch(console.error);
@@ -123,6 +135,15 @@ export async function checkInTicket(ticketNumber: string, eventId: string) {
       targetId: eventId,
       content: `Checked into ${ticket.event.title}`,
       metadata: { ticketNumber }
+    }).catch(console.error);
+
+    // Schedule Feedback Notification
+    db.insert(notifications).values({
+      userId: ticket.userId,
+      title: 'How was the event?',
+      message: `We hope you're enjoying ${ticket.event.title}! Don't forget to share your feedback.`,
+      type: 'info',
+      link: `/feedback/${eventId}`
     }).catch(console.error);
 
     revalidatePath(`/events/${eventId}`);

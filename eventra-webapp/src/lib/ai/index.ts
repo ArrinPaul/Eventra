@@ -383,6 +383,49 @@ export const certificatePersonalizedMessageFlow = ai.defineFlow(
 );
 
 /**
+ * Flow for Organizer Task Generation
+ */
+export const organizerTaskListFlow = ai.defineFlow(
+  {
+    name: 'organizerTaskListFlow',
+    inputSchema: z.object({
+      eventTitle: z.string(),
+      eventDescription: z.string(),
+      eventType: z.string(),
+      startDate: z.string(),
+    }),
+    outputSchema: z.object({
+      tasks: z.array(z.string()),
+    }),
+  },
+  async (input) => {
+    const prompt = `
+      You are an expert event planner. Generate a comprehensive "To-Do" list for the organizer of this event.
+      
+      Details:
+      - Title: ${input.eventTitle}
+      - Description: ${input.eventDescription}
+      - Type: ${input.eventType}
+      - Date: ${input.startDate}
+      
+      Provide a list of clear, actionable tasks. Focus on logistics, marketing, and attendee engagement.
+    `;
+
+    const result = await ai.generate({
+      prompt,
+      output: { format: 'json' },
+    });
+
+    try {
+      const parsed = result.output as any;
+      return { tasks: Array.isArray(parsed) ? parsed : (parsed.tasks || []) };
+    } catch (e) {
+      return { tasks: [] };
+    }
+  }
+);
+
+/**
  * Flow for Personalized Event Reminders
  */
 export const personalizedEventReminderFlow = ai.defineFlow(
