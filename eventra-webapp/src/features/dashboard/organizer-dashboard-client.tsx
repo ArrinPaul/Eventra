@@ -141,6 +141,10 @@ export default function OrganizerDashboard() {
           <TabsTrigger value="revenue" className="data-[state=active]:bg-cyan-600">Revenue Analytics</TabsTrigger>
           <TabsTrigger value="insights" className="data-[state=active]:bg-cyan-600">Deep Insights (AI)</TabsTrigger>
           <TabsTrigger value="feedback" className="data-[state=active]:bg-cyan-600">Feedback System</TabsTrigger>
+          <TabsTrigger value="team" className="data-[state=active]:bg-cyan-600">Team & Collab</TabsTrigger>
+          <TabsTrigger value="waitlist" className="data-[state=active]:bg-cyan-600">Waitlist</TabsTrigger>
+          <TabsTrigger value="sponsors" className="data-[state=active]:bg-cyan-600">Sponsors</TabsTrigger>
+          <TabsTrigger value="pulse" className="data-[state=active]:bg-cyan-600">Event Pulse</TabsTrigger>
         </TabsList>
 
         <TabsContent value="events">
@@ -283,6 +287,118 @@ export default function OrganizerDashboard() {
                          <Link href={`/organizer/feedback/analytics/${event.id}`}>Analytics</Link>
                       </Button>
                     </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        <TabsContent value="team">
+          <Card className="bg-white/5 border-white/10 text-white">
+            <CardHeader>
+              <CardTitle>Team & Collaboration</CardTitle>
+              <CardDescription>Manage event-specific staff, volunteers, and speakers.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {managedEvents.map(event => (
+                  <div key={event.id} className="flex items-center justify-between p-4 bg-white/5 rounded-lg border border-white/10 group hover:border-emerald-500/30 transition-all">
+                    <div className="flex items-center gap-4">
+                      <div className="h-10 w-10 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400">
+                        <Users size={18} />
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-bold">{event.title}</h3>
+                        <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest">{event.status}</p>
+                      </div>
+                    </div>
+                    <Button size="sm" variant="outline" className="text-xs border-white/10" asChild>
+                       <Link href={`/organizer/collab/${event.id}`}>Manage Team</Link>
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        <TabsContent value="waitlist">
+          <Card className="bg-white/5 border-white/10 text-white">
+            <CardHeader>
+              <CardTitle>Waitlist & Intelligent Promotion</CardTitle>
+              <CardDescription>Monitor event queues and manage auto-promoted attendees.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {managedEvents.map(event => (
+                  <div key={event.id} className="flex items-center justify-between p-4 bg-white/5 rounded-lg border border-white/10 group hover:border-amber-500/30 transition-all">
+                    <div className="flex items-center gap-4">
+                      <div className="h-10 w-10 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-400">
+                        <Clock size={18} />
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-bold">{event.title}</h3>
+                        <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest">{event.registeredCount}/{event.capacity} Filled</p>
+                      </div>
+                    </div>
+                    <Button size="sm" variant="outline" className="text-xs border-white/10" asChild>
+                       <Link href={`/organizer/waitlist/${event.id}`}>View Queue</Link>
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        <TabsContent value="sponsors">
+          <Card className="bg-white/5 border-white/10 text-white">
+            <CardHeader>
+              <CardTitle>Sponsors & Partners</CardTitle>
+              <CardDescription>Manage event sponsors and their display tiers.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {managedEvents.map(event => (
+                  <div key={event.id} className="flex items-center justify-between p-4 bg-white/5 rounded-lg border border-white/10 group hover:border-cyan-500/30 transition-all">
+                    <div className="flex items-center gap-4">
+                      <div className="h-10 w-10 rounded-lg bg-cyan-500/10 flex items-center justify-center text-cyan-400">
+                        <Award size={18} />
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-bold">{event.title}</h3>
+                        <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest">{event.status}</p>
+                      </div>
+                    </div>
+                    <Button size="sm" variant="outline" className="text-xs border-white/10" asChild>
+                       <Link href={`/organizer/sponsors/${event.id}`}>Manage Sponsors</Link>
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        <TabsContent value="pulse">
+          <Card className="bg-white/5 border-white/10 text-white">
+            <CardHeader>
+              <CardTitle>Real-time Event Pulse</CardTitle>
+              <CardDescription>Live velocity tracking for registrations and check-ins.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {managedEvents.map(event => (
+                  <div key={event.id} className="flex items-center justify-between p-4 bg-white/5 rounded-lg border border-white/10 group hover:border-cyan-500/30 transition-all">
+                    <div className="flex items-center gap-4">
+                      <div className="h-10 w-10 rounded-lg bg-cyan-500/10 flex items-center justify-center text-cyan-400">
+                        <Activity size={18} />
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-bold">{event.title}</h3>
+                        <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest">{event.status}</p>
+                      </div>
+                    </div>
+                    <Button size="sm" variant="outline" className="text-xs border-white/10" asChild>
+                       <Link href={`/organizer/pulse/${event.id}`}>View Live Pulse</Link>
+                    </Button>
                   </div>
                 ))}
               </div>

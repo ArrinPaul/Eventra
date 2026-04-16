@@ -329,6 +329,28 @@ export const eventFeedback = pgTable('event_feedback', {
   eventIdx: index('event_feedback_event_idx').on(table.eventId),
 }));
 
+export const eventStaff = pgTable('event_staff', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  eventId: uuid('event_id').references(() => events.id, { onDelete: 'cascade' }).notNull(),
+  userId: text('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  role: text('role').notNull(), // 'volunteer', 'speaker', 'admin', 'moderator'
+  permissions: jsonb('permissions'), // Array of permission strings if needed
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => ({
+  eventUserIdx: index('event_staff_event_user_idx').on(table.eventId, table.userId),
+}));
+
+export const sponsors = pgTable('sponsors', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  eventId: uuid('event_id').references(() => events.id, { onDelete: 'cascade' }).notNull(),
+  name: text('name').notNull(),
+  logoUrl: text('logo_url'),
+  websiteUrl: text('website_url'),
+  tier: text('tier').default('silver').notNull(), // 'bronze', 'silver', 'gold', 'platinum'
+  order: integer('order').default(0).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
 export const activityFeed = pgTable('activity_feed', {
   id: uuid('id').primaryKey().defaultRandom(),
   userId: text('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
@@ -352,9 +374,29 @@ export const eventsRelations = relations(events, ({ many, one }) => ({
   aiChatSessions: many(aiChatSessions),
   feedback: many(eventFeedback),
   certificateTemplates: many(certificateTemplates),
+  staff: many(eventStaff),
+  sponsors: many(sponsors),
   feedbackTemplate: one(feedbackTemplates, {
     fields: [events.feedbackTemplateId],
     references: [feedbackTemplates.id],
+  }),
+}));
+
+export const sponsorsRelations = relations(sponsors, ({ one }) => ({
+  event: one(events, {
+    fields: [sponsors.eventId],
+    references: [events.id],
+  }),
+}));
+
+export const eventStaffRelations = relations(eventStaff, ({ one }) => ({
+  event: one(events, {
+    fields: [eventStaff.eventId],
+    references: [events.id],
+  }),
+  user: one(users, {
+    fields: [eventStaff.userId],
+    references: [users.id],
   }),
 }));
 
@@ -399,6 +441,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   aiChatSessions: many(aiChatSessions),
   feedback: many(eventFeedback),
   activityLogs: many(activityFeed),
+  staff: many(eventStaff),
 }));
 
 export const communitiesRelations = relations(communities, ({ one, many }) => ({

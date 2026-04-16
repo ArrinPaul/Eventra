@@ -73,10 +73,32 @@ export async function registerForEvent(eventId: string, data?: { tierId?: string
       });
 
       // Update registration counts
-      await tx
+      const [updatedEvent] = await tx
         .update(events)
         .set({ registeredCount: sql`${events.registeredCount} + 1` })
-        .where(eq(events.id, eventId));
+        .where(eq(events.id, eventId))
+        .returning();
+
+      // Milestone Logic
+      const percentage = Math.round((updatedEvent.registeredCount / updatedEvent.capacity) * 100);
+      const milestones = [50, 80, 100];
+      
+      if (milestones.includes(percentage)) {
+        await tx.insert(notifications).values({
+          userId: updatedEvent.organizerId,
+          title: 'Event Milestone Reached!',
+          message: `Congratulations! ${updatedEvent.title} is now ${percentage}% full.`,
+          type: 'achievement',
+          link: `/organizer/pulse/${eventId}`
+        });
+
+        await logActivity({
+          userId: updatedEvent.organizerId,
+          type: 'badge_awarded', // Use badge type for highlights
+          content: `${updatedEvent.title} reached ${percentage}% capacity milestone!`,
+          targetId: eventId
+        });
+      }
 
       if (data?.tierId) {
         await tx
@@ -160,28 +182,114 @@ async function joinWaitlist(eventId: string, userId: string) {
 
 /**
  * Promote the next person from waitlist (Auto-promotion logic)
+ * Creates a ticket and notifies the user.
  */
-export async function promoteFromWaitlist(eventId: string) {
-  // Find next in line
-  const nextInLine = await db
-    .select()
-    .from(waitlist)
-    .where(and(eq(waitlist.eventId, eventId), eq(waitlist.status, 'waiting')))
-    .orderBy(waitlist.position)
-    .limit(1);
+export async function autoPromoteFromWaitlist(eventId: string, tx?: any) {
+  // Use existing transaction or create new
+  const executePromotion = async (transaction: any) => {
+    // 1. Find next in line
+    const nextInLine = await transaction
+      .select({
+        id: waitlist.id,
+        userId: waitlist.userId,
+        user: {
+          id: users.id,
+          name: users.name,
+          email: users.email
+        }
+      })
+      .from(waitlist)
+      .innerJoin(users, eq(waitlist.userId, users.id))
+      .where(and(eq(waitlist.eventId, eventId), eq(waitlist.status, 'waiting')))
+      .orderBy(waitlist.position)
+      .limit(1);
 
-  if (nextInLine.length === 0) return null;
+    if (nextInLine.length === 0) return null;
 
-  const entry = nextInLine[0];
+    const entry = nextInLine[0];
+    const ticketNumber = `TKT-WAIT-${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
 
-  // Logic to notify user or automatically create a ticket
-  // For now, we'll mark as promoted.
-  await db
-    .update(waitlist)
-    .set({ status: 'promoted' })
-    .where(eq(waitlist.id, entry.id));
+    // 2. Create the ticket
+    await transaction.insert(tickets).values({
+      eventId,
+      userId: entry.userId,
+      ticketNumber,
+      status: 'confirmed',
+      price: '0', // Waitlist promotion often free or handled separately
+      qrCode: ticketNumber,
+    });
 
-  return entry.userId;
+    // 3. Mark waitlist entry as promoted
+    await transaction
+      .update(waitlist)
+      .set({ status: 'promoted' })
+      .where(eq(waitlist.id, entry.id));
+
+    // 4. Update event registered count
+    await transaction
+      .update(events)
+      .set({ registeredCount: sql`${events.registeredCount} + 1` })
+      .where(eq(events.id, eventId));
+
+    // 5. Notify the user
+    await transaction.insert(notifications).values({
+      userId: entry.userId,
+      title: 'You have been promoted!',
+      message: `A spot opened up for your waitlisted event. Your ticket ${ticketNumber} is ready.`,
+      type: 'achievement',
+      link: '/tickets'
+    });
+
+    return entry.userId;
+  };
+
+  if (tx) {
+    return await executePromotion(tx);
+  } else {
+    return await db.transaction(async (t) => await executePromotion(t));
+  }
+}
+
+/**
+ * Cancel a registration and trigger waitlist promotion
+ */
+export async function cancelRegistration(ticketId: string) {
+  const user = await validateRole(['attendee', 'organizer', 'admin']);
+
+  try {
+    const ticket = await db.query.tickets.findFirst({
+      where: eq(tickets.id, ticketId)
+    });
+
+    if (!ticket) throw new Error('Ticket not found');
+    if (ticket.userId !== user.id && (user as any).role !== 'admin') {
+       throw new Error('Unauthorized');
+    }
+
+    await db.transaction(async (tx) => {
+      // 1. Mark ticket as cancelled
+      await tx
+        .update(tickets)
+        .set({ status: 'cancelled', updatedAt: new Date() })
+        .where(eq(tickets.id, ticketId));
+
+      // 2. Decrement count
+      await tx
+        .update(events)
+        .set({ registeredCount: sql`${events.registeredCount} - 1` })
+        .where(eq(events.id, ticket.eventId));
+
+      // 3. Trigger waitlist promotion
+      await autoPromoteFromWaitlist(ticket.eventId, tx);
+    });
+
+    revalidatePath('/tickets');
+    revalidatePath(`/events/${ticket.eventId}`);
+    return { success: true };
+  } catch (error: any) {
+    console.error('Cancellation failed:', error);
+    throw new Error(error.message);
+  }
 }
 
 /**
