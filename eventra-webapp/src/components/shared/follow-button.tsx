@@ -33,7 +33,7 @@ export function FollowButton({ userId, className }: FollowButtonProps) {
         toast({ title: 'Unfollowed' });
       } else {
         await follow({ followingId: userId });
-        toast({ title: 'Following! 🎉' });
+        toast({ title: 'Following!' });
       }
     } catch (error: any) {
       toast({ title: 'Error', description: error.message, variant: 'destructive' });

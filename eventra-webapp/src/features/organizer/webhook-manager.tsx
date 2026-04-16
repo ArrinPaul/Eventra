@@ -46,7 +46,7 @@ export function WebhookManager({ eventId }: { eventId?: string }) {
         eventId: eventId as any,
       });
       setUrl('');
-      toast({ title: 'Webhook created! 🔗' });
+      toast({ title: 'Webhook created!' });
     } catch (error) {
       toast({ title: 'Failed to create webhook', variant: 'destructive' });
     } finally {

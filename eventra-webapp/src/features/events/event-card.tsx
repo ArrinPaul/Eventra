@@ -35,7 +35,7 @@ export function EventCard({ event, variant = 'default' }: { event: EventraEvent,
     setIsRegistering(true);
     try {
       await registerMutation({ eventId: event.id as any });
-      toast({ title: 'Registered! 🎉' });
+      toast({ title: 'Registered!' });
     } catch (error) {
       toast({ title: 'Failed', variant: 'destructive' });
     } finally { setIsRegistering(false); }

@@ -34,7 +34,7 @@ export function TicketingClient() {
     setBookingId(eventId);
     try {
       await registerMutation({ eventId: eventId as any });
-      toast({ title: "Booking Successful! 🎉", description: "Your ticket has been generated." });
+      toast({ title: "Booking Successful!", description: "Your ticket has been generated." });
       setActiveTab('my-tickets');
     } catch (error) {
       toast({ title: "Booking Failed", variant: "destructive" });

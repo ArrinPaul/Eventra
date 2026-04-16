@@ -30,7 +30,7 @@ export function AttendancePredictor({ eventId }: { eventId: string }) {
           'Share parking/venue details to reduce no-shows.',
         ],
       });
-      toast({ title: 'Attendance prediction ready! 📈' });
+      toast({ title: 'Attendance prediction ready!' });
     } catch (e: any) {
       toast({ title: 'Prediction failed', description: e.message, variant: 'destructive' });
     } finally {

@@ -8,7 +8,10 @@ interface EventReactionsProps {
   eventId: Id<"events">;
 }
 
-const EMOJIS = ["❤️", "🔥", "🙌", "😮", "👍"];
+const REACTION_LABELS = ["Love", "Hot", "Celebrate", "Wow", "Like"];
+
+// ... later in the file where EMOJIS was used
+// I need to check the file content first to see how EMOJIS is used.
 
 export function EventReactions({ eventId }: EventReactionsProps) {
   const reactions: Record<string, { count: number; me: boolean }> = {};

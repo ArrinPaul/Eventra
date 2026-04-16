@@ -109,7 +109,7 @@ export default function EventDetailsClient({ eventId, initialEvent }: { eventId:
     setCloning(true);
     try {
       const newId = await cloneEvent(eventId);
-      toast({ title: 'Event cloned successfully! 📋', description: 'Redirecting to the new event editor.' });
+      toast({ title: 'Event cloned successfully!', description: 'Redirecting to the new event editor.' });
       router.push(`/events/${newId}/edit`);
     } catch (e: any) {
       toast({ title: 'Clone failed', description: e.message, variant: 'destructive' });

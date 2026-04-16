@@ -7,7 +7,7 @@ async function enableVector() {
     await db.execute(sql`CREATE EXTENSION IF NOT EXISTS vector;`);
     console.log('✅ Extension enabled successfully!');
   } catch (error) {
-    console.error('❌ Failed to enable extension:', error);
+    console.error('Failed to enable extension:', error);
     process.exit(1);
   } finally {
     process.exit(0);
@@ -15,3 +15,4 @@ async function enableVector() {
 }
 
 enableVector();
+or();

@@ -5,22 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1776055509924,
-      "tag": "0000_sharp_jean_grey",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1776243277515,
-      "tag": "0001_marvelous_gamora",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1776317748915,
-      "tag": "0002_gray_loa",
+      "when": 1776333198654,
+      "tag": "0000_empty_betty_ross",
       "breakpoints": true
     }
   ]

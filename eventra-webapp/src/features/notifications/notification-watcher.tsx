@@ -95,7 +95,7 @@ export function NotificationWatcher() {
         subject = `Registration Confirmed: ${eventTitle}`;
         html = `
           <div style="font-family: sans-serif; padding: 20px; color: #333; max-width: 600px; margin: auto; border: 1px solid #eee; border-radius: 10px;">
-            <h1 style="color: #06b6d4; text-align: center;">Registration Confirmed! 🎉</h1>
+            <h1 style="color: #06b6d4; text-align: center;">Registration Confirmed!</h1>
             <p>Hello ${user.name || 'Attendee'},</p>
             <p>Your registration for <strong>${eventTitle}</strong> has been successfully confirmed.</p>
             <div style="background: #f8fafc; padding: 20px; border-radius: 10px; margin: 20px 0; border-left: 4px solid #06b6d4;">
@@ -114,7 +114,7 @@ export function NotificationWatcher() {
         subject = `Congratulations! Your certificate for ${eventTitle} is ready`;
         html = `
           <div style="font-family: sans-serif; padding: 20px; color: #333; max-width: 600px; margin: auto; border: 1px solid #eee; border-radius: 10px;">
-            <h1 style="color: #06b6d4; text-align: center;">Certificate Ready! 🏆</h1>
+            <h1 style="color: #06b6d4; text-align: center;">Certificate Ready!</h1>
             <p>Hello ${user.name || 'Attendee'},</p>
             <p>Congratulations on completing <strong>${eventTitle}</strong>! Your official certificate of participation is now available for download.</p>
             <p>You can access it from your profile under the "Certificates" tab.</p>

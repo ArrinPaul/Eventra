@@ -74,7 +74,7 @@ export function EventChatbot({
     {
       id: '1',
       role: 'assistant',
-      content: `Hi! ðŸ‘‹ I'm your AI assistant for "${event.title}". I can help you with questions about the schedule, speakers, location, and more. What would you like to know?`,
+      content: `Hi! I'm your AI assistant for "${event.title}". I can help you with questions about the schedule, speakers, location, and more. What would you like to know?`,
       timestamp: new Date(),
     },
   ]);

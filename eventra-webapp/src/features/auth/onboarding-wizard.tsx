@@ -209,7 +209,7 @@ export function OnboardingWizard() {
       }
 
       await updateUser(userData);
-      toast({ title: 'Welcome to Eventra! 🎊' });
+      toast({ title: 'Welcome to Eventra!' });
       router.push(userType === 'organizer' ? '/organizer' : '/explore');
     } catch (error: unknown) {
       toast({ variant: 'destructive', title: 'Setup failed', description: getErrorMessage(error) });

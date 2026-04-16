@@ -19,8 +19,8 @@ export function LanguageSwitcher() {
   const [isPending, startTransition] = useTransition();
 
   const languages = [
-    { code: 'en', label: 'English', flag: '🇺🇸' },
-    { code: 'es', label: 'Español', flag: '🇪🇸' },
+    { code: 'en', label: 'English' },
+    { code: 'es', label: 'Español' },
   ];
 
   function onChange(value: string) {

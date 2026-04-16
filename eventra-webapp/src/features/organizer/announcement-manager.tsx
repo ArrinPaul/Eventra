@@ -52,7 +52,7 @@ export function AnnouncementManager({ eventId }: { eventId: string }) {
           type,
           expiresHours: parseInt(expiresHours),
         });
-        toast({ title: 'Announcement broadcasted! 📣' });
+        toast({ title: 'Announcement broadcasted!' });
       }
       setContent('');
       setEditingId(null);

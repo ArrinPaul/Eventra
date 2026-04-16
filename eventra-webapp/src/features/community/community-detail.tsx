@@ -58,7 +58,7 @@ export function CommunityDetailClient({ communityId }: { communityId: string }) 
   const handleJoin = async () => {
     try {
       await joinMutation({ id: communityId as any });
-      toast({ title: 'Joined community! 🎉' });
+      toast({ title: 'Joined community!' });
     } catch (e) {
       toast({ title: 'Failed to join', variant: 'destructive' });
     }

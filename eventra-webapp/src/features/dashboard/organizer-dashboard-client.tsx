@@ -28,6 +28,8 @@ import { useRouter } from 'next/navigation';
 import { getEvents, deleteEvent } from '@/app/actions/events';
 import type { EventraEvent } from '@/types';
 
+import { EmptyState } from '@/components/shared/empty-state';
+
 export default function OrganizerDashboard() {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -208,13 +210,13 @@ export default function OrganizerDashboard() {
                   );
                 })}
                 {filteredEvents.length === 0 && (
-                  <div className="text-center py-20 text-gray-500 border border-dashed border-white/10 rounded-lg">
-                    <Calendar size={48} className="mx-auto mb-4 opacity-20" />
-                    <p>No events found. Start by creating your first event!</p>
-                    <Button variant="link" asChild className="text-cyan-400 mt-2">
-                      <Link href="/events/create">Create New Event</Link>
-                    </Button>
-                  </div>
+                  <EmptyState 
+                    icon={Calendar}
+                    title="No events found"
+                    description="You haven't created any events yet. Start by creating your first event to build your community!"
+                    actionLabel="Create New Event"
+                    actionHref="/events/create"
+                  />
                 )}
               </div>
             </CardContent>

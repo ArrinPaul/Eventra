@@ -94,6 +94,7 @@ export const events = pgTable('events', {
   coOrganizerIds: text('co_organizer_ids').array(),
   embedding: vector('embedding'),
   feedbackTemplateId: uuid('feedback_template_id'),
+  branding: jsonb('branding'), // { primaryColor, logoUrl, customCss }
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 }, (table) => ({
@@ -128,6 +129,7 @@ export const tickets = pgTable('tickets', {
   qrCode: text('qr_code'),
   personalizedMessage: text('personalized_message'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
+
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 }, (table) => ({
   eventIdx: index('tickets_event_idx').on(table.eventId),

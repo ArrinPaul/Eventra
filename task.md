@@ -30,14 +30,14 @@ Stabilize the codebase, replace migration leftovers, complete core product flows
 ### 0.4 Compilation Integrity
 - [x] Resolve unresolved symbols and commented-out dependency remnants - 73% reduction (2,044 → 555 errors).
 - [x] Ensure app compiles with zero syntax errors - Syntax errors eliminated.
-- [⚠️] Achieve zero TypeScript errors - 555 errors remain (mostly Phase 1-2 backend dependencies).
+- [ ] Achieve zero TypeScript errors - 555 errors remain (mostly Phase 1-2 backend dependencies).
 
 Definition of done:
 - [x] npm run lint works
 - [x] npm run build executable
 - [x] Imports all properly restored
 - [x] Node.js version pinned
-- [⚠️] Zero TypeScript errors (requires Phase 1 backend implementation)
+- [ ] Zero TypeScript errors (requires Phase 1 backend implementation)
 
 ---
 
