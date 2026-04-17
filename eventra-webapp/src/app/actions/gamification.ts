@@ -1,9 +1,56 @@
 'use server';
 
 import { db } from '@/lib/db';
-import { users, notifications, badges, userBadges } from '@/lib/db/schema';
-import { eq, sql, desc } from 'drizzle-orm';
+import { users, notifications, badges, userBadges, tickets, posts } from '@/lib/db/schema';
+import { eq, and, sql, desc, count } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
+import { logActivity } from './feed';
+
+/**
+ * Award a badge to a user
+ */
+export async function awardBadge(userId: string, badgeCode: string) {
+  try {
+    const badge = await db.query.badges.findFirst({
+      where: eq(badges.name, badgeCode),
+    });
+
+    if (!badge) return null;
+
+    const existing = await db.query.userBadges.findFirst({
+      where: and(eq(userBadges.userId, userId), eq(userBadges.badgeId, badge.id)),
+    });
+
+    if (existing) return null;
+
+    await db.insert(userBadges).values({
+      userId,
+      badgeId: badge.id,
+    });
+
+    // Notify
+    await db.insert(notifications).values({
+      userId,
+      title: 'New Badge Unlocked!',
+      message: `You've earned the "${badge.name}" badge!`,
+      type: 'success',
+    });
+
+    // ACTIVITY FEED INTEGRATION: Log badge unlock
+    await logActivity({
+      userId,
+      type: 'badge_awarded',
+      targetId: badge.id,
+      content: `Unlocked the "${badge.name}" badge! 🏆`,
+      metadata: { badgeName: badge.name, badgeIcon: badge.icon }
+    });
+
+    return { success: true, badge };
+  } catch (error) {
+    console.error('Failed to award badge:', error);
+    return null;
+  }
+}
 
 /**
  * Check and award badges based on user's current stats and activities
@@ -37,13 +84,12 @@ export async function checkAndAwardBadges(userId: string) {
           if (user.points >= criteria.value) eligible = true;
           break;
         case 'events_attended':
-          // Count tickets for this user
-          const ticketCount = await db.execute(sql`SELECT COUNT(*) FROM tickets WHERE user_id = ${userId} AND status = 'checked_in'`);
-          if (Number((ticketCount as any)[0].count) >= criteria.value) eligible = true;
+          const tCount = await db.select({ value: count() }).from(tickets).where(and(eq(tickets.userId, userId), eq(tickets.status, 'checked-in')));
+          if (tCount[0].value >= criteria.value) eligible = true;
           break;
         case 'community_posts':
-          const postCount = await db.execute(sql`SELECT COUNT(*) FROM posts WHERE author_id = ${userId}`);
-          if (Number((postCount as any)[0].count) >= criteria.value) eligible = true;
+          const pCount = await db.select({ value: count() }).from(posts).where(eq(posts.authorId, userId));
+          if (pCount[0].value >= criteria.value) eligible = true;
           break;
       }
 
@@ -70,7 +116,6 @@ export async function awardXP(userId: string, amount: number, reason: string) {
     const newXP = user.xp + amount;
     const newPoints = user.points + amount;
     
-    // Simple leveling logic: Level = floor(sqrt(XP / 100)) + 1
     const newLevel = Math.floor(Math.sqrt(newXP / 100)) + 1;
     const leveledUp = newLevel > user.level;
 
@@ -96,6 +141,14 @@ export async function awardXP(userId: string, amount: number, reason: string) {
         message: `Congratulations! You reached Level ${newLevel}!`,
         type: 'success',
       });
+
+      // ACTIVITY FEED INTEGRATION: Log level up
+      await logActivity({
+        userId,
+        type: 'badge_awarded',
+        content: `Reached Level ${newLevel}! 🚀`,
+        metadata: { level: newLevel }
+      });
     }
 
     // Check for badge triggers in background
@@ -110,42 +163,53 @@ export async function awardXP(userId: string, amount: number, reason: string) {
 }
 
 /**
- * Award a badge to a user
+ * Get gamification stats for a specific user
  */
-export async function awardBadge(userId: string, badgeCode: string) {
+export async function getUserStats(userId: string) {
   try {
-    // 1. Find the badge by code (assuming badge name is used as code for now or we query by name)
-    const badge = await db.query.badges.findFirst({
-      where: eq(badges.name, badgeCode),
+    const user = await db.query.users.findFirst({
+      where: eq(users.id, userId)
     });
 
-    if (!badge) return null;
+    if (!user) return null;
 
-    // 2. Check if user already has it
-    const existing = await db.query.userBadges.findFirst({
-      where: and(eq(userBadges.userId, userId), eq(userBadges.badgeId, badge.id)),
-    });
+    const [tCount] = await db.select({ value: count() }).from(tickets).where(and(eq(tickets.userId, userId), eq(tickets.status, 'checked-in')));
+    const [pCount] = await db.select({ value: count() }).from(posts).where(eq(posts.authorId, userId));
+    const [bCount] = await db.select({ value: count() }).from(userBadges).where(eq(userBadges.userId, userId));
 
-    if (existing) return null;
-
-    // 3. Award badge
-    await db.insert(userBadges).values({
-      userId,
-      badgeId: badge.id,
-    });
-
-    // 4. Notify
-    await db.insert(notifications).values({
-      userId,
-      title: 'New Badge Unlocked!',
-      message: `You've earned the "${badge.name}" badge!`,
-      type: 'success',
-    });
-
-    return { success: true, badge };
+    return {
+      level: user.level,
+      xp: user.xp,
+      points: user.points,
+      attended: tCount.value,
+      posts: pCount.value,
+      badgeCount: bCount.value
+    };
   } catch (error) {
-    console.error('Failed to award badge:', error);
+    console.error('getUserStats Error:', error);
     return null;
+  }
+}
+
+/**
+ * Get all badges earned by a user
+ */
+export async function getUserBadges(userId: string) {
+  try {
+    const results = await db
+      .select({
+        badge: badges,
+        awardedAt: userBadges.awardedAt
+      })
+      .from(userBadges)
+      .innerJoin(badges, eq(userBadges.badgeId, badges.id))
+      .where(eq(userBadges.userId, userId))
+      .orderBy(desc(userBadges.awardedAt));
+    
+    return results;
+  } catch (error) {
+    console.error('getUserBadges Error:', error);
+    return [];
   }
 }
 
@@ -172,5 +236,3 @@ export async function getLeaderboard(limit = 10) {
     return [];
   }
 }
-
-import { and } from 'drizzle-orm';

@@ -182,6 +182,45 @@ export async function issueCertificate(ticketId: string) {
 }
 
 /**
+ * Send the certificate via email (Trigger)
+ */
+export async function sendCertificateEmail(ticketId: string) {
+  const ticketData = await db
+    .select({
+      ticket: tickets,
+      event: events,
+      user: users,
+    })
+    .from(tickets)
+    .innerJoin(events, eq(tickets.eventId, events.id))
+    .innerJoin(users, eq(tickets.userId, users.id))
+    .where(eq(tickets.id, ticketId))
+    .limit(1);
+
+  if (ticketData.length === 0) throw new Error('Ticket not found');
+  const { ticket, event, user } = ticketData[0];
+
+  if (!ticket.personalizedMessage) {
+    throw new Error('Certificate not yet issued. Issue it first to generate the message.');
+  }
+
+  try {
+    // Simulate email trigger
+    await db.insert(notifications).values({
+      userId: user.id,
+      title: 'Your Certificate is here!',
+      message: `EMAIL_TRIGGER:certificate|${ticket.ticketNumber}|${event.title}|${ticket.personalizedMessage}`,
+      type: 'email',
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error('Send Certificate Email Error:', error);
+    throw new Error('Failed to send certificate email');
+  }
+}
+
+/**
  * Bulk issue certificates for all checked-in attendees of an event
  */
 export async function bulkIssueCertificates(eventId: string) {

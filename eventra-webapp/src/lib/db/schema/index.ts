@@ -143,10 +143,14 @@ export const waitlist = pgTable('waitlist', {
   userId: text('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
   position: integer('position').notNull(),
   status: text('status').default('waiting').notNull(),
+  expiresAt: timestamp('expires_at'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
 }, (table) => ({
   eventIdx: index('waitlist_event_idx').on(table.eventId),
   userIdx: index('waitlist_user_idx').on(table.userId),
+  statusIdx: index('waitlist_status_idx').on(table.status),
+  expiresIdx: index('waitlist_expires_idx').on(table.expiresAt),
 }));
 
 // --- Social & Engagement ---
@@ -366,7 +370,37 @@ export const activityFeed = pgTable('activity_feed', {
   userIdx: index('activity_feed_user_idx').on(table.userId),
 }));
 
+export const eventMedia = pgTable('event_media', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  eventId: uuid('event_id').references(() => events.id, { onDelete: 'cascade' }).notNull(),
+  authorId: text('author_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  url: text('url').notNull(),
+  storageId: text('storage_id').notNull(),
+  caption: text('caption'),
+  isApproved: boolean('is_approved').default(false).notNull(),
+  visibility: text('visibility').default('public').notNull(), // 'public', 'private'
+  viewCount: integer('view_count').default(0).notNull(),
+  downloadCount: integer('download_count').default(0).notNull(),
+  metadata: jsonb('metadata'), // { width, height, tags }
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => ({
+  eventIdx: index('event_media_event_idx').on(table.eventId),
+  statusIdx: index('event_media_status_idx').on(table.isApproved),
+}));
+
 // --- Relations ---
+
+export const eventMediaRelations = relations(eventMedia, ({ one }) => ({
+  event: one(events, {
+    fields: [eventMedia.eventId],
+    references: [events.id],
+  }),
+  author: one(users, {
+    fields: [eventMedia.authorId],
+    references: [users.id],
+  }),
+}));
 
 export const eventsRelations = relations(events, ({ many, one }) => ({
   ticketTiers: many(ticketTiers),
@@ -378,6 +412,7 @@ export const eventsRelations = relations(events, ({ many, one }) => ({
   certificateTemplates: many(certificateTemplates),
   staff: many(eventStaff),
   sponsors: many(sponsors),
+  media: many(eventMedia),
   feedbackTemplate: one(feedbackTemplates, {
     fields: [events.feedbackTemplateId],
     references: [feedbackTemplates.id],

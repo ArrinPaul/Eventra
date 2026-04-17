@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -20,6 +20,7 @@ import { useToast } from '@/hooks/use-toast';
 import JSZip from 'jszip';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
+import { sendCertificateEmail } from '@/app/actions/certificates';
 
 interface Attendee {
   id: string;
@@ -32,16 +33,18 @@ interface Attendee {
 
 interface BulkDistributionProps {
   eventId: string;
+  eventTitle: string;
+  eventDate: string;
   initialAttendees: Attendee[];
   templateHtml: string;
 }
 
-export function BulkDistributionClient({ eventId, initialAttendees, templateHtml }: BulkDistributionProps) {
+export function BulkDistributionClient({ eventId, eventTitle, eventDate, initialAttendees, templateHtml }: BulkDistributionProps) {
   const { toast } = useToast();
   const [attendees, setAttendees] = useState<Attendee[]>(initialAttendees);
   const [isProcessing, setIsProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [currentAction, setCurrentAction] = useState<string | null>(null);
+  const [currentAction, setCurrentAction] = useState<'email' | 'zip' | null>(null);
 
   const stats = {
     total: attendees.length,
@@ -60,12 +63,7 @@ export function BulkDistributionClient({ eventId, initialAttendees, templateHtml
     for (let i = 0; i < readyAttendees.length; i++) {
       const attendee = readyAttendees[i];
       try {
-        // In a real app, this would be a server action call
-        // const result = await sendCertificateEmail(attendee.id);
-        
-        // Simulating API call
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
+        await sendCertificateEmail(attendee.id);
         setAttendees(prev => prev.map(a => a.id === attendee.id ? { ...a, status: 'sent' } : a));
       } catch (error) {
         setAttendees(prev => prev.map(a => a.id === attendee.id ? { ...a, status: 'failed' } : a));
@@ -73,7 +71,7 @@ export function BulkDistributionClient({ eventId, initialAttendees, templateHtml
       setProgress(Math.round(((i + 1) / readyAttendees.length) * 100));
     }
 
-    toast({ title: "Distribution Complete", description: `Successfully sent emails to ${readyAttendees.length} attendees.` });
+    toast({ title: "Distribution Complete", description: `Processed ${readyAttendees.length} emails.` });
     setIsProcessing(false);
     setCurrentAction(null);
   };
@@ -86,7 +84,6 @@ export function BulkDistributionClient({ eventId, initialAttendees, templateHtml
     const zip = new JSZip();
     const readyAttendees = attendees.filter(a => !!a.personalizedMessage);
     
-    // Create a hidden container for rendering
     const container = document.createElement('div');
     container.style.position = 'fixed';
     container.style.left = '-9999px';
@@ -97,11 +94,12 @@ export function BulkDistributionClient({ eventId, initialAttendees, templateHtml
     for (let i = 0; i < readyAttendees.length; i++) {
       const attendee = readyAttendees[i];
       
-      // Inject attendee data into template
       let renderedHtml = templateHtml
         .replace(/{attendee_name}/g, attendee.name)
         .replace(/{ticket_number}/g, attendee.ticketNumber)
-        .replace(/{custom_message}/g, attendee.personalizedMessage || '');
+        .replace(/{custom_message}/g, attendee.personalizedMessage || '')
+        .replace(/{event_title}/g, eventTitle)
+        .replace(/{event_date}/g, eventDate);
       
       container.innerHTML = renderedHtml;
 
@@ -128,13 +126,13 @@ export function BulkDistributionClient({ eventId, initialAttendees, templateHtml
     const url = URL.createObjectURL(zipBlob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `certificates-event-${eventId}.zip`;
+    link.download = `certificates-${eventId}.zip`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     document.body.removeChild(container);
 
-    toast({ title: "Download Ready", description: "ZIP archive with all certificates has been generated." });
+    toast({ title: "Download Ready", description: "ZIP archive generated." });
     setIsProcessing(false);
     setCurrentAction(null);
   };
@@ -216,7 +214,7 @@ export function BulkDistributionClient({ eventId, initialAttendees, templateHtml
               Download All as ZIP
             </Button>
 
-            <Button variant="ghost" className="text-gray-400">
+            <Button variant="ghost" className="text-gray-400" onClick={() => window.location.reload()}>
               <RefreshCw className="w-4 h-4 mr-2" />
               Refresh List
             </Button>
@@ -260,7 +258,22 @@ export function BulkDistributionClient({ eventId, initialAttendees, templateHtml
                   )}
                 </td>
                 <td className="px-6 py-4 text-right">
-                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0"><Send className="h-4 w-4" /></Button>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="h-8 w-8 p-0"
+                    onClick={async () => {
+                       try {
+                         await sendCertificateEmail(attendee.id);
+                         toast({ title: "Sent", description: `Email sent to ${attendee.name}` });
+                         setAttendees(prev => prev.map(a => a.id === attendee.id ? { ...a, status: 'sent' } : a));
+                       } catch (e) {
+                         toast({ title: "Error", description: "Failed to send", variant: "destructive" });
+                       }
+                    }}
+                  >
+                    <Send className="h-4 w-4" />
+                  </Button>
                 </td>
               </tr>
             ))}

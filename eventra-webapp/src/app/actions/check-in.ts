@@ -1,12 +1,13 @@
 'use server';
 
 import { db } from '@/lib/db';
-import { tickets, events, activityFeed } from '@/lib/db/schema';
+import { tickets, events, activityFeed, eventStaff, notifications, users } from '@/lib/db/schema';
 import { eq, and, sql } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
-import { validateRole, validateEventOwnership } from '@/lib/auth-utils';
+import { validateRole, validateEventOwnership, validateStaffPermission } from '@/lib/auth-utils';
 import { awardXP } from './gamification';
 import { logActivity } from './feed';
+import { parseQrPayload } from '@/core/utils/crypto';
 
 /**
  * Fetch events that the user is authorized to scan for.
@@ -16,23 +17,46 @@ export async function getScannerEvents() {
   const user = await validateRole(['organizer', 'admin']);
   
   try {
-    const conditions = [];
-    if ((user as any).role !== 'admin') {
-      conditions.push(eq(events.organizerId, user.id!));
-    }
+    let result;
+    if ((user as any).role === 'admin') {
+      result = await db
+        .select({
+          id: events.id,
+          title: events.title,
+          registeredCount: events.registeredCount,
+          capacity: events.capacity,
+          organizerId: events.organizerId,
+          startDate: events.startDate,
+          endDate: events.endDate
+        })
+        .from(events);
+    } else {
+      // Find events where user is organizer OR staff
+      const organizerEvents = db
+        .select({ id: events.id })
+        .from(events)
+        .where(eq(events.organizerId, user.id!));
+      
+      const staffEvents = db
+        .select({ id: eventStaff.eventId })
+        .from(eventStaff)
+        .where(eq(eventStaff.userId, user.id!));
 
-    const result = await db
-      .select({
-        id: events.id,
-        title: events.title,
-        registeredCount: events.registeredCount,
-        capacity: events.capacity,
-        organizerId: events.organizerId,
-        startDate: events.startDate,
-        endDate: events.endDate
-      })
-      .from(events)
-      .where(conditions.length > 0 ? and(...conditions) : undefined);
+      result = await db
+        .select({
+          id: events.id,
+          title: events.title,
+          registeredCount: events.registeredCount,
+          capacity: events.capacity,
+          organizerId: events.organizerId,
+          startDate: events.startDate,
+          endDate: events.endDate
+        })
+        .from(events)
+        .where(
+          sql`${events.id} IN (${organizerEvents}) OR ${events.id} IN (${staffEvents})`
+        );
+    }
 
     // Get check-in counts for each event
     const eventsWithStats = await Promise.all(result.map(async (event) => {
@@ -58,17 +82,31 @@ export async function getScannerEvents() {
 }
 
 /**
- * Process a check-in for a specific ticket number and event.
+ * Process a check-in for a specific ticket payload and event.
  */
-export async function checkInTicket(ticketNumber: string, eventId: string) {
-  // 1. Security check: Ensure the user has permission to scan for this specific event
-  await validateEventOwnership(eventId);
+export async function checkInTicket(payload: string, eventId: string) {
+  // 1. Security check: Ensure the user has granular permission to scan
+  await validateStaffPermission(eventId, 'scan_tickets');
+
+  const { ticketNumber, isValid } = parseQrPayload(payload);
+  
+  // If not valid QR format, try raw ticket number (legacy or manual entry)
+  // For manual entry, we bypass signature if the user has permission
+  let targetTicketNumber = ticketNumber;
+  if (!isValid) {
+    // If it's a manual entry (starts with TKT-), we allow it if the user is authorized
+    if (payload.startsWith('TKT-')) {
+      targetTicketNumber = payload;
+    } else {
+      throw new Error('Invalid QR Code: Signature verification failed or malformed payload');
+    }
+  }
 
   try {
     // 2. Find the ticket and event details
     const ticket = await db.query.tickets.findFirst({
       where: and(
-        eq(tickets.ticketNumber, ticketNumber),
+        eq(tickets.ticketNumber, targetTicketNumber!),
         eq(tickets.eventId, eventId)
       ),
       with: {
@@ -143,7 +181,7 @@ export async function checkInTicket(ticketNumber: string, eventId: string) {
       title: 'How was the event?',
       message: `We hope you're enjoying ${ticket.event.title}! Don't forget to share your feedback.`,
       type: 'info',
-      link: `/feedback/${eventId}`
+      link: `/events/${eventId}/feedback`
     }).catch(console.error);
 
     revalidatePath(`/events/${eventId}`);
@@ -160,5 +198,57 @@ export async function checkInTicket(ticketNumber: string, eventId: string) {
   } catch (error: any) {
     console.error('Check-in processing error:', error);
     throw new Error(error.message || 'Check-in failed');
+  }
+}
+
+/**
+ * Mark all un-scanned tickets as expired for an event.
+ */
+export async function finalizeEvent(eventId: string) {
+  await validateStaffPermission(eventId, 'manage_content');
+
+  try {
+    const result = await db
+      .update(tickets)
+      .set({ status: 'expired', updatedAt: new Date() })
+      .where(and(
+        eq(tickets.eventId, eventId),
+        eq(tickets.status, 'confirmed')
+      ))
+      .returning();
+
+    revalidatePath(`/events/${eventId}`);
+    revalidatePath('/check-in-scanner');
+
+    return { success: true, expiredCount: result.length };
+  } catch (error: any) {
+    console.error('Finalize Event Error:', error);
+    throw new Error('Failed to finalize event');
+  }
+}
+
+/**
+ * Fetch all confirmed tickets for an event (for offline verification).
+ */
+export async function getAttendeeList(eventId: string) {
+  await validateStaffPermission(eventId, 'scan_tickets');
+
+  try {
+    const result = await db
+      .select({
+        ticketNumber: tickets.ticketNumber,
+        qrCode: tickets.qrCode,
+        status: tickets.status,
+        userName: users.name,
+        userImage: users.image
+      })
+      .from(tickets)
+      .innerJoin(users, eq(tickets.userId, users.id))
+      .where(eq(tickets.eventId, eventId));
+
+    return result;
+  } catch (error) {
+    console.error('getAttendeeList Error:', error);
+    return [];
   }
 }

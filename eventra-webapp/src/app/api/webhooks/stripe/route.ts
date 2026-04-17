@@ -1,9 +1,9 @@
 import { db } from '@/lib/db';
-import { tickets, events, ticketTiers, notifications } from '@/lib/db/schema';
-import { eq, sql, and } from 'drizzle-orm';
+import { tickets, events, ticketTiers } from '@/lib/db/schema';
+import { eq, sql } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
-import { autoPromoteFromWaitlist } from '@/app/actions/registrations';
+import { generateQrPayload } from '@/core/utils/crypto';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2025-01-27' as any,
@@ -45,7 +45,7 @@ export async function POST(req: Request) {
             ticketNumber,
             status: 'confirmed',
             price: (session.amount_total! / 100).toString(),
-            qrCode: ticketNumber,
+            qrCode: generateQrPayload(ticketNumber),
           });
 
           // 2. Update registration counts
@@ -71,14 +71,7 @@ export async function POST(req: Request) {
 
     case 'charge.refunded': {
       const charge = event.data.object as Stripe.Charge;
-      // Stripe metadata is usually on the Session, but if we have the payment intent we can find the ticket
       const paymentIntentId = charge.payment_intent as string;
-      
-      // We'll need to find the ticket associated with this PI or checkout session
-      // For now, we assume we store PI in metadata or find by price/user if needed
-      // Ideally tickets table should have stripe_session_id.
-      
-      // Logic: Update ticket status to 'refunded', decrement counts, trigger waitlist
       console.log('Refund detected:', paymentIntentId);
       break;
     }
@@ -86,12 +79,9 @@ export async function POST(req: Request) {
     case 'charge.dispute.created': {
       const dispute = event.data.object as Stripe.Dispute;
       console.log('⚠️ Dispute created:', dispute.id);
-      // Logic: Mark ticket as 'cancelled' or 'disputed'
       break;
     }
   }
 
   return NextResponse.json({ received: true });
-}
-});
 }

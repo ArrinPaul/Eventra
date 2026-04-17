@@ -53,6 +53,35 @@ export async function addEventStaff(eventId: string, email: string, role: string
 }
 
 /**
+ * Update a staff member's role or permissions
+ */
+export async function updateEventStaff(staffId: string, data: { role?: string, permissions?: string[] }) {
+  try {
+    const staff = await db.query.eventStaff.findFirst({
+      where: eq(eventStaff.id, staffId)
+    });
+
+    if (!staff) throw new Error('Staff record not found');
+    await validateEventOwnership(staff.eventId);
+
+    const [updated] = await db
+      .update(eventStaff)
+      .set({
+        role: data.role ?? staff.role,
+        permissions: data.permissions ?? staff.permissions,
+      })
+      .where(eq(eventStaff.id, staffId))
+      .returning();
+
+    revalidatePath(`/organizer/collab/${staff.eventId}`);
+    return updated;
+  } catch (error: any) {
+    console.error('updateEventStaff Error:', error);
+    throw new Error(error.message || 'Failed to update staff');
+  }
+}
+
+/**
  * Remove a user from event staff
  */
 export async function removeEventStaff(staffId: string) {

@@ -18,19 +18,26 @@ import {
   FileText
 } from 'lucide-react';
 import { getEvents } from '@/app/actions/events';
-import { getCertificateTemplates } from '@/app/actions/certificates';
+import { getCertificateTemplates, getCheckedInAttendees } from '@/app/actions/certificates';
 import { CertificateTemplateBuilder } from '@/features/certificates/certificate-template-builder';
 import { BulkDistributionClient } from '@/features/certificates/bulk-distribution-client';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 
 export default function OrganizerCertificatesPage() {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [events, setEvents] = useState<any[]>([]);
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState<'list' | 'builder' | 'distribute'>('list');
   const [activeTemplate, setActiveTemplate] = useState<any>(null);
+
+  // Distribution State
+  const [distributeLoading, setDistributeLoading] = useState(false);
+  const [attendees, setAttendees] = useState<any[]>([]);
+  const [template, setTemplate] = useState<any>(null);
 
   useEffect(() => {
     async function loadData() {
@@ -47,6 +54,27 @@ export default function OrganizerCertificatesPage() {
     }
     loadData();
   }, [user]);
+
+  const handleStartDistribute = async (eventId: string) => {
+    setSelectedEventId(eventId);
+    setDistributeLoading(true);
+    setView('distribute');
+    try {
+      const [attendeeData, templates] = await Promise.all([
+        getCheckedInAttendees(eventId),
+        getCertificateTemplates(eventId)
+      ]);
+      setAttendees(attendeeData);
+      // Use event-specific template or first default
+      const activeT = templates.find(t => t.eventId === eventId) || templates[0];
+      setTemplate(activeT);
+    } catch (e) {
+      toast({ title: "Error", description: "Failed to load distribution data", variant: "destructive" });
+      setView('list');
+    } finally {
+      setDistributeLoading(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -71,21 +99,32 @@ export default function OrganizerCertificatesPage() {
   }
 
   if (view === 'distribute' && selectedEventId) {
+    if (distributeLoading) {
+      return (
+        <div className="container py-32 text-center text-white">
+          <Loader2 className="h-12 w-12 mx-auto mb-4 animate-spin text-cyan-500" />
+          <p className="text-gray-400 font-medium">Preparing attendee certificates...</p>
+        </div>
+      );
+    }
+
     return (
       <div className="container py-8 space-y-6 text-white">
         <div className="flex items-center gap-4 mb-6">
-          <Button variant="ghost" size="icon" onClick={() => setView('list')}>
+          <Button variant="ghost" size="icon" onClick={() => setView('list')} className="hover:bg-white/5">
             <ChevronRight className="rotate-180" />
           </Button>
           <div>
-            <h1 className="text-3xl font-bold">Distribute Certificates</h1>
-            <p className="text-gray-400">Event: {selectedEvent?.title}</p>
+            <h1 className="text-3xl font-bold tracking-tight">Distribute Certificates</h1>
+            <p className="text-gray-400">Event: <span className="text-white font-semibold">{selectedEvent?.title}</span></p>
           </div>
         </div>
         <BulkDistributionClient 
           eventId={selectedEventId} 
-          initialAttendees={[]} // In a real app, fetch checked-in attendees
-          templateHtml="<div style='padding: 50px; text-align: center;'><h1>Certificate</h1><p>{attendee_name}</p></div>" 
+          eventTitle={selectedEvent?.title || ''}
+          eventDate={selectedEvent?.startDate ? new Date(selectedEvent.startDate).toLocaleDateString() : ''}
+          initialAttendees={attendees} 
+          templateHtml={template?.html || "<div style='padding: 50px; text-align: center;'><h1>Certificate</h1><p>{attendee_name}</p></div>"} 
         />
       </div>
     );
@@ -144,7 +183,7 @@ export default function OrganizerCertificatesPage() {
                   <Button size="sm" variant="outline" className="border-white/10" onClick={() => { setSelectedEventId(event.id); setView('builder'); }}>
                     <Settings className="w-4 h-4 mr-2" /> Design Template
                   </Button>
-                  <Button size="sm" className="bg-cyan-600 hover:bg-cyan-500 text-white" onClick={() => { setSelectedEventId(event.id); setView('distribute'); }}>
+                  <Button size="sm" className="bg-cyan-600 hover:bg-cyan-500 text-white" onClick={() => handleStartDistribute(event.id)}>
                     <Send className="w-4 h-4 mr-2" /> Distribute
                   </Button>
                 </div>

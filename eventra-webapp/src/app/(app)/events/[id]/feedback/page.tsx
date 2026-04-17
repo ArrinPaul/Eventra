@@ -1,34 +1,30 @@
-'use client';
+import { getEventById } from '@/app/actions/events';
+import { getFeedbackTemplates } from '@/app/actions/feedback';
+import { FeedbackSubmissionForm } from '@/features/feedback/feedback-submission-form';
+import { notFound } from 'next/navigation';
+import { auth } from '@/auth';
 
-import { FeedbackForm } from '@/features/events/feedback-form';
-import { useParams, useRouter } from 'next/navigation';
-import { Loader2, ArrowLeft } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+export default async function EventFeedbackPage({ params }: { params: { id: string } }) {
+  const session = await auth();
+  if (!session?.user) return <div>Please login to submit feedback.</div>;
 
-export default function EventFeedbackPage() {
-  const params = useParams();
-  const router = useRouter();
-  const eventId = params.id as string;
-  
-  // TODO: Fetch event from backend
-  const event: any = null;
+  const event = await getEventById(params.id);
+  if (!event) notFound();
 
-  if (event === undefined) return <div className="p-20 text-center"><Loader2 className="animate-spin h-8 w-8 mx-auto text-cyan-500" /></div>;
-  if (!event) return <div className="p-20 text-center text-white">Event not found.</div>;
+  const templates = await getFeedbackTemplates(params.id);
+  // Use event-specific template or a default one
+  const template = templates.find(t => t.eventId === params.id) || templates[0] || {
+    title: "Event Feedback",
+    description: "Please share your thoughts with us.",
+    questions: []
+  };
 
   return (
-    <div className="container py-8 max-w-2xl mx-auto">
-      <Button variant="ghost" onClick={() => router.back()} className="mb-6 text-gray-400 hover:text-white">
-        <ArrowLeft className="mr-2 h-4 w-4" /> Back to Event
-      </Button>
-      
-      <FeedbackForm 
-        eventId={event._id} 
-        eventName={event.title} 
-        schema={event.feedbackSchema as any}
-        onSuccess={() => {
-          setTimeout(() => router.push(`/events/${eventId}`), 3000);
-        }}
+    <div className="container py-12">
+      <FeedbackSubmissionForm 
+        eventId={params.id} 
+        eventTitle={event.title} 
+        template={template as any} 
       />
     </div>
   );

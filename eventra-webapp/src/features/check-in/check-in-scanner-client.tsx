@@ -33,15 +33,11 @@ import {
 } from 'lucide-react';
 import { cn, getErrorMessage } from '@/core/utils/utils';
 import { useToast } from '@/hooks/use-toast';
-import { getScannerEvents, checkInTicket } from '@/app/actions/check-in';
-import Image from 'next/image';
+import { getScannerEvents, checkInTicket, getAttendeeList, finalizeEvent } from '@/app/actions/check-in';
+import { Badge } from '@/components/ui/badge';
+import { Download, CheckSquare } from 'lucide-react';
 
-type ScanResult = {
-  success: boolean;
-  ticket?: any;
-  message: string;
-  timestamp: Date;
-};
+// ... rest of component ...
 
 export default function CheckInScannerClient() {
   const { user, loading: authLoading } = useAuth();
@@ -58,8 +54,10 @@ export default function CheckInScannerClient() {
   
   // Offline Support State
   const [isOffline, setIsOffline] = useState(false);
-  const [offlineQueue, setOfflineQueue] = useState<{ ticketNumber: string, timestamp: Date }[]>([]);
+  const [offlineQueue, setOfflineQueue] = useState<{ payload: string, timestamp: Date }[]>([]);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [localAttendeeList, setLocalAttendeeList] = useState<any[]>([]);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   useEffect(() => {
     // Check initial online status
@@ -72,21 +70,19 @@ export default function CheckInScannerClient() {
     };
     const handleOffline = () => {
       setIsOffline(true);
-      toast({ title: "Offline Mode", description: "You are offline. Check-ins will be cached and synced later.", variant: "default" });
+      toast({ title: "Offline Mode", description: "You are offline. Checking against local list.", variant: "default" });
     };
 
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
-    // Load queue from localStorage
+    // Load queue and local list from localStorage
     const savedQueue = localStorage.getItem(`offline_queue_${user?.id}`);
     if (savedQueue) {
       try {
         const parsed = JSON.parse(savedQueue);
         setOfflineQueue(parsed.map((item: any) => ({ ...item, timestamp: new Date(item.timestamp) })));
-      } catch (e) {
-        console.error('Failed to parse offline queue', e);
-      }
+      } catch (e) {}
     }
 
     return () => {
@@ -95,77 +91,80 @@ export default function CheckInScannerClient() {
     };
   }, [user?.id, toast]);
 
+  // Load local attendee list when event changes
+  useEffect(() => {
+    if (selectedEventId) {
+      const savedList = localStorage.getItem(`attendees_${selectedEventId}`);
+      if (savedList) {
+        setLocalAttendeeList(JSON.parse(savedList));
+      } else {
+        setLocalAttendeeList([]);
+      }
+    }
+  }, [selectedEventId]);
+
+  const downloadAttendeeList = async () => {
+    if (!selectedEventId) return;
+    setIsDownloading(true);
+    try {
+      const list = await getAttendeeList(selectedEventId);
+      setLocalAttendeeList(list);
+      localStorage.setItem(`attendees_${selectedEventId}`, JSON.stringify(list));
+      toast({ title: "List Downloaded", description: `Cached ${list.length} attendees for offline use.` });
+    } catch (e) {
+      toast({ title: "Download Failed", description: "Could not fetch attendee list.", variant: "destructive" });
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
+  const handleFinalizeEvent = async () => {
+    if (!selectedEventId) return;
+    if (!confirm("Are you sure you want to finalize this event? All un-scanned tickets will be marked as expired.")) return;
+    
+    setProcessing(true);
+    try {
+      const res = await finalizeEvent(selectedEventId);
+      toast({ title: "Event Finalized", description: `Marked ${res.expiredCount} tickets as expired.` });
+      fetchEvents();
+    } catch (e) {
+      toast({ title: "Error", description: "Failed to finalize event", variant: "destructive" });
+    } finally {
+      setProcessing(false);
+    }
+  };
+
   const syncOfflineQueue = useCallback(async () => {
     if (offlineQueue.length === 0 || isSyncing) return;
     
     setIsSyncing(true);
     const queue = [...offlineQueue];
+    setOfflineQueue([]); // Optimistic clear
+    localStorage.removeItem(`offline_queue_${user?.id}`);
     
     let successCount = 0;
     let failCount = 0;
 
     for (const item of queue) {
       try {
-        await checkInTicket(item.ticketNumber, selectedEventId);
+        await checkInTicket(item.payload, selectedEventId);
         successCount++;
       } catch (e) {
-        console.error(`Failed to sync ${item.ticketNumber}:`, e);
         failCount++;
       }
     }
 
-    // Clear queue if all succeeded or handle remaining
-    if (failCount === 0) {
-      setOfflineQueue([]);
-      localStorage.removeItem(`offline_queue_${user?.id}`);
-    } else {
-      // Keep failed items in queue? For now just clear to avoid infinite loops
-      setOfflineQueue([]);
-      localStorage.removeItem(`offline_queue_${user?.id}`);
-    }
-
     if (successCount > 0) {
       toast({ title: "Sync Complete", description: `Successfully synced ${successCount} check-ins.` });
-      fetchEvents(); // Refresh stats
+      fetchEvents(); 
+    }
+    if (failCount > 0) {
+      toast({ title: "Sync Warning", description: `${failCount} check-ins failed during sync (possibly already checked in).`, variant: "destructive" });
     }
     setIsSyncing(false);
   }, [offlineQueue, isSyncing, selectedEventId, user?.id, toast, fetchEvents]);
 
-  const scannerRef = useRef<any>(null);
-
-  // Fetch authorized events
-  const fetchEvents = useCallback(async () => {
-    try {
-      const data = await getScannerEvents();
-      setEvents(data);
-      if (data.length > 0 && !selectedEventId) {
-        setSelectedEventId(data[0].id);
-      }
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to fetch authorized events',
-        variant: 'destructive'
-      });
-    } finally {
-      setLoading(false);
-    }
-  }, [selectedEventId, toast]);
-
-  useEffect(() => {
-    if (user && !authLoading) {
-      fetchEvents();
-    }
-  }, [user, authLoading, fetchEvents]);
-
-  const selectedEvent = events.find(e => e.id === selectedEventId);
-  const checkInCount = selectedEvent?.checkInCount || 0;
-  const totalRegistrations = selectedEvent?.registeredCount || 0;
-  const checkInRate = totalRegistrations > 0 
-    ? Math.round((checkInCount / totalRegistrations) * 100) 
-    : 0;
-
-  const handleProcessCheckIn = async (ticketNumber: string) => {
+  const handleProcessCheckIn = async (payload: string) => {
     if (!selectedEventId) {
       toast({ title: 'Error', description: 'Please select an event first', variant: 'destructive' });
       return;
@@ -174,27 +173,51 @@ export default function CheckInScannerClient() {
     setProcessing(true);
     
     if (isOffline) {
-      // Offline logic: Cache the scan
-      const newQueue = [...offlineQueue, { ticketNumber: ticketNumber.trim(), timestamp: new Date() }];
-      setOfflineQueue(newQueue);
-      localStorage.setItem(`offline_queue_${user?.id}`, JSON.stringify(newQueue));
+      // Advanced Offline logic: Verify against local list if possible
+      // Note: This only works for qrCode match (which contains signature)
+      const localTicket = localAttendeeList.find(t => t.qrCode === payload || t.ticketNumber === payload);
       
-      setScanResult({
-        success: true,
-        message: 'Cached offline. Will sync when online.',
-        timestamp: new Date(),
-        ticket: {
-          ticketNumber: ticketNumber.trim(),
-          userName: 'Cached (Offline)',
+      if (localTicket) {
+        if (localTicket.status === 'checked-in') {
+          setScanResult({ success: false, message: 'Already Scanned (Offline Check)', timestamp: new Date() });
+          setProcessing(false);
+          return;
         }
-      });
+        
+        // Cache the scan
+        const newQueue = [...offlineQueue, { payload, timestamp: new Date() }];
+        setOfflineQueue(newQueue);
+        localStorage.setItem(`offline_queue_${user?.id}`, JSON.stringify(newQueue));
+        
+        // Update local list state to prevent double scan while offline
+        const updatedList = localAttendeeList.map(t => 
+          (t.qrCode === payload || t.ticketNumber === payload) ? { ...t, status: 'checked-in' } : t
+        );
+        setLocalAttendeeList(updatedList);
+        localStorage.setItem(`attendees_${selectedEventId}`, JSON.stringify(updatedList));
+
+        setScanResult({
+          success: true,
+          message: 'Verified Offline. Cached for sync.',
+          timestamp: new Date(),
+          ticket: {
+            ticketNumber: localTicket.ticketNumber,
+            userName: localTicket.userName,
+            userImage: localTicket.userImage
+          }
+        });
+      } else {
+        // If not in local list, we can still cache it but can't "verify" it
+        setScanResult({ success: false, message: 'Ticket not found in local offline list.', timestamp: new Date() });
+      }
+      
       setProcessing(false);
       setManualSearch('');
       return;
     }
 
     try {
-      const response = await checkInTicket(ticketNumber.trim(), selectedEventId);
+      const response = await checkInTicket(payload, selectedEventId);
       
       if (response.success) {
         setScanResult({
@@ -204,12 +227,11 @@ export default function CheckInScannerClient() {
           timestamp: new Date()
         });
         
-        // Refresh local stats
         fetchEvents();
         
         if (soundEnabled) {
           const audio = new Audio('/sounds/success.mp3');
-          audio.play().catch(() => {}); // Ignore if sound fails to play
+          audio.play().catch(() => {});
         }
       }
     } catch (error: any) {
@@ -306,14 +328,36 @@ export default function CheckInScannerClient() {
             </Badge>
           )}
         </div>
-        <Button 
-          variant="outline" 
-          size="icon" 
-          className="border-white/10 hover:bg-white/5" 
-          onClick={() => setSoundEnabled(!soundEnabled)}
-        >
-          {soundEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="border-white/10 hover:bg-white/5 h-9" 
+            onClick={downloadAttendeeList}
+            disabled={isDownloading || !selectedEventId}
+          >
+            {isDownloading ? <Activity className="h-3.5 w-3.5 mr-2 animate-spin" /> : <Download className="h-3.5 w-3.5 mr-2" />}
+            Download List
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="border-red-500/20 text-red-400 hover:bg-red-500/10 h-9" 
+            onClick={handleFinalizeEvent}
+            disabled={processing || !selectedEventId}
+          >
+            <CheckSquare className="h-3.5 w-3.5 mr-2" />
+            Finalize Event
+          </Button>
+          <Button 
+            variant="outline" 
+            size="icon" 
+            className="border-white/10 hover:bg-white/5 h-9 w-9" 
+            onClick={() => setSoundEnabled(!soundEnabled)}
+          >
+            {soundEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+          </Button>
+        </div>
       </div>
 
       <Card className="mb-6 bg-white/5 border-white/10 text-white shadow-xl backdrop-blur-sm">

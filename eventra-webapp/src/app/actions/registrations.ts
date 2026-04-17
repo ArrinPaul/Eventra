@@ -9,6 +9,7 @@ import { validateRole } from '@/lib/auth-utils';
 
 import { logActivity } from './feed';
 import { awardXP } from './gamification';
+import { generateQrPayload } from '@/core/utils/crypto';
 
 /**
  * Register a user for an event (Create a ticket or join waitlist)
@@ -69,7 +70,7 @@ export async function registerForEvent(eventId: string, data?: { tierId?: string
         ticketNumber,
         status: 'confirmed',
         price: price,
-        qrCode: ticketNumber, // Use ticket number as QR payload by default
+        qrCode: generateQrPayload(ticketNumber), 
       });
 
       // Update registration counts
@@ -181,11 +182,10 @@ async function joinWaitlist(eventId: string, userId: string) {
 }
 
 /**
- * Promote the next person from waitlist (Auto-promotion logic)
- * Creates a ticket and notifies the user.
+ * Promote the next person from waitlist (Reservation model)
+ * Grants the user a 24-hour window to claim their spot.
  */
 export async function autoPromoteFromWaitlist(eventId: string, tx?: any) {
-  // Use existing transaction or create new
   const executePromotion = async (transaction: any) => {
     // 1. Find next in line
     const nextInLine = await transaction
@@ -207,48 +207,138 @@ export async function autoPromoteFromWaitlist(eventId: string, tx?: any) {
     if (nextInLine.length === 0) return null;
 
     const entry = nextInLine[0];
-    const ticketNumber = `TKT-WAIT-${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
+    const expiresAt = new Date();
+    expiresAt.setHours(expiresAt.getHours() + 24); // 24-hour window
 
-    // 2. Create the ticket
-    await transaction.insert(tickets).values({
-      eventId,
-      userId: entry.userId,
-      ticketNumber,
-      status: 'confirmed',
-      price: '0', // Waitlist promotion often free or handled separately
-      qrCode: ticketNumber,
-    });
-
-    // 3. Mark waitlist entry as promoted
+    // 2. Mark waitlist entry as reserved
     await transaction
       .update(waitlist)
-      .set({ status: 'promoted' })
+      .set({ 
+        status: 'reserved', 
+        expiresAt: expiresAt 
+      })
       .where(eq(waitlist.id, entry.id));
 
-    // 4. Update event registered count
-    await transaction
-      .update(events)
-      .set({ registeredCount: sql`${events.registeredCount} + 1` })
-      .where(eq(events.id, eventId));
-
-    // 5. Notify the user
+    // 3. Notify the user
     await transaction.insert(notifications).values({
       userId: entry.userId,
-      title: 'You have been promoted!',
-      message: `A spot opened up for your waitlisted event. Your ticket ${ticketNumber} is ready.`,
+      title: 'A spot is available!',
+      message: `A spot opened up for your waitlisted event. You have 24 hours to claim it before it goes to the next person.`,
       type: 'achievement',
-      link: '/tickets'
+      link: `/events/${eventId}/claim-spot`
     });
 
     return entry.userId;
   };
 
-  if (tx) {
-    return await executePromotion(tx);
-  } else {
-    return await db.transaction(async (t) => await executePromotion(t));
+  if (tx) return await executePromotion(tx);
+  return await db.transaction(async (t) => await executePromotion(t));
+}
+
+/**
+ * Cleanup expired waitlist reservations and promote the next person
+ */
+export async function processWaitlistReservations(eventId: string) {
+  try {
+    const now = new Date();
+    
+    // 1. Find expired reservations
+    const expiredEntries = await db
+      .select()
+      .from(waitlist)
+      .where(and(
+        eq(waitlist.eventId, eventId),
+        eq(waitlist.status, 'reserved'),
+        sql`${waitlist.expiresAt} < ${now}`
+      ));
+
+    if (expiredEntries.length === 0) return { processed: 0 };
+
+    await db.transaction(async (tx) => {
+      for (const entry of expiredEntries) {
+        // Mark as expired
+        await tx
+          .update(waitlist)
+          .set({ status: 'expired' })
+          .where(eq(waitlist.id, entry.id));
+        
+        // Notify user about loss of spot
+        await tx.insert(notifications).values({
+          userId: entry.userId,
+          title: 'Reservation Expired',
+          message: `Your 24-hour window to claim your spot has expired.`,
+          type: 'info'
+        });
+
+        // Trigger next promotion
+        await autoPromoteFromWaitlist(eventId, tx);
+      }
+    });
+
+    return { processed: expiredEntries.length };
+  } catch (error) {
+    console.error('processWaitlistReservations Error:', error);
+    return { processed: 0 };
   }
 }
+
+/**
+ * Claim a reserved spot from the waitlist
+ */
+export async function claimWaitlistSpot(eventId: string) {
+  const session = await auth();
+  if (!session?.user) throw new Error('Auth required');
+
+  try {
+    const result = await db.transaction(async (tx) => {
+      // 1. Verify reservation
+      const entry = await tx.query.waitlist.findFirst({
+        where: and(
+          eq(waitlist.eventId, eventId),
+          eq(waitlist.userId, session.user.id!),
+          eq(waitlist.status, 'reserved')
+        )
+      });
+
+      if (!entry) throw new Error('No active reservation found');
+      if (entry.expiresAt && entry.expiresAt < new Date()) {
+        throw new Error('Your reservation has expired');
+      }
+
+      // 2. Create the real ticket
+      const ticketNumber = `TKT-WAIT-${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
+      await tx.insert(tickets).values({
+        eventId,
+        userId: session.user.id!,
+        ticketNumber,
+        status: 'confirmed',
+        price: '0',
+        qrCode: generateQrPayload(ticketNumber),
+      });
+
+      // 3. Mark waitlist as promoted (fulfilled)
+      await tx
+        .update(waitlist)
+        .set({ status: 'promoted' })
+        .where(eq(waitlist.id, entry.id));
+
+      // 4. Update event count
+      await tx
+        .update(events)
+        .set({ registeredCount: sql`${events.registeredCount} + 1` })
+        .where(eq(events.id, eventId));
+
+      return { success: true, ticketNumber };
+    });
+
+    revalidatePath('/tickets');
+    revalidatePath(`/events/${eventId}`);
+    return result;
+  } catch (error: any) {
+    throw new Error(error.message || 'Failed to claim spot');
+  }
+}
+
 
 /**
  * Cancel a registration and trigger waitlist promotion
@@ -341,3 +431,74 @@ export async function getUserRegistrations() {
     return [];
   }
 }
+
+/**
+ * Bulk import attendees (guests) for an event
+ */
+export async function importAttendees(eventId: string, guestList: { email: string, name?: string, tierId?: string }[]) {
+  const user = await validateRole(['organizer', 'admin']);
+  // validateEventOwnership is technically from lib/auth-utils but used in collab.ts
+  // Here we can use a direct check or import it.
+  
+  try {
+    const results = { success: 0, failed: 0, errors: [] as string[] };
+
+    for (const guest of guestList) {
+      try {
+        // 1. Find user
+        const targetUser = await db.query.users.findFirst({
+          where: eq(users.email, guest.email)
+        });
+
+        if (!targetUser) {
+          results.failed++;
+          results.errors.push(`User not found: ${guest.email}`);
+          continue;
+        }
+
+        // 2. Check if already registered
+        const existing = await db.query.tickets.findFirst({
+          where: and(eq(tickets.eventId, eventId), eq(tickets.userId, targetUser.id))
+        });
+
+        if (existing) {
+          results.failed++;
+          results.errors.push(`Already registered: ${guest.email}`);
+          continue;
+        }
+
+        // 3. Create ticket
+        const ticketNumber = `TKT-GUEST-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+        
+        await db.transaction(async (tx) => {
+          await tx.insert(tickets).values({
+            eventId,
+            userId: targetUser.id,
+            tierId: guest.tierId || null,
+            ticketNumber,
+            status: 'confirmed',
+            price: '0',
+            qrCode: generateQrPayload(ticketNumber),
+          });
+
+          await tx
+            .update(events)
+            .set({ registeredCount: sql`${events.registeredCount} + 1` })
+            .where(eq(events.id, eventId));
+        });
+
+        results.success++;
+      } catch (e: any) {
+        results.failed++;
+        results.errors.push(`${guest.email}: ${e.message}`);
+      }
+    }
+
+    revalidatePath(`/organizer/events/${eventId}`);
+    return results;
+  } catch (error: any) {
+    console.error('importAttendees Error:', error);
+    throw new Error('Failed to process guest list');
+  }
+}
+

@@ -18,16 +18,27 @@ import {
   Download,
   Search,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  Settings2
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { addEventStaff, removeEventStaff, getEventStaff } from '@/app/actions/collab';
+import { addEventStaff, removeEventStaff, getEventStaff, updateEventStaff } from '@/app/actions/collab';
 import Image from 'next/image';
 import Papa from 'papaparse';
+import { 
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Checkbox } from '@/components/ui/checkbox';
 
 interface StaffMember {
   id: string;
   role: string;
+  permissions?: string[] | null;
   user: {
     id: string;
     name: string | null;
@@ -49,6 +60,18 @@ export function StaffManagerClient({ eventId, eventTitle }: StaffManagerProps) {
   const [inviteRole, setInviteRole] = useState('volunteer');
   const [isInviting, setIsInviting] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+
+  // Permission Edit State
+  const [editingStaff, setEditingStaff] = useState<StaffMember | null>(null);
+  const [tempPermissions, setLocalPermissions] = useState<string[]>([]);
+  const [isUpdating, setIsUpdating] = useState(false);
+
+  const availablePermissions = [
+    { id: 'scan_tickets', label: 'Scan Tickets', desc: 'Allow user to use check-in scanner.' },
+    { id: 'manage_content', label: 'Manage Content', desc: 'Edit event details and agenda.' },
+    { id: 'view_analytics', label: 'View Analytics', desc: 'Access revenue and feedback reports.' },
+    { id: 'manage_staff', label: 'Manage Staff', desc: 'Add or remove other staff members.' },
+  ];
 
   const loadStaff = async () => {
     setLoading(true);
@@ -81,6 +104,27 @@ export function StaffManagerClient({ eventId, eventTitle }: StaffManagerProps) {
     } finally {
       setIsInviting(false);
     }
+  };
+
+  const handleUpdatePermissions = async () => {
+    if (!editingStaff) return;
+    setIsUpdating(true);
+    try {
+      await updateEventStaff(editingStaff.id, { permissions: tempPermissions });
+      toast({ title: "Permissions Updated" });
+      setEditingStaff(null);
+      loadStaff();
+    } catch (e) {
+      toast({ title: "Update Failed", variant: "destructive" });
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const togglePermission = (id: string) => {
+    setLocalPermissions(prev => 
+      prev.includes(id) ? prev.filter(p => p !== id) : [...prev, id]
+    );
   };
 
   const handleRemove = async (staffId: string) => {
@@ -125,7 +169,6 @@ export function StaffManagerClient({ eventId, eventTitle }: StaffManagerProps) {
         toast({ 
           title: "Import Complete", 
           description: `Successfully added ${success} staff. Failed: ${fail}.`,
-          variant: fail > 0 ? "default" : "default" 
         });
         loadStaff();
       }
@@ -254,7 +297,18 @@ export function StaffManagerClient({ eventId, eventTitle }: StaffManagerProps) {
                         <p className="text-xs text-gray-500">{member.user.email}</p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="text-gray-400 hover:text-white"
+                        onClick={() => {
+                          setEditingStaff(member);
+                          setLocalPermissions(member.permissions || []);
+                        }}
+                      >
+                        <Settings2 className="w-4 h-4 mr-2" /> Permissions
+                      </Button>
                       <Badge variant="outline" className="capitalize bg-white/5 border-white/10 flex items-center gap-1.5 px-3 py-1">
                         {getRoleIcon(member.role)}
                         {member.role}
@@ -281,6 +335,42 @@ export function StaffManagerClient({ eventId, eventTitle }: StaffManagerProps) {
           </CardContent>
         </Card>
       </div>
+
+      {/* Permission Dialog */}
+      <Dialog open={!!editingStaff} onOpenChange={(open) => !open && setEditingStaff(null)}>
+        <DialogContent className="bg-gray-950 border-white/10 text-white">
+          <DialogHeader>
+            <DialogTitle>Edit Permissions</DialogTitle>
+            <DialogDescription>
+              Assign granular access for {editingStaff?.user.name || editingStaff?.user.email}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            {availablePermissions.map((perm) => (
+              <div key={perm.id} className="flex items-start space-x-3 p-3 rounded-lg bg-white/5 border border-white/5 hover:border-white/10 transition-colors">
+                <Checkbox 
+                  id={perm.id} 
+                  checked={tempPermissions.includes(perm.id)}
+                  onCheckedChange={() => togglePermission(perm.id)}
+                />
+                <div className="space-y-1 leading-none">
+                  <Label htmlFor={perm.id} className="text-sm font-bold cursor-pointer">{perm.label}</Label>
+                  <p className="text-xs text-gray-500">{perm.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setEditingStaff(null)}>Cancel</Button>
+            <Button className="bg-cyan-600 hover:bg-cyan-500" onClick={handleUpdatePermissions} disabled={isUpdating}>
+              {isUpdating ? <Loader2 size={16} className="animate-spin mr-2" /> : <Shield size={16} className="mr-2" />}
+              Save Permissions
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
