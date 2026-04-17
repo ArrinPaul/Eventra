@@ -44,13 +44,17 @@ export function useAuth() {
     if (!user) return null;
     
     try {
+      const userId = user.id || (user as any)._id;
+      if (!userId) return null;
       // 1. Persist to Database
-      const result = await updateUserDetails(updatedUser);
+      const result = await updateUserDetails(userId, updatedUser);
       
       // 2. Update Session (triggers session callback on server)
-      await update(result.user);
-      
-      return result.user;
+      if (result.success && result.user) {
+        await update(result.user);
+        return result.user;
+      }
+      return null;
     } catch (error) {
       console.error('Failed to update user:', error);
       throw error;

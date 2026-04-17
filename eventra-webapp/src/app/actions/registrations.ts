@@ -1,7 +1,7 @@
 'use server';
 
 import { db } from '@/lib/db';
-import { tickets, events, waitlist, ticketTiers, notifications } from '@/lib/db/schema';
+import { tickets, events, waitlist, ticketTiers, notifications, users } from '@/lib/db/schema';
 import { auth } from '@/auth';
 import { eq, and, desc, sql } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';

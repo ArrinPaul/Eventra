@@ -67,7 +67,7 @@ export function AIInsightsClient({ eventId }: AIInsightsClientProps) {
 
   const loadTasks = () => handleAction('Task List', async () => {
     const data = await generateOrganizerTasks(eventId);
-    if (data.success) setTasks(data.tasks);
+    if (data.success) setTasks(data.tasks || []);
     return data;
   });
 

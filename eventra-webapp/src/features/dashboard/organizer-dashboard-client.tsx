@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/use-auth';
@@ -16,7 +16,13 @@ import {
   Loader2,
   Trash2,
   Edit,
-  Copy
+  Copy,
+  BrainCircuit,
+  ChevronRight,
+  Award,
+  MessageSquare,
+  Clock,
+  Activity
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { format } from 'date-fns';

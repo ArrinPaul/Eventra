@@ -295,7 +295,7 @@ export default function EventDetailsClient({ eventId, initialEvent }: { eventId:
                     </TabsContent>
 
                     <TabsContent value="photos">
-                      <EventGallery eventId={event.id} isRegistered={isRegistered} isStaff={isOrganizer} />
+                      <EventGallery eventId={event.id} isRegistered={isRegistered} isStaff={!!isOrganizer} />
                     </TabsContent>
 
                     <TabsContent value="polls">

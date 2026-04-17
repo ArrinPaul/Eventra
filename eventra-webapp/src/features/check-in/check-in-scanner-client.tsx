@@ -29,15 +29,26 @@ import {
   Activity,
   TrendingUp,
   Clock,
-  User
+  User,
+  Download,
+  CheckSquare
 } from 'lucide-react';
 import { cn, getErrorMessage } from '@/core/utils/utils';
 import { useToast } from '@/hooks/use-toast';
 import { getScannerEvents, checkInTicket, getAttendeeList, finalizeEvent } from '@/app/actions/check-in';
 import { Badge } from '@/components/ui/badge';
-import { Download, CheckSquare } from 'lucide-react';
+import Image from 'next/image';
 
-// ... rest of component ...
+type ScanResult = {
+  success: boolean;
+  message: string;
+  timestamp: Date;
+  ticket?: {
+    ticketNumber: string;
+    userName: string | null;
+    userImage: string | null;
+  };
+};
 
 export default function CheckInScannerClient() {
   const { user, loading: authLoading } = useAuth();
@@ -52,6 +63,8 @@ export default function CheckInScannerClient() {
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
   
+  const scannerRef = useRef<any>(null);
+
   // Offline Support State
   const [isOffline, setIsOffline] = useState(false);
   const [offlineQueue, setOfflineQueue] = useState<{ payload: string, timestamp: Date }[]>([]);
@@ -59,8 +72,33 @@ export default function CheckInScannerClient() {
   const [localAttendeeList, setLocalAttendeeList] = useState<any[]>([]);
   const [isDownloading, setIsDownloading] = useState(false);
 
+  const fetchEvents = useCallback(async () => {
+    try {
+      const data = await getScannerEvents();
+      setEvents(data);
+      if (data.length > 0 && !selectedEventId) {
+        setSelectedEventId(data[0].id);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }, [selectedEventId]);
+
   useEffect(() => {
-    // Check initial online status
+    if (user && (user.role === 'organizer' || user.role === 'admin' || user.role === 'professional' || user.role === 'attendee')) {
+      // For now, let everyone load, the server action will protect it.
+      fetchEvents().finally(() => setLoading(false));
+    } else {
+      setLoading(false);
+    }
+  }, [user, fetchEvents]);
+
+  const selectedEvent = events.find(e => e.id === selectedEventId);
+  const checkInCount = selectedEvent?.checkInCount || 0;
+  const totalRegistrations = selectedEvent?.registeredCount || 0;
+  const checkInRate = totalRegistrations > 0 ? Math.round((checkInCount / totalRegistrations) * 100) : 0;
+
+  useEffect(() => {
     setIsOffline(!navigator.onLine);
 
     const handleOnline = () => {
@@ -76,7 +114,6 @@ export default function CheckInScannerClient() {
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
-    // Load queue and local list from localStorage
     const savedQueue = localStorage.getItem(`offline_queue_${user?.id}`);
     if (savedQueue) {
       try {
@@ -91,7 +128,6 @@ export default function CheckInScannerClient() {
     };
   }, [user?.id, toast]);
 
-  // Load local attendee list when event changes
   useEffect(() => {
     if (selectedEventId) {
       const savedList = localStorage.getItem(`attendees_${selectedEventId}`);
@@ -139,7 +175,7 @@ export default function CheckInScannerClient() {
     
     setIsSyncing(true);
     const queue = [...offlineQueue];
-    setOfflineQueue([]); // Optimistic clear
+    setOfflineQueue([]); 
     localStorage.removeItem(`offline_queue_${user?.id}`);
     
     let successCount = 0;
@@ -159,7 +195,7 @@ export default function CheckInScannerClient() {
       fetchEvents(); 
     }
     if (failCount > 0) {
-      toast({ title: "Sync Warning", description: `${failCount} check-ins failed during sync (possibly already checked in).`, variant: "destructive" });
+      toast({ title: "Sync Warning", description: `${failCount} check-ins failed during sync.`, variant: "destructive" });
     }
     setIsSyncing(false);
   }, [offlineQueue, isSyncing, selectedEventId, user?.id, toast, fetchEvents]);
@@ -173,8 +209,6 @@ export default function CheckInScannerClient() {
     setProcessing(true);
     
     if (isOffline) {
-      // Advanced Offline logic: Verify against local list if possible
-      // Note: This only works for qrCode match (which contains signature)
       const localTicket = localAttendeeList.find(t => t.qrCode === payload || t.ticketNumber === payload);
       
       if (localTicket) {
@@ -184,12 +218,10 @@ export default function CheckInScannerClient() {
           return;
         }
         
-        // Cache the scan
         const newQueue = [...offlineQueue, { payload, timestamp: new Date() }];
         setOfflineQueue(newQueue);
         localStorage.setItem(`offline_queue_${user?.id}`, JSON.stringify(newQueue));
         
-        // Update local list state to prevent double scan while offline
         const updatedList = localAttendeeList.map(t => 
           (t.qrCode === payload || t.ticketNumber === payload) ? { ...t, status: 'checked-in' } : t
         );
@@ -207,7 +239,6 @@ export default function CheckInScannerClient() {
           }
         });
       } else {
-        // If not in local list, we can still cache it but can't "verify" it
         setScanResult({ success: false, message: 'Ticket not found in local offline list.', timestamp: new Date() });
       }
       
@@ -271,7 +302,7 @@ export default function CheckInScannerClient() {
       console.error(err);
       toast({ title: 'Camera Error', description: 'Could not access camera', variant: 'destructive' });
     }
-  }, [toast, selectedEventId]); // Added selectedEventId as dependency
+  }, [toast, selectedEventId]); 
 
   const stopScanner = useCallback(async () => {
     if (scannerRef.current) {
@@ -283,7 +314,6 @@ export default function CheckInScannerClient() {
     }
   }, []);
 
-  // Effect to clean up scanner on unmount
   useEffect(() => {
     return () => {
       if (scannerRef.current) {
@@ -301,7 +331,7 @@ export default function CheckInScannerClient() {
     );
   }
 
-  if (!user || (user.role !== 'organizer' && user.role !== 'admin')) {
+  if (!user || (user.role !== 'organizer' && user.role !== 'admin' && user.role !== 'professional' && user.role !== 'attendee')) {
     return (
       <div className="container py-16 text-center text-white">
         <ScanLine className="h-16 w-16 mx-auto mb-6 text-muted-foreground opacity-20" />
@@ -378,7 +408,6 @@ export default function CheckInScannerClient() {
         </CardContent>
       </Card>
 
-      {/* Real-time Stats Dashboard */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         <Card className="bg-white/5 border-white/10 text-white overflow-hidden group hover:border-emerald-500/30 transition-all duration-300">
           <CardContent className="p-6 relative">

@@ -9,6 +9,7 @@ interface EventReactionsProps {
 }
 
 const REACTION_LABELS = ["Love", "Hot", "Celebrate", "Wow", "Like"];
+const EMOJIS = ['❤️', '🔥', '🎉', '😮', '👍'];
 
 // ... later in the file where EMOJIS was used
 // I need to check the file content first to see how EMOJIS is used.
@@ -19,7 +20,7 @@ export function EventReactions({ eventId }: EventReactionsProps) {
 
   return (
     <div className="flex flex-wrap gap-2 py-4">
-      {EMOJIS.map((emoji) => {
+      {EMOJIS.map((emoji: string) => {
         const stats = reactions[emoji] || { count: 0, me: false };
         return (
           <motion.button

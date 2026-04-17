@@ -2,7 +2,7 @@
 
 import { db } from '@/lib/db';
 import { eventMedia, events, users } from '@/lib/db/schema';
-import { eq, and, desc, sql, inc } from 'drizzle-orm';
+import { eq, and, desc, sql } from 'drizzle-orm';
 import { validateRole, validateEventOwnership, validateStaffPermission } from '@/lib/auth-utils';
 import { revalidatePath } from 'next/cache';
 import { auth } from '@/auth';

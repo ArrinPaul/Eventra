@@ -13,7 +13,8 @@ import {
   Plus,
   Loader2,
   Activity,
-  Star
+  Star,
+  Users
 } from 'lucide-react';
 import { getEvents } from '@/app/actions/events';
 import { getEventFeedbackAnalytics, getFeedbackTemplates } from '@/app/actions/feedback';

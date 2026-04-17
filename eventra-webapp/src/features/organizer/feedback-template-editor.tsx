@@ -18,7 +18,8 @@ import {
   CheckCircle2,
   XCircle,
   HelpCircle,
-  Loader2
+  Loader2,
+  Eye
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { upsertFeedbackTemplate } from '@/app/actions/feedback';

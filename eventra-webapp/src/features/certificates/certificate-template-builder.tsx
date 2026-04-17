@@ -20,13 +20,12 @@ import {
   Wand2,
   Download,
   Layout as LayoutIcon,
-  Palette,
-  Loader2
+  Palette
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { upsertCertificateTemplate } from '@/app/actions/certificates';
 import { cn } from '@/core/utils/utils';
-import { generateCertificateHtml } from '@/core/utils/certificate-generator';
+import { generateCertificateHtml, generateHtmlFromLayout } from '@/core/utils/certificate-generator';
 
 interface Field {
   id: string;
@@ -108,11 +107,6 @@ export function CertificateTemplateBuilder({ eventId, initialTemplate }: Certifi
     });
     if (selectedFieldId === id) setSelectedFieldId(null);
   };
-
-import { generateHtmlFromLayout } from '@/core/utils/certificate-generator';
-import { Loader2 } from 'lucide-react';
-
-// ... rest of imports ...
 
   const handleSave = async () => {
     setIsSaving(true);
