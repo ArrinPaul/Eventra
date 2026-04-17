@@ -38,7 +38,7 @@ export default function AnalyticsDashboard() {
   if (!analytics) {
     return (
       <div className="flex items-center justify-center py-20 text-white">
-        <Loader2 className="h-8 w-8 animate-spin text-cyan-500" />
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -48,7 +48,7 @@ export default function AnalyticsDashboard() {
     .join(', ');
 
   const statCards = [
-    { label: 'Total Events', value: analytics.totalEvents, icon: Calendar, color: 'text-cyan-400', bg: 'bg-cyan-500/10' },
+    { label: 'Total Events', value: analytics.totalEvents, icon: Calendar, color: 'text-primary', bg: 'bg-primary/10' },
     { label: 'Active Events', value: analytics.activeEvents, icon: Sparkles, color: 'text-green-400', bg: 'bg-green-500/10' },
     { label: 'Total Users', value: analytics.totalUsers, icon: Users, color: 'text-purple-400', bg: 'bg-purple-500/10' },
     { label: 'Registrations', value: analytics.totalRegistrations, icon: Ticket, color: 'text-amber-400', bg: 'bg-amber-500/10' },
@@ -63,12 +63,12 @@ export default function AnalyticsDashboard() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold">Analytics Dashboard</h2>
-          <p className="text-gray-400">Real-time platform performance metrics</p>
+          <p className="text-muted-foreground">Real-time platform performance metrics</p>
         </div>
       </div>
 
       <Tabs value={selectedTab} onValueChange={setSelectedTab}>
-        <TabsList className="bg-white/5 border-white/10 text-white">
+        <TabsList className="bg-muted/40 border-border text-white">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="events">Events</TabsTrigger>
         </TabsList>
@@ -76,10 +76,10 @@ export default function AnalyticsDashboard() {
         <TabsContent value="overview" className="space-y-6 mt-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {statCards.map((stat) => (
-              <Card key={stat.label} className="bg-white/5 border-white/10 text-white">
+              <Card key={stat.label} className="bg-muted/40 border-border text-white">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between mb-2">
-                    <p className="text-sm text-gray-400">{stat.label}</p>
+                    <p className="text-sm text-muted-foreground">{stat.label}</p>
                     <div className={`p-2 rounded-lg ${stat.bg}`}>
                       <stat.icon className={`h-4 w-4 ${stat.color}`} />
                     </div>
@@ -97,28 +97,28 @@ export default function AnalyticsDashboard() {
           />
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Card className="bg-white/5 border-white/10 text-white">
+            <Card className="bg-muted/40 border-border text-white">
               <CardHeader>
                 <CardTitle className="text-base flex items-center gap-2">
-                  <TrendingUp className="h-4 w-4 text-cyan-400" />
+                  <TrendingUp className="h-4 w-4 text-primary" />
                   Recent Activity (30 days)
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-400">New Registrations</span>
-                  <span className="font-bold text-cyan-400">{analytics.recentRegistrations}</span>
+                  <span className="text-sm text-muted-foreground">New Registrations</span>
+                  <span className="font-bold text-primary">{analytics.recentRegistrations}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-400">Upcoming Events</span>
+                  <span className="text-sm text-muted-foreground">Upcoming Events</span>
                   <span className="font-bold text-green-400">{analytics.upcomingEvents}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-400">Completed Events</span>
+                  <span className="text-sm text-muted-foreground">Completed Events</span>
                   <span className="font-bold text-purple-400">{analytics.completedEvents}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-400">Average Rating</span>
+                  <span className="text-sm text-muted-foreground">Average Rating</span>
                   <span className="font-bold text-amber-400 flex items-center gap-1">
                     <Star className="h-3 w-3 fill-amber-400" />
                     {analytics.averageRating || 'N/A'}
@@ -127,26 +127,26 @@ export default function AnalyticsDashboard() {
               </CardContent>
             </Card>
 
-            <Card className="bg-white/5 border-white/10 text-white">
+            <Card className="bg-muted/40 border-border text-white">
               <CardHeader>
                 <CardTitle className="text-base flex items-center gap-2">
-                  <BarChart3 className="h-4 w-4 text-cyan-400" />
+                  <BarChart3 className="h-4 w-4 text-primary" />
                   Events by Status
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 {statusEntries.length === 0 ? (
-                  <p className="text-sm text-gray-500">No events yet</p>
+                  <p className="text-sm text-muted-foreground">No events yet</p>
                 ) : statusEntries.map(([status, count]) => (
                   <div key={status} className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       {status === 'published' && <CheckCircle className="h-3.5 w-3.5 text-green-400" />}
-                      {status === 'draft' && <Clock className="h-3.5 w-3.5 text-gray-400" />}
+                      {status === 'draft' && <Clock className="h-3.5 w-3.5 text-muted-foreground" />}
                       {status === 'completed' && <Star className="h-3.5 w-3.5 text-purple-400" />}
                       {status === 'cancelled' && <Calendar className="h-3.5 w-3.5 text-red-400" />}
-                      <span className="text-sm text-gray-300 capitalize">{status}</span>
+                      <span className="text-sm text-muted-foreground capitalize">{status}</span>
                     </div>
-                    <Badge variant="secondary" className="bg-white/10">{count as number}</Badge>
+                    <Badge variant="secondary" className="bg-muted">{count as number}</Badge>
                   </div>
                 ))}
               </CardContent>
@@ -155,18 +155,18 @@ export default function AnalyticsDashboard() {
         </TabsContent>
 
         <TabsContent value="events" className="space-y-6 mt-4">
-          <Card className="bg-white/5 border-white/10 text-white">
+          <Card className="bg-muted/40 border-border text-white">
             <CardHeader>
               <CardTitle className="text-base">Events by Category</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {categoryEntries.length === 0 ? (
-                <p className="text-sm text-gray-500">No categorized events yet</p>
+                <p className="text-sm text-muted-foreground">No categorized events yet</p>
               ) : categoryEntries.map(([category, count]) => (
                 <div key={category} className="space-y-1">
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-300">{category}</span>
-                    <span className="text-gray-400">{count as number}</span>
+                    <span className="text-muted-foreground">{category}</span>
+                    <span className="text-muted-foreground">{count as number}</span>
                   </div>
                   <Progress value={((count as number) / maxCategoryCount) * 100} className="h-2" />
                 </div>

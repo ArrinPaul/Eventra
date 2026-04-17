@@ -20,7 +20,7 @@ export function AnnouncementBanner({ eventId }: { eventId: string }) {
             exit={{ height: 0, opacity: 0 }}
             className={cn(
               "relative p-4 rounded-xl border flex items-start gap-3 overflow-hidden",
-              a.type === 'info' && "bg-cyan-500/10 border-cyan-500/20 text-cyan-200",
+              a.type === 'info' && "bg-primary/10 border-primary/20 text-primary",
               a.type === 'warning' && "bg-amber-500/10 border-amber-500/20 text-amber-200",
               a.type === 'urgent' && "bg-red-500/10 border-red-500/20 text-red-200 animate-pulse"
             )}

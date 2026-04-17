@@ -223,11 +223,11 @@ export default function UserManagement() {
             <TableHeader><TableRow><TableHead className="text-white">User</TableHead><TableHead className="text-white">Role</TableHead><TableHead className="text-white">Status</TableHead><TableHead className="text-white text-right">Points</TableHead><TableHead className="w-12"></TableHead></TableRow></TableHeader>
             <TableBody>
                 {filteredUsers.map((user) => (
-                <TableRow key={user.id} className="border-white/10">
+                <TableRow key={user.id} className="border-border">
                     <TableCell>
                         <div className="flex items-center gap-3 text-white">
                             <Avatar className="h-9 w-9"><AvatarImage src={user.photoURL} /><AvatarFallback>{user.name?.charAt(0) || '?'}</AvatarFallback></Avatar>
-                            <div><p className="font-medium">{user.name || 'Unknown'}</p><p className="text-xs text-gray-400">{user.email}</p></div>
+                            <div><p className="font-medium">{user.name || 'Unknown'}</p><p className="text-xs text-muted-foreground">{user.email}</p></div>
                         </div>
                     </TableCell>
                     <TableCell className="text-white capitalize">{user.role}</TableCell>
@@ -257,7 +257,7 @@ export default function UserManagement() {
           </Button>
         )}
         {paginationStatus === "LoadingMore" && (
-          <Loader2 className="w-6 h-6 animate-spin text-cyan-500" />
+          <Loader2 className="w-6 h-6 animate-spin text-primary" />
         )}
       </div>
 

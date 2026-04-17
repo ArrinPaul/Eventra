@@ -119,12 +119,12 @@ export default function EventCreationWizard() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white p-4 md:p-8">
+    <div className="min-h-screen bg-background text-white p-4 md:p-8">
       <div className="max-w-3xl mx-auto space-y-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Create New Event</h1>
-            <p className="text-gray-400 mt-1">Fill in the details to launch your event.</p>
+            <p className="text-muted-foreground mt-1">Fill in the details to launch your event.</p>
           </div>
           <div className="flex items-center gap-2">
             {[1, 2, 3].map(step => (
@@ -132,17 +132,17 @@ export default function EventCreationWizard() {
                 key={step} 
                 className={cn(
                   "h-2 w-12 rounded-full transition-all duration-500",
-                  currentStep >= step ? "bg-cyan-500" : "bg-white/10"
+                  currentStep >= step ? "bg-primary" : "bg-muted"
                 )} 
               />
             ))}
-            <Badge variant="outline" className="ml-2 border-cyan-500/50 text-cyan-400">Step {currentStep} of 3</Badge>
+            <Badge variant="outline" className="ml-2 border-primary/50 text-primary">Step {currentStep} of 3</Badge>
           </div>
         </div>
 
         <Form {...form}>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-            <div className="bg-[#0f172a]/60 backdrop-blur-md border border-white/10 rounded-3xl p-6 md:p-8 shadow-2xl">
+            <div className="bg-card/80 backdrop-blur-md border border-border rounded-3xl p-6 md:p-8 shadow-2xl">
               {currentStep === 1 && <Step1BasicInfo />}
               {currentStep === 2 && <Step2DateLocation />}
               {currentStep === 3 && (
@@ -153,43 +153,43 @@ export default function EventCreationWizard() {
                   </div>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
-                      <p className="text-xs text-gray-500 uppercase font-bold tracking-wider mb-1">Title</p>
+                    <div className="p-4 rounded-2xl bg-muted/40 border border-border/60">
+                      <p className="text-xs text-muted-foreground uppercase font-bold tracking-wider mb-1">Title</p>
                       <p className="font-medium">{formData.title}</p>
                     </div>
-                    <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
-                      <p className="text-xs text-gray-500 uppercase font-bold tracking-wider mb-1">Category</p>
+                    <div className="p-4 rounded-2xl bg-muted/40 border border-border/60">
+                      <p className="text-xs text-muted-foreground uppercase font-bold tracking-wider mb-1">Category</p>
                       <p className="font-medium">{formData.category}</p>
                     </div>
-                    <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
-                      <p className="text-xs text-gray-500 uppercase font-bold tracking-wider mb-1">Date & Time</p>
+                    <div className="p-4 rounded-2xl bg-muted/40 border border-border/60">
+                      <p className="text-xs text-muted-foreground uppercase font-bold tracking-wider mb-1">Date & Time</p>
                       <p className="font-medium">
                         {formData.startDate ? format(formData.startDate, 'PPP') : 'Not set'} @ {formData.startTime}
                       </p>
                     </div>
-                    <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
-                      <p className="text-xs text-gray-500 uppercase font-bold tracking-wider mb-1">Location</p>
+                    <div className="p-4 rounded-2xl bg-muted/40 border border-border/60">
+                      <p className="text-xs text-muted-foreground uppercase font-bold tracking-wider mb-1">Location</p>
                       <p className="font-medium capitalize">{formData.locationType}: {formData.venue || formData.virtualLink || 'TBD'}</p>
                     </div>
                   </div>
 
-                  <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
+                  <div className="p-4 rounded-2xl bg-muted/40 border border-border/60">
                     <div className="flex items-center justify-between mb-2">
-                        <p className="text-xs text-gray-500 uppercase font-bold tracking-wider">AI Generated Agenda</p>
-                        {formData.agenda && <Badge variant="outline" className="text-[10px] text-cyan-400 border-cyan-500/30">Ready</Badge>}
+                        <p className="text-xs text-muted-foreground uppercase font-bold tracking-wider">AI Generated Agenda</p>
+                        {formData.agenda && <Badge variant="outline" className="text-[10px] text-primary border-primary/30">Ready</Badge>}
                     </div>
                     {formData.agenda ? (
                         <div className="space-y-2">
                             {formData.agenda.slice(0, 3).map((item: any, i: number) => (
                                 <div key={i} className="flex gap-3 text-sm">
-                                    <span className="text-cyan-500 font-mono">{item.time}</span>
-                                    <span className="text-gray-300">{item.title}</span>
+                                    <span className="text-primary font-mono">{item.time}</span>
+                                    <span className="text-muted-foreground">{item.title}</span>
                                 </div>
                             ))}
-                            {formData.agenda.length > 3 && <p className="text-xs text-gray-500 italic">+ {formData.agenda.length - 3} more items</p>}
+                            {formData.agenda.length > 3 && <p className="text-xs text-muted-foreground italic">+ {formData.agenda.length - 3} more items</p>}
                         </div>
                     ) : (
-                        <p className="text-sm text-gray-500 italic">No agenda generated yet.</p>
+                        <p className="text-sm text-muted-foreground italic">No agenda generated yet.</p>
                     )}
                   </div>
                 </div>
@@ -203,7 +203,7 @@ export default function EventCreationWizard() {
                   variant="ghost" 
                   onClick={() => setCurrentStep(prev => prev - 1)}
                   disabled={isSaving}
-                  className="hover:bg-white/5"
+                  className="hover:bg-muted/40"
                 >
                   <ChevronLeft className="mr-2 h-4 w-4" /> Back
                 </Button>
@@ -216,7 +216,7 @@ export default function EventCreationWizard() {
                         variant="outline" 
                         onClick={handleAIAssist}
                         disabled={isGenerating || !formData.title}
-                        className="border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10"
+                        className="border-primary/30 text-primary hover:bg-primary/10"
                     >
                         {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
                         AI Assist
@@ -228,7 +228,7 @@ export default function EventCreationWizard() {
                     Next <ChevronRight className="ml-2 h-4 w-4" />
                   </Button>
                 ) : (
-                  <Button type="submit" className="bg-cyan-600 hover:bg-cyan-500 text-white min-w-[150px]" disabled={isSaving}>
+                  <Button type="submit" className="bg-primary hover:bg-primary text-white min-w-[150px]" disabled={isSaving}>
                     {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle className="mr-2 h-4 w-4" />}
                     Publish Event
                   </Button>

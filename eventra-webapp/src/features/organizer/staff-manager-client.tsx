@@ -183,7 +183,7 @@ export function StaffManagerClient({ eventId, eventTitle }: StaffManagerProps) {
   const getRoleIcon = (role: string) => {
     switch (role.toLowerCase()) {
       case 'speaker': return <Mic size={14} className="text-purple-400" />;
-      case 'admin': return <Shield size={14} className="text-cyan-400" />;
+      case 'admin': return <Shield size={14} className="text-primary" />;
       default: return <Users size={14} className="text-emerald-400" />;
     }
   };
@@ -193,10 +193,10 @@ export function StaffManagerClient({ eventId, eventTitle }: StaffManagerProps) {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
         {/* Invite Form */}
-        <Card className="bg-white/5 border-white/10 text-white h-fit">
+        <Card className="bg-muted/40 border-border text-white h-fit">
           <CardHeader>
             <CardTitle className="text-xl font-bold flex items-center gap-2">
-              <UserPlus size={20} className="text-cyan-400" />
+              <UserPlus size={20} className="text-primary" />
               Add Event Staff
             </CardTitle>
             <CardDescription>Invite team members to help manage {eventTitle}.</CardDescription>
@@ -211,7 +211,7 @@ export function StaffManagerClient({ eventId, eventTitle }: StaffManagerProps) {
                   placeholder="colleague@example.com" 
                   value={inviteEmail}
                   onChange={e => setInviteEmail(e.target.value)}
-                  className="bg-white/5 border-white/10"
+                  className="bg-muted/40 border-border"
                   required
                 />
               </div>
@@ -219,7 +219,7 @@ export function StaffManagerClient({ eventId, eventTitle }: StaffManagerProps) {
                 <Label htmlFor="role">Role</Label>
                 <select 
                   id="role"
-                  className="w-full bg-white/5 border border-white/10 rounded-md p-2 text-sm focus:ring-1 focus:ring-cyan-500 outline-none"
+                  className="w-full bg-muted/40 border border-border rounded-md p-2 text-sm focus:ring-1 focus:ring-primary outline-none"
                   value={inviteRole}
                   onChange={e => setInviteRole(e.target.value)}
                 >
@@ -229,14 +229,14 @@ export function StaffManagerClient({ eventId, eventTitle }: StaffManagerProps) {
                   <option value="admin" className="bg-gray-900">Event Admin</option>
                 </select>
               </div>
-              <Button type="submit" className="w-full bg-cyan-600 hover:bg-cyan-500" disabled={isInviting}>
+              <Button type="submit" className="w-full bg-primary hover:bg-primary" disabled={isInviting}>
                 {isInviting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Mail className="h-4 w-4 mr-2" />}
                 Send Invitation
               </Button>
             </form>
           </CardContent>
-          <CardFooter className="border-t border-white/5 pt-6 flex flex-col items-start gap-4">
-            <Label className="text-xs text-gray-500 uppercase font-black">Bulk Import (CSV)</Label>
+          <CardFooter className="border-t border-border/60 pt-6 flex flex-col items-start gap-4">
+            <Label className="text-xs text-muted-foreground uppercase font-black">Bulk Import (CSV)</Label>
             <div className="flex gap-2 w-full">
               <div className="relative flex-1">
                 <Input 
@@ -245,11 +245,11 @@ export function StaffManagerClient({ eventId, eventTitle }: StaffManagerProps) {
                   onChange={handleBulkImport}
                   className="absolute inset-0 opacity-0 cursor-pointer z-10"
                 />
-                <Button variant="outline" className="w-full border-white/10 bg-white/5">
+                <Button variant="outline" className="w-full border-border bg-muted/40">
                   <FileUp className="h-4 w-4 mr-2" /> Upload CSV
                 </Button>
               </div>
-              <Button variant="ghost" size="icon" className="border border-white/10" title="Download Template">
+              <Button variant="ghost" size="icon" className="border border-border" title="Download Template">
                 <Download size={16} />
               </Button>
             </div>
@@ -257,18 +257,18 @@ export function StaffManagerClient({ eventId, eventTitle }: StaffManagerProps) {
         </Card>
 
         {/* Staff List */}
-        <Card className="lg:col-span-2 bg-white/5 border-white/10 text-white overflow-hidden">
-          <CardHeader className="border-b border-white/5 pb-6">
+        <Card className="lg:col-span-2 bg-muted/40 border-border text-white overflow-hidden">
+          <CardHeader className="border-b border-border/60 pb-6">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
                 <CardTitle>Team Roster</CardTitle>
                 <CardDescription>{staff.length} members managing this event</CardDescription>
               </div>
               <div className="relative w-full md:w-64">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input 
                   placeholder="Search team..." 
-                  className="pl-9 bg-white/5 border-white/10"
+                  className="pl-9 bg-muted/40 border-border"
                   value={searchTerm}
                   onChange={e => setSearchTerm(e.target.value)}
                 />
@@ -277,31 +277,31 @@ export function StaffManagerClient({ eventId, eventTitle }: StaffManagerProps) {
           </CardHeader>
           <CardContent className="p-0">
             {loading ? (
-              <div className="py-20 text-center"><Loader2 className="h-8 w-8 animate-spin mx-auto text-cyan-500" /></div>
+              <div className="py-20 text-center"><Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" /></div>
             ) : (
-              <div className="divide-y divide-white/5">
+              <div className="divide-y divide-border/60">
                 {filteredStaff.map((member) => (
-                  <div key={member.id} className="flex items-center justify-between p-4 hover:bg-white/5 transition-colors">
+                  <div key={member.id} className="flex items-center justify-between p-4 hover:bg-muted/40 transition-colors">
                     <div className="flex items-center gap-4">
-                      <div className="relative h-10 w-10 rounded-full bg-cyan-900/20 overflow-hidden">
+                      <div className="relative h-10 w-10 rounded-full bg-primary/10 overflow-hidden">
                         {member.user.image ? (
                           <Image src={member.user.image} fill className="object-cover" alt="" />
                         ) : (
-                          <div className="h-full w-full flex items-center justify-center font-bold text-cyan-400">
+                          <div className="h-full w-full flex items-center justify-center font-bold text-primary">
                             {(member.user.name || member.user.email)[0].toUpperCase()}
                           </div>
                         )}
                       </div>
                       <div>
                         <p className="font-bold text-sm">{member.user.name || 'Staff User'}</p>
-                        <p className="text-xs text-gray-500">{member.user.email}</p>
+                        <p className="text-xs text-muted-foreground">{member.user.email}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
                       <Button 
                         variant="ghost" 
                         size="sm" 
-                        className="text-gray-400 hover:text-white"
+                        className="text-muted-foreground hover:text-white"
                         onClick={() => {
                           setEditingStaff(member);
                           setLocalPermissions(member.permissions || []);
@@ -309,14 +309,14 @@ export function StaffManagerClient({ eventId, eventTitle }: StaffManagerProps) {
                       >
                         <Settings2 className="w-4 h-4 mr-2" /> Permissions
                       </Button>
-                      <Badge variant="outline" className="capitalize bg-white/5 border-white/10 flex items-center gap-1.5 px-3 py-1">
+                      <Badge variant="outline" className="capitalize bg-muted/40 border-border flex items-center gap-1.5 px-3 py-1">
                         {getRoleIcon(member.role)}
                         {member.role}
                       </Badge>
                       <Button 
                         variant="ghost" 
                         size="icon" 
-                        className="text-gray-500 hover:text-red-400 hover:bg-red-400/10 h-8 w-8"
+                        className="text-muted-foreground hover:text-red-400 hover:bg-red-400/10 h-8 w-8"
                         onClick={() => handleRemove(member.id)}
                       >
                         <Trash2 size={16} />
@@ -325,7 +325,7 @@ export function StaffManagerClient({ eventId, eventTitle }: StaffManagerProps) {
                   </div>
                 ))}
                 {filteredStaff.length === 0 && (
-                  <div className="py-20 text-center text-gray-500">
+                  <div className="py-20 text-center text-muted-foreground">
                     <Users className="h-12 w-12 mx-auto mb-4 opacity-10" />
                     <p>No staff members found matching your search.</p>
                   </div>
@@ -338,7 +338,7 @@ export function StaffManagerClient({ eventId, eventTitle }: StaffManagerProps) {
 
       {/* Permission Dialog */}
       <Dialog open={!!editingStaff} onOpenChange={(open) => !open && setEditingStaff(null)}>
-        <DialogContent className="bg-gray-950 border-white/10 text-white">
+        <DialogContent className="bg-gray-950 border-border text-white">
           <DialogHeader>
             <DialogTitle>Edit Permissions</DialogTitle>
             <DialogDescription>
@@ -348,7 +348,7 @@ export function StaffManagerClient({ eventId, eventTitle }: StaffManagerProps) {
           
           <div className="space-y-4 py-4">
             {availablePermissions.map((perm) => (
-              <div key={perm.id} className="flex items-start space-x-3 p-3 rounded-lg bg-white/5 border border-white/5 hover:border-white/10 transition-colors">
+              <div key={perm.id} className="flex items-start space-x-3 p-3 rounded-lg bg-muted/40 border border-border/60 hover:border-border transition-colors">
                 <Checkbox 
                   id={perm.id} 
                   checked={tempPermissions.includes(perm.id)}
@@ -356,7 +356,7 @@ export function StaffManagerClient({ eventId, eventTitle }: StaffManagerProps) {
                 />
                 <div className="space-y-1 leading-none">
                   <Label htmlFor={perm.id} className="text-sm font-bold cursor-pointer">{perm.label}</Label>
-                  <p className="text-xs text-gray-500">{perm.desc}</p>
+                  <p className="text-xs text-muted-foreground">{perm.desc}</p>
                 </div>
               </div>
             ))}
@@ -364,7 +364,7 @@ export function StaffManagerClient({ eventId, eventTitle }: StaffManagerProps) {
 
           <DialogFooter>
             <Button variant="ghost" onClick={() => setEditingStaff(null)}>Cancel</Button>
-            <Button className="bg-cyan-600 hover:bg-cyan-500" onClick={handleUpdatePermissions} disabled={isUpdating}>
+            <Button className="bg-primary hover:bg-primary" onClick={handleUpdatePermissions} disabled={isUpdating}>
               {isUpdating ? <Loader2 size={16} className="animate-spin mr-2" /> : <Shield size={16} className="mr-2" />}
               Save Permissions
             </Button>

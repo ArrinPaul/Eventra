@@ -41,8 +41,8 @@ export default function OrganizerAIHubPage() {
   if (loading) {
     return (
       <div className="container py-20 text-center text-white">
-        <Loader2 className="h-8 w-8 animate-spin mx-auto text-cyan-500" />
-        <p className="mt-4 text-gray-400">Powering up AI Hub...</p>
+        <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
+        <p className="mt-4 text-muted-foreground">Powering up AI Hub...</p>
       </div>
     );
   }
@@ -51,14 +51,14 @@ export default function OrganizerAIHubPage() {
     return (
       <div className="container py-8 space-y-6">
         <div className="flex items-center gap-4 mb-6">
-          <Button variant="ghost" size="icon" onClick={() => setSelectedEventId(null)} className="text-white hover:bg-white/5">
+          <Button variant="ghost" size="icon" onClick={() => setSelectedEventId(null)} className="text-white hover:bg-muted/40">
             <ChevronRight className="rotate-180" />
           </Button>
           <div>
             <h1 className="text-3xl font-black text-white flex items-center gap-3">
-               AI Event Pulse <Zap className="text-cyan-400 fill-current" size={24} />
+               AI Event Pulse <Zap className="text-primary fill-current" size={24} />
             </h1>
-            <p className="text-gray-400">Deep intelligence for {events.find(e => e.id === selectedEventId)?.title}</p>
+            <p className="text-muted-foreground">Deep intelligence for {events.find(e => e.id === selectedEventId)?.title}</p>
           </div>
         </div>
         <AIInsightsClient eventId={selectedEventId} />
@@ -71,11 +71,11 @@ export default function OrganizerAIHubPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="space-y-1">
           <h1 className="text-4xl font-black tracking-tighter flex items-center gap-3 italic">
-            AI HUB <Sparkles className="text-cyan-400" />
+            AI HUB <Sparkles className="text-primary" />
           </h1>
-          <p className="text-gray-400">Leverage advanced generative AI to automate your event operations.</p>
+          <p className="text-muted-foreground">Leverage advanced generative AI to automate your event operations.</p>
         </div>
-        <div className="px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-black flex items-center gap-2">
+        <div className="px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-black flex items-center gap-2">
            <Bot size={14} /> SYSTEM: ONLINE
         </div>
       </div>
@@ -87,11 +87,11 @@ export default function OrganizerAIHubPage() {
            { title: 'Content Forge', desc: 'Create viral social posts tailored for platforms.', icon: Sparkles, color: 'text-emerald-400' },
            { title: 'Smart Reporting', desc: 'Synthesize complex data into AAR reports.', icon: Bot, color: 'text-blue-400' }
          ].map((tool, i) => (
-           <Card key={i} className="bg-white/5 border-white/10 group hover:bg-white/[0.07] transition-all cursor-default">
+           <Card key={i} className="bg-muted/40 border-border group hover:bg-white/[0.07] transition-all cursor-default">
              <CardHeader className="p-5">
                <tool.icon className={cn("h-6 w-6 mb-2", tool.color)} />
                <CardTitle className="text-sm font-bold">{tool.title}</CardTitle>
-               <CardDescription className="text-[11px] text-gray-500 leading-relaxed">{tool.desc}</CardDescription>
+               <CardDescription className="text-[11px] text-muted-foreground leading-relaxed">{tool.desc}</CardDescription>
              </CardHeader>
            </Card>
          ))}
@@ -103,17 +103,17 @@ export default function OrganizerAIHubPage() {
           {events.map((event) => (
             <Card 
               key={event.id} 
-              className="bg-white/5 border-white/10 text-white group hover:border-cyan-500/30 transition-all cursor-pointer overflow-hidden relative"
+              className="bg-muted/40 border-border text-white group hover:border-primary/30 transition-all cursor-pointer overflow-hidden relative"
               onClick={() => setSelectedEventId(event.id)}
             >
-              <div className="absolute top-0 left-0 w-1 h-full bg-cyan-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="absolute top-0 left-0 w-1 h-full bg-primary opacity-0 group-hover:opacity-100 transition-opacity" />
               <CardContent className="p-6">
                 <div className="flex items-center justify-between gap-6">
                   <div className="space-y-1">
-                    <h3 className="text-lg font-bold group-hover:text-cyan-400 transition-colors">{event.title}</h3>
-                    <p className="text-xs text-gray-500">{event.category} • {new Date(event.startDate).toLocaleDateString()}</p>
+                    <h3 className="text-lg font-bold group-hover:text-primary transition-colors">{event.title}</h3>
+                    <p className="text-xs text-muted-foreground">{event.category} • {new Date(event.startDate).toLocaleDateString()}</p>
                   </div>
-                  <Button variant="ghost" className="group-hover:bg-cyan-500 group-hover:text-white transition-all">
+                  <Button variant="ghost" className="group-hover:bg-primary group-hover:text-white transition-all">
                     Launch AI <ChevronRight className="ml-2 h-4 w-4" />
                   </Button>
                 </div>
@@ -122,8 +122,8 @@ export default function OrganizerAIHubPage() {
           ))}
 
           {events.length === 0 && (
-            <div className="py-20 text-center bg-white/5 rounded-2xl border-2 border-dashed border-white/10">
-               <p className="text-gray-500">No events found to analyze.</p>
+            <div className="py-20 text-center bg-muted/40 rounded-2xl border-2 border-dashed border-border">
+               <p className="text-muted-foreground">No events found to analyze.</p>
             </div>
           )}
         </div>

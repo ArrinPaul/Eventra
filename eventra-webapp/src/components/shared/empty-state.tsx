@@ -12,33 +12,49 @@ interface EmptyStateProps {
   description: string;
   actionLabel?: string;
   actionHref?: string;
+  onAction?: () => void;
   className?: string;
+  children?: React.ReactNode;
 }
 
-export function EmptyState({ 
-  icon: Icon = Search, 
-  title, 
-  description, 
-  actionLabel, 
+export function EmptyState({
+  icon: Icon = Search,
+  title,
+  description,
+  actionLabel,
   actionHref,
-  className
+  onAction,
+  className,
+  children,
 }: EmptyStateProps) {
   return (
-    <div className={cn(
-      "flex flex-col items-center justify-center py-20 px-4 text-center border border-dashed border-white/10 rounded-2xl bg-white/5 animate-in fade-in zoom-in duration-500",
-      className
-    )}>
-      <div className="p-4 bg-white/5 rounded-full mb-6">
-        <Icon className="h-12 w-12 text-gray-600" />
+    <div
+      className={cn(
+        'flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-muted/30 px-6 py-16 text-center',
+        'animate-fade-in',
+        className
+      )}
+      data-testid="empty-state"
+    >
+      <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary mb-5">
+        <Icon className="h-6 w-6" />
       </div>
-      <h3 className="text-xl font-bold text-white mb-2">{title}</h3>
-      <p className="text-gray-400 max-w-xs mb-8 text-sm leading-relaxed">{description}</p>
-      
+      <h3 className="text-base font-semibold text-foreground mb-1.5 font-display">{title}</h3>
+      <p className="max-w-sm text-sm text-muted-foreground leading-relaxed mb-6">
+        {description}
+      </p>
+
       {actionLabel && actionHref && (
-        <Button asChild className="bg-cyan-600 hover:bg-cyan-500 font-bold">
+        <Button asChild variant="default" data-testid="empty-state-action">
           <Link href={actionHref}>{actionLabel}</Link>
         </Button>
       )}
+      {actionLabel && onAction && !actionHref && (
+        <Button onClick={onAction} data-testid="empty-state-action">
+          {actionLabel}
+        </Button>
+      )}
+      {children}
     </div>
   );
 }

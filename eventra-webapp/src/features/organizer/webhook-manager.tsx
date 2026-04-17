@@ -55,32 +55,32 @@ export function WebhookManager({ eventId }: { eventId?: string }) {
   };
 
   return (
-    <Card className="bg-white/5 border-white/10 text-white">
+    <Card className="bg-muted/40 border-border text-white">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Globe className="h-5 w-5 text-cyan-400" />
+          <Globe className="h-5 w-5 text-primary" />
           Webhooks
         </CardTitle>
-        <CardDescription className="text-gray-400 text-xs">
+        <CardDescription className="text-muted-foreground text-xs">
           Notify external systems (n8n, Zapier, etc.) when events happen.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="url" className="text-xs font-bold uppercase tracking-wider text-gray-500">Target URL</Label>
+            <Label htmlFor="url" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Target URL</Label>
             <Input 
               id="url"
               placeholder="https://your-endpoint.com/webhook"
               value={url}
               onChange={(e) => setUrl(e.target.value)}
-              className="bg-white/5 border-white/10"
+              className="bg-muted/40 border-border"
               required
             />
           </div>
 
           <div className="space-y-3">
-            <Label className="text-xs font-bold uppercase tracking-wider text-gray-500">Trigger Events</Label>
+            <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Trigger Events</Label>
             <div className="grid grid-cols-1 gap-2">
               {eventOptions.map((opt) => (
                 <div key={opt.id} className="flex items-center space-x-2">
@@ -99,7 +99,7 @@ export function WebhookManager({ eventId }: { eventId?: string }) {
 
           <Button 
             type="submit" 
-            className="w-full bg-cyan-600 hover:bg-cyan-500" 
+            className="w-full bg-primary hover:bg-primary" 
             disabled={isSubmitting || !url || selectedEvents.length === 0}
           >
             {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Add Webhook"}
@@ -107,14 +107,14 @@ export function WebhookManager({ eventId }: { eventId?: string }) {
         </form>
 
         {webhooks.length > 0 && (
-          <div className="space-y-3 pt-4 border-t border-white/10">
-            <Label className="text-xs font-bold uppercase tracking-wider text-gray-500">Your Webhooks</Label>
+          <div className="space-y-3 pt-4 border-t border-border">
+            <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Your Webhooks</Label>
             <div className="space-y-2">
               {webhooks.map((w) => (
-                <div key={w._id} className="p-3 rounded-lg border border-white/10 bg-white/5 text-xs">
+                <div key={w._id} className="p-3 rounded-lg border border-border bg-muted/40 text-xs">
                   <div className="flex justify-between items-start mb-2">
                     <div className="flex-1 min-w-0 pr-2">
-                      <p className="truncate font-mono text-cyan-400">{w.url}</p>
+                      <p className="truncate font-mono text-primary">{w.url}</p>
                     </div>
                     <Button 
                       variant="ghost" 
@@ -127,10 +127,10 @@ export function WebhookManager({ eventId }: { eventId?: string }) {
                   </div>
                   <div className="flex flex-wrap gap-1 mt-2">
                     {w.events.map((e: string) => (
-                      <Badge key={e} variant="outline" className="text-[9px] py-0 border-white/10">{e}</Badge>
+                      <Badge key={e} variant="outline" className="text-[9px] py-0 border-border">{e}</Badge>
                     ))}
                   </div>
-                  <div className="flex items-center gap-2 mt-3 text-[10px] text-gray-500 pt-2 border-t border-white/5">
+                  <div className="flex items-center gap-2 mt-3 text-[10px] text-muted-foreground pt-2 border-t border-border/60">
                     <ShieldCheck className="h-3 w-3" />
                     <span>Secret: {w.secret.substring(0, 10)}...</span>
                   </div>

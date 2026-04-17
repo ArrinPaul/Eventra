@@ -9,12 +9,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
     if ('serviceWorker' in navigator && window.location.hostname !== 'localhost') {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('/sw.js').then(
-          (registration) => {
-            console.log('SW registered: ', registration);
-          },
-          (err) => {
-            console.log('SW registration failed: ', err);
-          }
+          () => {},
+          () => {}
         );
       });
     }
@@ -37,11 +33,15 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <SessionProvider>
       <QueryClientProvider client={queryClient}>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="light"
+          enableSystem
+          disableTransitionOnChange
+        >
           {children}
         </ThemeProvider>
       </QueryClientProvider>
     </SessionProvider>
   );
 }
-

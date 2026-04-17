@@ -95,10 +95,10 @@ export default function AdminDashboardClient() {
                                     <Button onClick={handleExport}><Download className="mr-2 h-4 w-4" /> Export CSV</Button>
                                 </div>
                                 
-                                <div className="border rounded-lg overflow-hidden bg-white/5 border-white/10">
+                                <div className="border rounded-lg overflow-hidden bg-muted/40 border-border">
                                     <Table>
                                         <TableHeader>
-                                            <TableRow className="border-white/10">
+                                            <TableRow className="border-border">
                                                 <TableHead className="text-white">Name</TableHead>
                                                 <TableHead className="text-white">Email</TableHead>
                                                 <TableHead className="text-white">Role</TableHead>
@@ -107,16 +107,16 @@ export default function AdminDashboardClient() {
                                         </TableHeader>
                                         <TableBody>
                                             {filteredUsers.length > 0 ? filteredUsers.map((user: any) => (
-                                                <TableRow key={user.id} className="border-white/10">
+                                                <TableRow key={user.id} className="border-border">
                                                     <TableCell className="font-medium text-white">{user.name}</TableCell>
-                                                    <TableCell className="text-gray-300">{user.email}</TableCell>
+                                                    <TableCell className="text-muted-foreground">{user.email}</TableCell>
                                                     <TableCell><Badge className="capitalize">{user.role}</Badge></TableCell>
                                                     <TableCell className="text-center">
                                                         {user.checkedIn ? <Check className="h-5 w-5 text-green-500 mx-auto" /> : <X className="h-5 w-5 text-red-500 mx-auto" />}
                                                     </TableCell>
                                                 </TableRow>
                                             )) : (
-                                                <TableRow><TableCell colSpan={4} className="text-center h-24 text-gray-400">No participants found.</TableCell></TableRow>
+                                                <TableRow><TableCell colSpan={4} className="text-center h-24 text-muted-foreground">No participants found.</TableCell></TableRow>
                                             )}
                                         </TableBody>
                                     </Table>

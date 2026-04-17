@@ -61,19 +61,19 @@ export function EventDiscussionBoard({ eventId }: EventDiscussionBoardProps) {
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       {/* Input Area */}
-      <Card className="bg-white/5 border-white/10 text-white overflow-hidden">
+      <Card className="bg-muted/40 border-border text-white overflow-hidden">
         <CardContent className="p-6">
           <div className="flex gap-4">
             <Avatar className="h-10 w-10 shrink-0">
               <AvatarImage src={user?.image} />
-              <AvatarFallback className="bg-cyan-500/10 text-cyan-500">{user?.name?.charAt(0)}</AvatarFallback>
+              <AvatarFallback className="bg-primary/10 text-primary">{user?.name?.charAt(0)}</AvatarFallback>
             </Avatar>
             <div className="flex-1 space-y-4">
               <Textarea 
                 placeholder="Ask a question or share a thought..." 
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
-                className="bg-white/5 border-white/10 min-h-[100px] resize-none focus-visible:ring-cyan-500"
+                className="bg-muted/40 border-border min-h-[100px] resize-none focus-visible:ring-primary"
               />
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -83,7 +83,7 @@ export function EventDiscussionBoard({ eventId }: EventDiscussionBoardProps) {
                     onClick={() => setIsQuestion(!isQuestion)}
                     className={cn(
                       "h-8 rounded-full text-xs transition-all",
-                      isQuestion ? "bg-amber-500/20 text-amber-400 hover:bg-amber-500/30" : "text-gray-500 hover:bg-white/5"
+                      isQuestion ? "bg-amber-500/20 text-amber-400 hover:bg-amber-500/30" : "text-muted-foreground hover:bg-muted/40"
                     )}
                   >
                     <HelpCircle className="w-3.5 h-3.5 mr-1.5" />
@@ -93,7 +93,7 @@ export function EventDiscussionBoard({ eventId }: EventDiscussionBoardProps) {
                 <Button 
                   onClick={handleSubmit} 
                   disabled={!content.trim() || submitting || !user}
-                  className="bg-cyan-600 hover:bg-cyan-500 text-white rounded-full px-6"
+                  className="bg-primary hover:bg-primary text-white rounded-full px-6"
                 >
                   {submitting ? <Clock className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4 mr-2" />}
                   Post
@@ -107,10 +107,10 @@ export function EventDiscussionBoard({ eventId }: EventDiscussionBoardProps) {
       {/* Messages List */}
       <div className="space-y-4">
         {messages.length === 0 ? (
-          <div className="py-20 text-center border border-dashed border-white/10 rounded-3xl bg-white/5">
+          <div className="py-20 text-center border border-dashed border-border rounded-3xl bg-muted/40">
             <MessageSquare size={48} className="mx-auto mb-4 text-gray-700 opacity-20" />
-            <h3 className="text-lg font-bold text-gray-500">No discussions yet</h3>
-            <p className="text-sm text-gray-600">Be the first to start the conversation!</p>
+            <h3 className="text-lg font-bold text-muted-foreground">No discussions yet</h3>
+            <p className="text-sm text-muted-foreground">Be the first to start the conversation!</p>
           </div>
         ) : (
           messages.map((msg) => (
@@ -120,20 +120,20 @@ export function EventDiscussionBoard({ eventId }: EventDiscussionBoardProps) {
                 ? msg.isAnswered 
                   ? "bg-green-500/5 border-green-500/20" 
                   : "bg-amber-500/5 border-amber-500/20"
-                : "bg-white/5 border-white/10"
+                : "bg-muted/40 border-border"
             )}>
               <div className="flex justify-between items-start mb-4">
                 <div className="flex items-center gap-3">
                   <Avatar className="h-9 w-9">
                     <AvatarImage src={msg.authorImage} />
-                    <AvatarFallback className="bg-white/10 text-white text-xs">{msg.authorName.charAt(0)}</AvatarFallback>
+                    <AvatarFallback className="bg-muted text-white text-xs">{msg.authorName.charAt(0)}</AvatarFallback>
                   </Avatar>
                   <div>
                     <div className="flex items-center gap-2">
                       <p className="text-sm font-bold text-white">{msg.authorName}</p>
                       <Badge variant="outline" className="text-[8px] h-4 py-0 uppercase tracking-tighter opacity-50">{msg.authorRole}</Badge>
                     </div>
-                    <p className="text-[10px] text-gray-500">{formatDistanceToNow(msg.createdAt, { addSuffix: true })}</p>
+                    <p className="text-[10px] text-muted-foreground">{formatDistanceToNow(msg.createdAt, { addSuffix: true })}</p>
                   </div>
                 </div>
                 {msg.isQuestion && (
@@ -147,18 +147,18 @@ export function EventDiscussionBoard({ eventId }: EventDiscussionBoardProps) {
               </div>
 
               <div className="pl-12">
-                <p className="text-gray-300 leading-relaxed whitespace-pre-wrap">{msg.content}</p>
+                <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">{msg.content}</p>
                 
-                <div className="flex items-center gap-4 mt-6 pt-4 border-t border-white/5">
+                <div className="flex items-center gap-4 mt-6 pt-4 border-t border-border/60">
                   <button 
                     onClick={() => likeMessage({ id: msg._id })}
-                    className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-cyan-400 transition-colors"
+                    className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors"
                   >
-                    <ThumbsUp size={14} className={msg.likes > 0 ? "text-cyan-400 fill-cyan-400/20" : ""} />
+                    <ThumbsUp size={14} className={msg.likes > 0 ? "text-primary fill-primary/20" : ""} />
                     {msg.likes > 0 && <span>{msg.likes}</span>}
                     <span>Helpful</span>
                   </button>
-                  <button className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-white transition-colors">
+                  <button className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-white transition-colors">
                     <Reply size={14} />
                     Reply
                   </button>

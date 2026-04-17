@@ -34,7 +34,7 @@ export function ChallengesHub() {
 
   if (!challenges) {
     return (
-      <Card className="bg-white/5 border-white/10 text-white">
+      <Card className="bg-muted/40 border-border text-white">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Target className="h-5 w-5 text-blue-500" />
@@ -43,8 +43,8 @@ export function ChallengesHub() {
         </CardHeader>
         <CardContent>
           <div className="animate-pulse space-y-4">
-            <div className="h-24 bg-white/5 rounded-lg" />
-            <div className="h-24 bg-white/5 rounded-lg" />
+            <div className="h-24 bg-muted/40 rounded-lg" />
+            <div className="h-24 bg-muted/40 rounded-lg" />
           </div>
         </CardContent>
       </Card>
@@ -58,7 +58,7 @@ export function ChallengesHub() {
   const activeChallenges = challenges.filter((c) => c.status === 'active');
 
   return (
-    <Card className="bg-white/5 border-white/10 text-white">
+    <Card className="bg-muted/40 border-border text-white">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Target className="h-5 w-5 text-blue-500" />
@@ -67,7 +67,7 @@ export function ChallengesHub() {
       </CardHeader>
       <CardContent className="space-y-4">
         {activeChallenges.length === 0 ? (
-          <div className="py-10 text-center text-gray-500">
+          <div className="py-10 text-center text-muted-foreground">
             <p>No active challenges at the moment. Check back soon!</p>
           </div>
         ) : (
@@ -83,7 +83,7 @@ export function ChallengesHub() {
             return (
               <div
                 key={challenge._id}
-                className="p-4 rounded-lg bg-white/5 border border-white/10 space-y-3"
+                className="p-4 rounded-lg bg-muted/40 border border-border space-y-3"
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
@@ -96,7 +96,7 @@ export function ChallengesHub() {
                         </Badge>
                       )}
                     </div>
-                    <p className="text-sm text-gray-400">{challenge.description}</p>
+                    <p className="text-sm text-muted-foreground">{challenge.description}</p>
                   </div>
                   <div className="flex items-center gap-2 text-yellow-500">
                     <Trophy className="h-4 w-4" />
@@ -107,7 +107,7 @@ export function ChallengesHub() {
                 {isJoined && (
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-400">
+                      <span className="text-muted-foreground">
                         Progress: {progress} / {target}
                       </span>
                       <span className="text-white font-medium">
@@ -118,7 +118,7 @@ export function ChallengesHub() {
                   </div>
                 )}
 
-                <div className="flex items-center justify-between text-xs text-gray-500">
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
                   <div className="flex items-center gap-1">
                     {challenge.endDate ? (
                       <>

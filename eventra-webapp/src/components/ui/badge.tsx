@@ -1,48 +1,70 @@
-import * as React from "react"
-import { cva, type VariantProps } from "class-variance-authority"
+import * as React from "react";
+import { cva, type VariantProps } from "class-variance-authority";
 
-import { cn } from "@/core/utils/utils"
+import { cn } from "@/core/utils/utils";
 
 const badgeVariants = cva(
-  "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+  "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
   {
     variants: {
       variant: {
         default:
-          "border-transparent bg-primary text-primary-foreground shadow-sm hover:bg-primary/80",
+          "border-transparent bg-primary/15 text-primary dark:bg-primary/20",
         secondary:
-          "border-transparent bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80",
+          "border-transparent bg-muted text-foreground",
         destructive:
-          "border-transparent bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/80",
-        outline: "text-foreground border-border hover:bg-accent",
-        // Premium color variants - Eventtts Style
-        red: "border-transparent bg-red-500/10 text-red-600 dark:text-red-400",
-        blue: "border-transparent bg-blue-500/10 text-blue-600 dark:text-blue-400",
-        purple: "border-transparent bg-purple-500/10 text-purple-600 dark:text-purple-400",
-        cyan: "border-transparent bg-cyan-500/10 text-cyan-600 dark:text-cyan-400",
-        green: "border-transparent bg-green-500/10 text-green-600 dark:text-green-400",
-        orange: "border-transparent bg-orange-500/10 text-orange-600 dark:text-orange-400",
-        pink: "border-transparent bg-pink-500/10 text-pink-600 dark:text-pink-400",
-        success: "border-transparent bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
-        warning: "border-transparent bg-amber-500/10 text-amber-600 dark:text-amber-400",
-        gradient: "border-transparent bg-gradient-to-r from-red-500 to-blue-500 text-white shadow-sm",
+          "border-transparent bg-destructive/15 text-destructive dark:bg-destructive/25",
+        outline:
+          "border-border text-foreground bg-transparent",
+        success:
+          "border-transparent bg-success/15 text-success dark:bg-success/25",
+        warning:
+          "border-transparent bg-warning/15 text-warning dark:bg-warning/25",
+        info:
+          "border-transparent bg-info/15 text-info dark:bg-info/25",
+        solid:
+          "border-transparent bg-primary text-primary-foreground",
+        // Semantic aliases used across features (kept for compatibility)
+        red:
+          "border-transparent bg-destructive/15 text-destructive dark:bg-destructive/25",
+        blue:
+          "border-transparent bg-info/15 text-info dark:bg-info/25",
+        purple:
+          "border-transparent bg-primary/15 text-primary dark:bg-primary/25",
+        violet:
+          "border-transparent bg-primary/15 text-primary dark:bg-primary/25",
+        cyan:
+          "border-transparent bg-info/15 text-info dark:bg-info/25",
+        green:
+          "border-transparent bg-success/15 text-success dark:bg-success/25",
+        orange:
+          "border-transparent bg-warning/15 text-warning dark:bg-warning/25",
+        pink:
+          "border-transparent bg-[hsl(340_82%_58%/0.15)] text-[hsl(340_82%_58%)] dark:text-[hsl(340_82%_70%)]",
+        gradient:
+          "border-transparent text-white gradient-brand shadow-soft",
+      },
+      size: {
+        default: "text-xs py-0.5",
+        sm: "text-[10px] py-0 px-2",
+        lg: "text-sm py-1 px-3",
       },
     },
     defaultVariants: {
       variant: "default",
+      size: "default",
     },
   }
-)
+);
 
 export interface BadgeProps
   extends React.HTMLAttributes<HTMLDivElement>,
-  VariantProps<typeof badgeVariants> { }
+    VariantProps<typeof badgeVariants> {}
 
-function Badge({ className, variant, ...props }: BadgeProps) {
+function Badge({ className, variant, size, ...props }: BadgeProps) {
   return (
-    <div className={cn(badgeVariants({ variant }), className)} {...props} />
-  )
+    <div className={cn(badgeVariants({ variant, size }), className)} {...props} />
+  );
 }
 
-export { Badge, badgeVariants }
-
+export { Badge, badgeVariants };

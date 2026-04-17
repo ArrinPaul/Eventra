@@ -75,7 +75,7 @@ export function DynamicFeedbackForm({ eventId, template, onSuccess }: DynamicFee
 
   if (isSubmitted) {
     return (
-      <Card className="bg-white/5 border-white/10 text-white text-center py-12">
+      <Card className="bg-muted/40 border-border text-white text-center py-12">
         <CardContent className="space-y-6">
           <div className="relative inline-block">
             <div className="absolute inset-0 bg-emerald-500/20 blur-2xl rounded-full" />
@@ -83,9 +83,9 @@ export function DynamicFeedbackForm({ eventId, template, onSuccess }: DynamicFee
           </div>
           <div>
             <h2 className="text-3xl font-black text-emerald-500">Thank You!</h2>
-            <p className="text-gray-400 mt-2">Your feedback helps us make future events even better.</p>
+            <p className="text-muted-foreground mt-2">Your feedback helps us make future events even better.</p>
           </div>
-          <Button variant="outline" className="mt-4 border-white/10" onClick={() => window.history.back()}>
+          <Button variant="outline" className="mt-4 border-border" onClick={() => window.history.back()}>
             Back to Event
           </Button>
         </CardContent>
@@ -95,10 +95,10 @@ export function DynamicFeedbackForm({ eventId, template, onSuccess }: DynamicFee
 
   return (
     <form onSubmit={handleSubmit} className="max-w-2xl mx-auto py-8">
-      <Card className="bg-white/5 border-white/10 text-white shadow-2xl">
-        <CardHeader className="text-center border-b border-white/5 bg-white/5 pb-8">
+      <Card className="bg-muted/40 border-border text-white shadow-2xl">
+        <CardHeader className="text-center border-b border-border/60 bg-muted/40 pb-8">
           <CardTitle className="text-3xl font-black tracking-tight">{template.title}</CardTitle>
-          <CardDescription className="text-gray-400 mt-2 max-w-md mx-auto">{template.description}</CardDescription>
+          <CardDescription className="text-muted-foreground mt-2 max-w-md mx-auto">{template.description}</CardDescription>
         </CardHeader>
         <CardContent className="p-8 space-y-10">
           {/* Overall Rating (Standard) */}
@@ -116,13 +116,13 @@ export function DynamicFeedbackForm({ eventId, template, onSuccess }: DynamicFee
                     size={40} 
                     className={cn(
                       "transition-colors",
-                      star <= rating ? "fill-amber-400 text-amber-400" : "text-gray-600"
+                      star <= rating ? "fill-amber-400 text-amber-400" : "text-muted-foreground"
                     )} 
                   />
                 </button>
               ))}
             </div>
-            <p className="text-xs text-gray-500">How would you rate the event overall? (Required)</p>
+            <p className="text-xs text-muted-foreground">How would you rate the event overall? (Required)</p>
           </div>
 
           <div className="space-y-8">
@@ -145,7 +145,7 @@ export function DynamicFeedbackForm({ eventId, template, onSuccess }: DynamicFee
                         <Star 
                           size={24} 
                           className={cn(
-                            responses[q.id] >= s ? "fill-cyan-500 text-cyan-500" : "text-gray-700"
+                            responses[q.id] >= s ? "fill-primary text-primary" : "text-gray-700"
                           )} 
                         />
                       </button>
@@ -156,7 +156,7 @@ export function DynamicFeedbackForm({ eventId, template, onSuccess }: DynamicFee
                 {q.type === 'text' && (
                   <textarea
                     placeholder="Type your answer here..."
-                    className="w-full min-h-[80px] bg-white/5 border border-white/10 rounded-lg p-3 text-sm focus:ring-1 focus:ring-cyan-500 focus:outline-none transition-all"
+                    className="w-full min-h-[80px] bg-muted/40 border border-border rounded-lg p-3 text-sm focus:ring-1 focus:ring-primary focus:outline-none transition-all"
                     value={responses[q.id] || ''}
                     onChange={(e) => setResponses({ ...responses, [q.id]: e.target.value })}
                   />
@@ -169,8 +169,8 @@ export function DynamicFeedbackForm({ eventId, template, onSuccess }: DynamicFee
                     className="space-y-2"
                   >
                     {(q.options || []).map((opt) => (
-                      <div key={opt} className="flex items-center space-x-3 bg-white/5 p-3 rounded-lg border border-white/5 hover:border-white/10 transition-colors">
-                        <RadioGroupItem value={opt} id={`${q.id}-${opt}`} className="border-gray-600 text-cyan-500" />
+                      <div key={opt} className="flex items-center space-x-3 bg-muted/40 p-3 rounded-lg border border-border/60 hover:border-border transition-colors">
+                        <RadioGroupItem value={opt} id={`${q.id}-${opt}`} className="border-input text-primary" />
                         <Label htmlFor={`${q.id}-${opt}`} className="flex-1 cursor-pointer text-sm">{opt}</Label>
                       </div>
                     ))}
@@ -201,20 +201,20 @@ export function DynamicFeedbackForm({ eventId, template, onSuccess }: DynamicFee
             ))}
           </div>
 
-          <div className="space-y-3 pt-6 border-t border-white/5">
+          <div className="space-y-3 pt-6 border-t border-border/60">
             <Label className="text-base font-semibold">Additional Comments (Optional)</Label>
             <textarea
               placeholder="Any other thoughts you'd like to share?"
-              className="w-full min-h-[100px] bg-white/5 border border-white/10 rounded-lg p-3 text-sm focus:ring-1 focus:ring-cyan-500 focus:outline-none"
+              className="w-full min-h-[100px] bg-muted/40 border border-border rounded-lg p-3 text-sm focus:ring-1 focus:ring-primary focus:outline-none"
               value={comment}
               onChange={(e) => setComment(e.target.value)}
             />
           </div>
         </CardContent>
-        <CardFooter className="p-8 bg-white/5 border-t border-white/5">
+        <CardFooter className="p-8 bg-muted/40 border-t border-border/60">
           <Button 
             type="submit" 
-            className="w-full h-12 bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-lg"
+            className="w-full h-12 bg-primary hover:bg-primary text-white font-bold text-lg"
             disabled={isSubmitting}
           >
             {isSubmitting ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Send className="mr-2 h-5 w-5" />}

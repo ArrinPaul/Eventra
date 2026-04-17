@@ -254,7 +254,7 @@ export function CertificateViewer({ html, certificateId, onClose }: CertificateV
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 bg-background/80 flex items-center justify-center p-4">
       <div className="bg-background rounded-lg max-w-4xl w-full max-h-[90vh] overflow-auto">
         <div className="sticky top-0 bg-background border-b p-4 flex items-center justify-between">
           <h2 className="text-lg font-semibold">Certificate Preview</h2>

@@ -30,7 +30,7 @@ export default async function ClaimWaitlistSpotPage({ params }: { params: { id: 
     return (
       <div className="container py-20 text-center text-white">
         <h1 className="text-2xl font-bold">No Reservation Found</h1>
-        <p className="text-gray-400 mt-2">You don't have an active waitlist reservation for this event or it has already expired.</p>
+        <p className="text-muted-foreground mt-2">You don't have an active waitlist reservation for this event or it has already expired.</p>
       </div>
     );
   }

@@ -17,7 +17,7 @@ import {
 import Link from 'next/link';
 
 const typeConfig: Record<string, { icon: React.ElementType; color: string; bg: string }> = {
-  registration: { icon: Ticket, color: 'text-cyan-400', bg: 'bg-cyan-500/10' },
+  registration: { icon: Ticket, color: 'text-primary', bg: 'bg-primary/10' },
   badge_earned: { icon: Trophy, color: 'text-yellow-400', bg: 'bg-yellow-500/10' },
   post_created: { icon: MessageSquare, color: 'text-blue-400', bg: 'bg-blue-500/10' },
   event_created: { icon: Calendar, color: 'text-green-400', bg: 'bg-green-500/10' },
@@ -45,28 +45,28 @@ export function ActivityFeed({ userId, global }: { userId?: string; global?: boo
   if (myFeed === undefined) {
     return (
       <div className="flex justify-center py-10">
-        <Loader2 className="h-6 w-6 animate-spin text-cyan-500" />
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
       </div>
     );
   }
 
   if (myFeed.length === 0) {
     return (
-      <Card className="bg-white/5 border-white/10 text-white">
+      <Card className="bg-muted/40 border-border text-white">
         <CardContent className="py-12 text-center">
-          <Activity className="h-12 w-12 mx-auto mb-3 text-gray-600" />
-          <p className="text-gray-400">No activity yet</p>
-          <p className="text-sm text-gray-600 mt-1">Activities will appear here as you use the platform</p>
+          <Activity className="h-12 w-12 mx-auto mb-3 text-muted-foreground" />
+          <p className="text-muted-foreground">No activity yet</p>
+          <p className="text-sm text-muted-foreground mt-1">Activities will appear here as you use the platform</p>
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <Card className="bg-white/5 border-white/10 text-white">
+    <Card className="bg-muted/40 border-border text-white">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-lg">
-          <Activity className="h-5 w-5 text-cyan-400" />
+          <Activity className="h-5 w-5 text-primary" />
           {global ? 'Global Activity' : 'Recent Activity'}
         </CardTitle>
       </CardHeader>
@@ -75,7 +75,7 @@ export function ActivityFeed({ userId, global }: { userId?: string; global?: boo
           const config = typeConfig[item.type] || typeConfig.registration;
           const Icon = config.icon;
           return (
-            <div key={item._id} className="flex items-start gap-3 py-3 border-b border-white/5 last:border-0">
+            <div key={item._id} className="flex items-start gap-3 py-3 border-b border-border/60 last:border-0">
               {/* Timeline dot */}
               <div className={`p-2 rounded-lg shrink-0 ${config.bg}`}>
                 <Icon className={`h-4 w-4 ${config.color}`} />
@@ -84,11 +84,11 @@ export function ActivityFeed({ userId, global }: { userId?: string; global?: boo
                 <div className="flex items-start justify-between gap-2">
                   <div>
                     {global && item.userName && (
-                      <span className="text-xs text-gray-500 block">{item.userName}</span>
+                      <span className="text-xs text-muted-foreground block">{item.userName}</span>
                     )}
                     <p className="text-sm font-medium">
                       {item.link ? (
-                        <Link href={item.link} className="hover:text-cyan-400 transition-colors">
+                        <Link href={item.link} className="hover:text-primary transition-colors">
                           {item.title}
                         </Link>
                       ) : (
@@ -96,10 +96,10 @@ export function ActivityFeed({ userId, global }: { userId?: string; global?: boo
                       )}
                     </p>
                     {item.description && (
-                      <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">{item.description}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{item.description}</p>
                     )}
                   </div>
-                  <span className="text-[10px] text-gray-600 whitespace-nowrap shrink-0">
+                  <span className="text-[10px] text-muted-foreground whitespace-nowrap shrink-0">
                     {timeAgo(item.createdAt)}
                   </span>
                 </div>

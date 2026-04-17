@@ -127,9 +127,9 @@ export function EventGallery({ eventId, isRegistered, isStaff }: EventGalleryPro
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h2 className="text-3xl font-black text-white italic flex items-center gap-3">
-              LIVE GALLERY <Camera className="text-cyan-400" size={24} />
+              LIVE GALLERY <Camera className="text-primary" size={24} />
             </h2>
-            <p className="text-sm text-gray-500">Authentic moments captured by the community.</p>
+            <p className="text-sm text-muted-foreground">Authentic moments captured by the community.</p>
           </div>
           {isRegistered && (
             <div className="flex items-center gap-3">
@@ -143,7 +143,7 @@ export function EventGallery({ eventId, isRegistered, isStaff }: EventGalleryPro
               <Button 
                 onClick={() => fileInputRef.current?.click()} 
                 disabled={uploading}
-                className="bg-white text-black hover:bg-cyan-50 rounded-xl font-bold h-11 px-6 shadow-lg shadow-white/5"
+                className="bg-white text-black hover:bg-primary/90 rounded-xl font-bold h-11 px-6 shadow-lg shadow-white/5"
               >
                 {uploading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Plus className="w-4 h-4 mr-2" />}
                 SHARE MOMENT
@@ -153,19 +153,19 @@ export function EventGallery({ eventId, isRegistered, isStaff }: EventGalleryPro
         </div>
 
         {loading ? (
-          <div className="py-32 text-center"><Loader2 className="h-8 w-8 animate-spin mx-auto text-cyan-500" /></div>
+          <div className="py-32 text-center"><Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" /></div>
         ) : photos.length === 0 ? (
-          <div className="py-32 text-center border-2 border-dashed border-white/5 rounded-[2rem] bg-white/[0.02]">
+          <div className="py-32 text-center border-2 border-dashed border-border/60 rounded-[2rem] bg-muted/20">
             <Camera size={64} className="mx-auto mb-4 text-gray-800 opacity-20" />
-            <h3 className="text-xl font-black text-gray-500 italic">GALLERY EMPTY</h3>
-            <p className="text-sm text-gray-600 mt-1">Be the first to immortalize this event!</p>
+            <h3 className="text-xl font-black text-muted-foreground italic">GALLERY EMPTY</h3>
+            <p className="text-sm text-muted-foreground mt-1">Be the first to immortalize this event!</p>
           </div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {photos.map((photo) => (
               <Card 
                 key={photo.id} 
-                className="bg-white/5 border-white/10 overflow-hidden group cursor-pointer hover:border-cyan-500/50 transition-all rounded-2xl"
+                className="bg-muted/40 border-border overflow-hidden group cursor-pointer hover:border-primary/50 transition-all rounded-2xl"
                 onClick={() => {
                   setSelectedPhoto(photo);
                   handleEngagement(photo.id, 'view');
@@ -179,7 +179,7 @@ export function EventGallery({ eventId, isRegistered, isStaff }: EventGalleryPro
                     sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
                     className="object-cover transition-transform duration-700 group-hover:scale-110" 
                   />
-                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
+                  <div className="absolute inset-0 bg-background/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
                      <div className="flex flex-col items-center text-white scale-90 group-hover:scale-100 transition-transform">
                         <Eye size={20} />
                         <span className="text-[10px] font-black mt-1">{photo.viewCount}</span>
@@ -190,17 +190,17 @@ export function EventGallery({ eventId, isRegistered, isStaff }: EventGalleryPro
                      </div>
                   </div>
                 </div>
-                <div className="p-3 flex items-center justify-between bg-black/40">
+                <div className="p-3 flex items-center justify-between bg-background/40">
                    <div className="flex items-center gap-2 truncate">
-                      <Avatar className="h-6 w-6 border border-white/10">
+                      <Avatar className="h-6 w-6 border border-border">
                         <AvatarImage src={photo.author.image} />
-                        <AvatarFallback className="text-[8px] bg-cyan-500/20 text-cyan-400 font-bold">
+                        <AvatarFallback className="text-[8px] bg-primary/20 text-primary font-bold">
                           {photo.author.name?.[0] || 'U'}
                         </AvatarFallback>
                       </Avatar>
-                      <span className="text-[10px] text-gray-300 font-medium truncate uppercase tracking-tighter">{photo.author.name}</span>
+                      <span className="text-[10px] text-muted-foreground font-medium truncate uppercase tracking-tighter">{photo.author.name}</span>
                    </div>
-                   <Clock size={10} className="text-gray-600" />
+                   <Clock size={10} className="text-muted-foreground" />
                 </div>
               </Card>
             ))}
@@ -209,10 +209,10 @@ export function EventGallery({ eventId, isRegistered, isStaff }: EventGalleryPro
 
         {/* Lightbox */}
         <Dialog open={!!selectedPhoto} onOpenChange={() => setSelectedPhoto(null)}>
-          <DialogContent className="max-w-5xl p-0 bg-black/95 border-white/10 overflow-hidden rounded-[2rem]">
+          <DialogContent className="max-w-5xl p-0 bg-background/95 border-border overflow-hidden rounded-[2rem]">
             {selectedPhoto && (
               <div className="relative flex flex-col md:flex-row h-full max-h-[85vh]">
-                <div className="relative flex-1 bg-black flex items-center justify-center p-4">
+                <div className="relative flex-1 bg-background flex items-center justify-center p-4">
                   <Image 
                     src={selectedPhoto.url} 
                     alt="full view" 
@@ -220,53 +220,53 @@ export function EventGallery({ eventId, isRegistered, isStaff }: EventGalleryPro
                     className="object-contain"
                   />
                 </div>
-                <div className="w-full md:w-96 bg-[#0a0a0a] p-8 flex flex-col">
+                <div className="w-full md:w-96 bg-background p-8 flex flex-col">
                   <div className="space-y-8 flex-1">
                     <div className="flex items-center justify-between">
                        <div className="flex items-center gap-4">
-                        <Avatar className="h-12 w-12 border-2 border-cyan-500/20">
+                        <Avatar className="h-12 w-12 border-2 border-primary/20">
                           <AvatarImage src={selectedPhoto.author.image} />
-                          <AvatarFallback className="bg-cyan-500/20 text-cyan-400 font-black">{selectedPhoto.author.name?.[0]}</AvatarFallback>
+                          <AvatarFallback className="bg-primary/20 text-primary font-black">{selectedPhoto.author.name?.[0]}</AvatarFallback>
                         </Avatar>
                         <div>
                           <p className="font-black text-white italic tracking-tight">{selectedPhoto.author.name}</p>
-                          <p className="text-[10px] text-gray-500 uppercase font-bold flex items-center gap-1">
+                          <p className="text-[10px] text-muted-foreground uppercase font-bold flex items-center gap-1">
                             <Clock size={10} /> {new Date(selectedPhoto.createdAt).toLocaleDateString()}
                           </p>
                         </div>
                       </div>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                           <Button variant="ghost" size="icon" className="text-gray-500 hover:text-white"><Share2 size={18} /></Button>
+                           <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-white"><Share2 size={18} /></Button>
                         </TooltipTrigger>
                         <TooltipContent>Share Photo</TooltipContent>
                       </Tooltip>
                     </div>
 
                     <div className="space-y-4">
-                       <h4 className="text-xs font-black text-gray-500 uppercase tracking-widest">Metadata</h4>
+                       <h4 className="text-xs font-black text-muted-foreground uppercase tracking-widest">Metadata</h4>
                        <div className="grid grid-cols-2 gap-4">
-                          <div className="p-4 rounded-2xl bg-white/5 border border-white/5 text-center">
-                             <p className="text-[10px] text-gray-500 uppercase mb-1">Views</p>
+                          <div className="p-4 rounded-2xl bg-muted/40 border border-border/60 text-center">
+                             <p className="text-[10px] text-muted-foreground uppercase mb-1">Views</p>
                              <p className="text-xl font-black text-white">{selectedPhoto.viewCount}</p>
                           </div>
-                          <div className="p-4 rounded-2xl bg-white/5 border border-white/5 text-center">
-                             <p className="text-[10px] text-gray-500 uppercase mb-1">Downloads</p>
+                          <div className="p-4 rounded-2xl bg-muted/40 border border-border/60 text-center">
+                             <p className="text-[10px] text-muted-foreground uppercase mb-1">Downloads</p>
                              <p className="text-xl font-black text-white">{selectedPhoto.downloadCount}</p>
                           </div>
                        </div>
                     </div>
 
                     {selectedPhoto.caption && (
-                      <div className="p-4 rounded-2xl bg-cyan-500/5 border border-cyan-500/10">
-                        <p className="text-sm text-gray-300 italic leading-relaxed">"{selectedPhoto.caption}"</p>
+                      <div className="p-4 rounded-2xl bg-primary/5 border border-primary/10">
+                        <p className="text-sm text-muted-foreground italic leading-relaxed">"{selectedPhoto.caption}"</p>
                       </div>
                     )}
                   </div>
                   
                   <div className="flex flex-col gap-3 mt-10">
                     <Button 
-                      className="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-black h-12 rounded-xl"
+                      className="w-full bg-primary hover:bg-primary text-white font-black h-12 rounded-xl"
                       onClick={() => {
                         handleEngagement(selectedPhoto.id, 'download');
                         window.open(selectedPhoto.url, '_blank');

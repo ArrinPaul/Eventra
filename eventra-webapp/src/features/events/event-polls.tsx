@@ -61,10 +61,10 @@ export function EventPolls({ eventId, isOrganizer }: EventPollsProps) {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-white">Live Polling</h2>
-          <p className="text-sm text-gray-500">Participate in real-time surveys.</p>
+          <p className="text-sm text-muted-foreground">Participate in real-time surveys.</p>
         </div>
         {isOrganizer && (
-          <Button onClick={() => setShowCreate(true)} className="bg-cyan-600 hover:bg-cyan-500 text-white rounded-full">
+          <Button onClick={() => setShowCreate(true)} className="bg-primary hover:bg-primary text-white rounded-full">
             <Plus className="w-4 h-4 mr-2" />
             New Poll
           </Button>
@@ -72,12 +72,12 @@ export function EventPolls({ eventId, isOrganizer }: EventPollsProps) {
       </div>
 
       {showCreate && (
-        <Card className="bg-white/5 border-cyan-500/30 text-white overflow-hidden animate-in slide-in-from-top-4">
+        <Card className="bg-muted/40 border-primary/30 text-white overflow-hidden animate-in slide-in-from-top-4">
           <CardHeader><CardTitle className="text-lg">Create a Poll</CardTitle></CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label>Question</Label>
-              <Input value={newQuestion} onChange={e => setNewQuestion(e.target.value)} placeholder="What's your favorite track?" className="bg-white/5 border-white/10" />
+              <Input value={newQuestion} onChange={e => setNewQuestion(e.target.value)} placeholder="What's your favorite track?" className="bg-muted/40 border-border" />
             </div>
             <div className="space-y-3">
               <Label>Options</Label>
@@ -87,33 +87,33 @@ export function EventPolls({ eventId, isOrganizer }: EventPollsProps) {
                     const next = [...newOptions];
                     next[i] = e.target.value;
                     setNewOptions(next);
-                  }} placeholder={`Option ${i+1}`} className="bg-white/5 border-white/10" />
+                  }} placeholder={`Option ${i+1}`} className="bg-muted/40 border-border" />
                   {newOptions.length > 2 && (
                     <Button variant="ghost" size="icon" onClick={() => setNewOptions(newOptions.filter((_, idx) => idx !== i))}><Trash2 className="w-4 h-4" /></Button>
                   )}
                 </div>
               ))}
-              <Button variant="outline" size="sm" onClick={handleAddOption} className="w-full border-white/10 text-xs">Add another option</Button>
+              <Button variant="outline" size="sm" onClick={handleAddOption} className="w-full border-border text-xs">Add another option</Button>
             </div>
             <div className="flex gap-3 pt-2">
               <Button variant="ghost" onClick={() => setShowCreate(false)} className="flex-1">Cancel</Button>
-              <Button onClick={handleCreate} disabled={loading || !newQuestion} className="flex-1 bg-cyan-600">Create</Button>
+              <Button onClick={handleCreate} disabled={loading || !newQuestion} className="flex-1 bg-primary">Create</Button>
             </div>
           </CardContent>
         </Card>
       )}
 
       {polls.length === 0 ? (
-        <div className="py-32 text-center border border-dashed border-white/10 rounded-3xl bg-white/5">
+        <div className="py-32 text-center border border-dashed border-border rounded-3xl bg-muted/40">
           <BarChart3 size={48} className="mx-auto mb-4 text-gray-700 opacity-20" />
-          <h3 className="text-lg font-bold text-gray-500">No active polls</h3>
-          <p className="text-sm text-gray-600">Waiting for organizers to start a poll.</p>
+          <h3 className="text-lg font-bold text-muted-foreground">No active polls</h3>
+          <p className="text-sm text-muted-foreground">Waiting for organizers to start a poll.</p>
         </div>
       ) : (
         <div className="space-y-6">
           {polls.map((poll) => (
             <Card key={poll._id} className={cn(
-              "bg-white/5 border-white/10 text-white transition-all",
+              "bg-muted/40 border-border text-white transition-all",
               !poll.isActive && "opacity-60"
             )}>
               <CardHeader className="pb-2">
@@ -141,7 +141,7 @@ export function EventPolls({ eventId, isOrganizer }: EventPollsProps) {
                     </div>
                   )}
                 </div>
-                <CardDescription className="text-[10px] uppercase font-bold tracking-widest text-cyan-500/70">
+                <CardDescription className="text-[10px] uppercase font-bold tracking-widest text-primary/70">
                   {poll.totalVotes} total votes • {poll.isActive ? "Accepting votes" : "Poll ended"}
                 </CardDescription>
               </CardHeader>
@@ -159,17 +159,17 @@ export function EventPolls({ eventId, isOrganizer }: EventPollsProps) {
                         className={cn(
                           "w-full flex items-center justify-between p-3 rounded-xl border transition-all text-sm",
                           isVoted 
-                            ? "bg-cyan-500/10 border-cyan-500/50 text-white" 
-                            : "bg-white/5 border-white/5 hover:bg-white/[0.08]"
+                            ? "bg-primary/10 border-primary/50 text-white" 
+                            : "bg-muted/40 border-border/60 hover:bg-white/[0.08]"
                         )}
                       >
                         <div className="flex items-center gap-3">
-                          {isVoted ? <CheckCircle2 size={16} className="text-cyan-400" /> : <Circle size={16} className="text-gray-600" />}
+                          {isVoted ? <CheckCircle2 size={16} className="text-primary" /> : <Circle size={16} className="text-muted-foreground" />}
                           <span>{opt}</span>
                         </div>
                         <span className="font-bold">{percent}%</span>
                       </button>
-                      <Progress value={percent} className="h-1 bg-white/5" />
+                      <Progress value={percent} className="h-1 bg-muted/40" />
                     </div>
                   );
                 })}

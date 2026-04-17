@@ -79,8 +79,8 @@ export default function OrganizerCertificatesPage() {
   if (loading) {
     return (
       <div className="container py-20 text-center text-white">
-        <Loader2 className="h-8 w-8 animate-spin mx-auto text-cyan-500" />
-        <p className="mt-4 text-gray-400">Loading your certificate workspace...</p>
+        <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
+        <p className="mt-4 text-muted-foreground">Loading your certificate workspace...</p>
       </div>
     );
   }
@@ -102,8 +102,8 @@ export default function OrganizerCertificatesPage() {
     if (distributeLoading) {
       return (
         <div className="container py-32 text-center text-white">
-          <Loader2 className="h-12 w-12 mx-auto mb-4 animate-spin text-cyan-500" />
-          <p className="text-gray-400 font-medium">Preparing attendee certificates...</p>
+          <Loader2 className="h-12 w-12 mx-auto mb-4 animate-spin text-primary" />
+          <p className="text-muted-foreground font-medium">Preparing attendee certificates...</p>
         </div>
       );
     }
@@ -111,12 +111,12 @@ export default function OrganizerCertificatesPage() {
     return (
       <div className="container py-8 space-y-6 text-white">
         <div className="flex items-center gap-4 mb-6">
-          <Button variant="ghost" size="icon" onClick={() => setView('list')} className="hover:bg-white/5">
+          <Button variant="ghost" size="icon" onClick={() => setView('list')} className="hover:bg-muted/40">
             <ChevronRight className="rotate-180" />
           </Button>
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Distribute Certificates</h1>
-            <p className="text-gray-400">Event: <span className="text-white font-semibold">{selectedEvent?.title}</span></p>
+            <p className="text-muted-foreground">Event: <span className="text-white font-semibold">{selectedEvent?.title}</span></p>
           </div>
         </div>
         <BulkDistributionClient 
@@ -134,34 +134,34 @@ export default function OrganizerCertificatesPage() {
     <div className="container py-8 space-y-8 text-white">
       <div>
         <h1 className="text-3xl font-bold">Certificate Manager</h1>
-        <p className="text-gray-400">Create, design, and distribute certificates for your events.</p>
+        <p className="text-muted-foreground">Create, design, and distribute certificates for your events.</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="bg-white/5 border-white/10 text-white">
+        <Card className="bg-muted/40 border-border text-white">
           <CardHeader>
-            <div className="p-2 w-fit bg-cyan-500/10 rounded-lg mb-2"><Award className="text-cyan-400" /></div>
+            <div className="p-2 w-fit bg-primary/10 rounded-lg mb-2"><Award className="text-primary" /></div>
             <CardTitle>AI Personalization</CardTitle>
-            <CardDescription className="text-gray-400">Every certificate includes a unique AI-generated message based on the event theme.</CardDescription>
+            <CardDescription className="text-muted-foreground">Every certificate includes a unique AI-generated message based on the event theme.</CardDescription>
           </CardHeader>
         </Card>
-        <Card className="bg-white/5 border-white/10 text-white">
+        <Card className="bg-muted/40 border-border text-white">
           <CardHeader>
             <div className="p-2 w-fit bg-purple-500/10 rounded-lg mb-2"><Layout className="text-purple-400" /></div>
             <CardTitle>Drag-and-Drop</CardTitle>
-            <CardDescription className="text-gray-400">Custom designer for your certificate layouts with real-time preview.</CardDescription>
+            <CardDescription className="text-muted-foreground">Custom designer for your certificate layouts with real-time preview.</CardDescription>
           </CardHeader>
         </Card>
-        <Card className="bg-white/5 border-white/10 text-white">
+        <Card className="bg-muted/40 border-border text-white">
           <CardHeader>
             <div className="p-2 w-fit bg-emerald-500/10 rounded-lg mb-2"><Send className="text-emerald-400" /></div>
             <CardTitle>Bulk Distribution</CardTitle>
-            <CardDescription className="text-gray-400">Send thousands of certificates via email or download as ZIP in seconds.</CardDescription>
+            <CardDescription className="text-muted-foreground">Send thousands of certificates via email or download as ZIP in seconds.</CardDescription>
           </CardHeader>
         </Card>
       </div>
 
-      <Card className="bg-white/5 border-white/10 text-white">
+      <Card className="bg-muted/40 border-border text-white">
         <CardHeader>
           <CardTitle>Your Events</CardTitle>
           <CardDescription>Select an event to manage its certificates.</CardDescription>
@@ -169,21 +169,21 @@ export default function OrganizerCertificatesPage() {
         <CardContent>
           <div className="space-y-4">
             {events.map(event => (
-              <div key={event.id} className="flex items-center justify-between p-4 bg-white/5 rounded-lg border border-white/10 group hover:border-cyan-500/30 transition-all">
+              <div key={event.id} className="flex items-center justify-between p-4 bg-muted/40 rounded-lg border border-border group hover:border-primary/30 transition-all">
                 <div className="flex items-center gap-4">
-                  <div className="h-12 w-12 rounded-lg bg-cyan-900/20 flex items-center justify-center text-cyan-400 border border-cyan-500/20">
+                  <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary border border-primary/20">
                     <FileText size={20} />
                   </div>
                   <div>
                     <h3 className="font-bold">{event.title}</h3>
-                    <p className="text-xs text-gray-500">{event.registeredCount || 0} Registrations • {event.status}</p>
+                    <p className="text-xs text-muted-foreground">{event.registeredCount || 0} Registrations • {event.status}</p>
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  <Button size="sm" variant="outline" className="border-white/10" onClick={() => { setSelectedEventId(event.id); setView('builder'); }}>
+                  <Button size="sm" variant="outline" className="border-border" onClick={() => { setSelectedEventId(event.id); setView('builder'); }}>
                     <Settings className="w-4 h-4 mr-2" /> Design Template
                   </Button>
-                  <Button size="sm" className="bg-cyan-600 hover:bg-cyan-500 text-white" onClick={() => handleStartDistribute(event.id)}>
+                  <Button size="sm" className="bg-primary hover:bg-primary text-white" onClick={() => handleStartDistribute(event.id)}>
                     <Send className="w-4 h-4 mr-2" /> Distribute
                   </Button>
                 </div>

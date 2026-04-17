@@ -79,7 +79,7 @@ export function MatchmakingSection() {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {[1, 2, 3].map(i => (
-          <Card key={i} className="bg-white/5 border-white/10 h-[320px] animate-pulse">
+          <Card key={i} className="bg-muted/40 border-border h-[320px] animate-pulse">
             <CardContent className="h-full" />
           </Card>
         ))}
@@ -89,11 +89,11 @@ export function MatchmakingSection() {
 
   if (result?.error) {
     return (
-      <div className="py-20 text-center text-gray-500 border border-dashed border-white/10 rounded-2xl bg-white/5">
+      <div className="py-20 text-center text-muted-foreground border border-dashed border-border rounded-2xl bg-muted/40">
         <Target size={48} className="mx-auto mb-4 opacity-20" />
         <p className="text-xl font-medium text-white mb-2">{result.error}</p>
         <p>Complete your profile to get personalized recommendations.</p>
-        <Button variant="outline" className="mt-4 border-white/10" onClick={fetchMatches}>
+        <Button variant="outline" className="mt-4 border-border" onClick={fetchMatches}>
           <RefreshCw className="w-4 h-4 mr-2" /> Try Again
         </Button>
       </div>
@@ -103,15 +103,15 @@ export function MatchmakingSection() {
   return (
     <div className="space-y-8">
       {result?.strategy && (
-        <Card className="bg-gradient-to-r from-cyan-900/20 to-purple-900/20 border-cyan-500/30 overflow-hidden">
+        <Card className="bg-gradient-to-r from-primary/20 to-purple-900/20 border-primary/30 overflow-hidden">
           <CardContent className="p-6">
             <div className="flex items-start gap-4">
-              <div className="bg-cyan-500/20 p-3 rounded-2xl">
-                <Trophy className="w-6 h-6 text-cyan-400" />
+              <div className="bg-primary/20 p-3 rounded-2xl">
+                <Trophy className="w-6 h-6 text-primary" />
               </div>
               <div className="space-y-1">
                 <h3 className="font-bold text-lg">Your Networking Strategy</h3>
-                <p className="text-gray-400 text-sm leading-relaxed">{result.strategy.weeklyPlan}</p>
+                <p className="text-muted-foreground text-sm leading-relaxed">{result.strategy.weeklyPlan}</p>
               </div>
             </div>
           </CardContent>
@@ -137,7 +137,7 @@ export function MatchmakingSection() {
       </div>
       
       <div className="flex justify-center">
-        <Button variant="ghost" className="text-gray-500 hover:text-cyan-400" onClick={fetchMatches}>
+        <Button variant="ghost" className="text-muted-foreground hover:text-primary" onClick={fetchMatches}>
           <RefreshCw className="w-4 h-4 mr-2" /> Recalculate Matches
         </Button>
       </div>

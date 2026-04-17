@@ -166,21 +166,21 @@ export default function EventDetailsClient({ eventId, initialEvent }: { eventId:
       : '';
 
   return (
-    <div className="min-h-screen bg-black text-white pb-20">
-      <div className="h-[300px] bg-gradient-to-br from-cyan-900/50 to-purple-900/50 relative">
+    <div className="min-h-screen bg-background text-white pb-20">
+      <div className="h-[300px] bg-gradient-to-br from-primary/50 to-purple-900/50 relative">
         <div className="absolute top-4 left-4"><Button variant="ghost" onClick={() => router.back()}><ArrowLeft className="mr-2 h-4 w-4" /> Back</Button></div>
         {isOrganizer && (
           <div className="absolute top-4 right-4 flex items-center gap-2">
             <Button 
               variant="outline" 
-              className="border-white/20 hover:bg-white/10"
+              className="border-border hover:bg-muted"
               onClick={handleClone}
               disabled={cloning}
             >
               {cloning ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Copy className="mr-2 h-4 w-4" />}
               Clone
             </Button>
-            <Button variant="outline" asChild className="border-white/20 hover:bg-white/10">
+            <Button variant="outline" asChild className="border-border hover:bg-muted">
               <Link href={`/events/${eventId}/edit`}><Edit className="mr-2 h-4 w-4" /> Edit Event</Link>
             </Button>
           </div>
@@ -190,27 +190,27 @@ export default function EventDetailsClient({ eventId, initialEvent }: { eventId:
         <div className="grid lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-6">
             <AnnouncementBanner eventId={event.id} />
-            <Card className="bg-white/5 border-white/10 text-white">
+            <Card className="bg-muted/40 border-border text-white">
               <CardContent className="p-8">
                 <div className="flex items-center gap-2 mb-4">
-                  <Badge className="bg-cyan-500/20 text-cyan-300 border-cyan-500/30">{event.category}</Badge>
-                  <Badge variant="outline" className="border-white/20 text-gray-300">{event.type}</Badge>
+                  <Badge className="bg-primary/20 text-primary border-primary/30">{event.category}</Badge>
+                  <Badge variant="outline" className="border-border text-muted-foreground">{event.type}</Badge>
                   {event.status === 'cancelled' && <Badge variant="destructive">Cancelled</Badge>}
                 </div>
                 <h1 className="text-4xl font-bold mb-6">{event.title}</h1>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="flex items-center gap-3"><Calendar className="text-cyan-400" /> <div><p className="text-xs text-gray-400">Date</p><p className="font-medium">{new Date(event.startDate).toLocaleDateString()}</p></div></div>
+                  <div className="flex items-center gap-3"><Calendar className="text-primary" /> <div><p className="text-xs text-muted-foreground">Date</p><p className="font-medium">{new Date(event.startDate).toLocaleDateString()}</p></div></div>
                   {locationDisplay && (
-                    <div className="flex items-center gap-3"><MapPin className="text-cyan-400" /> <div><p className="text-xs text-gray-400">Location</p><p className="font-medium">{locationDisplay}</p></div></div>
+                    <div className="flex items-center gap-3"><MapPin className="text-primary" /> <div><p className="text-xs text-muted-foreground">Location</p><p className="font-medium">{locationDisplay}</p></div></div>
                   )}
-                  <div className="flex items-center gap-3"><Users className="text-cyan-400" /> <div><p className="text-xs text-gray-400">Attendees</p><p className="font-medium">{event.registeredCount} / {event.capacity}</p></div></div>
+                  <div className="flex items-center gap-3"><Users className="text-primary" /> <div><p className="text-xs text-muted-foreground">Attendees</p><p className="font-medium">{event.registeredCount} / {event.capacity}</p></div></div>
                 </div>
 
                 {/* Capacity Progress */}
                 <div className="mt-6">
                   <div className="flex items-center justify-between text-sm mb-2">
-                    <span className="text-gray-400">Capacity</span>
-                    <span className={cn("font-medium", isFull ? "text-red-400" : capacityPercent > 80 ? "text-amber-400" : "text-cyan-400")}>
+                    <span className="text-muted-foreground">Capacity</span>
+                    <span className={cn("font-medium", isFull ? "text-red-400" : capacityPercent > 80 ? "text-amber-400" : "text-primary")}>
                       {isFull ? 'Sold Out' : `${event.capacity - event.registeredCount} spots left`}
                     </span>
                   </div>
@@ -221,15 +221,15 @@ export default function EventDetailsClient({ eventId, initialEvent }: { eventId:
 
                 <div className="mt-6">
                   <Tabs value={activeTab} onValueChange={setActiveTab}>
-                    <TabsList className="bg-white/5 border-white/10 text-white p-1 mb-6">
-                      <TabsTrigger value="about" className="data-[state=active]:bg-cyan-600">About</TabsTrigger>
-                      <TabsTrigger value="agenda" className="data-[state=active]:bg-cyan-600">Agenda</TabsTrigger>
-                      <TabsTrigger value="discussion" className="data-[state=active]:bg-cyan-600 flex items-center gap-2">
+                    <TabsList className="bg-muted/40 border-border text-white p-1 mb-6">
+                      <TabsTrigger value="about" className="data-[state=active]:bg-primary">About</TabsTrigger>
+                      <TabsTrigger value="agenda" className="data-[state=active]:bg-primary">Agenda</TabsTrigger>
+                      <TabsTrigger value="discussion" className="data-[state=active]:bg-primary flex items-center gap-2">
                         Discussion
-                        <Badge variant="secondary" className="h-4 p-0 px-1 text-[8px] bg-white/10 text-gray-400">NEW</Badge>
+                        <Badge variant="secondary" className="h-4 p-0 px-1 text-[8px] bg-muted text-muted-foreground">NEW</Badge>
                       </TabsTrigger>
-                      <TabsTrigger value="photos" className="data-[state=active]:bg-cyan-600">Photos</TabsTrigger>
-                      <TabsTrigger value="polls" className="data-[state=active]:bg-cyan-600 flex items-center gap-2">
+                      <TabsTrigger value="photos" className="data-[state=active]:bg-primary">Photos</TabsTrigger>
+                      <TabsTrigger value="polls" className="data-[state=active]:bg-primary flex items-center gap-2">
                         Polls
                         <div className="h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse" />
                       </TabsTrigger>
@@ -237,12 +237,12 @@ export default function EventDetailsClient({ eventId, initialEvent }: { eventId:
 
                     <TabsContent value="about" className="space-y-6 animate-in fade-in slide-in-from-bottom-2">
                       {event.summary && (
-                        <div className="p-6 bg-cyan-500/5 border border-cyan-500/20 rounded-2xl space-y-4">
-                          <h3 className="text-lg font-bold flex items-center gap-2 text-cyan-400">
+                        <div className="p-6 bg-primary/5 border border-primary/20 rounded-2xl space-y-4">
+                          <h3 className="text-lg font-bold flex items-center gap-2 text-primary">
                             <Sparkles className="h-5 w-5" />
                             Event Summary
                           </h3>
-                          <div className="text-gray-300 whitespace-pre-wrap leading-relaxed">
+                          <div className="text-muted-foreground whitespace-pre-wrap leading-relaxed">
                             {event.summary}
                           </div>
                         </div>
@@ -254,7 +254,7 @@ export default function EventDetailsClient({ eventId, initialEvent }: { eventId:
                           <Button 
                             variant="outline" 
                             size="sm" 
-                            className="border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10"
+                            className="border-primary/30 text-primary hover:bg-primary/10"
                             onClick={handleGenerateSummary}
                             disabled={generatingSummary}
                           >
@@ -263,30 +263,30 @@ export default function EventDetailsClient({ eventId, initialEvent }: { eventId:
                           </Button>
                         )}
                       </div>
-                      <p className="text-gray-300 whitespace-pre-wrap leading-relaxed">{event.description}</p>
+                      <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed">{event.description}</p>
                     </TabsContent>
 
                     <TabsContent value="agenda" className="space-y-6 animate-in fade-in slide-in-from-bottom-2">
                       {event.agenda && Array.isArray(event.agenda) && event.agenda.length > 0 ? (
                         <div className="space-y-3">
                           {event.agenda.map((item: any, i: number) => (
-                            <div key={i} className="flex gap-4 p-4 rounded-xl bg-white/5 border border-white/10 hover:border-cyan-500/30 transition-colors">
+                            <div key={i} className="flex gap-4 p-4 rounded-xl bg-muted/40 border border-border hover:border-primary/30 transition-colors">
                               {item.startTime && (
-                                <div className="flex items-center gap-1.5 text-sm text-cyan-400 font-mono shrink-0 pt-1">
+                                <div className="flex items-center gap-1.5 text-sm text-primary font-mono shrink-0 pt-1">
                                   <Clock className="h-3.5 w-3.5" />
                                   {item.startTime}
                                 </div>
                               )}
                               <div>
                                 <p className="font-bold text-lg">{item.title}</p>
-                                {item.speaker && <p className="text-xs text-cyan-400/70 mt-0.5">By {item.speaker}</p>}
-                                {item.description && <p className="text-sm text-gray-400 mt-2">{item.description}</p>}
+                                {item.speaker && <p className="text-xs text-primary/70 mt-0.5">By {item.speaker}</p>}
+                                {item.description && <p className="text-sm text-muted-foreground mt-2">{item.description}</p>}
                               </div>
                             </div>
                           ))}
                         </div>
                       ) : (
-                        <div className="text-center py-10 text-gray-500 italic">No agenda items listed yet.</div>
+                        <div className="text-center py-10 text-muted-foreground italic">No agenda items listed yet.</div>
                       )}
                     </TabsContent>
 
@@ -307,13 +307,13 @@ export default function EventDetailsClient({ eventId, initialEvent }: { eventId:
             </Card>
           </div>
           <div className="space-y-6">
-            <Card className="bg-white/5 border-white/10 text-white">
+            <Card className="bg-muted/40 border-border text-white">
               <CardContent className="p-6">
                 <div className="text-center mb-4">
                   <p className="text-3xl font-bold">
                     {appliedDiscount ? (
                       <span className="flex items-center justify-center gap-2">
-                        <span className="line-through text-gray-500 text-xl">
+                        <span className="line-through text-muted-foreground text-xl">
                           ${event.price}
                         </span>
                         <span className="text-green-400">
@@ -331,18 +331,18 @@ export default function EventDetailsClient({ eventId, initialEvent }: { eventId:
                   <div className="mb-4 space-y-2">
                     <div className="flex gap-2">
                       <div className="relative flex-1">
-                        <Tag className="absolute left-3 top-1/2 -translate-y-1/2 h-3 w-3 text-gray-400" />
+                        <Tag className="absolute left-3 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
                         <Input 
                           placeholder="Promo code" 
                           value={discountCode}
                           onChange={(e) => setDiscountCode(e.target.value)}
-                          className="pl-8 h-9 text-xs bg-white/5 border-white/10"
+                          className="pl-8 h-9 text-xs bg-muted/40 border-border"
                         />
                       </div>
                       <Button 
                         size="sm" 
                         variant="outline" 
-                        className="h-9 border-white/10"
+                        className="h-9 border-border"
                         onClick={handleApplyDiscount}
                         disabled={!discountCode || registering}
                       >
@@ -359,7 +359,7 @@ export default function EventDetailsClient({ eventId, initialEvent }: { eventId:
 
                 {/* Capacity mini bar */}
                 <div className="mb-4">
-                  <div className="flex items-center justify-between text-xs text-gray-400 mb-1">
+                  <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
                     <span>{event.registeredCount} registered</span>
                     <span>{event.capacity} max</span>
                   </div>
@@ -370,14 +370,14 @@ export default function EventDetailsClient({ eventId, initialEvent }: { eventId:
                   {isRegistered ? 'Registered' : isFull ? 'Sold Out' : 'Register Now'}
                 </Button>
                 {isRegistered && (new Date().getTime() > event.startDate) && (
-                  <Button variant="outline" className="w-full mt-3 border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10" asChild>
+                  <Button variant="outline" className="w-full mt-3 border-primary/30 text-primary hover:bg-primary/10" asChild>
                     <Link href={`/events/${eventId}/feedback`}>
                       <MessageSquare className="mr-2 h-4 w-4" /> Give Feedback
                     </Link>
                   </Button>
                 )}
                 {event.waitlistEnabled && isFull && !isRegistered && (
-                  <p className="text-xs text-center text-gray-400 mt-2">You&apos;ll be added to the waitlist</p>
+                  <p className="text-xs text-center text-muted-foreground mt-2">You&apos;ll be added to the waitlist</p>
                 )}
               </CardContent>
             </Card>
@@ -429,13 +429,13 @@ export default function EventDetailsClient({ eventId, initialEvent }: { eventId:
 
             <Dialog open={showTierSelection} onOpenChange={setShowTierSelection}>
 
-              <DialogContent className="bg-[#0f172a] border-white/10 text-white max-w-md">
+              <DialogContent className="bg-card border-border text-white max-w-md">
 
                 <DialogHeader>
 
                   <DialogTitle>Select Ticket Tier</DialogTitle>
 
-                  <DialogDescription className="text-gray-400">
+                  <DialogDescription className="text-muted-foreground">
 
                     Choose the best option for your experience.
 
@@ -459,7 +459,7 @@ export default function EventDetailsClient({ eventId, initialEvent }: { eventId:
 
                                         onChange={(e) => setDiscountCode(e.target.value)}
 
-                                        className="bg-white/5 border-white/10"
+                                        className="bg-muted/40 border-border"
 
                                       />
 
@@ -479,7 +479,7 @@ export default function EventDetailsClient({ eventId, initialEvent }: { eventId:
 
                                       </p>
 
-                                      <Button variant="ghost" size="sm" className="h-6 text-xs text-gray-400" onClick={() => {setAppliedDiscount(null); setDiscountCode('');}}>Remove</Button>
+                                      <Button variant="ghost" size="sm" className="h-6 text-xs text-muted-foreground" onClick={() => {setAppliedDiscount(null); setDiscountCode('');}}>Remove</Button>
 
                                     </div>
 
@@ -525,9 +525,9 @@ export default function EventDetailsClient({ eventId, initialEvent }: { eventId:
 
                                           isTierFull 
 
-                                            ? "bg-white/5 border-white/5 opacity-50 cursor-not-allowed" 
+                                            ? "bg-muted/40 border-border/60 opacity-50 cursor-not-allowed" 
 
-                                            : "bg-white/5 border-white/10 hover:border-cyan-500/50 hover:bg-white/[0.08]"
+                                            : "bg-muted/40 border-border hover:border-primary/50 hover:bg-white/[0.08]"
 
                                         )}
 
@@ -543,21 +543,21 @@ export default function EventDetailsClient({ eventId, initialEvent }: { eventId:
 
                                           </div>
 
-                                          {tier.description && <p className="text-xs text-gray-500 mt-1">{tier.description}</p>}
+                                          {tier.description && <p className="text-xs text-muted-foreground mt-1">{tier.description}</p>}
 
-                                          <p className="text-[10px] text-gray-600 mt-2">{tier.capacity - tier.registeredCount} spots remaining</p>
+                                          <p className="text-[10px] text-muted-foreground mt-2">{tier.capacity - tier.registeredCount} spots remaining</p>
 
                                         </div>
 
                                         <div className="text-right ml-4">
 
-                                          <p className="text-xl font-black text-cyan-400">
+                                          <p className="text-xl font-black text-primary">
 
                                             {appliedDiscount && tier.price > 0 ? (
 
                                               <span className="flex flex-col items-end">
 
-                                                <span className="text-[10px] line-through text-gray-500">${tier.price}</span>
+                                                <span className="text-[10px] line-through text-muted-foreground">${tier.price}</span>
 
                                                 <span>{finalTierPrice > 0 ? `${finalTierPrice}` : 'FREE'}</span>
 

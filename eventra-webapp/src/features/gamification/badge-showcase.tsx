@@ -8,7 +8,7 @@ import { cn } from '@/core/utils/utils';
 import { getUserBadges } from '@/app/actions/gamification';
 
 const rarityColors: Record<string, string> = {
-  common: 'bg-gray-500/20 text-gray-300 border-gray-500/30',
+  common: 'bg-muted text-muted-foreground border-border',
   uncommon: 'bg-green-500/20 text-green-400 border-green-500/30',
   rare: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
   epic: 'bg-purple-500/20 text-purple-400 border-purple-500/30',
@@ -44,13 +44,13 @@ export function BadgeShowcase({ userId, compact }: { userId: string; compact?: b
   }, [userId]);
 
   if (loading) {
-    return <div className="py-10 text-center"><Loader2 className="h-6 w-6 animate-spin mx-auto text-cyan-500" /></div>;
+    return <div className="py-10 text-center"><Loader2 className="h-6 w-6 animate-spin mx-auto text-primary" /></div>;
   }
 
   if (compact) {
     return (
       <div className="flex flex-wrap gap-2">
-        {badges.length === 0 && <p className="text-sm text-gray-500 italic">No badges earned yet.</p>}
+        {badges.length === 0 && <p className="text-sm text-muted-foreground italic">No badges earned yet.</p>}
         {badges.map((b: any) => (
           <div key={b.badge.id} className={cn('inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-medium', rarityColors[b.badge.category] || rarityColors.common)} title={b.badge.description}>
             {rarityIcons[b.badge.category] || rarityIcons.common}
@@ -62,21 +62,21 @@ export function BadgeShowcase({ userId, compact }: { userId: string; compact?: b
   }
 
   return (
-    <Card className="bg-white/5 border-white/10 text-white">
+    <Card className="bg-muted/40 border-border text-white">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Trophy className="h-5 w-5 text-yellow-500" />
           Badge Collection
           {badges.length > 0 && (
-            <Badge variant="secondary" className="ml-auto bg-white/10 text-gray-300">{badges.length} earned</Badge>
+            <Badge variant="secondary" className="ml-auto bg-muted text-muted-foreground">{badges.length} earned</Badge>
           )}
         </CardTitle>
       </CardHeader>
       <CardContent>
         {badges.length === 0 ? (
-          <div className="py-12 text-center text-gray-500">
+          <div className="py-12 text-center text-muted-foreground">
             <Trophy className="h-12 w-12 mx-auto mb-3 opacity-20" />
-            <p className="font-bold text-gray-400">NO BADGES UNLOCKED</p>
+            <p className="font-bold text-muted-foreground">NO BADGES UNLOCKED</p>
             <p className="text-sm mt-1">Attend events and participate to earn achievements!</p>
           </div>
         ) : (
@@ -91,9 +91,9 @@ export function BadgeShowcase({ userId, compact }: { userId: string; compact?: b
                       {b.badge.category}
                     </Badge>
                   </div>
-                  <p className="text-[10px] text-gray-400 mt-1 line-clamp-2 leading-relaxed">{b.badge.description}</p>
-                  <div className="flex items-center gap-2 mt-2 text-[9px] font-bold text-gray-500 uppercase tracking-widest">
-                    <span className="flex items-center gap-1 text-cyan-400"><Zap size={10} /> {b.badge.xpReward || 50} XP</span>
+                  <p className="text-[10px] text-muted-foreground mt-1 line-clamp-2 leading-relaxed">{b.badge.description}</p>
+                  <div className="flex items-center gap-2 mt-2 text-[9px] font-bold text-muted-foreground uppercase tracking-widest">
+                    <span className="flex items-center gap-1 text-primary"><Zap size={10} /> {b.badge.xpReward || 50} XP</span>
                     <span>&middot;</span>
                     <span>{new Date(b.awardedAt).toLocaleDateString()}</span>
                   </div>

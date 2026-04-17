@@ -50,7 +50,7 @@ export function SmartSchedulerAssistant({ eventData }: SmartSchedulerAssistantPr
       {!recommendations ? (
         <Button 
           variant="outline" 
-          className="w-full border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10"
+          className="w-full border-primary/30 text-primary hover:bg-primary/10"
           onClick={handleGetRecommendations}
           disabled={loading}
         >
@@ -59,29 +59,29 @@ export function SmartSchedulerAssistant({ eventData }: SmartSchedulerAssistantPr
         </Button>
       ) : (
         <div className="space-y-4 animate-in fade-in slide-in-from-top-2">
-          <div className="bg-cyan-500/10 border border-cyan-500/20 p-4 rounded-xl">
-            <p className="text-xs text-cyan-200 font-medium mb-2 flex items-center gap-2">
+          <div className="bg-primary/10 border border-primary/20 p-4 rounded-xl">
+            <p className="text-xs text-primary font-medium mb-2 flex items-center gap-2">
               <Sparkles className="h-3 w-3" /> AI Strategy
             </p>
-            <p className="text-xs text-gray-300 italic">{strategy}</p>
+            <p className="text-xs text-muted-foreground italic">{strategy}</p>
           </div>
 
           <div className="grid gap-3">
             {recommendations.map((rec, i) => (
-              <Card key={i} className="bg-white/5 border-white/10 overflow-hidden hover:border-cyan-500/30 transition-all cursor-default">
+              <Card key={i} className="bg-muted/40 border-border overflow-hidden hover:border-primary/30 transition-all cursor-default">
                 <CardContent className="p-4">
                   <div className="flex justify-between items-start mb-2">
                     <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-cyan-400" />
+                      <Calendar className="h-4 w-4 text-primary" />
                       <span className="font-bold text-sm text-white">{rec.dayOfWeek}</span>
                     </div>
-                    <Badge className="bg-cyan-500/20 text-cyan-300 text-[10px]">{rec.score}% Fit</Badge>
+                    <Badge className="bg-primary/20 text-primary text-[10px]">{rec.score}% Fit</Badge>
                   </div>
-                  <div className="flex items-center gap-2 text-xs text-gray-400 mb-2">
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
                     <Clock className="h-3.5 w-3.5" />
                     <span>{rec.timeSlot}</span>
                   </div>
-                  <p className="text-[11px] text-gray-500 leading-relaxed">{rec.reasoning}</p>
+                  <p className="text-[11px] text-muted-foreground leading-relaxed">{rec.reasoning}</p>
                 </CardContent>
               </Card>
             ))}
@@ -90,7 +90,7 @@ export function SmartSchedulerAssistant({ eventData }: SmartSchedulerAssistantPr
           <Button 
             variant="ghost" 
             size="sm" 
-            className="w-full text-xs text-gray-500 hover:text-white"
+            className="w-full text-xs text-muted-foreground hover:text-white"
             onClick={() => setRecommendations(null)}
           >
             Refresh Suggestions

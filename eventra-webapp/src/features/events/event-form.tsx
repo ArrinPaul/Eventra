@@ -171,16 +171,16 @@ export function EventForm({ onSave, event }: EventFormProps) {
           <label className="text-sm font-medium">Event Image</label>
           <div className="flex items-center gap-4">
             {imageUrl ? (
-              <div className="relative w-full h-48 rounded-lg overflow-hidden border border-white/10 bg-white/5">
+              <div className="relative w-full h-48 rounded-lg overflow-hidden border border-border bg-muted/40">
                 <Image src={imageUrl} alt="Event" fill className="object-cover" unoptimized={imageUrl.startsWith('blob:') || imageUrl.startsWith('data:')} />
-                <Button type="button" size="icon" variant="ghost" className="absolute top-2 right-2 bg-black/50 hover:bg-black/70 h-8 w-8" onClick={() => { setImageUrl(null); if (fileInputRef.current) fileInputRef.current.value = ''; }}>
+                <Button type="button" size="icon" variant="ghost" className="absolute top-2 right-2 bg-background/50 hover:bg-background/70 h-8 w-8" onClick={() => { setImageUrl(null); if (fileInputRef.current) fileInputRef.current.value = ''; }}>
                   <X className="h-4 w-4" />
                 </Button>
               </div>
             ) : (
-              <button type="button" onClick={() => fileInputRef.current?.click()} disabled={uploading} className="w-full h-48 rounded-lg border-2 border-dashed border-white/10 hover:border-cyan-500/50 bg-white/5 flex flex-col items-center justify-center gap-2 transition-colors">
-                {uploading ? <Loader2 className="h-8 w-8 animate-spin text-cyan-500" /> : <ImagePlus className="h-8 w-8 text-gray-500" />}
-                <span className="text-sm text-gray-500">{uploading ? 'Uploading...' : 'Click to upload event image'}</span>
+              <button type="button" onClick={() => fileInputRef.current?.click()} disabled={uploading} className="w-full h-48 rounded-lg border-2 border-dashed border-border hover:border-primary/50 bg-muted/40 flex flex-col items-center justify-center gap-2 transition-colors">
+                {uploading ? <Loader2 className="h-8 w-8 animate-spin text-primary" /> : <ImagePlus className="h-8 w-8 text-muted-foreground" />}
+                <span className="text-sm text-muted-foreground">{uploading ? 'Uploading...' : 'Click to upload event image'}</span>
               </button>
             )}
             <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />

@@ -29,14 +29,14 @@ export default function LeaderboardClient() {
     return (
         <div className="container py-8 space-y-8 text-white">
             <h1 className="text-4xl font-bold flex items-center gap-3"><Trophy className="text-primary" /> Leaderboard</h1>
-            <Card className="bg-white/5 border-white/10 text-white">
+            <Card className="bg-muted/40 border-border text-white">
                 <Table>
                     <TableHeader><TableRow><TableHead className="text-white">Rank</TableHead><TableHead className="text-white">User</TableHead><TableHead className="text-right text-white">Points</TableHead></TableRow></TableHeader>
                     <TableBody>
                         {rankedUsers.map((u: any, i: number) => (
                             <TableRow key={u.id} className={cn((currentUser?._id || currentUser?.id) === u.id && "bg-primary/10")}>
                                 <TableCell className="font-bold">{i + 1}</TableCell>
-                                <TableCell><div className="flex items-center gap-3"><Avatar><AvatarImage src={u.avatar} /><AvatarFallback>{u.name?.charAt(0)}</AvatarFallback></Avatar><div><p className="font-medium">{u.name}</p><p className="text-xs text-gray-400 capitalize">{u.role}</p></div></div></TableCell>
+                                <TableCell><div className="flex items-center gap-3"><Avatar><AvatarImage src={u.avatar} /><AvatarFallback>{u.name?.charAt(0)}</AvatarFallback></Avatar><div><p className="font-medium">{u.name}</p><p className="text-xs text-muted-foreground capitalize">{u.role}</p></div></div></TableCell>
                                 <TableCell className="text-right font-bold text-lg">{u.displayPoints}</TableCell>
                             </TableRow>
                         ))}

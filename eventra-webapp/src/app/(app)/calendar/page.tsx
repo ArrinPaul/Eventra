@@ -48,13 +48,13 @@ export default function CalendarPage() {
     <div className="container py-8 text-white">
       <div className="mb-8">
         <h1 className="text-4xl font-extrabold tracking-tight">Event Calendar</h1>
-        <p className="text-gray-400 mt-2">Browse upcoming events by date.</p>
+        <p className="text-muted-foreground mt-2">Browse upcoming events by date.</p>
       </div>
 
       <div className="grid lg:grid-cols-3 gap-8">
         {/* Calendar Grid */}
         <div className="lg:col-span-2">
-          <Card className="bg-white/5 border-white/10 text-white">
+          <Card className="bg-muted/40 border-border text-white">
             <CardHeader className="flex flex-row items-center justify-between">
               <Button variant="ghost" size="icon" onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}>
                 <ChevronLeft className="h-5 w-5" />
@@ -70,7 +70,7 @@ export default function CalendarPage() {
               {/* Weekday headers */}
               <div className="grid grid-cols-7 gap-1 mb-2">
                 {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((d) => (
-                  <div key={d} className="text-center text-xs font-medium text-gray-500 py-2">{d}</div>
+                  <div key={d} className="text-center text-xs font-medium text-muted-foreground py-2">{d}</div>
                 ))}
               </div>
 
@@ -89,22 +89,22 @@ export default function CalendarPage() {
                       onClick={() => setSelectedDate(day)}
                       className={`
                         relative p-2 min-h-[60px] rounded-lg text-left transition-all
-                        hover:bg-white/10
-                        ${isSelected ? 'bg-cyan-500/20 ring-1 ring-cyan-500' : ''}
-                        ${today ? 'border border-cyan-500/40' : ''}
+                        hover:bg-muted
+                        ${isSelected ? 'bg-primary/20 ring-1 ring-primary' : ''}
+                        ${today ? 'border border-primary/40' : ''}
                         ${!isSameMonth(day, currentMonth) ? 'opacity-30' : ''}
                       `}
                     >
-                      <span className={`text-sm ${today ? 'text-cyan-400 font-bold' : 'text-gray-300'}`}>
+                      <span className={`text-sm ${today ? 'text-primary font-bold' : 'text-muted-foreground'}`}>
                         {format(day, 'd')}
                       </span>
                       {dayEvents.length > 0 && (
                         <div className="mt-1 flex flex-wrap gap-1">
                           {dayEvents.slice(0, 2).map((e: { _id: string }) => (
-                            <div key={e._id} className="w-full h-1.5 rounded-full bg-cyan-500/60" />
+                            <div key={e._id} className="w-full h-1.5 rounded-full bg-primary/60" />
                           ))}
                           {dayEvents.length > 2 && (
-                            <span className="text-[10px] text-cyan-400">+{dayEvents.length - 2}</span>
+                            <span className="text-[10px] text-primary">+{dayEvents.length - 2}</span>
                           )}
                         </div>
                       )}
@@ -118,30 +118,30 @@ export default function CalendarPage() {
 
         {/* Selected Day Events */}
         <div>
-          <Card className="bg-white/5 border-white/10 text-white sticky top-8">
+          <Card className="bg-muted/40 border-border text-white sticky top-8">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lg">
-                <CalendarIcon className="h-5 w-5 text-cyan-400" />
+                <CalendarIcon className="h-5 w-5 text-primary" />
                 {selectedDate ? format(selectedDate, 'EEEE, MMMM d') : 'Select a date'}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {!selectedDate && (
-                <p className="text-gray-500 text-sm">Click a date on the calendar to see events.</p>
+                <p className="text-muted-foreground text-sm">Click a date on the calendar to see events.</p>
               )}
               {selectedDate && selectedEvents.length === 0 && (
-                <p className="text-gray-500 text-sm">No events on this date.</p>
+                <p className="text-muted-foreground text-sm">No events on this date.</p>
               )}
               {selectedEvents.map((event: EventraEvent) => (
                 <Link href={`/events/${event.id}`} key={event.id}>
-                  <div className="p-4 rounded-xl bg-white/5 border border-white/10 hover:border-cyan-500/50 transition-all cursor-pointer">
+                  <div className="p-4 rounded-xl bg-muted/40 border border-border hover:border-primary/50 transition-all cursor-pointer">
                     <div className="flex items-start justify-between mb-2">
                       <h4 className="font-semibold line-clamp-2">{event.title}</h4>
-                      <Badge variant="outline" className="text-[10px] shrink-0 ml-2 border-white/10">
+                      <Badge variant="outline" className="text-[10px] shrink-0 ml-2 border-border">
                         {event.category}
                       </Badge>
                     </div>
-                    <div className="flex items-center gap-3 text-xs text-gray-400">
+                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
                       <span className="flex items-center gap-1">
                         <Clock className="h-3 w-3" />
                         {event.startDate && format(new Date(event.startDate), 'h:mm a')}
@@ -156,7 +156,7 @@ export default function CalendarPage() {
                       )}
                     </div>
                     {event.capacity && (
-                      <div className="mt-2 text-xs text-gray-500">
+                      <div className="mt-2 text-xs text-muted-foreground">
                         {event.registeredCount ?? 0}/{event.capacity} registered
                       </div>
                     )}

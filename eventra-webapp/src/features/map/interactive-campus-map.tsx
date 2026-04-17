@@ -111,7 +111,7 @@ export default function InteractiveCampusMap({
         {/* Background Grid */}
         <defs>
           <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="currentColor" strokeWidth="0.5" className="text-slate-300 dark:text-slate-700" />
+            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="currentColor" strokeWidth="0.5" className="text-muted-foreground dark:text-slate-700" />
           </pattern>
           
           {/* Glow filter for selected items */}
@@ -135,11 +135,11 @@ export default function InteractiveCampusMap({
         {/* Roads/Paths Background */}
         <g className="roads">
           {/* Vertical main road */}
-          <rect x="420" y="0" width="40" height="600" fill="currentColor" className="text-slate-300 dark:text-slate-700" rx="4" />
+          <rect x="420" y="0" width="40" height="600" fill="currentColor" className="text-muted-foreground dark:text-slate-700" rx="4" />
           {/* Horizontal main road */}
-          <rect x="0" y="340" width="800" height="40" fill="currentColor" className="text-slate-300 dark:text-slate-700" rx="4" />
+          <rect x="0" y="340" width="800" height="40" fill="currentColor" className="text-muted-foreground dark:text-slate-700" rx="4" />
           {/* Cross road */}
-          <rect x="200" y="140" width="400" height="30" fill="currentColor" className="text-slate-300 dark:text-slate-700" rx="4" />
+          <rect x="200" y="140" width="400" height="30" fill="currentColor" className="text-muted-foreground dark:text-slate-700" rx="4" />
         </g>
 
         {/* Campus Boundary */}
@@ -152,7 +152,7 @@ export default function InteractiveCampusMap({
           stroke="currentColor" 
           strokeWidth="3" 
           strokeDasharray="10 5"
-          className="text-slate-400 dark:text-slate-600"
+          className="text-muted-foreground dark:text-slate-600"
           rx="20"
         />
 
@@ -421,8 +421,8 @@ export default function InteractiveCampusMap({
 
         {/* Scale */}
         <g transform="translate(60, 560)">
-          <rect width="100" height="4" fill="currentColor" className="text-slate-600 dark:text-slate-400" />
-          <rect width="50" height="4" fill="currentColor" className="text-slate-400 dark:text-slate-500" />
+          <rect width="100" height="4" fill="currentColor" className="text-slate-600 dark:text-muted-foreground" />
+          <rect width="50" height="4" fill="currentColor" className="text-muted-foreground dark:text-muted-foreground" />
           <text x="0" y="16" className="text-[10px] fill-slate-500">0</text>
           <text x="50" y="16" className="text-[10px] fill-slate-500">50m</text>
           <text x="100" y="16" className="text-[10px] fill-slate-500">100m</text>

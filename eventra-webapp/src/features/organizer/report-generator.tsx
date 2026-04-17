@@ -87,24 +87,24 @@ export function ReportGenerator({ eventId, eventTitle }: ReportGeneratorProps) {
   };
 
   return (
-    <Card className="bg-gradient-to-br from-cyan-600/20 to-blue-600/20 border-white/10 text-white overflow-hidden">
+    <Card className="bg-gradient-to-br from-primary/20 to-blue-600/20 border-border text-white overflow-hidden">
       <CardHeader>
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-white/10 rounded-lg"><FileBarChart className="text-cyan-400" /></div>
+          <div className="p-2 bg-muted rounded-lg"><FileBarChart className="text-primary" /></div>
           <div>
             <CardTitle>Professional After-Action Report</CardTitle>
-            <CardDescription className="text-cyan-100/60">Generate a high-quality PDF summary of event success and feedback.</CardDescription>
+            <CardDescription className="text-muted-foreground">Generate a high-quality PDF summary of event success and feedback.</CardDescription>
           </div>
         </div>
       </CardHeader>
       <CardContent>
          <ul className="space-y-2 mb-6">
-           <li className="flex items-center gap-2 text-sm text-cyan-50/80"><CheckCircle2 size={14} className="text-cyan-400" /> Executive summary of attendance</li>
-           <li className="flex items-center gap-2 text-sm text-cyan-50/80"><CheckCircle2 size={14} className="text-cyan-400" /> Sentiment analysis of feedback</li>
-           <li className="flex items-center gap-2 text-sm text-cyan-50/80"><CheckCircle2 size={14} className="text-cyan-400" /> Key highlights and areas for growth</li>
+           <li className="flex items-center gap-2 text-sm text-muted-foreground"><CheckCircle2 size={14} className="text-primary" /> Executive summary of attendance</li>
+           <li className="flex items-center gap-2 text-sm text-muted-foreground"><CheckCircle2 size={14} className="text-primary" /> Sentiment analysis of feedback</li>
+           <li className="flex items-center gap-2 text-sm text-muted-foreground"><CheckCircle2 size={14} className="text-primary" /> Key highlights and areas for growth</li>
          </ul>
          <Button 
-            className="w-full bg-white text-cyan-900 hover:bg-cyan-50 font-bold"
+            className="w-full bg-white text-primary hover:bg-primary/90 font-bold"
             onClick={handleGenerateReport}
             disabled={isGenerating}
          >

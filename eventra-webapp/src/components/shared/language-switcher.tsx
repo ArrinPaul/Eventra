@@ -32,7 +32,7 @@ export function LanguageSwitcher() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="h-9 w-9 text-gray-400 hover:text-white hover:bg-white/10">
+        <Button variant="ghost" size="icon" className="h-9 w-9 text-muted-foreground hover:text-white hover:bg-muted">
           {isPending ? (
             <Loader2 className="h-4 w-4 animate-spin" />
           ) : (
@@ -40,14 +40,14 @@ export function LanguageSwitcher() {
           )}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="bg-gray-900 border-white/10 text-white">
+      <DropdownMenuContent align="end" className="bg-gray-900 border-border text-white">
         {languages.map((lang) => (
           <DropdownMenuItem
             key={lang.code}
             onClick={() => onChange(lang.code)}
             className={cn(
-              "cursor-pointer flex items-center justify-between gap-2 hover:bg-white/10",
-              locale === lang.code && "text-cyan-400 bg-cyan-500/5"
+              "cursor-pointer flex items-center justify-between gap-2 hover:bg-muted",
+              locale === lang.code && "text-primary bg-primary/5"
             )}
           >
             <span className="flex items-center gap-2">

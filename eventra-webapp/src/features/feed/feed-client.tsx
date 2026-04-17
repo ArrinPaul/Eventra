@@ -98,16 +98,16 @@ export default function FeedClient() {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-2xl text-white">
-      <Card className="mb-6 bg-white/5 border-white/10 text-white">
+      <Card className="mb-6 bg-muted/40 border-border text-white">
         <CardContent className="p-4 flex gap-3">
           <Avatar><AvatarFallback>{user?.name?.charAt(0) || 'U'}</AvatarFallback></Avatar>
-          <Button variant="outline" className="flex-1 justify-start text-gray-400 border-white/10" onClick={() => setShowCreatePost(true)}>What&apos;s happening?</Button>
+          <Button variant="outline" className="flex-1 justify-start text-muted-foreground border-border" onClick={() => setShowCreatePost(true)}>What&apos;s happening?</Button>
         </CardContent>
       </Card>
 
       <div className="space-y-4">
         {postsRaw.map((post: any) => (
-          <Card key={post._id} className="bg-white/5 border-white/10 text-white">
+          <Card key={post._id} className="bg-muted/40 border-border text-white">
             <CardContent className="p-6">
               <div className="flex justify-between items-start mb-4">
                 <div className="flex gap-3">
@@ -117,18 +117,18 @@ export default function FeedClient() {
                   </Avatar>
                   <div>
                     <p className="font-bold">{post.authorName || 'User'}</p>
-                    <p className="text-xs text-gray-500">{new Date(post.createdAt).toLocaleDateString()}</p>
+                    <p className="text-xs text-muted-foreground">{new Date(post.createdAt).toLocaleDateString()}</p>
                   </div>
                 </div>
 
                 {user?._id === post.authorId && (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-white/10">
+                      <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-muted">
                         <MoreVertical size={16} />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent className="bg-gray-900 border-white/10 text-white">
+                    <DropdownMenuContent className="bg-gray-900 border-border text-white">
                       <DropdownMenuItem 
                         onClick={() => {
                           setEditingPost(post);
@@ -149,8 +149,8 @@ export default function FeedClient() {
                   </DropdownMenu>
                 )}
               </div>
-              <p className="text-gray-200 whitespace-pre-wrap">{post.content}</p>
-              <div className="flex gap-6 mt-6 pt-4 border-t border-white/10">
+              <p className="text-foreground whitespace-pre-wrap">{post.content}</p>
+              <div className="flex gap-6 mt-6 pt-4 border-t border-border">
                 <Button 
                   variant="ghost" 
                   size="sm" 
@@ -163,7 +163,7 @@ export default function FeedClient() {
                   variant="ghost" 
                   size="sm" 
                   onClick={() => toggleComments(post._id)}
-                  className={cn("gap-2 hover:bg-cyan-500/10 hover:text-cyan-400", expandedComments[post._id] && "text-cyan-400")}
+                  className={cn("gap-2 hover:bg-primary/10 hover:text-primary", expandedComments[post._id] && "text-primary")}
                 >
                   <MessageCircle size={16} /> {post.commentCount || 0}
                 </Button>
@@ -179,7 +179,7 @@ export default function FeedClient() {
         {status === "CanLoadMore" && (
           <Button 
             variant="ghost" 
-            className="w-full text-gray-400 hover:text-white" 
+            className="w-full text-muted-foreground hover:text-white" 
             onClick={() => loadMore(10)}
           >
             Load More
@@ -188,16 +188,16 @@ export default function FeedClient() {
         
         {status === "LoadingMore" && (
           <div className="flex justify-center py-4">
-            <Loader2 className="h-6 w-6 animate-spin text-cyan-500" />
+            <Loader2 className="h-6 w-6 animate-spin text-primary" />
           </div>
         )}
       </div>
 
       {/* Create Post Dialog */}
       <Dialog open={showCreatePost} onOpenChange={setShowCreatePost}>
-        <DialogContent className="bg-gray-900 border-white/10 text-white">
+        <DialogContent className="bg-gray-900 border-border text-white">
           <DialogHeader><DialogTitle>Create Post</DialogTitle></DialogHeader>
-          <Textarea value={newPostContent} onChange={e => setNewPostContent(e.target.value)} placeholder="Share something..." className="bg-white/5 border-white/10" rows={4} />
+          <Textarea value={newPostContent} onChange={e => setNewPostContent(e.target.value)} placeholder="Share something..." className="bg-muted/40 border-border" rows={4} />
           <DialogFooter>
             <Button onClick={handleCreatePost} disabled={loading}>{loading ? 'Posting...' : 'Post'}</Button>
           </DialogFooter>
@@ -206,9 +206,9 @@ export default function FeedClient() {
 
       {/* Edit Post Dialog */}
       <Dialog open={showEditPost} onOpenChange={setShowEditPost}>
-        <DialogContent className="bg-gray-900 border-white/10 text-white">
+        <DialogContent className="bg-gray-900 border-border text-white">
           <DialogHeader><DialogTitle>Edit Post</DialogTitle></DialogHeader>
-          <Textarea value={editPostContent} onChange={e => setEditPostContent(e.target.value)} placeholder="Update your post..." className="bg-white/5 border-white/10" rows={4} />
+          <Textarea value={editPostContent} onChange={e => setEditPostContent(e.target.value)} placeholder="Update your post..." className="bg-muted/40 border-border" rows={4} />
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowEditPost(false)} disabled={loading}>Cancel</Button>
             <Button onClick={handleUpdatePost} disabled={loading}>{loading ? 'Saving...' : 'Save Changes'}</Button>

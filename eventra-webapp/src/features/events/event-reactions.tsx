@@ -31,13 +31,13 @@ export function EventReactions({ eventId }: EventReactionsProps) {
             className={cn(
               "flex items-center gap-1.5 px-3 py-1.5 rounded-full border transition-all text-sm",
               stats.me 
-                ? "bg-cyan-500/20 border-cyan-500/50 text-white" 
-                : "bg-white/5 border-white/10 text-gray-400 hover:bg-white/10 hover:border-white/20"
+                ? "bg-primary/20 border-primary/50 text-white" 
+                : "bg-muted/40 border-border text-muted-foreground hover:bg-muted hover:border-border"
             )}
           >
             <span>{emoji}</span>
             {stats.count > 0 && (
-              <span className={cn("font-bold", stats.me ? "text-cyan-400" : "text-gray-500")}>
+              <span className={cn("font-bold", stats.me ? "text-primary" : "text-muted-foreground")}>
                 {stats.count}
               </span>
             )}

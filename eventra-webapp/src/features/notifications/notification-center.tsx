@@ -107,31 +107,31 @@ export function NotificationBell() {
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button variant="ghost" size="icon" className="relative text-white">
-          {unreadCount > 0 ? <BellRing className="w-5 h-5 text-cyan-400" /> : <Bell className="w-5 h-5" />}
+          {unreadCount > 0 ? <BellRing className="w-5 h-5 text-primary" /> : <Bell className="w-5 h-5" />}
           {unreadCount > 0 && <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-medium">{unreadCount}</span>}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[380px] p-0 bg-gray-900 border-white/10 text-white" align="end">
-        <div className="flex items-center justify-between p-4 border-b border-white/10">
+      <PopoverContent className="w-[380px] p-0 bg-gray-900 border-border text-white" align="end">
+        <div className="flex items-center justify-between p-4 border-b border-border">
           <h3 className="font-semibold">Notifications</h3>
           {unreadCount > 0 && <Button variant="ghost" size="sm" onClick={handleMarkAllRead}><CheckCheck className="w-4 h-4 mr-1" /> Mark all read</Button>}
         </div>
         <ScrollArea className="h-[400px]">
           {loading ? (
-            <div className="flex justify-center py-8"><Loader2 className="animate-spin text-cyan-400" /></div>
+            <div className="flex justify-center py-8"><Loader2 className="animate-spin text-primary" /></div>
           ) : notificationsRaw.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-gray-500"><Bell className="w-12 h-12 mb-4 opacity-20" /><p>No notifications yet</p></div>
+            <div className="flex flex-col items-center justify-center py-12 text-muted-foreground"><Bell className="w-12 h-12 mb-4 opacity-20" /><p>No notifications yet</p></div>
           ) : (
-            <div className="divide-y divide-white/10">
+            <div className="divide-y divide-border">
               {notificationsRaw.map((n: any) => (
-                <div key={n.id} className={cn("p-4 hover:bg-white/5 cursor-pointer transition-colors", !n.read && "bg-cyan-500/5")} onClick={() => { handleMarkRead(n.id); if (n.link) { setOpen(false); router.push(n.link); } }}>
+                <div key={n.id} className={cn("p-4 hover:bg-muted/40 cursor-pointer transition-colors", !n.read && "bg-primary/5")} onClick={() => { handleMarkRead(n.id); if (n.link) { setOpen(false); router.push(n.link); } }}>
                   <div className="flex gap-3">
                     <div className="flex-1">
                       <p className={cn("text-sm", !n.read && "font-bold text-white")}>{n.title}</p>
-                      <p className="text-xs text-gray-400 mt-1">{n.message}</p>
-                      <p className="text-[10px] text-gray-500 mt-1">{formatDistanceToNow(new Date(n.createdAt), { addSuffix: true })}</p>
+                      <p className="text-xs text-muted-foreground mt-1">{n.message}</p>
+                      <p className="text-[10px] text-muted-foreground mt-1">{formatDistanceToNow(new Date(n.createdAt), { addSuffix: true })}</p>
                     </div>
-                    <Button variant="ghost" size="icon" className="h-6 w-6 text-gray-500 hover:text-red-400" onClick={(e) => { e.stopPropagation(); handleDelete(n.id); }}><X className="w-3 h-3" /></Button>
+                    <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-red-400" onClick={(e) => { e.stopPropagation(); handleDelete(n.id); }}><X className="w-3 h-3" /></Button>
                   </div>
                 </div>
               ))}
@@ -179,28 +179,28 @@ export function NotificationCenter() {
   return (
     <div className="container py-8 space-y-6 text-white max-w-4xl">
       <div className="flex justify-between items-center">
-        <div><h1 className="text-3xl font-bold">Notifications</h1><p className="text-gray-400">{unreadCount} unread</p></div>
-        <Button onClick={handleMarkAllRead} variant="outline" className="border-white/10 hover:bg-white/5">Mark all as read</Button>
+        <div><h1 className="text-3xl font-bold">Notifications</h1><p className="text-muted-foreground">{unreadCount} unread</p></div>
+        <Button onClick={handleMarkAllRead} variant="outline" className="border-border hover:bg-muted/40">Mark all as read</Button>
       </div>
-      <Card className="bg-white/5 border-white/10 overflow-hidden">
+      <Card className="bg-muted/40 border-border overflow-hidden">
         {loading ? (
-          <div className="p-20 text-center"><Loader2 className="h-8 w-8 animate-spin mx-auto text-cyan-500" /></div>
+          <div className="p-20 text-center"><Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" /></div>
         ) : (
-          <div className="divide-y divide-white/10">
+          <div className="divide-y divide-border">
             {notifications.map((n: any) => (
-              <div key={n.id} className={cn("p-6 flex justify-between items-start cursor-pointer hover:bg-white/5 transition-colors", !n.read && "bg-cyan-500/5")} onClick={() => { if (!n.read) handleMarkRead(n.id); if (n.link) router.push(n.link); }}>
+              <div key={n.id} className={cn("p-6 flex justify-between items-start cursor-pointer hover:bg-muted/40 transition-colors", !n.read && "bg-primary/5")} onClick={() => { if (!n.read) handleMarkRead(n.id); if (n.link) router.push(n.link); }}>
                 <div>
-                  <h3 className={cn("font-bold", !n.read ? "text-white" : "text-gray-200")}>{n.title}</h3>
-                  <p className="text-gray-400 mt-1">{n.message}</p>
-                  <p className="text-xs text-gray-500 mt-2">{formatDistanceToNow(new Date(n.createdAt), { addSuffix: true })}</p>
+                  <h3 className={cn("font-bold", !n.read ? "text-white" : "text-foreground")}>{n.title}</h3>
+                  <p className="text-muted-foreground mt-1">{n.message}</p>
+                  <p className="text-xs text-muted-foreground mt-2">{formatDistanceToNow(new Date(n.createdAt), { addSuffix: true })}</p>
                 </div>
                 <div className="flex gap-2">
                   {!n.read && <Button size="sm" variant="ghost" onClick={(e) => { e.stopPropagation(); handleMarkRead(n.id); }}><Check className="w-4 h-4" /></Button>}
-                  <Button size="sm" variant="ghost" className="text-gray-500 hover:text-red-400" onClick={(e) => { e.stopPropagation(); handleDelete(n.id); }}><Trash2 className="w-4 h-4" /></Button>
+                  <Button size="sm" variant="ghost" className="text-muted-foreground hover:text-red-400" onClick={(e) => { e.stopPropagation(); handleDelete(n.id); }}><Trash2 className="w-4 h-4" /></Button>
                 </div>
               </div>
             ))}
-            {notifications.length === 0 && <div className="p-20 text-center text-gray-500">No notifications found</div>}
+            {notifications.length === 0 && <div className="p-20 text-center text-muted-foreground">No notifications found</div>}
           </div>
         )}
       </Card>

@@ -33,7 +33,7 @@ export function RevenueDashboard() {
   if (!stats) {
     return (
       <div className="flex items-center justify-center h-64">
-        <Loader2 className="h-8 w-8 animate-spin text-cyan-500" />
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -58,11 +58,11 @@ export function RevenueDashboard() {
         />
       </div>
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card className="bg-white/5 border-white/10 text-white">
+        <Card className="bg-muted/40 border-border text-white">
           <CardContent className="p-6">
             <div className="flex justify-between items-start mb-2">
-              <p className="text-sm font-medium text-gray-400">Total Revenue</p>
-              <DollarSign className="h-4 w-4 text-cyan-400" />
+              <p className="text-sm font-medium text-muted-foreground">Total Revenue</p>
+              <DollarSign className="h-4 w-4 text-primary" />
             </div>
             <p className="text-2xl font-bold">${stats.totalRevenue.toLocaleString()}</p>
             <div className={cn(
@@ -75,10 +75,10 @@ export function RevenueDashboard() {
           </CardContent>
         </Card>
 
-        <Card className="bg-white/5 border-white/10 text-white">
+        <Card className="bg-muted/40 border-border text-white">
           <CardContent className="p-6">
             <div className="flex justify-between items-start mb-2">
-              <p className="text-sm font-medium text-gray-400">Total Tickets</p>
+              <p className="text-sm font-medium text-muted-foreground">Total Tickets</p>
               <Ticket className="h-4 w-4 text-purple-400" />
             </div>
             <p className="text-2xl font-bold">
@@ -94,10 +94,10 @@ export function RevenueDashboard() {
           </CardContent>
         </Card>
 
-        <Card className="bg-white/5 border-white/10 text-white">
+        <Card className="bg-muted/40 border-border text-white">
           <CardContent className="p-6">
             <div className="flex justify-between items-start mb-2">
-              <p className="text-sm font-medium text-gray-400">Avg. Order Value</p>
+              <p className="text-sm font-medium text-muted-foreground">Avg. Order Value</p>
               <TrendingUp className="h-4 w-4 text-pink-400" />
             </div>
             <p className="text-2xl font-bold">
@@ -108,10 +108,10 @@ export function RevenueDashboard() {
           </CardContent>
         </Card>
 
-        <Card className="bg-white/5 border-white/10 text-white">
+        <Card className="bg-muted/40 border-border text-white">
           <CardContent className="p-6">
             <div className="flex justify-between items-start mb-2">
-              <p className="text-sm font-medium text-gray-400">Active Events</p>
+              <p className="text-sm font-medium text-muted-foreground">Active Events</p>
               <Users className="h-4 w-4 text-amber-400" />
             </div>
             <p className="text-2xl font-bold">{stats.revenueByEvent.length}</p>
@@ -120,10 +120,10 @@ export function RevenueDashboard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="bg-white/5 border-white/10 text-white">
+        <Card className="bg-muted/40 border-border text-white">
           <CardHeader>
             <CardTitle>Revenue Trends</CardTitle>
-            <CardDescription className="text-gray-400">Daily revenue for the last 30 days</CardDescription>
+            <CardDescription className="text-muted-foreground">Daily revenue for the last 30 days</CardDescription>
           </CardHeader>
           <CardContent className="h-[300px]">
             <ChartContainer config={chartConfig}>
@@ -152,10 +152,10 @@ export function RevenueDashboard() {
           </CardContent>
         </Card>
 
-        <Card className="bg-white/5 border-white/10 text-white">
+        <Card className="bg-muted/40 border-border text-white">
           <CardHeader>
             <CardTitle>Revenue by Event</CardTitle>
-            <CardDescription className="text-gray-400">Top performing events by revenue</CardDescription>
+            <CardDescription className="text-muted-foreground">Top performing events by revenue</CardDescription>
           </CardHeader>
           <CardContent className="h-[300px]">
             <ChartContainer config={chartConfig}>
@@ -180,10 +180,10 @@ export function RevenueDashboard() {
         </Card>
       </div>
 
-      <Card className="bg-white/5 border-white/10 text-white">
+      <Card className="bg-muted/40 border-border text-white">
         <CardHeader>
           <CardTitle>Tier Breakdown</CardTitle>
-          <CardDescription className="text-gray-400">Revenue distribution by ticket type</CardDescription>
+          <CardDescription className="text-muted-foreground">Revenue distribution by ticket type</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
@@ -216,7 +216,7 @@ export function RevenueDashboard() {
                   </div>
                   <div className="text-right">
                     <p className="text-sm font-bold">${value.toLocaleString()}</p>
-                    <p className="text-[10px] text-gray-500">
+                    <p className="text-[10px] text-muted-foreground">
                       {((value / stats.totalRevenue) * 100).toFixed(1)}%
                     </p>
                   </div>

@@ -92,56 +92,56 @@ export function CoOrganizerManager({ eventId, organizerId, coOrganizerIds = [] }
   };
 
   return (
-    <Card className="bg-white/5 border-white/10 text-white">
+    <Card className="bg-muted/40 border-border text-white">
       <CardHeader>
         <CardTitle className="text-xl flex items-center gap-2">
-          <ShieldCheck className="text-cyan-400" />
+          <ShieldCheck className="text-primary" />
           Co-Organizers
         </CardTitle>
-        <CardDescription className="text-gray-400">
+        <CardDescription className="text-muted-foreground">
           Share management permissions with other team members.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Main Organizer */}
         <div className="space-y-3">
-          <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">Main Organizer</p>
-          <div className="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/5">
-            <Avatar className="h-10 w-10 border border-cyan-500/30">
+          <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Main Organizer</p>
+          <div className="flex items-center gap-3 p-3 bg-muted/40 rounded-xl border border-border/60">
+            <Avatar className="h-10 w-10 border border-primary/30">
               <AvatarImage src={mainOrganizer?.image} />
-              <AvatarFallback className="bg-cyan-500/10 text-cyan-500">{mainOrganizer?.name?.charAt(0)}</AvatarFallback>
+              <AvatarFallback className="bg-primary/10 text-primary">{mainOrganizer?.name?.charAt(0)}</AvatarFallback>
             </Avatar>
             <div>
               <p className="font-medium">{mainOrganizer?.name} (You)</p>
-              <p className="text-xs text-gray-500">{mainOrganizer?.email}</p>
+              <p className="text-xs text-muted-foreground">{mainOrganizer?.email}</p>
             </div>
-            <Badge className="ml-auto bg-cyan-600">Owner</Badge>
+            <Badge className="ml-auto bg-primary">Owner</Badge>
           </div>
         </div>
 
         {/* Co-Organizers List */}
         <div className="space-y-3">
-          <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">Team Members</p>
+          <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Team Members</p>
           <div className="space-y-2">
             {coOrganizers.length === 0 ? (
-              <p className="text-sm text-gray-500 italic p-4 text-center border border-dashed border-white/10 rounded-xl">
+              <p className="text-sm text-muted-foreground italic p-4 text-center border border-dashed border-border rounded-xl">
                 No co-organizers added yet.
               </p>
             ) : (
               coOrganizers.map((co: any) => (
-                <div key={co._id} className="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/5 group">
+                <div key={co._id} className="flex items-center gap-3 p-3 bg-muted/40 rounded-xl border border-border/60 group">
                   <Avatar className="h-10 w-10">
                     <AvatarImage src={co.image} />
                     <AvatarFallback className="bg-purple-500/10 text-purple-500">{co.name?.charAt(0)}</AvatarFallback>
                   </Avatar>
                   <div>
                     <p className="font-medium">{co.name}</p>
-                    <p className="text-xs text-gray-500">{co.email}</p>
+                    <p className="text-xs text-muted-foreground">{co.email}</p>
                   </div>
                   <Button 
                     variant="ghost" 
                     size="icon" 
-                    className="ml-auto text-gray-500 hover:text-red-400 hover:bg-red-400/10"
+                    className="ml-auto text-muted-foreground hover:text-red-400 hover:bg-red-400/10"
                     onClick={() => handleRemove(co._id)}
                     disabled={isUpdating}
                   >
@@ -154,22 +154,22 @@ export function CoOrganizerManager({ eventId, organizerId, coOrganizerIds = [] }
         </div>
 
         {/* Add New */}
-        <div className="pt-4 border-t border-white/5 space-y-3">
+        <div className="pt-4 border-t border-border/60 space-y-3">
           <Label className="text-sm">Add by Email</Label>
           <div className="flex gap-2">
             <div className="relative flex-1">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input 
                 placeholder="colleague@example.com" 
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="pl-9 bg-white/5 border-white/10 focus-visible:ring-cyan-500"
+                className="pl-9 bg-muted/40 border-border focus-visible:ring-primary"
               />
             </div>
             <Button 
               onClick={handleAddByEmail} 
               disabled={isSearching || isUpdating || !email}
-              className="bg-cyan-600 hover:bg-cyan-500 text-white"
+              className="bg-primary hover:bg-primary text-white"
             >
               {isUpdating ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserPlus className="h-4 w-4 mr-2" />}
               Invite

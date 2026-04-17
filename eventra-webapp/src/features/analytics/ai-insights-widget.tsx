@@ -48,12 +48,12 @@ export function AIInsightsWidget({
   }, [fetchInsights]);
 
   return (
-    <Card className={cn("bg-gradient-to-br from-cyan-900/20 to-purple-900/20 border-cyan-500/30 overflow-hidden", className)}>
-      <CardHeader className="pb-3 border-b border-white/5">
+    <Card className={cn("bg-gradient-to-br from-primary/20 to-purple-900/20 border-primary/30 overflow-hidden", className)}>
+      <CardHeader className="pb-3 border-b border-border/60">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="bg-cyan-500/20 p-2 rounded-lg">
-              <Brain className="h-4 w-4 text-cyan-400" />
+            <div className="bg-primary/20 p-2 rounded-lg">
+              <Brain className="h-4 w-4 text-primary" />
             </div>
             <CardTitle className="text-lg font-bold text-white">{title}</CardTitle>
           </div>
@@ -62,7 +62,7 @@ export function AIInsightsWidget({
             size="sm" 
             onClick={fetchInsights} 
             disabled={loading || !sessionPopularityData}
-            className="h-8 w-8 p-0 text-gray-400 hover:text-white"
+            className="h-8 w-8 p-0 text-muted-foreground hover:text-white"
           >
             <RefreshCw className={cn("h-4 w-4", loading && "animate-spin")} />
           </Button>
@@ -71,8 +71,8 @@ export function AIInsightsWidget({
       <CardContent className="pt-6">
         {loading ? (
           <div className="space-y-2">
-            <div className="h-4 bg-white/5 rounded w-full animate-pulse" />
-            <div className="h-4 bg-white/5 rounded w-5/6 animate-pulse" />
+            <div className="h-4 bg-muted/40 rounded w-full animate-pulse" />
+            <div className="h-4 bg-muted/40 rounded w-5/6 animate-pulse" />
           </div>
         ) : (
           <div className="space-y-4">
@@ -80,13 +80,13 @@ export function AIInsightsWidget({
               <div className="mt-1">
                 <Sparkles className="h-5 w-5 text-yellow-400 animate-pulse" />
               </div>
-              <p className="text-gray-200 text-sm leading-relaxed italic">
+              <p className="text-foreground text-sm leading-relaxed italic">
                 {insight || "No data available yet to generate insights."}
               </p>
             </div>
             
             <div className="flex items-center gap-2 pt-2">
-              <Badge variant="outline" className="text-[10px] border-cyan-500/30 text-cyan-400 bg-cyan-500/5">
+              <Badge variant="outline" className="text-[10px] border-primary/30 text-primary bg-primary/5">
                 <Zap className="w-3 h-3 mr-1" />
                 Live Analysis
               </Badge>

@@ -63,13 +63,13 @@ export function FeedbackForm({ eventId, eventName, schema = [], onSuccess }: Fee
 
   if (submitted) {
     return (
-      <Card className="bg-white/5 border-white/10 text-white text-center py-10">
+      <Card className="bg-muted/40 border-border text-white text-center py-10">
         <CardContent className="space-y-4">
           <div className="bg-green-500/20 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
             <CheckCircle2 className="w-10 h-10 text-green-400" />
           </div>
           <h3 className="text-2xl font-bold">Thank You!</h3>
-          <p className="text-gray-400">Your feedback has been recorded successfully.</p>
+          <p className="text-muted-foreground">Your feedback has been recorded successfully.</p>
         </CardContent>
       </Card>
     );
@@ -79,10 +79,10 @@ export function FeedbackForm({ eventId, eventName, schema = [], onSuccess }: Fee
     <div className="space-y-6 animate-in fade-in duration-500">
       <div className="space-y-2">
         <h2 className="text-2xl font-bold text-white">Event Feedback</h2>
-        <p className="text-gray-400">How was your experience at <strong>{eventName}</strong>?</p>
+        <p className="text-muted-foreground">How was your experience at <strong>{eventName}</strong>?</p>
       </div>
 
-      <Card className="bg-white/5 border-white/10 text-white">
+      <Card className="bg-muted/40 border-border text-white">
         <CardContent className="p-6 space-y-8">
           {/* Overall Rating */}
           <div className="space-y-4 text-center">
@@ -97,7 +97,7 @@ export function FeedbackForm({ eventId, eventName, schema = [], onSuccess }: Fee
                   <Star 
                     className={cn(
                       "w-10 h-10 transition-colors",
-                      star <= rating ? "fill-yellow-400 text-yellow-400" : "text-gray-600"
+                      star <= rating ? "fill-yellow-400 text-yellow-400" : "text-muted-foreground"
                     )} 
                   />
                 </button>
@@ -107,7 +107,7 @@ export function FeedbackForm({ eventId, eventName, schema = [], onSuccess }: Fee
 
           {/* Dynamic Schema Questions */}
           {schema.length > 0 && (
-            <div className="space-y-6 pt-6 border-t border-white/5">
+            <div className="space-y-6 pt-6 border-t border-border/60">
               {schema.map((item) => (
                 <div key={item.id} className="space-y-3">
                   <Label className="text-sm font-medium flex gap-1">
@@ -118,7 +118,7 @@ export function FeedbackForm({ eventId, eventName, schema = [], onSuccess }: Fee
                   {item.type === 'text' && (
                     <Textarea 
                       placeholder="Your answer..."
-                      className="bg-white/5 border-white/10 focus-visible:ring-cyan-500"
+                      className="bg-muted/40 border-border focus-visible:ring-primary"
                       onChange={(e) => handleResponseChange(item.id, e.target.value)}
                     />
                   )}
@@ -127,7 +127,7 @@ export function FeedbackForm({ eventId, eventName, schema = [], onSuccess }: Fee
                     <div className="flex gap-1">
                       {[1, 2, 3, 4, 5].map((s) => (
                         <button key={s} onClick={() => handleResponseChange(item.id, s)}>
-                          <Star className={cn("w-5 h-5", (responses[item.id] || 0) >= s ? "fill-cyan-400 text-cyan-400" : "text-gray-700")} />
+                          <Star className={cn("w-5 h-5", (responses[item.id] || 0) >= s ? "fill-primary text-primary" : "text-gray-700")} />
                         </button>
                       ))}
                     </div>
@@ -136,7 +136,7 @@ export function FeedbackForm({ eventId, eventName, schema = [], onSuccess }: Fee
                   {item.type === 'boolean' && (
                     <div className="flex items-center gap-3">
                       <Switch onCheckedChange={(val) => handleResponseChange(item.id, val)} />
-                      <span className="text-sm text-gray-400">{responses[item.id] ? 'Yes' : 'No'}</span>
+                      <span className="text-sm text-muted-foreground">{responses[item.id] ? 'Yes' : 'No'}</span>
                     </div>
                   )}
                 </div>
@@ -145,20 +145,20 @@ export function FeedbackForm({ eventId, eventName, schema = [], onSuccess }: Fee
           )}
 
           {/* General Comment */}
-          <div className="space-y-3 pt-6 border-t border-white/5">
+          <div className="space-y-3 pt-6 border-t border-border/60">
             <Label className="text-sm font-medium">Additional Comments</Label>
             <Textarea 
               placeholder="Anything else you'd like to share?" 
               value={comment}
               onChange={(e) => setComment(e.target.value)}
-              className="bg-white/5 border-white/10 min-h-[100px] focus-visible:ring-cyan-500"
+              className="bg-muted/40 border-border min-h-[100px] focus-visible:ring-primary"
             />
           </div>
 
           <Button 
             onClick={handleSubmit} 
             disabled={submitting || rating === 0}
-            className="w-full bg-cyan-600 hover:bg-cyan-500 text-white py-6 text-lg font-bold"
+            className="w-full bg-primary hover:bg-primary text-white py-6 text-lg font-bold"
           >
             {submitting ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <CheckCircle2 className="w-5 h-5 mr-2" />}
             Submit Feedback

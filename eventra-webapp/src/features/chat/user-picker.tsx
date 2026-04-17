@@ -42,35 +42,35 @@ export function UserPicker({ onSelect, excludeIds = [] }: UserPickerProps) {
   return (
     <div className="space-y-4">
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input 
           placeholder="Search people by name..." 
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          className="pl-9 bg-white/5 border-white/10 text-white"
+          className="pl-9 bg-muted/40 border-border text-white"
         />
-        {loading && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-gray-500" />}
+        {loading && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />}
       </div>
       
       <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2">
         {debouncedQuery && !loading && users.length === 0 ? (
-          <p className="text-center py-10 text-gray-500 text-sm">No users found.</p>
+          <p className="text-center py-10 text-muted-foreground text-sm">No users found.</p>
         ) : !debouncedQuery ? (
-           <p className="text-center py-10 text-gray-500 text-sm">Type a name to search...</p>
+           <p className="text-center py-10 text-muted-foreground text-sm">Type a name to search...</p>
         ) : (
           users.map((u: any) => (
             <button
               key={u.id}
               onClick={() => onSelect(u.id, u.name || 'User')}
-              className="w-full flex items-center gap-3 p-2 hover:bg-white/5 rounded-lg transition-colors text-left"
+              className="w-full flex items-center gap-3 p-2 hover:bg-muted/40 rounded-lg transition-colors text-left"
             >
               <Avatar className="h-10 w-10">
                 <AvatarImage src={u.image} />
-                <AvatarFallback className="bg-cyan-500/10 text-cyan-500">{u.name?.charAt(0)}</AvatarFallback>
+                <AvatarFallback className="bg-primary/10 text-primary">{u.name?.charAt(0)}</AvatarFallback>
               </Avatar>
               <div>
                 <p className="text-sm font-medium text-white">{u.name}</p>
-                <p className="text-xs text-gray-500">{u.role}</p>
+                <p className="text-xs text-muted-foreground">{u.role}</p>
               </div>
             </button>
           ))

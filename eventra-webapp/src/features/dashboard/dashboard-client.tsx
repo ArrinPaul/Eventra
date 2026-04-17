@@ -1,30 +1,26 @@
 'use client';
 
-import { useAuth } from "@/hooks/use-auth";
-import OrganizerDashboard from "@/features/dashboard/organizer-dashboard-client";
-import AttendeeDashboard from "@/features/dashboard/attendee-dashboard";
-import { Loader2 } from "lucide-react";
+import { useAuth } from '@/hooks/use-auth';
+import OrganizerDashboard from '@/features/dashboard/organizer-dashboard-client';
+import AttendeeDashboard from '@/features/dashboard/attendee-dashboard';
+import { Loader2 } from 'lucide-react';
 
 export default function DashboardClient() {
-    const { user, loading } = useAuth();
+  const { user, loading } = useAuth();
 
-    if (loading) {
-        return (
-            <div className="flex h-[calc(100vh-4rem)] items-center justify-center bg-[#0a0b14]">
-                <Loader2 className="h-8 w-8 animate-spin text-cyan-500" />
-            </div>
-        );
-    }
+  if (loading) {
+    return (
+      <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center">
+        <Loader2 className="h-7 w-7 animate-spin text-primary" />
+      </div>
+    );
+  }
 
-    if (!user) {
-        return null; // Auth wrapper usually handles redirect
-    }
+  if (!user) return null;
 
-    // Role-based routing
-    if (user.role === 'organizer' || user.role === 'admin') {
-        return <OrganizerDashboard />;
-    }
-    
-    // Default to Attendee Dashboard for students and professionals
-    return <AttendeeDashboard />;
+  if (user.role === 'organizer' || user.role === 'admin') {
+    return <OrganizerDashboard />;
+  }
+
+  return <AttendeeDashboard />;
 }

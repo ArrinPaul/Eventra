@@ -39,13 +39,13 @@ export function AttendancePredictor({ eventId }: { eventId: string }) {
   };
 
   return (
-    <Card className="bg-white/5 border-white/10 text-white">
+    <Card className="bg-muted/40 border-border text-white">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <TrendingUp className="h-5 w-5 text-emerald-400" />
           Predictive Attendance
         </CardTitle>
-        <CardDescription className="text-gray-400 text-xs">
+        <CardDescription className="text-muted-foreground text-xs">
           AI-driven estimate of how many registrants will actually attend.
         </CardDescription>
       </CardHeader>
@@ -65,20 +65,20 @@ export function AttendancePredictor({ eventId }: { eventId: string }) {
               <p className="text-xs text-emerald-400 uppercase font-bold tracking-widest mb-1">Predicted Show Rate</p>
               <p className="text-4xl font-black text-white">{prediction.predictedShowRate.toFixed(0)}%</p>
               <div className="mt-3 space-y-1">
-                <Progress value={prediction.predictedShowRate} className="h-1.5 bg-white/5" />
-                <p className="text-[10px] text-gray-500">
+                <Progress value={prediction.predictedShowRate} className="h-1.5 bg-muted/40" />
+                <p className="text-[10px] text-muted-foreground">
                   Estimated {prediction.predictedAttendance} attendees
                 </p>
               </div>
             </div>
 
             <div className="space-y-3">
-              <p className="text-xs font-bold uppercase text-gray-500 flex items-center gap-2">
+              <p className="text-xs font-bold uppercase text-muted-foreground flex items-center gap-2">
                 <Info className="h-3 w-3" /> AI Insights
               </p>
               <ul className="space-y-2">
                 {prediction.insights.map((insight: string, i: number) => (
-                  <li key={i} className="text-xs text-gray-400 flex gap-2">
+                  <li key={i} className="text-xs text-muted-foreground flex gap-2">
                     <span className="text-emerald-500 mt-0.5">•</span>
                     {insight}
                   </li>
@@ -86,13 +86,13 @@ export function AttendancePredictor({ eventId }: { eventId: string }) {
               </ul>
             </div>
 
-            <div className="space-y-3 pt-2 border-t border-white/5">
-              <p className="text-xs font-bold uppercase text-gray-500 flex items-center gap-2">
+            <div className="space-y-3 pt-2 border-t border-border/60">
+              <p className="text-xs font-bold uppercase text-muted-foreground flex items-center gap-2">
                 <CheckCircle2 className="h-3 w-3" /> Recommendations
               </p>
               <ul className="space-y-2">
                 {prediction.recommendations.map((rec: string, i: number) => (
-                  <li key={i} className="text-xs text-gray-300 bg-white/5 p-2 rounded-lg border border-white/5">
+                  <li key={i} className="text-xs text-muted-foreground bg-muted/40 p-2 rounded-lg border border-border/60">
                     {rec}
                   </li>
                 ))}
@@ -102,7 +102,7 @@ export function AttendancePredictor({ eventId }: { eventId: string }) {
             <Button 
               variant="ghost" 
               size="sm" 
-              className="text-gray-500 text-[10px] w-full"
+              className="text-muted-foreground text-[10px] w-full"
               onClick={() => setPrediction(null)}
             >
               Re-analyze

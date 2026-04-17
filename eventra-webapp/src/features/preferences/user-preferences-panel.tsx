@@ -84,16 +84,16 @@ export default function UserPreferencesPanel() {
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-bold">Preferences</h2>
-          <p className="text-gray-400">Manage your account settings</p>
+          <p className="text-muted-foreground">Manage your account settings</p>
         </div>
-        <Button onClick={handleSave} disabled={saving} className="bg-cyan-600 hover:bg-cyan-500">
+        <Button onClick={handleSave} disabled={saving} className="bg-primary hover:bg-primary">
           {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
           Save
         </Button>
       </div>
 
       <div className="flex flex-col md:flex-row gap-6">
-        <Card className="md:w-64 h-fit bg-white/5 border-white/10 text-white">
+        <Card className="md:w-64 h-fit bg-muted/40 border-border text-white">
           <CardContent className="p-4 space-y-2">
             <Button variant={activeTab === 'notifications' ? 'default' : 'ghost'} className="w-full justify-start" onClick={() => setActiveTab('notifications')}>
               <Bell className="w-4 h-4 mr-2" /> Notifications
@@ -106,10 +106,10 @@ export default function UserPreferencesPanel() {
 
         <div className="flex-1 space-y-6">
           {activeTab === 'notifications' && (
-            <Card className="bg-white/5 border-white/10 text-white">
+            <Card className="bg-muted/40 border-border text-white">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Bell className="h-5 w-5 text-cyan-400" />
+                  <Bell className="h-5 w-5 text-primary" />
                   Notification Preferences
                 </CardTitle>
               </CardHeader>
@@ -118,12 +118,12 @@ export default function UserPreferencesPanel() {
                   <React.Fragment key={item.key}>
                     <div className="flex items-center justify-between py-3">
                       <div className="flex items-center gap-3">
-                        <div className="p-2 rounded-lg bg-white/5">
-                          <item.icon className="h-4 w-4 text-gray-400" />
+                        <div className="p-2 rounded-lg bg-muted/40">
+                          <item.icon className="h-4 w-4 text-muted-foreground" />
                         </div>
                         <div>
                           <p className="text-sm font-medium">{item.label}</p>
-                          <p className="text-xs text-gray-500">{item.description}</p>
+                          <p className="text-xs text-muted-foreground">{item.description}</p>
                         </div>
                       </div>
                       <Switch
@@ -131,7 +131,7 @@ export default function UserPreferencesPanel() {
                         onCheckedChange={() => togglePref(item.key)}
                       />
                     </div>
-                    {i < prefItems.length - 1 && <Separator className="bg-white/5" />}
+                    {i < prefItems.length - 1 && <Separator className="bg-muted/40" />}
                   </React.Fragment>
                 ))}
               </CardContent>
@@ -139,10 +139,10 @@ export default function UserPreferencesPanel() {
           )}
 
           {activeTab === 'privacy' && (
-            <Card className="bg-white/5 border-white/10 text-white">
+            <Card className="bg-muted/40 border-border text-white">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Globe className="h-5 w-5 text-cyan-400" />
+                  <Globe className="h-5 w-5 text-primary" />
                   Privacy Settings
                 </CardTitle>
               </CardHeader>
@@ -150,23 +150,23 @@ export default function UserPreferencesPanel() {
                 <div className="flex items-center justify-between py-3">
                   <div>
                     <p className="text-sm font-medium">Public Profile</p>
-                    <p className="text-xs text-gray-500">Allow others to view your profile and badges</p>
+                    <p className="text-xs text-muted-foreground">Allow others to view your profile and badges</p>
                   </div>
                   <Switch defaultChecked />
                 </div>
-                <Separator className="bg-white/5" />
+                <Separator className="bg-muted/40" />
                 <div className="flex items-center justify-between py-3">
                   <div>
                     <p className="text-sm font-medium">Show Activity Status</p>
-                    <p className="text-xs text-gray-500">Let others see when you're active</p>
+                    <p className="text-xs text-muted-foreground">Let others see when you're active</p>
                   </div>
                   <Switch defaultChecked />
                 </div>
-                <Separator className="bg-white/5" />
+                <Separator className="bg-muted/40" />
                 <div className="flex items-center justify-between py-3">
                   <div>
                     <p className="text-sm font-medium">Allow Connection Requests</p>
-                    <p className="text-xs text-gray-500">Let other users send you connection requests</p>
+                    <p className="text-xs text-muted-foreground">Let other users send you connection requests</p>
                   </div>
                   <Switch defaultChecked />
                 </div>

@@ -38,9 +38,9 @@ interface SponsorManagerProps {
 }
 
 const TIERS = [
-  { id: 'platinum', label: 'Platinum', color: 'text-cyan-400', bg: 'bg-cyan-400/10', border: 'border-cyan-400/20' },
+  { id: 'platinum', label: 'Platinum', color: 'text-primary', bg: 'bg-primary/10', border: 'border-primary/20' },
   { id: 'gold', label: 'Gold', color: 'text-amber-400', bg: 'bg-amber-400/10', border: 'border-amber-400/20' },
-  { id: 'silver', label: 'Silver', color: 'text-gray-300', bg: 'bg-gray-300/10', border: 'border-gray-300/20' },
+  { id: 'silver', label: 'Silver', color: 'text-muted-foreground', bg: 'bg-muted/40', border: 'border-border' },
   { id: 'bronze', label: 'Bronze', color: 'text-orange-400', bg: 'bg-orange-400/10', border: 'border-orange-400/20' },
 ];
 
@@ -129,10 +129,10 @@ export function SponsorManagerClient({ eventId, eventTitle }: SponsorManagerProp
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
         {/* Sponsor Form */}
-        <Card className="bg-white/5 border-white/10 text-white h-fit">
+        <Card className="bg-muted/40 border-border text-white h-fit">
           <CardHeader>
             <CardTitle className="text-xl font-bold flex items-center gap-2">
-              {editingId ? <Settings2 className="text-cyan-400" /> : <Plus className="text-cyan-400" />}
+              {editingId ? <Settings2 className="text-primary" /> : <Plus className="text-primary" />}
               {editingId ? 'Edit Sponsor' : 'Add New Sponsor'}
             </CardTitle>
             <CardDescription>Display partner logos on the event page.</CardDescription>
@@ -141,26 +141,26 @@ export function SponsorManagerClient({ eventId, eventTitle }: SponsorManagerProp
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label>Sponsor Name</Label>
-                <Input value={name} onChange={e => setName(e.target.value)} className="bg-white/5 border-white/10" required placeholder="Acme Corp" />
+                <Input value={name} onChange={e => setName(e.target.value)} className="bg-muted/40 border-border" required placeholder="Acme Corp" />
               </div>
               
               <div className="space-y-2">
                 <Label>Logo URL</Label>
                 <div className="flex gap-2">
-                  <Input value={logoUrl} onChange={e => setLogoUrl(e.target.value)} className="bg-white/5 border-white/10 flex-1" placeholder="https://..." />
-                  <Button type="button" variant="outline" size="icon" className="border-white/10"><ImageIcon size={16} /></Button>
+                  <Input value={logoUrl} onChange={e => setLogoUrl(e.target.value)} className="bg-muted/40 border-border flex-1" placeholder="https://..." />
+                  <Button type="button" variant="outline" size="icon" className="border-border"><ImageIcon size={16} /></Button>
                 </div>
               </div>
 
               <div className="space-y-2">
                 <Label>Website URL (Optional)</Label>
-                <Input value={websiteUrl} onChange={e => setWebsiteUrl(e.target.value)} className="bg-white/5 border-white/10" placeholder="https://acme.com" />
+                <Input value={websiteUrl} onChange={e => setWebsiteUrl(e.target.value)} className="bg-muted/40 border-border" placeholder="https://acme.com" />
               </div>
 
               <div className="space-y-2">
                 <Label>Sponsorship Tier</Label>
                 <select 
-                  className="w-full bg-white/5 border border-white/10 rounded-md p-2 text-sm focus:ring-1 focus:ring-cyan-500 outline-none"
+                  className="w-full bg-muted/40 border border-border rounded-md p-2 text-sm focus:ring-1 focus:ring-primary outline-none"
                   value={tier}
                   onChange={e => setTier(e.target.value)}
                 >
@@ -171,11 +171,11 @@ export function SponsorManagerClient({ eventId, eventTitle }: SponsorManagerProp
               </div>
 
               <div className="flex gap-2 pt-2">
-                <Button type="submit" className="flex-1 bg-cyan-600 hover:bg-cyan-500" disabled={isSaving}>
+                <Button type="submit" className="flex-1 bg-primary hover:bg-primary" disabled={isSaving}>
                   {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : editingId ? 'Update Sponsor' : 'Add Sponsor'}
                 </Button>
                 {editingId && (
-                  <Button type="button" variant="ghost" className="border border-white/10" onClick={resetForm}>Cancel</Button>
+                  <Button type="button" variant="ghost" className="border border-border" onClick={resetForm}>Cancel</Button>
                 )}
               </div>
             </form>
@@ -183,14 +183,14 @@ export function SponsorManagerClient({ eventId, eventTitle }: SponsorManagerProp
         </Card>
 
         {/* Sponsor Display */}
-        <Card className="lg:col-span-2 bg-white/5 border-white/10 text-white">
+        <Card className="lg:col-span-2 bg-muted/40 border-border text-white">
           <CardHeader>
             <CardTitle>Sponsor Roster</CardTitle>
             <CardDescription>Partners supporting {eventTitle}</CardDescription>
           </CardHeader>
           <CardContent>
             {loading ? (
-              <div className="py-20 text-center"><Loader2 className="h-8 w-8 animate-spin mx-auto text-cyan-500" /></div>
+              <div className="py-20 text-center"><Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" /></div>
             ) : sponsors.length > 0 ? (
               <div className="space-y-8">
                 {TIERS.map(t => {
@@ -199,13 +199,13 @@ export function SponsorManagerClient({ eventId, eventTitle }: SponsorManagerProp
                   
                   return (
                     <div key={t.id} className="space-y-4">
-                      <div className="flex items-center gap-2 border-b border-white/5 pb-2">
+                      <div className="flex items-center gap-2 border-b border-border/60 pb-2">
                         <Award size={16} className={t.color} />
                         <h3 className={cn("font-black uppercase tracking-widest text-xs", t.color)}>{t.label} Sponsors</h3>
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {tierSponsors.map(s => (
-                          <div key={s.id} className="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/5 group hover:border-white/20 transition-all">
+                          <div key={s.id} className="flex items-center justify-between p-3 bg-muted/40 rounded-xl border border-border/60 group hover:border-border transition-all">
                             <div className="flex items-center gap-4">
                               <div className="relative h-12 w-12 rounded-lg bg-white p-1 flex items-center justify-center">
                                 {s.logoUrl ? (
@@ -217,14 +217,14 @@ export function SponsorManagerClient({ eventId, eventTitle }: SponsorManagerProp
                               <div>
                                 <p className="font-bold text-sm">{s.name}</p>
                                 {s.websiteUrl && (
-                                  <a href={s.websiteUrl} target="_blank" className="text-[10px] text-gray-500 flex items-center gap-1 hover:text-cyan-400">
+                                  <a href={s.websiteUrl} target="_blank" className="text-[10px] text-muted-foreground flex items-center gap-1 hover:text-primary">
                                     <Globe size={10} /> {new URL(s.websiteUrl).hostname}
                                   </a>
                                 )}
                               </div>
                             </div>
                             <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                              <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-white/10" onClick={() => startEdit(s)}><Settings2 size={14} /></Button>
+                              <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-muted" onClick={() => startEdit(s)}><Settings2 size={14} /></Button>
                               <Button variant="ghost" size="icon" className="h-8 w-8 text-red-400 hover:text-red-300 hover:bg-red-400/10" onClick={() => handleDelete(s.id)}><Trash2 size={14} /></Button>
                             </div>
                           </div>
@@ -235,7 +235,7 @@ export function SponsorManagerClient({ eventId, eventTitle }: SponsorManagerProp
                 })}
               </div>
             ) : (
-              <div className="py-20 text-center text-gray-500">
+              <div className="py-20 text-center text-muted-foreground">
                 <LayoutGrid className="h-12 w-12 mx-auto mb-4 opacity-10" />
                 <p>No sponsors added yet.</p>
               </div>

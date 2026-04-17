@@ -159,28 +159,28 @@ export function AIInsightsClient({ eventId }: AIInsightsClientProps) {
   return (
     <div className="space-y-8">
       {/* Prediction Banner */}
-      <Card className="bg-gradient-to-r from-cyan-900/40 to-purple-900/40 border-cyan-500/30 text-white overflow-hidden relative">
+      <Card className="bg-gradient-to-r from-primary/40 to-purple-900/40 border-primary/30 text-white overflow-hidden relative">
         <div className="absolute top-0 right-0 p-4 opacity-10">
            <BrainCircuit size={120} />
         </div>
         <CardContent className="p-8 relative z-10">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
             <div className="space-y-2">
-              <Badge className="bg-cyan-500 hover:bg-cyan-400">AI Predictive Engine</Badge>
+              <Badge className="bg-primary hover:bg-primary">AI Predictive Engine</Badge>
               <h2 className="text-3xl font-black">Attendance Forecasting</h2>
-              <p className="text-cyan-100/70 max-w-md">Our neural network analyzes your current registration trends and historical data to predict final turnout.</p>
+              <p className="text-muted-foreground max-w-md">Our neural network analyzes your current registration trends and historical data to predict final turnout.</p>
             </div>
 
-            <div className="flex items-center gap-6 bg-black/20 p-6 rounded-2xl border border-white/5 backdrop-blur-md">
+            <div className="flex items-center gap-6 bg-background/20 p-6 rounded-2xl border border-border/60 backdrop-blur-md">
               {prediction ? (
                 <div className="text-center">
-                   <p className="text-[10px] uppercase font-bold text-cyan-400 tracking-widest mb-1">Predicted Total</p>
+                   <p className="text-[10px] uppercase font-bold text-primary tracking-widest mb-1">Predicted Total</p>
                    <p className="text-5xl font-black">{prediction.predictedTotal}</p>
                    <p className="text-xs text-emerald-400 mt-1 font-bold">Confidence: {prediction.confidenceScore}%</p>
                 </div>
               ) : (
                 <Button 
-                  className="bg-white text-black hover:bg-cyan-50" 
+                  className="bg-white text-black hover:bg-primary/90" 
                   onClick={loadPrediction}
                   disabled={loadingAction === 'Prediction'}
                 >
@@ -205,7 +205,7 @@ export function AIInsightsClient({ eventId }: AIInsightsClientProps) {
              </Button>
           </div>
           
-          <Card className="bg-white/5 border-white/10 text-white min-h-[400px] flex flex-col">
+          <Card className="bg-muted/40 border-border text-white min-h-[400px] flex flex-col">
             <CardHeader>
               <CardTitle className="text-sm">Dynamic Task List</CardTitle>
               <CardDescription>AI-generated checklist for your event lifecycle.</CardDescription>
@@ -214,9 +214,9 @@ export function AIInsightsClient({ eventId }: AIInsightsClientProps) {
               {tasks.length > 0 ? (
                 <div className="space-y-3">
                   {tasks.map((task, i) => (
-                    <div key={i} className="flex items-start gap-3 p-3 rounded-lg bg-white/5 border border-white/5 group hover:border-purple-500/30 transition-all">
-                       <div className="w-5 h-5 rounded border border-white/20 mt-0.5 flex-none group-hover:border-purple-500 transition-colors" />
-                       <span className="text-sm text-gray-300">{task}</span>
+                    <div key={i} className="flex items-start gap-3 p-3 rounded-lg bg-muted/40 border border-border/60 group hover:border-purple-500/30 transition-all">
+                       <div className="w-5 h-5 rounded border border-border mt-0.5 flex-none group-hover:border-purple-500 transition-colors" />
+                       <span className="text-sm text-muted-foreground">{task}</span>
                     </div>
                   ))}
                 </div>
@@ -242,7 +242,7 @@ export function AIInsightsClient({ eventId }: AIInsightsClientProps) {
              </Button>
           </div>
 
-          <Card className="bg-white/5 border-white/10 text-white min-h-[400px] flex flex-col">
+          <Card className="bg-muted/40 border-border text-white min-h-[400px] flex flex-col">
             <CardHeader>
                <CardTitle className="text-sm">Viral Content Generator</CardTitle>
                <CardDescription>Tailored posts for LinkedIn, Twitter, and Instagram.</CardDescription>
@@ -250,17 +250,17 @@ export function AIInsightsClient({ eventId }: AIInsightsClientProps) {
             <CardContent className="flex-1 space-y-6">
                {socialPosts.length > 0 ? (
                  socialPosts.map((post, i) => (
-                   <div key={i} className="p-4 rounded-xl bg-black/20 border border-white/5 relative group">
+                   <div key={i} className="p-4 rounded-xl bg-background/20 border border-border/60 relative group">
                       <div className="absolute top-4 right-4 opacity-20 group-hover:opacity-100 transition-opacity">
                          {i === 0 && <Twitter size={14} className="text-sky-400" />}
                          {i === 1 && <Linkedin size={14} className="text-blue-400" />}
                          {i === 2 && <Instagram size={14} className="text-pink-400" />}
                       </div>
-                      <p className="text-xs text-gray-400 whitespace-pre-wrap leading-relaxed">{post}</p>
+                      <p className="text-xs text-muted-foreground whitespace-pre-wrap leading-relaxed">{post}</p>
                       <Button 
                         variant="ghost" 
                         size="sm" 
-                        className="h-7 text-[10px] uppercase font-bold mt-4 hover:bg-white/5 w-full border border-white/5"
+                        className="h-7 text-[10px] uppercase font-bold mt-4 hover:bg-muted/40 w-full border border-border/60"
                         onClick={() => {
                           navigator.clipboard.writeText(post);
                           toast({ title: "Copied", description: "Post content copied to clipboard." });
@@ -284,10 +284,10 @@ export function AIInsightsClient({ eventId }: AIInsightsClientProps) {
         {/* AI Reports */}
         <div className="space-y-6">
            <h3 className="text-lg font-bold flex items-center gap-2">
-              <FileText className="text-cyan-400" /> Professional Reports
+              <FileText className="text-primary" /> Professional Reports
            </h3>
            
-           <Card className="bg-white/5 border-white/10 text-white min-h-[400px] flex flex-col border-2 border-dashed">
+           <Card className="bg-muted/40 border-border text-white min-h-[400px] flex flex-col border-2 border-dashed">
              <CardHeader>
                <CardTitle className="text-sm">After Action Report (AAR)</CardTitle>
                <CardDescription>AI-synthesized analysis of financial, attendee, and feedback data.</CardDescription>
@@ -295,24 +295,24 @@ export function AIInsightsClient({ eventId }: AIInsightsClientProps) {
              <CardContent className="flex-1 flex flex-col">
                 {report ? (
                   <div className="space-y-6">
-                     <div className="p-4 rounded-xl bg-cyan-500/10 border border-cyan-500/20">
-                        <h4 className="text-xs font-black uppercase text-cyan-400 mb-2">Executive Summary</h4>
-                        <p className="text-xs text-gray-300 leading-relaxed italic line-clamp-6">"{report.executiveSummary}"</p>
+                     <div className="p-4 rounded-xl bg-primary/10 border border-primary/20">
+                        <h4 className="text-xs font-black uppercase text-primary mb-2">Executive Summary</h4>
+                        <p className="text-xs text-muted-foreground leading-relaxed italic line-clamp-6">"{report.executiveSummary}"</p>
                      </div>
                      
                      <div className="grid grid-cols-2 gap-3">
-                        <div className="p-3 bg-white/5 rounded-lg border border-white/5 text-center">
-                           <p className="text-[10px] text-gray-500 uppercase">Revenue</p>
+                        <div className="p-3 bg-muted/40 rounded-lg border border-border/60 text-center">
+                           <p className="text-[10px] text-muted-foreground uppercase">Revenue</p>
                            <p className="text-lg font-bold">${report.kpis.totalRevenue}</p>
                         </div>
-                        <div className="p-3 bg-white/5 rounded-lg border border-white/5 text-center">
-                           <p className="text-[10px] text-gray-500 uppercase">NPS Score</p>
+                        <div className="p-3 bg-muted/40 rounded-lg border border-border/60 text-center">
+                           <p className="text-[10px] text-muted-foreground uppercase">NPS Score</p>
                            <p className="text-lg font-bold">+{report.sentiment.overallSentiment === 'positive' ? '68' : '24'}</p>
                         </div>
                      </div>
 
                      <Button 
-                       className="w-full bg-cyan-600 hover:bg-cyan-500 text-white mt-auto"
+                       className="w-full bg-primary hover:bg-primary text-white mt-auto"
                        onClick={exportReportPDF}
                      >
                         <Download className="mr-2 h-4 w-4" /> Export as PDF
@@ -324,7 +324,7 @@ export function AIInsightsClient({ eventId }: AIInsightsClientProps) {
                     <p className="text-sm">Compile all event data into a high-level PDF report.</p>
                     <Button 
                       variant="outline" 
-                      className="border-cyan-500/30 text-cyan-400 mt-6 hover:bg-cyan-500/10" 
+                      className="border-primary/30 text-primary mt-6 hover:bg-primary/10" 
                       onClick={loadReport}
                       disabled={loadingAction === 'Full Report'}
                     >

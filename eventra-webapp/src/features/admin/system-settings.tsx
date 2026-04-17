@@ -69,7 +69,7 @@ export default function SystemSettings() {
     }
   };
 
-  if (settingsRaw === undefined) return <div className="flex items-center justify-center py-20"><RefreshCw className="animate-spin text-cyan-500" /></div>;
+  if (settingsRaw === undefined) return <div className="flex items-center justify-center py-20"><RefreshCw className="animate-spin text-primary" /></div>;
 
   return (
     <div className="space-y-6">
@@ -78,36 +78,36 @@ export default function SystemSettings() {
           <h2 className="text-2xl font-bold">System Settings</h2>
           <p className="text-muted-foreground">Manage platform configuration</p>
         </div>
-        <Button onClick={handleSave} disabled={saving || !hasChanges} className="bg-cyan-600">
+        <Button onClick={handleSave} disabled={saving || !hasChanges} className="bg-primary">
           {saving ? <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
           Save Changes
         </Button>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="bg-white/5 border-white/10 text-white">
+        <TabsList className="bg-muted/40 border-border text-white">
           <TabsTrigger value="general" className="gap-2"><Settings className="w-4 h-4" /> General</TabsTrigger>
           <TabsTrigger value="features" className="gap-2"><Zap className="w-4 h-4" /> Features</TabsTrigger>
         </TabsList>
 
         <TabsContent value="general">
-          <Card className="bg-white/5 border-white/10 text-white">
+          <Card className="bg-muted/40 border-border text-white">
             <CardHeader><CardTitle>General</CardTitle></CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label>Site Name</Label>
-                <Input value={settings.siteName} onChange={e => handleUpdate('siteName', e.target.value)} className="bg-white/5 border-white/10" />
+                <Input value={settings.siteName} onChange={e => handleUpdate('siteName', e.target.value)} className="bg-muted/40 border-border" />
               </div>
               <div className="space-y-2">
                 <Label>Support Email</Label>
-                <Input value={settings.supportEmail} onChange={e => handleUpdate('supportEmail', e.target.value)} className="bg-white/5 border-white/10" />
+                <Input value={settings.supportEmail} onChange={e => handleUpdate('supportEmail', e.target.value)} className="bg-muted/40 border-border" />
               </div>
             </CardContent>
           </Card>
         </TabsContent>
 
         <TabsContent value="features">
-          <Card className="bg-white/5 border-white/10 text-white">
+          <Card className="bg-muted/40 border-border text-white">
             <CardHeader><CardTitle>Features</CardTitle></CardHeader>
             <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {[
@@ -116,7 +116,7 @@ export default function SystemSettings() {
                 { key: 'gamificationEnabled', label: 'Gamification (XP/Badges)' },
                 { key: 'aiRecommendations', label: 'AI Recommendations' },
               ].map((f) => (
-                <div key={f.key} className="flex items-center justify-between p-4 border border-white/10 rounded-lg">
+                <div key={f.key} className="flex items-center justify-between p-4 border border-border rounded-lg">
                   <span>{f.label}</span>
                   <Switch 
                     checked={settings[f.key] === 'true'} 

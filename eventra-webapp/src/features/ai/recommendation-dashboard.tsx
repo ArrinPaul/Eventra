@@ -102,25 +102,25 @@ export default function AiRecommendationDashboard() {
 
   const getScoreColor = (score: number) => {
     if (score >= 90) return 'text-green-500';
-    if (score >= 75) return 'text-cyan-400';
+    if (score >= 75) return 'text-primary';
     if (score >= 60) return 'text-blue-400';
-    return 'text-gray-400';
+    return 'text-muted-foreground';
   };
 
   const getConfidenceBadgeColor = (level: string) => {
     switch (level) {
       case 'high': return 'bg-green-500/20 text-green-400 border-green-500/20';
-      case 'medium': return 'bg-cyan-500/20 text-cyan-400 border-cyan-500/20';
+      case 'medium': return 'bg-primary/20 text-primary border-primary/20';
       case 'low': return 'bg-blue-500/20 text-blue-400 border-blue-500/20';
-      default: return 'bg-white/5 text-gray-400 border-white/10';
+      default: return 'bg-muted/40 text-muted-foreground border-border';
     }
   };
 
   if (loading && eventRecommendations.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center p-20 space-y-4">
-        <RefreshCw className="w-10 h-10 animate-spin text-cyan-500" />
-        <p className="text-gray-400">Genie is analyzing your profile to find the best matches...</p>
+        <RefreshCw className="w-10 h-10 animate-spin text-primary" />
+        <p className="text-muted-foreground">Genie is analyzing your profile to find the best matches...</p>
       </div>
     );
   }
@@ -129,34 +129,34 @@ export default function AiRecommendationDashboard() {
     <div className="space-y-8 animate-in fade-in duration-500">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {insights.map((insight, index) => (
-          <Card key={index} className="bg-white/5 border-white/10 overflow-hidden group hover:border-cyan-500/30 transition-colors">
+          <Card key={index} className="bg-muted/40 border-border overflow-hidden group hover:border-primary/30 transition-colors">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-2">
-                <p className="text-sm text-gray-400">{insight.title}</p>
-                <div className="p-2 bg-white/5 rounded-lg text-cyan-400 group-hover:scale-110 transition-transform">
+                <p className="text-sm text-muted-foreground">{insight.title}</p>
+                <div className="p-2 bg-muted/40 rounded-lg text-primary group-hover:scale-110 transition-transform">
                   {insight.icon}
                 </div>
               </div>
               <p className="text-2xl font-bold text-white">{insight.value}</p>
-              <p className="text-xs text-gray-500 mt-1">{insight.description}</p>
+              <p className="text-xs text-muted-foreground mt-1">{insight.description}</p>
             </CardContent>
           </Card>
         ))}
       </div>
 
-      <Card className="bg-[#0f172a]/60 border-white/10 backdrop-blur-md overflow-hidden">
-        <CardHeader className="border-b border-white/5 pb-6">
+      <Card className="bg-card/80 border-border backdrop-blur-md overflow-hidden">
+        <CardHeader className="border-b border-border/60 pb-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="bg-cyan-500/20 p-2 rounded-xl">
-                <Sparkles className="w-5 h-5 text-cyan-400" />
+              <div className="bg-primary/20 p-2 rounded-xl">
+                <Sparkles className="w-5 h-5 text-primary" />
               </div>
               <div>
                 <CardTitle className="text-xl">Your Personalized Picks</CardTitle>
-                <p className="text-sm text-gray-400 mt-1">Refined by AI based on your interests and activity</p>
+                <p className="text-sm text-muted-foreground mt-1">Refined by AI based on your interests and activity</p>
               </div>
             </div>
-            <Button variant="outline" size="sm" onClick={loadRecommendations} disabled={loading} className="border-white/10">
+            <Button variant="outline" size="sm" onClick={loadRecommendations} disabled={loading} className="border-border">
               <RefreshCw className={cn("w-4 h-4 mr-2", loading && "animate-spin")} />
               Refresh
             </Button>
@@ -164,16 +164,16 @@ export default function AiRecommendationDashboard() {
         </CardHeader>
         <CardContent className="p-6">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="bg-white/5 border border-white/10 p-1 mb-8">
-              <TabsTrigger value="events" className="data-[state=active]:bg-cyan-600 data-[state=active]:text-white">
+            <TabsList className="bg-muted/40 border border-border p-1 mb-8">
+              <TabsTrigger value="events" className="data-[state=active]:bg-primary data-[state=active]:text-white">
                 <Calendar className="w-4 h-4 mr-2" />
                 Events
               </TabsTrigger>
-              <TabsTrigger value="content" className="data-[state=active]:bg-cyan-600 data-[state=active]:text-white">
+              <TabsTrigger value="content" className="data-[state=active]:bg-primary data-[state=active]:text-white">
                 <BookOpen className="w-4 h-4 mr-2" />
                 Learning
               </TabsTrigger>
-              <TabsTrigger value="connections" className="data-[state=active]:bg-cyan-600 data-[state=active]:text-white">
+              <TabsTrigger value="connections" className="data-[state=active]:bg-primary data-[state=active]:text-white">
                 <Network className="w-4 h-4 mr-2" />
                 Connections
               </TabsTrigger>
@@ -181,31 +181,31 @@ export default function AiRecommendationDashboard() {
 
             <TabsContent value="events" className="space-y-6">
               {eventRecommendations.map((event) => (
-                <Card key={event.eventId} className="bg-white/5 border-white/10 hover:border-cyan-500/50 transition-all group overflow-hidden">
+                <Card key={event.eventId} className="bg-muted/40 border-border hover:border-primary/50 transition-all group overflow-hidden">
                   <CardContent className="p-6">
                     <div className="flex flex-col md:flex-row justify-between items-start gap-6">
                       <div className="flex-1 space-y-4">
                         <div className="flex flex-wrap items-center gap-2">
-                          <h3 className="font-bold text-xl text-white group-hover:text-cyan-400 transition-colors">{event.title}</h3>
-                          <Badge variant="outline" className="border-white/10 text-gray-400">{event.type}</Badge>
+                          <h3 className="font-bold text-xl text-white group-hover:text-primary transition-colors">{event.title}</h3>
+                          <Badge variant="outline" className="border-border text-muted-foreground">{event.type}</Badge>
                           <Badge variant="outline" className={getConfidenceBadgeColor(event.confidenceLevel)}>
                             {event.confidenceLevel} match
                           </Badge>
                         </div>
-                        <p className="text-gray-300 italic">"{event.personalizedPitch}"</p>
-                        <p className="text-sm text-gray-400 leading-relaxed">{event.recommendationReason}</p>
+                        <p className="text-muted-foreground italic">"{event.personalizedPitch}"</p>
+                        <p className="text-sm text-muted-foreground leading-relaxed">{event.recommendationReason}</p>
                         
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
                           <div className="space-y-2">
-                            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Key Benefits:</p>
-                            <ul className="text-sm text-gray-400 space-y-1">
-                              {event.expectedValue.map((v, i) => <li key={i} className="flex items-center gap-2"><div className="w-1 h-1 bg-cyan-500 rounded-full" /> {v}</li>)}
+                            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Key Benefits:</p>
+                            <ul className="text-sm text-muted-foreground space-y-1">
+                              {event.expectedValue.map((v, i) => <li key={i} className="flex items-center gap-2"><div className="w-1 h-1 bg-primary rounded-full" /> {v}</li>)}
                             </ul>
                           </div>
                           <div className="space-y-2">
-                            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Preparation:</p>
+                            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Preparation:</p>
                             <div className="flex flex-wrap gap-2">
-                              {event.preparationSuggestions.map((s, i) => <Badge key={i} variant="secondary" className="bg-white/5 text-[10px]">{s}</Badge>)}
+                              {event.preparationSuggestions.map((s, i) => <Badge key={i} variant="secondary" className="bg-muted/40 text-[10px]">{s}</Badge>)}
                             </div>
                           </div>
                         </div>
@@ -215,9 +215,9 @@ export default function AiRecommendationDashboard() {
                           <div className={`text-3xl font-black ${getScoreColor(event.relevanceScore)}`}>
                             {event.relevanceScore}%
                           </div>
-                          <p className="text-[10px] text-gray-500 uppercase tracking-tighter">AI Score</p>
+                          <p className="text-[10px] text-muted-foreground uppercase tracking-tighter">AI Score</p>
                         </div>
-                        <Button className="bg-cyan-600 hover:bg-cyan-500 text-white shadow-lg shadow-cyan-900/20">
+                        <Button className="bg-primary hover:bg-primary text-white shadow-lg shadow-primary/20">
                           Register Now
                         </Button>
                       </div>
@@ -229,30 +229,30 @@ export default function AiRecommendationDashboard() {
 
             <TabsContent value="content" className="space-y-6">
               {contentRecommendations.map((content) => (
-                <Card key={content.contentId} className="bg-white/5 border-white/10 hover:border-cyan-500/50 transition-all overflow-hidden">
+                <Card key={content.contentId} className="bg-muted/40 border-border hover:border-primary/50 transition-all overflow-hidden">
                   <CardContent className="p-6">
                     <div className="flex justify-between items-start mb-4">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
                           <h3 className="font-bold text-lg text-white">{content.title}</h3>
-                          <Badge variant="outline" className="border-white/10 text-gray-400">{content.type}</Badge>
-                          <Badge variant="outline" className="bg-white/5 text-gray-400 border-white/5">{content.difficulty}</Badge>
+                          <Badge variant="outline" className="border-border text-muted-foreground">{content.type}</Badge>
+                          <Badge variant="outline" className="bg-muted/40 text-muted-foreground border-border/60">{content.difficulty}</Badge>
                         </div>
-                        <p className="text-sm text-cyan-400/70 mb-2">Curated by {content.author}</p>
-                        <p className="text-gray-400 text-sm leading-relaxed">{content.personalizedRationale}</p>
+                        <p className="text-sm text-primary/70 mb-2">Curated by {content.author}</p>
+                        <p className="text-muted-foreground text-sm leading-relaxed">{content.personalizedRationale}</p>
                       </div>
                       <div className="text-right ml-4">
                         <div className={`text-2xl font-bold ${getScoreColor(content.relevanceScore)}`}>
                           {content.relevanceScore}%
                         </div>
-                        <p className="text-[10px] text-gray-500 uppercase">Match</p>
+                        <p className="text-[10px] text-muted-foreground uppercase">Match</p>
                       </div>
                     </div>
-                    <div className="flex justify-between items-center mt-6 pt-4 border-t border-white/5">
-                      <div className="flex items-center gap-4 text-xs text-gray-500">
+                    <div className="flex justify-between items-center mt-6 pt-4 border-t border-border/60">
+                      <div className="flex items-center gap-4 text-xs text-muted-foreground">
                         <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {content.estimatedTime} min</span>
                       </div>
-                      <Button size="sm" className="bg-white/10 hover:bg-white/20 text-white border-0">
+                      <Button size="sm" className="bg-muted hover:bg-muted text-white border-0">
                         Start Learning
                       </Button>
                     </div>
@@ -263,12 +263,12 @@ export default function AiRecommendationDashboard() {
 
             <TabsContent value="connections" className="space-y-6">
               {connectionRecommendations.map((connection) => (
-                <Card key={connection.userId} className="bg-white/5 border-white/10 hover:border-cyan-500/50 transition-all overflow-hidden">
+                <Card key={connection.userId} className="bg-muted/40 border-border hover:border-primary/50 transition-all overflow-hidden">
                   <CardContent className="p-6">
                     <div className="flex flex-col md:flex-row justify-between items-start gap-6">
                       <div className="flex items-start gap-4 flex-1">
-                        <Avatar className="h-14 w-14 border-2 border-cyan-500/20">
-                          <AvatarFallback className="bg-cyan-500/10 text-cyan-500 font-bold">{connection.name[0]}</AvatarFallback>
+                        <Avatar className="h-14 w-14 border-2 border-primary/20">
+                          <AvatarFallback className="bg-primary/10 text-primary font-bold">{connection.name[0]}</AvatarFallback>
                         </Avatar>
                         <div className="flex-1 space-y-2">
                           <div className="flex items-center gap-2">
@@ -277,23 +277,23 @@ export default function AiRecommendationDashboard() {
                               {connection.successLikelihood} success
                             </Badge>
                           </div>
-                          <p className="text-sm text-cyan-400/70">{connection.role} at {connection.company}</p>
-                          <p className="text-gray-400 text-sm italic">"{connection.connectionRationale}"</p>
+                          <p className="text-sm text-primary/70">{connection.role} at {connection.company}</p>
+                          <p className="text-muted-foreground text-sm italic">"{connection.connectionRationale}"</p>
                         </div>
                       </div>
                       <div className="text-right w-full md:w-auto">
                         <div className={`text-3xl font-black ${getScoreColor(connection.connectionValue)}`}>
                           {connection.connectionValue}%
                         </div>
-                        <p className="text-[10px] text-gray-500 uppercase">Match</p>
+                        <p className="text-[10px] text-muted-foreground uppercase">Match</p>
                       </div>
                     </div>
 
-                    <div className="mt-6 space-y-4 bg-white/5 rounded-xl p-4 border border-white/5">
-                      <p className="text-xs font-semibold text-gray-500 uppercase">Conversation Starters:</p>
+                    <div className="mt-6 space-y-4 bg-muted/40 rounded-xl p-4 border border-border/60">
+                      <p className="text-xs font-semibold text-muted-foreground uppercase">Conversation Starters:</p>
                       <div className="space-y-2">
                         {connection.conversationStarters.map((starter: string, idx: number) => (
-                          <div key={idx} className="bg-white/5 p-2 rounded-lg text-xs text-gray-300 border border-white/5">
+                          <div key={idx} className="bg-muted/40 p-2 rounded-lg text-xs text-muted-foreground border border-border/60">
                             "{starter}"
                           </div>
                         ))}
@@ -301,8 +301,8 @@ export default function AiRecommendationDashboard() {
                     </div>
 
                     <div className="flex justify-between items-center mt-6">
-                      <p className="text-xs text-gray-500 max-w-[60%]">{connection.approachStrategy}</p>
-                      <Button size="sm" className="bg-cyan-600 hover:bg-cyan-500 text-white">
+                      <p className="text-xs text-muted-foreground max-w-[60%]">{connection.approachStrategy}</p>
+                      <Button size="sm" className="bg-primary hover:bg-primary text-white">
                         Connect
                       </Button>
                     </div>

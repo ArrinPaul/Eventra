@@ -58,32 +58,32 @@ export function CommunityListClient() {
   return (
     <div className="container mx-auto px-4 py-6 text-white">
       <div className="flex justify-between items-center mb-8">
-        <div><h1 className="text-3xl font-bold">Communities</h1><p className="text-gray-400">Join discussions and connect</p></div>
+        <div><h1 className="text-3xl font-bold">Communities</h1><p className="text-muted-foreground">Join discussions and connect</p></div>
         <Button onClick={() => setShowCreateDialog(true)}><Plus className="w-4 h-4 mr-2" /> Create</Button>
       </div>
 
       <div className="relative mb-8">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
         <Input 
           placeholder="Search communities..." 
           value={searchTerm} 
           onChange={e => setSearchTerm(e.target.value)} 
-          className="pl-10 bg-white/5 border-white/10" 
+          className="pl-10 bg-muted/40 border-border" 
         />
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {communitiesRaw.map((c: any) => (
           <Link key={c._id} href={`/community/${c._id}`}>
-            <Card className="bg-white/5 border-white/10 hover:bg-white/10 transition-colors cursor-pointer text-white h-full flex flex-col">
+            <Card className="bg-muted/40 border-border hover:bg-muted transition-colors cursor-pointer text-white h-full flex flex-col">
               <CardHeader>
                 <div className="flex justify-between items-start">
                   <CardTitle className="line-clamp-1">{c.name}</CardTitle>
                   <Badge variant="secondary">{c.category}</Badge>
                 </div>
-                <CardDescription className="text-gray-400 line-clamp-2">{c.description}</CardDescription>
+                <CardDescription className="text-muted-foreground line-clamp-2">{c.description}</CardDescription>
               </CardHeader>
-              <CardContent className="mt-auto pt-4 border-t border-white/5 flex items-center justify-between text-sm text-gray-500">
+              <CardContent className="mt-auto pt-4 border-t border-border/60 flex items-center justify-between text-sm text-muted-foreground">
                 <div className="flex gap-4">
                   <div className="flex items-center gap-1">
                     <Users size={14} /> {c.membersCount}
@@ -98,14 +98,14 @@ export function CommunityListClient() {
       </div>
 
       {communitiesRaw.length === 0 && status !== "LoadingFirstPage" && (
-        <div className="py-20 text-center text-gray-500 border border-dashed border-white/10 rounded-lg">
+        <div className="py-20 text-center text-muted-foreground border border-dashed border-border rounded-lg">
           No communities found.
         </div>
       )}
 
       {status === "CanLoadMore" && (
         <div className="mt-8 flex justify-center">
-          <Button variant="outline" onClick={() => loadMore(12)} className="border-white/10">
+          <Button variant="outline" onClick={() => loadMore(12)} className="border-border">
             Load More
           </Button>
         </div>
@@ -113,12 +113,12 @@ export function CommunityListClient() {
 
       {(status === "LoadingMore" || status === "LoadingFirstPage") && (
         <div className="mt-8 flex justify-center">
-          <Loader2 className="h-6 w-6 animate-spin text-cyan-500" />
+          <Loader2 className="h-6 w-6 animate-spin text-primary" />
         </div>
       )}
 
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-        <DialogContent className="bg-gray-900 text-white border-white/10">
+        <DialogContent className="bg-gray-900 text-white border-border">
           <DialogHeader>
             <DialogTitle>Create New Community</DialogTitle>
             <DialogDescription>
@@ -130,33 +130,33 @@ export function CommunityListClient() {
                placeholder="Community Name" 
                value={newCommunity.name} 
                onChange={(e) => setNewCommunity({...newCommunity, name: e.target.value})} 
-               className="bg-white/5 border-white/10"
+               className="bg-muted/40 border-border"
              />
              <Textarea 
                placeholder="Description" 
                value={newCommunity.description} 
                onChange={(e) => setNewCommunity({...newCommunity, description: e.target.value})} 
-               className="bg-white/5 border-white/10"
+               className="bg-muted/40 border-border"
              />
              <Input 
                placeholder="Category" 
                value={newCommunity.category} 
                onChange={(e) => setNewCommunity({...newCommunity, category: e.target.value})} 
-               className="bg-white/5 border-white/10"
+               className="bg-muted/40 border-border"
              />
              <div className="flex items-center gap-2">
                <input 
                  type="checkbox" 
                  checked={newCommunity.isPrivate} 
                  onChange={(e) => setNewCommunity({...newCommunity, isPrivate: e.target.checked})} 
-                 className="rounded border-gray-600 bg-gray-700"
+                 className="rounded border-input bg-muted"
                />
                <span className="text-sm">Private Community</span>
              </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowCreateDialog(false)} className="border-white/10">Cancel</Button>
-            <Button onClick={handleCreateCommunity} disabled={loading} className="bg-cyan-600 hover:bg-cyan-500">
+            <Button variant="outline" onClick={() => setShowCreateDialog(false)} className="border-border">Cancel</Button>
+            <Button onClick={handleCreateCommunity} disabled={loading} className="bg-primary hover:bg-primary">
               {loading ? 'Creating...' : 'Create'}
             </Button>
           </DialogFooter>

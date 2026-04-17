@@ -90,8 +90,8 @@ export function DeepInsightsDashboard({ eventId, eventTitle }: DeepInsightsProps
   if (loading) {
     return (
       <div className="py-20 text-center space-y-4">
-        <BrainCircuit className="h-12 w-12 animate-pulse mx-auto text-cyan-500" />
-        <p className="text-gray-400 font-medium">AI is analyzing your event data...</p>
+        <BrainCircuit className="h-12 w-12 animate-pulse mx-auto text-primary" />
+        <p className="text-muted-foreground font-medium">AI is analyzing your event data...</p>
       </div>
     );
   }
@@ -101,36 +101,36 @@ export function DeepInsightsDashboard({ eventId, eventTitle }: DeepInsightsProps
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
         {/* Predictive Attendance */}
-        <Card className="lg:col-span-2 bg-white/5 border-white/10 text-white overflow-hidden group">
-          <div className="absolute top-0 left-0 w-1 h-full bg-cyan-500" />
+        <Card className="lg:col-span-2 bg-muted/40 border-border text-white overflow-hidden group">
+          <div className="absolute top-0 left-0 w-1 h-full bg-primary" />
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
               <CardTitle className="flex items-center gap-2">
-                <TrendingUp size={20} className="text-cyan-400" />
+                <TrendingUp size={20} className="text-primary" />
                 Attendance Prediction
               </CardTitle>
               <CardDescription>AI-driven estimation based on current registration trends</CardDescription>
             </div>
-            <Badge variant="outline" className="bg-cyan-500/10 text-cyan-400 border-cyan-500/20">
+            <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
               {prediction?.confidenceScore || 85}% Confidence
             </Badge>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="text-center md:text-left space-y-2">
-                <p className="text-sm text-gray-500 uppercase font-black tracking-widest">Predicted Final Count</p>
+                <p className="text-sm text-muted-foreground uppercase font-black tracking-widest">Predicted Final Count</p>
                 <div className="flex items-baseline justify-center md:justify-start gap-2">
-                  <span className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">
+                  <span className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-primary to-blue-500">
                     {prediction?.predictedTotal || 0}
                   </span>
-                  <span className="text-gray-500 font-bold">Attendees</span>
+                  <span className="text-muted-foreground font-bold">Attendees</span>
                 </div>
               </div>
               <div className="space-y-4">
-                <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">Key Growth Factors</p>
+                <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Key Growth Factors</p>
                 <ul className="space-y-2">
                   {(prediction?.factors || ['Viral social sharing', 'Strong early-bird performance', 'Niche category demand']).map((f: string, i: number) => (
-                    <li key={i} className="flex items-center gap-2 text-sm text-gray-300">
+                    <li key={i} className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Sparkles size={14} className="text-amber-400 shrink-0" />
                       {f}
                     </li>
@@ -142,7 +142,7 @@ export function DeepInsightsDashboard({ eventId, eventTitle }: DeepInsightsProps
         </Card>
 
         {/* Sentiment Analysis */}
-        <Card className="bg-white/5 border-white/10 text-white relative">
+        <Card className="bg-muted/40 border-border text-white relative">
           <div className="absolute top-0 left-0 w-1 h-full bg-purple-500" />
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -158,13 +158,13 @@ export function DeepInsightsDashboard({ eventId, eventTitle }: DeepInsightsProps
               )}>
                  <span className="text-2xl font-black uppercase">{sentiment?.overallSentiment || 'Positive'}</span>
               </div>
-              <p className="text-xs text-gray-400">Based on recent feedback comments</p>
+              <p className="text-xs text-muted-foreground">Based on recent feedback comments</p>
             </div>
             <div className="space-y-3">
-              <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Trending Themes</p>
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Trending Themes</p>
               <div className="flex flex-wrap gap-2">
                 {(sentiment?.keyThemes || ['Great Speakers', 'Logistics', 'Networking']).map((t: string) => (
-                  <Badge key={t} variant="secondary" className="bg-white/5 border-white/5 text-[10px]">{t}</Badge>
+                  <Badge key={t} variant="secondary" className="bg-muted/40 border-border/60 text-[10px]">{t}</Badge>
                 ))}
               </div>
             </div>
@@ -172,8 +172,8 @@ export function DeepInsightsDashboard({ eventId, eventTitle }: DeepInsightsProps
         </Card>
 
         {/* AI Task List */}
-        <Card className="bg-white/5 border-white/10 text-white overflow-hidden flex flex-col">
-          <CardHeader className="border-b border-white/5 bg-white/5">
+        <Card className="bg-muted/40 border-border text-white overflow-hidden flex flex-col">
+          <CardHeader className="border-b border-border/60 bg-muted/40">
             <div className="flex items-center justify-between">
               <CardTitle className="flex items-center gap-2">
                 <CheckSquare size={20} className="text-emerald-400" />
@@ -182,7 +182,7 @@ export function DeepInsightsDashboard({ eventId, eventTitle }: DeepInsightsProps
               <Button 
                 size="icon" 
                 variant="ghost" 
-                className="h-8 w-8 text-cyan-400 hover:bg-cyan-500/10"
+                className="h-8 w-8 text-primary hover:bg-primary/10"
                 onClick={handleGenerateTasks}
                 disabled={isGeneratingTasks}
               >
@@ -192,20 +192,20 @@ export function DeepInsightsDashboard({ eventId, eventTitle }: DeepInsightsProps
           </CardHeader>
           <CardContent className="p-0 flex-1">
             {tasks.length > 0 ? (
-              <div className="divide-y divide-white/5">
+              <div className="divide-y divide-border/60">
                 {tasks.map((task, i) => (
-                  <div key={i} className="p-4 flex items-start gap-3 hover:bg-white/5 transition-colors group">
-                    <div className="mt-1 w-4 h-4 rounded border border-gray-600 group-hover:border-cyan-500 transition-colors" />
-                    <span className="text-sm text-gray-300 group-hover:text-white transition-colors">{task}</span>
+                  <div key={i} className="p-4 flex items-start gap-3 hover:bg-muted/40 transition-colors group">
+                    <div className="mt-1 w-4 h-4 rounded border border-input group-hover:border-primary transition-colors" />
+                    <span className="text-sm text-muted-foreground group-hover:text-white transition-colors">{task}</span>
                   </div>
                 ))}
               </div>
             ) : (
               <div className="p-12 text-center space-y-4">
-                <AlertCircle className="h-10 w-10 mx-auto text-gray-600" />
-                <p className="text-sm text-gray-500">Generate a custom AI-powered checklist to ensure event success.</p>
-                <Button variant="outline" size="sm" onClick={handleGenerateTasks} disabled={isGeneratingTasks} className="border-white/10">
-                  {isGeneratingTasks ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4 text-cyan-400" />}
+                <AlertCircle className="h-10 w-10 mx-auto text-muted-foreground" />
+                <p className="text-sm text-muted-foreground">Generate a custom AI-powered checklist to ensure event success.</p>
+                <Button variant="outline" size="sm" onClick={handleGenerateTasks} disabled={isGeneratingTasks} className="border-border">
+                  {isGeneratingTasks ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4 text-primary" />}
                   Generate List
                 </Button>
               </div>
@@ -214,7 +214,7 @@ export function DeepInsightsDashboard({ eventId, eventTitle }: DeepInsightsProps
         </Card>
 
         {/* Marketing AI */}
-        <Card className="lg:col-span-2 bg-white/5 border-white/10 text-white flex flex-col">
+        <Card className="lg:col-span-2 bg-muted/40 border-border text-white flex flex-col">
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
               <CardTitle className="flex items-center gap-2">
@@ -223,7 +223,7 @@ export function DeepInsightsDashboard({ eventId, eventTitle }: DeepInsightsProps
               </CardTitle>
               <CardDescription>Viral post drafts for your event channels</CardDescription>
             </div>
-            <Button size="sm" variant="outline" className="border-white/10" onClick={handleGeneratePosts} disabled={isGeneratingPosts}>
+            <Button size="sm" variant="outline" className="border-border" onClick={handleGeneratePosts} disabled={isGeneratingPosts}>
               {isGeneratingPosts ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
               Draft New Posts
             </Button>
@@ -231,16 +231,16 @@ export function DeepInsightsDashboard({ eventId, eventTitle }: DeepInsightsProps
           <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {posts.length > 0 ? (
               posts.map((post, i) => (
-                <div key={i} className="p-4 bg-white/5 rounded-xl border border-white/5 relative group">
-                  <p className="text-xs text-gray-300 whitespace-pre-wrap line-clamp-6 italic">"{post}"</p>
+                <div key={i} className="p-4 bg-muted/40 rounded-xl border border-border/60 relative group">
+                  <p className="text-xs text-muted-foreground whitespace-pre-wrap line-clamp-6 italic">"{post}"</p>
                   <Button size="icon" variant="ghost" className="absolute bottom-2 right-2 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Download size={14} className="text-cyan-400" />
+                    <Download size={14} className="text-primary" />
                   </Button>
                 </div>
               ))
             ) : (
-              <div className="col-span-2 py-12 text-center border border-dashed border-white/5 rounded-xl">
-                 <p className="text-gray-500 text-sm">Draft optimized posts for LinkedIn, Twitter, and Instagram.</p>
+              <div className="col-span-2 py-12 text-center border border-dashed border-border/60 rounded-xl">
+                 <p className="text-muted-foreground text-sm">Draft optimized posts for LinkedIn, Twitter, and Instagram.</p>
               </div>
             )}
           </CardContent>

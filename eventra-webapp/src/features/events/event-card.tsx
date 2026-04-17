@@ -43,15 +43,15 @@ export function EventCard({ event, variant = 'default' }: { event: EventraEvent,
 
   return (
     <Link href={`/events/${event.id}`}>
-      <Card className="bg-white/5 border-white/10 hover:bg-white/10 transition-colors text-white overflow-hidden rounded-xl">
-        <div className="h-32 bg-cyan-900/20 relative">
+      <Card className="bg-muted/40 border-border hover:bg-muted transition-colors text-white overflow-hidden rounded-xl">
+        <div className="h-32 bg-primary/10 relative">
             <Badge className="absolute top-2 left-2">{event.category}</Badge>
         </div>
         <CardContent className="p-4">
           <h3 className="font-bold truncate">{event.title}</h3>
-          <p className="text-xs text-gray-400 mt-1 flex items-center gap-1"><Calendar size={12} /> {displayDate.toLocaleDateString()}</p>
+          <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1"><Calendar size={12} /> {displayDate.toLocaleDateString()}</p>
           <div className="flex justify-between items-center mt-4">
-            <span className="font-bold text-cyan-400">{event.isPaid ? `$${event.price}` : 'Free'}</span>
+            <span className="font-bold text-primary">{event.isPaid ? `$${event.price}` : 'Free'}</span>
             <Button size="sm" onClick={handleQuickRegister} disabled={isRegistering} className="rounded-full">Register</Button>
           </div>
         </CardContent>

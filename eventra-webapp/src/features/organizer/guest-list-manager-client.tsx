@@ -97,7 +97,7 @@ export function GuestListManagerClient({ eventId, eventTitle, ticketTiers }: Gue
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         
         {/* Upload Card */}
-        <Card className="bg-white/5 border-white/10 text-white">
+        <Card className="bg-muted/40 border-border text-white">
           <CardHeader>
             <CardTitle className="text-xl font-bold flex items-center gap-2">
               <FileUp size={20} className="text-emerald-400" />
@@ -106,25 +106,25 @@ export function GuestListManagerClient({ eventId, eventTitle, ticketTiers }: Gue
             <CardDescription>Upload a CSV file to bulk-register attendees for {eventTitle}.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-             <div className="p-6 border-2 border-dashed border-white/10 rounded-xl bg-white/5 text-center space-y-4">
-                <Users className="mx-auto h-12 w-12 text-gray-500" />
+             <div className="p-6 border-2 border-dashed border-border rounded-xl bg-muted/40 text-center space-y-4">
+                <Users className="mx-auto h-12 w-12 text-muted-foreground" />
                 <div className="space-y-2">
                    <p className="text-sm font-bold">Select CSV File</p>
-                   <p className="text-xs text-gray-500">Columns required: email, name (optional)</p>
+                   <p className="text-xs text-muted-foreground">Columns required: email, name (optional)</p>
                 </div>
                 <Input 
                   id="csv-upload"
                   type="file" 
                   accept=".csv" 
                   onChange={handleFileChange}
-                  className="bg-white/5 border-white/10"
+                  className="bg-muted/40 border-border"
                 />
              </div>
 
              <div className="space-y-2">
                 <Label>Assign Ticket Tier (Optional)</Label>
                 <select 
-                  className="w-full bg-white/5 border border-white/10 rounded-md p-2 text-sm focus:ring-1 focus:ring-emerald-500 outline-none"
+                  className="w-full bg-muted/40 border border-border rounded-md p-2 text-sm focus:ring-1 focus:ring-emerald-500 outline-none"
                   value={selectedTierId}
                   onChange={e => setSelectedTierId(e.target.value)}
                 >
@@ -136,7 +136,7 @@ export function GuestListManagerClient({ eventId, eventTitle, ticketTiers }: Gue
              </div>
 
              <div className="flex gap-4">
-                <Button variant="outline" className="flex-1 border-white/10" onClick={downloadTemplate}>
+                <Button variant="outline" className="flex-1 border-border" onClick={downloadTemplate}>
                    <Download className="w-4 h-4 mr-2" /> Template
                 </Button>
                 <Button 
@@ -152,10 +152,10 @@ export function GuestListManagerClient({ eventId, eventTitle, ticketTiers }: Gue
         </Card>
 
         {/* Preview / Results Card */}
-        <Card className="bg-white/5 border-white/10 text-white overflow-hidden">
-          <CardHeader className="border-b border-white/5">
+        <Card className="bg-muted/40 border-border text-white overflow-hidden">
+          <CardHeader className="border-b border-border/60">
              <CardTitle className="text-sm font-bold flex items-center gap-2">
-                {importResults ? <Info size={16} className="text-cyan-400" /> : <TableIcon size={16} className="text-gray-400" />}
+                {importResults ? <Info size={16} className="text-primary" /> : <TableIcon size={16} className="text-muted-foreground" />}
                 {importResults ? "Import Summary" : "CSV Preview (First 10)"}
              </CardTitle>
           </CardHeader>
@@ -164,42 +164,42 @@ export function GuestListManagerClient({ eventId, eventTitle, ticketTiers }: Gue
                <div className="p-6 space-y-6">
                   <div className="grid grid-cols-2 gap-4">
                      <div className="p-4 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-center">
-                        <p className="text-xs text-gray-400 uppercase font-black mb-1">Success</p>
+                        <p className="text-xs text-muted-foreground uppercase font-black mb-1">Success</p>
                         <p className="text-3xl font-black text-emerald-500">{importResults.success}</p>
                      </div>
                      <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/20 text-center">
-                        <p className="text-xs text-gray-400 uppercase font-black mb-1">Failed</p>
+                        <p className="text-xs text-muted-foreground uppercase font-black mb-1">Failed</p>
                         <p className="text-3xl font-black text-red-500">{importResults.failed}</p>
                      </div>
                   </div>
 
                   {importResults.errors.length > 0 && (
                     <div className="space-y-2">
-                       <p className="text-xs font-bold text-gray-500 uppercase">Error Logs</p>
-                       <div className="max-h-48 overflow-y-auto rounded-lg bg-black/40 border border-white/5 p-3 font-mono text-[10px] text-red-400">
+                       <p className="text-xs font-bold text-muted-foreground uppercase">Error Logs</p>
+                       <div className="max-h-48 overflow-y-auto rounded-lg bg-background/40 border border-border/60 p-3 font-mono text-[10px] text-red-400">
                           {importResults.errors.map((err, i) => <div key={i}>{err}</div>)}
                        </div>
                     </div>
                   )}
 
-                  <Button variant="ghost" className="w-full text-gray-400" onClick={() => setImportResults(null)}>
+                  <Button variant="ghost" className="w-full text-muted-foreground" onClick={() => setImportResults(null)}>
                      Clear and Upload New
                   </Button>
                </div>
              ) : previewData.length > 0 ? (
-                <div className="divide-y divide-white/5">
+                <div className="divide-y divide-border/60">
                    {previewData.map((row, i) => (
-                     <div key={i} className="px-6 py-3 flex justify-between items-center hover:bg-white/5 transition-colors">
+                     <div key={i} className="px-6 py-3 flex justify-between items-center hover:bg-muted/40 transition-colors">
                         <div>
                            <p className="text-sm font-bold">{row.name || 'No Name'}</p>
-                           <p className="text-xs text-gray-500">{row.email}</p>
+                           <p className="text-xs text-muted-foreground">{row.email}</p>
                         </div>
-                        <Badge variant="outline" className="text-[10px] border-white/10 opacity-50">Row {i + 1}</Badge>
+                        <Badge variant="outline" className="text-[10px] border-border opacity-50">Row {i + 1}</Badge>
                      </div>
                    ))}
                 </div>
              ) : (
-                <div className="py-24 text-center text-gray-600">
+                <div className="py-24 text-center text-muted-foreground">
                    <p className="text-sm italic">No file selected for preview.</p>
                 </div>
              )}

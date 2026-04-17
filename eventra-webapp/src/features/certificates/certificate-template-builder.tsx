@@ -190,7 +190,7 @@ export function CertificateTemplateBuilder({ eventId, initialTemplate }: Certifi
             {previewMode ? <Settings2 className="w-4 h-4 mr-2" /> : <Eye className="w-4 h-4 mr-2" />}
             {previewMode ? 'Design Mode' : 'Preview'}
           </Button>
-          <Button size="sm" className="bg-cyan-600 hover:bg-cyan-500 text-white" onClick={handleSave} disabled={isSaving}>
+          <Button size="sm" className="bg-primary hover:bg-primary text-white" onClick={handleSave} disabled={isSaving}>
             {isSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
             Save Template
           </Button>
@@ -230,11 +230,11 @@ export function CertificateTemplateBuilder({ eventId, initialTemplate }: Certifi
                   key={field.id} 
                   className={cn(
                     "flex items-center gap-2 p-2 rounded-lg border text-sm transition-all cursor-pointer",
-                    selectedFieldId === field.id ? "bg-cyan-500/10 border-cyan-500/30" : "bg-background border-border hover:border-cyan-500/20"
+                    selectedFieldId === field.id ? "bg-primary/10 border-primary/30" : "bg-background border-border hover:border-primary/20"
                   )}
                   onClick={() => setSelectedFieldId(field.id)}
                 >
-                  {field.type === 'text' ? <Type size={14} className="text-muted-foreground" /> : <Wand2 size={14} className="text-cyan-500" />}
+                  {field.type === 'text' ? <Type size={14} className="text-muted-foreground" /> : <Wand2 size={14} className="text-primary" />}
                   <span className="flex-1 truncate">{field.name}</span>
                   <Button size="icon" variant="ghost" className="h-6 w-6 text-muted-foreground hover:text-red-500" onClick={(e) => { e.stopPropagation(); removeField(field.id); }}>
                     <Trash2 size={12} />
@@ -277,8 +277,8 @@ export function CertificateTemplateBuilder({ eventId, initialTemplate }: Certifi
                 onMouseDown={(e) => handleMouseDown(e, field.id)}
                 className={cn(
                   "absolute p-1 cursor-move select-none transition-shadow",
-                  !previewMode && selectedFieldId === field.id ? "outline outline-2 outline-cyan-500 z-50 shadow-lg" : "z-10",
-                  !previewMode && "hover:outline hover:outline-1 hover:outline-cyan-500/50"
+                  !previewMode && selectedFieldId === field.id ? "outline outline-2 outline-primary z-50 shadow-lg" : "z-10",
+                  !previewMode && "hover:outline hover:outline-1 hover:outline-primary/50"
                 )}
                 style={{
                   left: `${field.x}%`,
@@ -345,7 +345,7 @@ export function CertificateTemplateBuilder({ eventId, initialTemplate }: Certifi
                     type="range" min="8" max="120" 
                     value={selectedField.fontSize} 
                     onChange={e => updateField(selectedField.id, { fontSize: parseInt(e.target.value) })}
-                    className="w-full h-1.5 bg-muted-foreground/20 rounded-lg appearance-none cursor-pointer accent-cyan-500"
+                    className="w-full h-1.5 bg-muted-foreground/20 rounded-lg appearance-none cursor-pointer accent-primary"
                   />
                 </div>
 

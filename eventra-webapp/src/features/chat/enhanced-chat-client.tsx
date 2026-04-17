@@ -214,11 +214,11 @@ export default function EnhancedChatClient({ initialRoomId }: { initialRoomId?: 
   const selectedRoom = chatRooms.find((r: any) => r.id === selectedRoomId);
 
   return (
-    <div className="flex h-[calc(100vh-4rem)] bg-black text-white">
+    <div className="flex h-[calc(100vh-4rem)] bg-background text-white">
       {/* Sidebar */}
-      <div className="w-80 bg-white/5 border-r border-white/10 flex flex-col">
-        <div className="p-4 border-b border-white/10 flex justify-between items-center">
-          <h2 className="text-lg font-semibold text-cyan-400">Conversations</h2>
+      <div className="w-80 bg-muted/40 border-r border-border flex flex-col">
+        <div className="p-4 border-b border-border flex justify-between items-center">
+          <h2 className="text-lg font-semibold text-primary">Conversations</h2>
           <div className="flex gap-1">
             <Dialog open={isStartingDM} onOpenChange={setIsStartingDM}>
               <DialogTrigger asChild>
@@ -226,7 +226,7 @@ export default function EnhancedChatClient({ initialRoomId }: { initialRoomId?: 
                   <MessageCircle className="h-4 w-4" />
                 </Button>
               </DialogTrigger>
-              <DialogContent className="bg-gray-900 text-white border-white/10">
+              <DialogContent className="bg-gray-900 text-white border-border">
                 <DialogHeader><DialogTitle>Start a conversation</DialogTitle></DialogHeader>
                 <UserPicker onSelect={handleStartDM} excludeIds={[user?.id || '']} />
               </DialogContent>
@@ -238,16 +238,16 @@ export default function EnhancedChatClient({ initialRoomId }: { initialRoomId?: 
                   <Plus className="h-4 w-4" />
                 </Button>
               </DialogTrigger>
-              <DialogContent className="bg-gray-900 text-white border-white/10">
+              <DialogContent className="bg-gray-900 text-white border-border">
                 <DialogHeader><DialogTitle>Create Room</DialogTitle></DialogHeader>
                 <div className="space-y-4 pt-4">
                   <Input 
                     placeholder="Room Name" 
                     value={newRoom.name} 
                     onChange={e => setNewRoom({...newRoom, name: e.target.value})} 
-                    className="bg-white/5 border-white/10"
+                    className="bg-muted/40 border-border"
                   />
-                  <Button onClick={handleCreateRoom} className="w-full bg-cyan-600">Create</Button>
+                  <Button onClick={handleCreateRoom} className="w-full bg-primary">Create</Button>
                 </div>
               </DialogContent>
             </Dialog>
@@ -255,7 +255,7 @@ export default function EnhancedChatClient({ initialRoomId }: { initialRoomId?: 
         </div>
         <ScrollArea className="flex-1">
           {loadingRooms ? (
-            <div className="flex justify-center p-8"><Loader2 className="animate-spin text-cyan-500" /></div>
+            <div className="flex justify-center p-8"><Loader2 className="animate-spin text-primary" /></div>
           ) : (
             <div className="p-2 space-y-1">
               {chatRooms.map((room: any) => (
@@ -263,16 +263,16 @@ export default function EnhancedChatClient({ initialRoomId }: { initialRoomId?: 
                   key={room.id} 
                   className={cn(
                     "w-full text-left p-3 rounded-xl transition-all flex items-center gap-3", 
-                    selectedRoomId === room.id ? "bg-white/10 text-white" : "text-gray-400 hover:bg-white/5"
+                    selectedRoomId === room.id ? "bg-muted text-white" : "text-muted-foreground hover:bg-muted/40"
                   )} 
                   onClick={() => setSelectedRoomId(room.id)}
                 >
-                  <div className="w-10 h-10 rounded-full bg-cyan-500/10 flex items-center justify-center text-cyan-400 shrink-0 font-bold">
+                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0 font-bold">
                     {room.type === 'direct' ? room.name?.[0] || '?' : '#'}
                   </div>
                   <div className="truncate">
                     <p className="font-medium truncate text-sm">{room.name || 'Untitled Room'}</p>
-                    <p className="text-[10px] text-gray-500 uppercase">{room.type}</p>
+                    <p className="text-[10px] text-muted-foreground uppercase">{room.type}</p>
                   </div>
                 </button>
               ))}
@@ -285,9 +285,9 @@ export default function EnhancedChatClient({ initialRoomId }: { initialRoomId?: 
       <div className="flex-1 flex flex-col">
         {selectedRoomId ? (
           <>
-            <div className="p-4 border-b border-white/10 flex items-center justify-between bg-black/40">
+            <div className="p-4 border-b border-border flex items-center justify-between bg-background/40">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-cyan-500/20 flex items-center justify-center text-cyan-400">
+                <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center text-primary">
                   {selectedRoom?.type === 'direct' ? <MessageCircle size={16} /> : <Shield size={16} />}
                 </div>
                 <h2 className="font-bold text-white">{selectedRoom?.name || 'Loading...'}</h2>
@@ -297,19 +297,19 @@ export default function EnhancedChatClient({ initialRoomId }: { initialRoomId?: 
             <ScrollArea className="flex-1 p-4">
               <div className="space-y-6">
                 {loadingMessages ? (
-                   <div className="flex justify-center p-8"><Loader2 className="animate-spin text-cyan-500" /></div>
+                   <div className="flex justify-center p-8"><Loader2 className="animate-spin text-primary" /></div>
                 ) : (
                   messages.map((m: any) => {
                     const isMe = m.message.senderId === user?.id;
                     return (
                       <div key={m.message.id} className={cn("flex flex-col max-w-[80%]", isMe ? "ml-auto items-end" : "items-start")}>
                         {!isMe && (
-                          <p className="text-[10px] font-bold text-gray-500 mb-1 ml-1 uppercase tracking-tighter">{m.sender.name}</p>
+                          <p className="text-[10px] font-bold text-muted-foreground mb-1 ml-1 uppercase tracking-tighter">{m.sender.name}</p>
                         )}
                         
                         <div className={cn(
                           "p-3 rounded-2xl text-sm relative group", 
-                          isMe ? "bg-cyan-600 text-white rounded-tr-none" : "bg-white/10 text-gray-200 rounded-tl-none"
+                          isMe ? "bg-primary text-white rounded-tr-none" : "bg-muted text-foreground rounded-tl-none"
                         )}>
                           {m.message.imageUrl && (
                             <div className="mb-2 overflow-hidden rounded-lg">
@@ -326,7 +326,7 @@ export default function EnhancedChatClient({ initialRoomId }: { initialRoomId?: 
                           <p className="leading-relaxed whitespace-pre-wrap">{m.message.content}</p>
                         </div>
                         
-                        <p className="text-[9px] text-gray-600 mt-1 mx-1 font-mono">
+                        <p className="text-[9px] text-muted-foreground mt-1 mx-1 font-mono">
                           {new Date(m.message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </p>
                       </div>
@@ -338,14 +338,14 @@ export default function EnhancedChatClient({ initialRoomId }: { initialRoomId?: 
             </ScrollArea>
 
             {/* Input Footer */}
-            <div className="p-4 border-t border-white/10 bg-black/40">
+            <div className="p-4 border-t border-border bg-background/40">
               {pendingFile && (
-                <div className="mb-3 p-2 bg-white/5 rounded-xl border border-cyan-500/30 flex items-center justify-between">
+                <div className="mb-3 p-2 bg-muted/40 rounded-xl border border-primary/30 flex items-center justify-between">
                   <div className="flex items-center gap-2 overflow-hidden">
-                    {pendingFile.type.startsWith('image/') ? <ImageIcon size={16} className="text-cyan-400" /> : <FileIcon size={16} className="text-cyan-400" />}
-                    <span className="text-xs text-gray-300 truncate">{pendingFile.name}</span>
+                    {pendingFile.type.startsWith('image/') ? <ImageIcon size={16} className="text-primary" /> : <FileIcon size={16} className="text-primary" />}
+                    <span className="text-xs text-muted-foreground truncate">{pendingFile.name}</span>
                   </div>
-                  <button onClick={() => setPendingFile(null)} className="text-gray-500 hover:text-red-400"><X size={14} /></button>
+                  <button onClick={() => setPendingFile(null)} className="text-muted-foreground hover:text-red-400"><X size={14} /></button>
                 </div>
               )}
               
@@ -354,7 +354,7 @@ export default function EnhancedChatClient({ initialRoomId }: { initialRoomId?: 
                 <Button 
                   variant="ghost" 
                   size="icon" 
-                  className="h-10 w-10 shrink-0 text-gray-400 hover:text-cyan-400" 
+                  className="h-10 w-10 shrink-0 text-muted-foreground hover:text-primary" 
                   onClick={() => fileInputRef.current?.click()}
                   disabled={uploading}
                 >
@@ -366,10 +366,10 @@ export default function EnhancedChatClient({ initialRoomId }: { initialRoomId?: 
                   value={newMessage} 
                   onChange={e => setNewMessage(e.target.value)} 
                   onKeyDown={e => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), handleSendMessage())}
-                  className="min-h-[40px] max-h-32 resize-none bg-white/5 border-white/10 focus-visible:ring-cyan-500 rounded-xl" 
+                  className="min-h-[40px] max-h-32 resize-none bg-muted/40 border-border focus-visible:ring-primary rounded-xl" 
                 />
                 
-                <Button onClick={handleSendMessage} disabled={(!newMessage.trim() && !pendingFile) || !selectedRoomId} className="h-10 w-10 shrink-0 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl">
+                <Button onClick={handleSendMessage} disabled={(!newMessage.trim() && !pendingFile) || !selectedRoomId} className="h-10 w-10 shrink-0 bg-primary hover:bg-primary text-white rounded-xl">
                   <Send className="h-4 w-4" />
                 </Button>
               </div>
@@ -377,14 +377,14 @@ export default function EnhancedChatClient({ initialRoomId }: { initialRoomId?: 
           </>
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center text-center p-10 space-y-4">
-            <div className="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center text-gray-600">
+            <div className="w-20 h-20 rounded-full bg-muted/40 flex items-center justify-center text-muted-foreground">
               <MessageCircle size={40} />
             </div>
             <div>
               <h3 className="text-xl font-bold">Your Messages</h3>
-              <p className="text-gray-500 max-w-xs mx-auto mt-2">Select a conversation from the sidebar or start a new one to begin chatting.</p>
+              <p className="text-muted-foreground max-w-xs mx-auto mt-2">Select a conversation from the sidebar or start a new one to begin chatting.</p>
             </div>
-            <Button variant="outline" className="border-white/10" onClick={() => setIsStartingDM(true)}>Start Chatting</Button>
+            <Button variant="outline" className="border-border" onClick={() => setIsStartingDM(true)}>Start Chatting</Button>
           </div>
         )}
       </div>

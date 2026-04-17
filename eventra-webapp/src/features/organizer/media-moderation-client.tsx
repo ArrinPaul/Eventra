@@ -80,10 +80,10 @@ export function MediaModerationClient({ eventId, eventTitle }: MediaModerationPr
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
           <h1 className="text-3xl font-black italic">MEDIA MODERATION</h1>
-          <p className="text-gray-400">Review community photos for <span className="text-white font-bold">{eventTitle}</span></p>
+          <p className="text-muted-foreground">Review community photos for <span className="text-white font-bold">{eventTitle}</span></p>
         </div>
         <div className="flex gap-3">
-           <Button variant="outline" className="border-white/10" onClick={loadPending}>
+           <Button variant="outline" className="border-border" onClick={loadPending}>
               <RefreshCw className={cn("h-4 w-4 mr-2", loading && "animate-spin")} /> Refresh
            </Button>
            <Badge variant="outline" className="bg-amber-500/10 text-amber-500 border-amber-500/20 px-4 py-2">
@@ -93,22 +93,22 @@ export function MediaModerationClient({ eventId, eventTitle }: MediaModerationPr
       </div>
 
       {loading ? (
-        <div className="py-32 text-center"><Loader2 className="h-12 w-12 animate-spin mx-auto text-cyan-500" /></div>
+        <div className="py-32 text-center"><Loader2 className="h-12 w-12 animate-spin mx-auto text-primary" /></div>
       ) : pending.length === 0 ? (
-        <Card className="bg-white/5 border-white/10 text-center py-32 border-2 border-dashed">
+        <Card className="bg-muted/40 border-border text-center py-32 border-2 border-dashed">
            <CardContent>
               <CheckCircle2 className="h-16 w-16 text-emerald-500 mx-auto mb-4 opacity-20" />
-              <h3 className="text-xl font-black text-gray-500 uppercase italic">Inbox Zero</h3>
-              <p className="text-sm text-gray-600 mt-1">All community photos have been moderated.</p>
+              <h3 className="text-xl font-black text-muted-foreground uppercase italic">Inbox Zero</h3>
+              <p className="text-sm text-muted-foreground mt-1">All community photos have been moderated.</p>
            </CardContent>
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {pending.map((media) => (
-            <Card key={media.id} className="bg-white/5 border-white/10 overflow-hidden group">
+            <Card key={media.id} className="bg-muted/40 border-border overflow-hidden group">
                <div className="relative aspect-video">
                   <Image src={media.url} alt="pending" fill className="object-cover" />
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <div className="absolute inset-0 bg-background/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                      <Button variant="ghost" className="text-white" asChild>
                         <a href={media.url} target="_blank"><Eye className="mr-2 h-4 w-4" /> View Full</a>
                      </Button>
@@ -116,17 +116,17 @@ export function MediaModerationClient({ eventId, eventTitle }: MediaModerationPr
                </div>
                <CardContent className="p-6 space-y-6">
                   <div className="flex items-center gap-3">
-                     <div className="h-8 w-8 rounded-full bg-cyan-500/10 flex items-center justify-center font-bold text-cyan-400 text-xs">
+                     <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center font-bold text-primary text-xs">
                         {media.author.name?.[0] || 'U'}
                      </div>
                      <div>
                         <p className="text-sm font-bold truncate">{media.author.name || 'Anonymous'}</p>
-                        <p className="text-[10px] text-gray-500 truncate">{media.author.email}</p>
+                        <p className="text-[10px] text-muted-foreground truncate">{media.author.email}</p>
                      </div>
                   </div>
 
                   {media.caption && (
-                    <p className="text-xs text-gray-400 italic line-clamp-2">"{media.caption}"</p>
+                    <p className="text-xs text-muted-foreground italic line-clamp-2">"{media.caption}"</p>
                   )}
 
                   <div className="grid grid-cols-2 gap-3">

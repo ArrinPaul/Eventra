@@ -52,7 +52,7 @@ export default function CheckInPage() {
                             <DialogHeader>
                                 <DialogTitle>Scan QR Code</DialogTitle>
                             </DialogHeader>
-                            <div className="p-4 text-center text-gray-500">
+                            <div className="p-4 text-center text-muted-foreground">
                                 QR Scanner Component - To be implemented
                             </div>
                         </DialogContent>

@@ -325,8 +325,8 @@ export default function CheckInScannerClient() {
   if (authLoading || loading) {
     return (
       <div className="container py-32 text-center text-white">
-        <Activity className="h-12 w-12 mx-auto mb-4 animate-spin text-cyan-500" />
-        <p className="text-gray-400">Loading scanner...</p>
+        <Activity className="h-12 w-12 mx-auto mb-4 animate-spin text-primary" />
+        <p className="text-muted-foreground">Loading scanner...</p>
       </div>
     );
   }
@@ -336,7 +336,7 @@ export default function CheckInScannerClient() {
       <div className="container py-16 text-center text-white">
         <ScanLine className="h-16 w-16 mx-auto mb-6 text-muted-foreground opacity-20" />
         <h1 className="text-2xl font-bold">Organizer Access Required</h1>
-        <p className="text-gray-400 mt-2">Only organizers and admins can access the check-in scanner.</p>
+        <p className="text-muted-foreground mt-2">Only organizers and admins can access the check-in scanner.</p>
         <Button asChild className="mt-6" variant="outline"><a href="/explore">Back to Explore</a></Button>
       </div>
     );
@@ -353,7 +353,7 @@ export default function CheckInScannerClient() {
             </Badge>
           )}
           {offlineQueue.length > 0 && (
-            <Badge variant="outline" className="bg-cyan-500/10 text-cyan-500 border-cyan-500/20">
+            <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
               {offlineQueue.length} pending
             </Badge>
           )}
@@ -362,7 +362,7 @@ export default function CheckInScannerClient() {
           <Button 
             variant="outline" 
             size="sm" 
-            className="border-white/10 hover:bg-white/5 h-9" 
+            className="border-border hover:bg-muted/40 h-9" 
             onClick={downloadAttendeeList}
             disabled={isDownloading || !selectedEventId}
           >
@@ -382,7 +382,7 @@ export default function CheckInScannerClient() {
           <Button 
             variant="outline" 
             size="icon" 
-            className="border-white/10 hover:bg-white/5 h-9 w-9" 
+            className="border-border hover:bg-muted/40 h-9 w-9" 
             onClick={() => setSoundEnabled(!soundEnabled)}
           >
             {soundEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
@@ -390,16 +390,16 @@ export default function CheckInScannerClient() {
         </div>
       </div>
 
-      <Card className="mb-6 bg-white/5 border-white/10 text-white shadow-xl backdrop-blur-sm">
+      <Card className="mb-6 bg-muted/40 border-border text-white shadow-xl backdrop-blur-sm">
         <CardContent className="p-6">
-          <Label className="mb-3 block text-xs font-bold uppercase tracking-wider text-gray-500">Select Event to Scan For</Label>
+          <Label className="mb-3 block text-xs font-bold uppercase tracking-wider text-muted-foreground">Select Event to Scan For</Label>
           <Select value={selectedEventId} onValueChange={setSelectedEventId}>
-            <SelectTrigger className="bg-white/5 border-white/10 h-12 text-lg">
+            <SelectTrigger className="bg-muted/40 border-border h-12 text-lg">
               <SelectValue placeholder="Choose an event" />
             </SelectTrigger>
-            <SelectContent className="bg-gray-900 border-white/10 text-white">
+            <SelectContent className="bg-gray-900 border-border text-white">
               {events.map(event => (
-                <SelectItem key={event.id} value={event.id} className="focus:bg-white/10 py-3">
+                <SelectItem key={event.id} value={event.id} className="focus:bg-muted py-3">
                   {event.title}
                 </SelectItem>
               ))}
@@ -409,14 +409,14 @@ export default function CheckInScannerClient() {
       </Card>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        <Card className="bg-white/5 border-white/10 text-white overflow-hidden group hover:border-emerald-500/30 transition-all duration-300">
+        <Card className="bg-muted/40 border-border text-white overflow-hidden group hover:border-emerald-500/30 transition-all duration-300">
           <CardContent className="p-6 relative">
             <div className="flex justify-between items-start mb-2">
-              <p className="text-[10px] uppercase font-black text-gray-500 tracking-widest">Checked In</p>
+              <p className="text-[10px] uppercase font-black text-muted-foreground tracking-widest">Checked In</p>
               <UserCheck size={14} className="text-emerald-400" />
             </div>
             <p className="text-3xl font-black">{checkInCount} / {totalRegistrations}</p>
-            <div className="mt-4 h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+            <div className="mt-4 h-1.5 w-full bg-muted/40 rounded-full overflow-hidden">
               <div 
                 className="h-full bg-emerald-500 rounded-full transition-all duration-1000 ease-out" 
                 style={{ width: `${checkInRate}%` }} 
@@ -425,49 +425,49 @@ export default function CheckInScannerClient() {
           </CardContent>
         </Card>
         
-        <Card className="bg-white/5 border-white/10 text-white group hover:border-cyan-500/30 transition-all duration-300">
+        <Card className="bg-muted/40 border-border text-white group hover:border-primary/30 transition-all duration-300">
           <CardContent className="p-6">
             <div className="flex justify-between items-start mb-2">
-              <p className="text-[10px] uppercase font-black text-gray-500 tracking-widest">Check-in Rate</p>
-              <TrendingUp size={14} className="text-cyan-400" />
+              <p className="text-[10px] uppercase font-black text-muted-foreground tracking-widest">Check-in Rate</p>
+              <TrendingUp size={14} className="text-primary" />
             </div>
             <p className="text-3xl font-black">{checkInRate}%</p>
-            <p className="text-[10px] text-gray-500 mt-1 flex items-center gap-1">
-              <Activity size={10} className="text-cyan-500 animate-pulse" /> Live activity tracking
+            <p className="text-[10px] text-muted-foreground mt-1 flex items-center gap-1">
+              <Activity size={10} className="text-primary animate-pulse" /> Live activity tracking
             </p>
           </CardContent>
         </Card>
 
-        <Card className="bg-white/5 border-white/10 text-white group hover:border-amber-500/30 transition-all duration-300">
+        <Card className="bg-muted/40 border-border text-white group hover:border-amber-500/30 transition-all duration-300">
           <CardContent className="p-6">
             <div className="flex justify-between items-start mb-2">
-              <p className="text-[10px] uppercase font-black text-gray-500 tracking-widest">Pending</p>
+              <p className="text-[10px] uppercase font-black text-muted-foreground tracking-widest">Pending</p>
               <Clock size={14} className="text-amber-400" />
             </div>
             <p className="text-3xl font-black">{Math.max(0, totalRegistrations - checkInCount)}</p>
-            <p className="text-[10px] text-gray-500 mt-1">Attendees remaining</p>
+            <p className="text-[10px] text-muted-foreground mt-1">Attendees remaining</p>
           </CardContent>
         </Card>
       </div>
 
       <div className="grid md:grid-cols-2 gap-6">
-        <Card className="bg-white/5 border-white/10 text-white shadow-2xl overflow-hidden">
-          <CardHeader className="border-b border-white/5 bg-white/5">
+        <Card className="bg-muted/40 border-border text-white shadow-2xl overflow-hidden">
+          <CardHeader className="border-b border-border/60 bg-muted/40">
             <CardTitle className="text-sm font-bold flex items-center gap-2">
               <QrCode className="h-4 w-4" /> QR Code Scanner
             </CardTitle>
           </CardHeader>
           <CardContent className="p-6">
-            <div id="qr-reader" className="relative w-full aspect-square rounded-xl bg-black/40 flex items-center justify-center border border-white/10 overflow-hidden backdrop-blur-md">
+            <div id="qr-reader" className="relative w-full aspect-square rounded-xl bg-background/40 flex items-center justify-center border border-border overflow-hidden backdrop-blur-md">
               {!scanning && (
                 <div className="text-center p-8">
                   <ScanLine className="h-16 w-16 text-gray-700 mx-auto mb-4 opacity-50" />
-                  <p className="text-sm text-gray-500">Camera stream will appear here</p>
+                  <p className="text-sm text-muted-foreground">Camera stream will appear here</p>
                 </div>
               )}
               {processing && (
-                <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-10">
-                  <Activity className="h-8 w-8 text-cyan-500 animate-spin" />
+                <div className="absolute inset-0 bg-background/60 flex items-center justify-center z-10">
+                  <Activity className="h-8 w-8 text-primary animate-spin" />
                 </div>
               )}
             </div>
@@ -475,7 +475,7 @@ export default function CheckInScannerClient() {
               onClick={scanning ? stopScanner : startScanner} 
               className={cn(
                 "w-full mt-6 h-12 text-lg font-bold transition-all",
-                scanning ? "bg-red-500/10 text-red-500 border-red-500/20 hover:bg-red-500/20" : "bg-cyan-600 hover:bg-cyan-700 text-white"
+                scanning ? "bg-red-500/10 text-red-500 border-red-500/20 hover:bg-red-500/20" : "bg-primary hover:bg-primary text-white"
               )}
               variant={scanning ? "outline" : "default"}
               disabled={processing}
@@ -485,8 +485,8 @@ export default function CheckInScannerClient() {
           </CardContent>
         </Card>
 
-        <Card className="bg-white/5 border-white/10 text-white shadow-2xl">
-          <CardHeader className="border-b border-white/5 bg-white/5">
+        <Card className="bg-muted/40 border-border text-white shadow-2xl">
+          <CardHeader className="border-b border-border/60 bg-muted/40">
             <CardTitle className="text-sm font-bold flex items-center gap-2">
               <Search className="h-4 w-4" /> Manual Check-in
             </CardTitle>
@@ -494,14 +494,14 @@ export default function CheckInScannerClient() {
           <CardContent className="p-6">
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="ticket-id" className="text-xs text-gray-400">Enter Ticket Number Manually</Label>
+                <Label htmlFor="ticket-id" className="text-xs text-muted-foreground">Enter Ticket Number Manually</Label>
                 <div className="flex gap-2">
                   <Input 
                     id="ticket-id"
                     placeholder="e.g. TKT-XJ8K2L..." 
                     value={manualSearch} 
                     onChange={(e) => setManualSearch(e.target.value)} 
-                    className="bg-white/5 border-white/10 h-12 font-mono uppercase"
+                    className="bg-muted/40 border-border h-12 font-mono uppercase"
                     onKeyDown={(e) => e.key === 'Enter' && handleProcessCheckIn(manualSearch)}
                   />
                   <Button 
@@ -514,13 +514,13 @@ export default function CheckInScannerClient() {
                 </div>
               </div>
               
-              <div className="pt-8 text-center text-gray-500 border border-dashed border-white/10 rounded-xl py-12">
+              <div className="pt-8 text-center text-muted-foreground border border-dashed border-border rounded-xl py-12">
                   <div className="relative inline-block mb-4">
                     <Search size={48} className="mx-auto opacity-10" />
-                    <ScanLine className="absolute top-1/2 left-0 w-full h-0.5 bg-cyan-500/20 animate-pulse" />
+                    <ScanLine className="absolute top-1/2 left-0 w-full h-0.5 bg-primary/20 animate-pulse" />
                   </div>
                   <p className="text-sm font-medium">Use for manual verification</p>
-                  <p className="text-xs text-gray-600 mt-1">Check the ID of the attendee and cross-reference</p>
+                  <p className="text-xs text-muted-foreground mt-1">Check the ID of the attendee and cross-reference</p>
               </div>
             </div>
           </CardContent>
@@ -528,7 +528,7 @@ export default function CheckInScannerClient() {
       </div>
 
       <Dialog open={!!scanResult} onOpenChange={() => setScanResult(null)}>
-        <DialogContent className="sm:max-w-md text-center py-10 bg-gray-900 text-white border-white/10 shadow-2xl">
+        <DialogContent className="sm:max-w-md text-center py-10 bg-gray-900 text-white border-border shadow-2xl">
           {scanResult?.success ? (
             <div className="space-y-6">
                 <div className="relative inline-block">
@@ -537,16 +537,16 @@ export default function CheckInScannerClient() {
                 </div>
                 <div>
                   <h2 className="text-3xl font-black text-emerald-500">Access Granted</h2>
-                  <p className="text-gray-400 mt-1">Attendee verified successfully</p>
+                  <p className="text-muted-foreground mt-1">Attendee verified successfully</p>
                 </div>
                 
-                <div className="p-6 bg-white/5 rounded-xl border border-white/10 text-left space-y-4">
+                <div className="p-6 bg-muted/40 rounded-xl border border-border text-left space-y-4">
                     <div className="flex items-center gap-4">
-                      <div className="h-12 w-12 rounded-full bg-white/10 overflow-hidden border border-white/10 flex items-center justify-center">
+                      <div className="h-12 w-12 rounded-full bg-muted overflow-hidden border border-border flex items-center justify-center">
                         {scanResult.ticket?.userImage ? (
                           <Image src={scanResult.ticket.userImage} alt="User" width={48} height={48} className="object-cover" />
                         ) : (
-                          <User className="text-gray-400" />
+                          <User className="text-muted-foreground" />
                         )}
                       </div>
                       <div>
@@ -555,9 +555,9 @@ export default function CheckInScannerClient() {
                       </div>
                     </div>
                     
-                    <div className="pt-4 border-t border-white/5">
-                      <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest mb-1">Ticket ID</p>
-                      <p className="font-mono text-cyan-400 text-lg">{scanResult.ticket?.ticketNumber}</p>
+                    <div className="pt-4 border-t border-border/60">
+                      <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest mb-1">Ticket ID</p>
+                      <p className="font-mono text-primary text-lg">{scanResult.ticket?.ticketNumber}</p>
                     </div>
                 </div>
             </div>
@@ -569,15 +569,15 @@ export default function CheckInScannerClient() {
                 </div>
                 <div>
                   <h2 className="text-3xl font-black text-red-500">Access Denied</h2>
-                  <p className="text-gray-400 mt-1">Verification failed</p>
+                  <p className="text-muted-foreground mt-1">Verification failed</p>
                 </div>
                 <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-lg">
                   <p className="text-sm font-medium text-red-200">{scanResult?.message}</p>
                 </div>
-                <p className="text-xs text-gray-600">Please check the ticket details and try again or refer to the help desk.</p>
+                <p className="text-xs text-muted-foreground">Please check the ticket details and try again or refer to the help desk.</p>
             </div>
           )}
-          <Button onClick={() => setScanResult(null)} className="mt-8 w-full h-12 text-lg font-bold bg-white/10 hover:bg-white/20 text-white border border-white/10">
+          <Button onClick={() => setScanResult(null)} className="mt-8 w-full h-12 text-lg font-bold bg-muted hover:bg-muted text-white border border-border">
             Continue Scanning
           </Button>
         </DialogContent>
