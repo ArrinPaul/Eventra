@@ -78,12 +78,10 @@ export default function AttendeeDashboard() {
   return (
     <div className="page-container py-8 md:py-10 space-y-10 animate-fade-in-up" data-testid="attendee-dashboard">
       {/* Hero */}
-      <section className="relative overflow-hidden rounded-3xl border border-border bg-card shadow-soft">
-        <div className="absolute inset-0 aurora opacity-80" />
-        <div className="absolute inset-0 bg-grid opacity-30" />
+      <section className="relative overflow-hidden rounded-2xl border border-border bg-card shadow-soft">
         <div className="relative z-10 p-8 md:p-12 flex flex-col lg:flex-row gap-8 justify-between items-start lg:items-center">
           <div className="space-y-5 max-w-2xl">
-            <Badge variant="solid" className="gap-1.5">
+            <Badge variant="default" className="gap-1.5">
               <Sparkles className="h-3 w-3" /> AI-curated experience
             </Badge>
             <h1 className="font-display text-3xl md:text-5xl font-semibold tracking-tight">

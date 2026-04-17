@@ -63,8 +63,8 @@ function Logo() {
       className="flex items-center gap-2 group"
       data-testid="header-logo"
     >
-      <div className="flex h-8 w-8 items-center justify-center rounded-lg gradient-brand shadow-soft">
-        <Calendar className="h-4 w-4 text-white" strokeWidth={2.5} />
+      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-foreground text-background shadow-soft">
+        <Calendar className="h-4 w-4" strokeWidth={2.5} />
       </div>
       <span className="font-display text-lg font-semibold tracking-tight text-foreground">
         Eventra

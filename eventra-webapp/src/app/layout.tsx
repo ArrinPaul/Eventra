@@ -3,7 +3,7 @@ import './globals.css';
 import { Providers } from '@/components/providers';
 import { Toaster } from '@/components/ui/toaster';
 import { NotificationWatcher } from '@/features/notifications/notification-watcher';
-import { Inter, Space_Grotesk, JetBrains_Mono } from 'next/font/google';
+import { Inter, JetBrains_Mono } from 'next/font/google';
 import { baseMetadata, viewport as seoViewport, generateOrganizationSchema } from '@/core/services/seo';
 import { NextIntlClientProvider } from 'next-intl';
 import { getUserLocale } from '@/core/services/locale-service';
@@ -28,10 +28,11 @@ const inter = Inter({
   display: 'swap',
 });
 
-const spaceGrotesk = Space_Grotesk({
+const interDisplay = Inter({
   subsets: ['latin'],
   variable: '--font-display',
   display: 'swap',
+  weight: ['500', '600', '700'],
 });
 
 const jetbrains = JetBrains_Mono({
@@ -57,7 +58,7 @@ export default async function RootLayout({
     <html
       lang={safeLocale}
       suppressHydrationWarning
-      className={`${inter.variable} ${spaceGrotesk.variable} ${jetbrains.variable}`}
+      className={`${inter.variable} ${interDisplay.variable} ${jetbrains.variable}`}
     >
       <head>
         <script

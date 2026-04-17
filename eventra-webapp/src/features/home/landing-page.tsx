@@ -34,26 +34,25 @@ import Header from '@/components/layout/header';
    ============================================================ */
 function Hero() {
   return (
-    <section className="relative overflow-hidden pt-16 pb-20 md:pt-24 md:pb-28">
-      <div className="absolute inset-0 bg-grid pointer-events-none opacity-60 dark:opacity-40" />
+    <section className="relative overflow-hidden pt-16 pb-20 md:pt-28 md:pb-32">
       <div className="absolute inset-0 aurora" />
 
       <div className="page-container relative z-10">
         <motion.div
-          initial={{ opacity: 0, y: 12 }}
+          initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
           className="flex flex-col items-center text-center max-w-4xl mx-auto"
         >
-          <Badge variant="outline" className="mb-6 gap-2 border-border/80 bg-background/60 backdrop-blur-sm">
-            <span className="status-dot bg-success animate-pulse-slow" />
-            Eventra · v2 · now in production
+          <Badge variant="outline" className="mb-7 gap-2 border-border bg-card/60 backdrop-blur-sm text-muted-foreground">
+            <span className="status-dot bg-success" />
+            Now in production · v2
           </Badge>
 
-          <h1 className="font-display text-5xl md:text-6xl lg:text-7xl font-semibold tracking-tight mb-6 leading-[1.05]">
+          <h1 className="font-display text-5xl md:text-6xl lg:text-[5.5rem] font-semibold tracking-tight mb-6 leading-[1.02] text-foreground">
             Run unforgettable events.
             <br />
-            <span className="gradient-text-brand">End-to-end, effortlessly.</span>
+            <span className="text-muted-foreground font-normal">End-to-end, effortlessly.</span>
           </h1>
 
           <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mb-10 leading-relaxed">
@@ -365,7 +364,7 @@ function MetricsStrip() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-border rounded-2xl overflow-hidden border border-border">
           {items.map((item) => (
             <div key={item.label} className="bg-background p-6 md:p-7">
-              <div className="text-3xl md:text-4xl font-display font-semibold gradient-text-brand">
+              <div className="text-3xl md:text-4xl font-display font-semibold text-foreground tracking-tight">
                 {item.value}
               </div>
               <div className="text-xs md:text-sm text-muted-foreground mt-1 uppercase tracking-wide">
@@ -386,17 +385,15 @@ function CTA() {
   return (
     <section className="py-20">
       <div className="page-container">
-        <div className="relative overflow-hidden rounded-3xl border border-border bg-card p-10 md:p-16 shadow-elevated">
-          <div className="absolute inset-0 aurora opacity-80" />
-          <div className="absolute inset-0 bg-grid opacity-30" />
+        <div className="relative overflow-hidden rounded-3xl border border-border bg-card p-10 md:p-16 shadow-soft">
           <div className="relative z-10 max-w-2xl">
-            <Badge variant="solid" className="mb-5">
+            <Badge variant="default" className="mb-5">
               <Sparkles className="h-3 w-3 mr-1" /> Free to start
             </Badge>
-            <h2 className="font-display text-3xl md:text-5xl font-semibold tracking-tight mb-4">
+            <h2 className="font-display text-3xl md:text-5xl font-semibold tracking-tight mb-4 text-foreground">
               Ready to run your next event
               <br className="hidden md:block" />
-              <span className="gradient-text-brand">with Eventra?</span>
+              <span className="text-muted-foreground font-normal">with Eventra?</span>
             </h2>
             <p className="text-muted-foreground text-lg mb-8 leading-relaxed">
               Create your first event in under two minutes. No credit card required.
@@ -446,8 +443,8 @@ function Footer() {
         <div className="grid grid-cols-2 md:grid-cols-6 gap-10 mb-12">
           <div className="col-span-2">
             <Link href="/" className="flex items-center gap-2 mb-4">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg gradient-brand">
-                <Calendar className="h-4 w-4 text-white" strokeWidth={2.5} />
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-foreground text-background">
+                <Calendar className="h-4 w-4" strokeWidth={2.5} />
               </div>
               <span className="font-display text-lg font-semibold">Eventra</span>
             </Link>
