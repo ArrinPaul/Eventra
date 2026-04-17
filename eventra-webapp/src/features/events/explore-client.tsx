@@ -1,444 +1,249 @@
 'use client';
-// 
-import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+
+import { useState, useEffect, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Search, Filter, Calendar, MapPin, Clock, Users, ArrowRight, ChevronDown, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet';
-import { 
-  Search, 
-  Calendar, 
-  MapPin, 
-  Sparkles,
-  Grid3X3,
-  List,
-  X,
-  Loader2,
-  SlidersHorizontal,
-  Brain,
-  RefreshCw
-} from 'lucide-react';
-import { EventCard } from '@/features/events/event-card';
-import { useAuth } from '@/hooks/use-auth';
-import { getAIRecommendations } from '@/app/actions/ai-recommendations';
 import { getEvents } from '@/app/actions/events';
-import { cn } from '@/core/utils/utils';
-import type { EventraEvent } from '@/types';
-import { getUserInterests, getUserSkills, getUserAttendedEvents } from '@/types';
+import Link from 'next/link';
 
-const ITEMS_PER_PAGE = 12;
+const categories = ['All', 'Technology', 'Business', 'Design', 'Science', 'Arts', 'Health', 'Sports', 'Music', 'Education'];
 
-const categories = [
-  'All',
-  'Tech',
-  'Workshop',
-  'Networking',
-  'Social',
-  'Career',
-  'Academic',
-  'Sports',
-  'Arts',
-  'Music',
-];
-
-const dateFilters = [
-  { label: 'Any time', value: 'all' },
-  { label: 'Today', value: 'today' },
-  { label: 'This week', value: 'week' },
-  { label: 'This month', value: 'month' },
-  { label: 'This year', value: 'year' },
-];
-
-const sortOptions = [
-  { label: 'Latest', value: 'date-desc' },
-  { label: 'Soonest', value: 'date-asc' },
-];
+interface EventItem {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  type: string;
+  startDate: Date;
+  endDate: Date;
+  location: any;
+  capacity: number;
+  registeredCount: number;
+  price: string;
+  imageUrl: string | null;
+  isPaid: boolean;
+  status: string;
+}
 
 export default function ExploreClient() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const observerRef = useRef<IntersectionObserver | null>(null);
-  const loadMoreRef = useRef<HTMLDivElement>(null);
-  const { user } = useAuth();
-
-  // Filters
-  const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
-  const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || 'All');
-  const [dateFilter, setDateFilter] = useState(searchParams.get('date') || 'all');
-  const [sortBy, setSortBy] = useState(searchParams.get('sort') || 'date-desc');
-  const [locationFilter, setLocationFilter] = useState(searchParams.get('location') || '');
-  const [showOnlyFree, setShowOnlyFree] = useState(false);
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-
-  // AI state
-  const [aiRecommendations, setAiRecommendations] = useState<any[]>([]);
-  const [aiLoading, setAiLoading] = useState(false);
-  const [aiError, setAiError] = useState<string | null>(null);
-  const [aiInsights, setAiInsights] = useState<any>(null);
-
-  // Data state
-  const [events, setEvents] = useState<EventraEvent[]>([]);
+  const [events, setEvents] = useState<EventItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [status, setStatus] = useState<'Idle' | 'LoadingFirstPage' | 'CanLoadMore' | 'LoadingMore' | 'Exhausted'>('Idle');
-  const loadMore = (count: number) => {
-    // Basic loadMore implementation for now
-    console.log(`Loading ${count} more events`);
-  };
+  const [search, setSearch] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('All');
 
-  useEffect(() => {
-    async function loadData() {
-      setLoading(true);
-      const data = await getEvents({
-        category: selectedCategory,
-        search: searchQuery
+  const fetchEvents = useCallback(async () => {
+    setLoading(true);
+    try {
+      const result = await getEvents({
+        search: search || undefined,
+        category: selectedCategory !== 'All' ? selectedCategory : undefined,
+        limit: 50,
       });
-      // Type casting to Event[] since our types are compatible
-      setEvents(data as any);
+      setEvents(result as EventItem[]);
+    } catch (error) {
+      console.error('Failed to fetch events:', error);
+      setEvents([]);
+    } finally {
       setLoading(false);
     }
-    loadData();
-  }, [selectedCategory, searchQuery]);
-
-  // Fetch AI Recommendations when events are loaded
-  const fetchAIRecommendations = useCallback(async () => {
-    if (events.length === 0) return;
-    
-    setAiLoading(true);
-    setAiError(null);
-    
-    try {
-      const result = await getAIRecommendations(user?._id || user?.id || 'guest');
-      setAiRecommendations(Array.isArray(result) ? result : []);
-      setAiInsights(null);
-    } catch (error) {
-      console.error('Failed to fetch AI recommendations:', error);
-      setAiError('Unable to load personalized recommendations');
-    } finally {
-      setAiLoading(false);
-    }
-  }, [events, user]);
+  }, [search, selectedCategory]);
 
   useEffect(() => {
-    if (events.length > 0 && aiRecommendations.length === 0) {
-      fetchAIRecommendations();
-    }
-  }, [events, fetchAIRecommendations, aiRecommendations.length]);
+    fetchEvents();
+  }, [fetchEvents]);
 
-  const displayedEvents = useMemo(() => {
-    let result = [...events];
-
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      result = result.filter(event => 
-        event.title.toLowerCase().includes(query) ||
-        event.description.toLowerCase().includes(query) ||
-        event.category.toLowerCase().includes(query)
-      );
-    }
-
-    if (selectedCategory && selectedCategory !== 'All') {
-      result = result.filter(event => event.category === selectedCategory);
-    }
-
-    // ... (rest of the filtering logic remains same but simplified for the paginated context)
-    return result;
-  }, [events, searchQuery, selectedCategory]);
-
-  const handleLoadMore = () => {
-    if (status === "CanLoadMore") {
-      loadMore(ITEMS_PER_PAGE);
-    }
-  };
-
+  // Debounced search
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && status === "CanLoadMore") {
-          handleLoadMore();
-        }
-      },
-      { threshold: 0.1 }
-    );
+    const timer = setTimeout(() => {
+      fetchEvents();
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [search, fetchEvents]);
 
-    if (loadMoreRef.current) {
-      observer.observe(loadMoreRef.current);
-    }
-
-    return () => observer.disconnect();
-  }, [status]);
-  const activeFiltersCount = [
-    selectedCategory !== 'All',
-    dateFilter !== 'all',
-    showOnlyFree,
-    locationFilter,
-  ].filter(Boolean).length;
-
-  const clearFilters = () => {
-    setSelectedCategory('All');
-    setDateFilter('all');
-    setShowOnlyFree(false);
-    setLocationFilter('');
-    setSearchQuery('');
+  const formatDate = (date: Date) => {
+    return new Date(date).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
   };
 
-  const featuredEvent = events
-    .filter(e => {
-      const eventDate = e.startDate ? new Date(e.startDate) : new Date(e.date || '');
-      return eventDate > new Date();
-    })
-    .sort((a, b) => ((b.registeredCount || 0) - (a.registeredCount || 0)))[0];
+  const formatTime = (date: Date) => {
+    return new Date(date).toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+    });
+  };
+
+  const getLocationText = (location: any) => {
+    if (!location) return 'TBD';
+    if (typeof location === 'string') return location;
+    return location.venue || location.address || 'TBD';
+  };
 
   return (
-    <div className="min-h-screen bg-black">
-      <section className="relative pt-32 pb-16">
-        <div className="absolute inset-0">
-          <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-purple-500/20 rounded-full blur-[120px]" />
-          <div className="absolute top-1/3 right-1/4 w-[400px] h-[400px] bg-blue-500/15 rounded-full blur-[100px]" />
-        </div>
-        
-        <div className="max-w-7xl mx-auto px-6 relative">
-          <div className="max-w-3xl mx-auto text-center mb-12">
-            <Badge className="mb-6 px-4 py-2 bg-white/10 border-white/20 text-white backdrop-blur-sm">
-              <Sparkles className="w-4 h-4 mr-2 text-purple-400" /> Discover Amazing Events
-            </Badge>
-            <h1 className="text-5xl md:text-6xl font-bold mb-6">
-              <span className="text-white">Explore </span>
-              <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent">Events</span>
-            </h1>
-          </div>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+      {/* Page Header */}
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-foreground mb-2">Explore Events</h1>
+        <p className="text-muted-foreground">Discover events that match your interests</p>
+      </div>
 
-          <div className="max-w-2xl mx-auto">
-            <div className="relative group">
-              <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl blur opacity-25 group-hover:opacity-40 transition-opacity" />
-              <div className="relative flex items-center bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 p-2">
-                <Search className="w-5 h-5 text-gray-400 ml-4" />
-                <Input
-                  placeholder="Search events, categories, locations..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="flex-1 bg-transparent border-0 text-white placeholder:text-gray-500 focus-visible:ring-0 text-lg h-12"
-                />
-                {searchQuery && (
-                  <Button variant="ghost" size="icon" className="text-gray-400 hover:text-white mr-2" onClick={() => setSearchQuery('')}>
-                    <X className="h-4 w-4" />
-                  </Button>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="max-w-7xl mx-auto px-6 py-8">
-        <div className="flex items-center gap-2 overflow-x-auto pb-6 scrollbar-hide">
-          {categories.map((category) => (
-            <Button
-              key={category}
-              variant="ghost"
-              size="sm"
-              className={cn(
-                "rounded-full whitespace-nowrap px-5 py-2 transition-all duration-300",
-                selectedCategory === category 
-                  ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white" 
-                  : "bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white border border-white/10"
-              )}
-              onClick={() => setSelectedCategory(category)}
+      {/* Search & Filters */}
+      <div className="mb-8 space-y-4">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            placeholder="Search events..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-10 h-11 rounded-xl bg-card border-border"
+          />
+          {search && (
+            <button
+              onClick={() => setSearch('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
             >
-              {category}
-            </Button>
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+
+        {/* Category Pills */}
+        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+          {categories.map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setSelectedCategory(cat)}
+              className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-200 ${
+                selectedCategory === cat
+                  ? 'bg-foreground text-background'
+                  : 'bg-card border border-border text-muted-foreground hover:text-foreground hover:border-foreground/20'
+              }`}
+            >
+              {cat}
+            </button>
           ))}
         </div>
+      </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-4 py-4 border-b border-white/10 mb-8">
-          <div className="flex items-center gap-3">
-            <Select value={dateFilter} onValueChange={setDateFilter}>
-              <SelectTrigger className="w-[140px] bg-white/5 border-white/10 text-white rounded-xl">
-                <Calendar className="h-4 w-4 mr-2 text-gray-400" /> <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="bg-black/90 border-white/10">
-                {dateFilters.map((filter) => (
-                  <SelectItem key={filter.value} value={filter.value} className="text-gray-300">{filter.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger className="w-[160px] bg-white/5 border-white/10 text-white rounded-xl">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="bg-black/90 border-white/10">
-                {sortOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value} className="text-gray-300">{option.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="outline" className="bg-white/5 border-white/10 text-white rounded-xl">
-                  <SlidersHorizontal className="h-4 w-4 mr-2" /> Filters
-                  {activeFiltersCount > 0 && <Badge className="ml-1 bg-purple-500">{activeFiltersCount}</Badge>}
-                </Button>
-              </SheetTrigger>
-              <SheetContent className="bg-black/95 border-white/10 text-white">
-                <SheetHeader><SheetTitle className="text-white">Filter Events</SheetTitle></SheetHeader>
-                <div className="py-6 space-y-6">
-                  <div>
-                    <label className="text-sm font-medium mb-2 block">Location</label>
-                    <div className="relative">
-                      <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                      <Input
-                        placeholder="Filter by location..."
-                        value={locationFilter}
-                        onChange={(e) => setLocationFilter(e.target.value)}
-                        className="pl-9 bg-white/5 border-white/10 text-white"
+      {/* Results */}
+      {loading ? (
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="rounded-2xl border border-border bg-card overflow-hidden animate-pulse">
+              <div className="h-48 bg-muted" />
+              <div className="p-5 space-y-3">
+                <div className="h-4 bg-muted rounded w-3/4" />
+                <div className="h-3 bg-muted rounded w-1/2" />
+                <div className="h-3 bg-muted rounded w-2/3" />
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : events.length === 0 ? (
+        <motion.div
+          className="text-center py-20"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+        >
+          <Calendar className="w-12 h-12 text-muted-foreground/40 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-foreground mb-1">No events found</h3>
+          <p className="text-muted-foreground text-sm">Try adjusting your search or filters</p>
+        </motion.div>
+      ) : (
+        <motion.div
+          className="grid md:grid-cols-2 lg:grid-cols-3 gap-5"
+          initial="initial"
+          animate="animate"
+          variants={{ animate: { transition: { staggerChildren: 0.06 } } }}
+        >
+          {events.map((event) => (
+            <motion.div
+              key={event.id}
+              variants={{
+                initial: { opacity: 0, y: 12 },
+                animate: { opacity: 1, y: 0 },
+              }}
+              transition={{ duration: 0.3 }}
+            >
+              <Link href={`/events/${event.id}`} className="group block">
+                <div className="rounded-2xl border border-border bg-card overflow-hidden hover:shadow-card-hover hover:border-primary/20 transition-all duration-200">
+                  {/* Image */}
+                  <div className="relative h-48 bg-muted overflow-hidden">
+                    {event.imageUrl ? (
+                      <img
+                        src={event.imageUrl}
+                        alt={event.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/5 to-primary/10">
+                        <Calendar className="w-10 h-10 text-primary/30" />
+                      </div>
+                    )}
+                    {/* Category Badge */}
+                    <div className="absolute top-3 left-3">
+                      <Badge variant="secondary" className="bg-background/80 backdrop-blur-sm text-xs font-medium">
+                        {event.category}
+                      </Badge>
+                    </div>
+                    {/* Price Badge */}
+                    <div className="absolute top-3 right-3">
+                      <Badge className={`text-xs font-medium ${
+                        event.isPaid
+                          ? 'bg-foreground text-background'
+                          : 'bg-green-500/90 text-white'
+                      }`}>
+                        {event.isPaid ? `$${event.price}` : 'Free'}
+                      </Badge>
                     </div>
                   </div>
-                  <div className="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/10">
-                    <p>Free Events Only</p>
-                    <Button
-                      variant={showOnlyFree ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => setShowOnlyFree(!showOnlyFree)}
-                      className={showOnlyFree ? "bg-purple-600" : ""}
-                    >
-                      {showOnlyFree ? 'On' : 'Off'}
-                    </Button>
-                  </div>
-                  {activeFiltersCount > 0 && <Button variant="outline" className="w-full text-white" onClick={clearFilters}>Clear All</Button>}
-                </div>
-              </SheetContent>
-            </Sheet>
-          </div>
 
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-gray-400">{events.length} events loaded</span>
-            <div className="flex items-center bg-white/5 border border-white/10 rounded-xl p-1">
-              <Button
-                variant="ghost"
-                size="icon"
-                className={cn("h-8 w-8", viewMode === 'grid' ? "bg-white/10 text-white" : "text-gray-400")}
-                onClick={() => setViewMode('grid')}
-              >
-                <Grid3X3 className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className={cn("h-8 w-8", viewMode === 'list' ? "bg-white/10 text-white" : "text-gray-400")}
-                onClick={() => setViewMode('list')}
-              >
-                <List className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        </div>
+                  {/* Content */}
+                  <div className="p-5">
+                    <h3 className="font-semibold text-foreground mb-2 line-clamp-1 group-hover:text-primary transition-colors">
+                      {event.title}
+                    </h3>
 
-        {loading ? (
-          <div className="flex items-center justify-center py-20"><Loader2 className="h-8 w-8 animate-spin text-purple-500" /></div>
-        ) : (
-          <>
-            {featuredEvent && !searchQuery && selectedCategory === 'All' && (
-              <div className="mb-10">
-                <h2 className="text-2xl font-bold mb-6 flex items-center gap-3 text-white">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
-                    <Sparkles className="h-5 w-5 text-white" />
-                  </div>
-                  Featured Event
-                </h2>
-                <EventCard event={featuredEvent} variant="featured" />
-              </div>
-            )}
+                    <div className="space-y-1.5 text-sm text-muted-foreground mb-4">
+                      <div className="flex items-center gap-2">
+                        <Clock className="w-3.5 h-3.5 flex-shrink-0" />
+                        <span>{formatDate(event.startDate)} · {formatTime(event.startDate)}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
+                        <span className="truncate">{getLocationText(event.location)}</span>
+                      </div>
+                    </div>
 
-            {!searchQuery && selectedCategory === 'All' && events.length > 4 && (
-              <div className="mb-10">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-bold flex items-center gap-3 text-white">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center"><Brain className="h-5 w-5 text-white" /></div>
-                    Recommended For You
-                  </h2>
-                  <div className="flex items-center gap-2">
-                    <Badge className="bg-purple-600/20 text-purple-300 border border-purple-500/30">AI Powered</Badge>
-                    <Button variant="ghost" size="icon" onClick={fetchAIRecommendations} disabled={aiLoading}><RefreshCw className={cn("h-4 w-4", aiLoading && "animate-spin")} /></Button>
+                    {/* Footer */}
+                    <div className="flex items-center justify-between pt-3 border-t border-border">
+                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <Users className="w-3.5 h-3.5" />
+                        <span>{event.registeredCount}/{event.capacity}</span>
+                      </div>
+                      <Badge
+                        variant="outline"
+                        className={`text-xs capitalize ${
+                          event.type === 'virtual' ? 'border-blue-200 text-blue-600 dark:border-blue-800 dark:text-blue-400' :
+                          event.type === 'hybrid' ? 'border-purple-200 text-purple-600 dark:border-purple-800 dark:text-purple-400' :
+                          'border-green-200 text-green-600 dark:border-green-800 dark:text-green-400'
+                        }`}
+                      >
+                        {event.type === 'physical' ? 'In Person' : event.type}
+                      </Badge>
+                    </div>
                   </div>
                 </div>
-                
-                {aiLoading ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {[1, 2, 3, 4].map((i) => <div key={i} className="h-[300px] rounded-2xl bg-white/5 animate-pulse" />)}
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {aiRecommendations.slice(0, 4).map((rec) => {
-                      const event = events.find(e => e.id === rec.eventId);
-                      if (!event) return null;
-                      return <EventCard key={event.id} event={event} variant="default" />;
-                    })}
-                  </div>
-                )}
-              </div>
-            )}
-
-                        {displayedEvents.length === 0 && status !== "LoadingFirstPage" ? (
-
-                          <div className="flex flex-col items-center justify-center py-20 bg-white/5 border border-white/10 rounded-3xl">
-
-                            <Search className="h-16 w-16 text-gray-600 mb-6" />
-
-                            <h3 className="text-2xl font-bold text-white mb-2">No events found</h3>
-
-                            <Button variant="outline" className="border-white/20 text-white mt-6" onClick={clearFilters}>Clear Filters</Button>
-
-                          </div>
-
-                        ) : (
-
-                          <div className={cn(viewMode === 'grid' ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" : "space-y-4")}>
-
-                            {displayedEvents.map((event) => <EventCard key={event.id} event={event} variant={viewMode === 'list' ? 'compact' : 'default'} />)}
-
-                          </div>
-
-                        )}
-
-                        
-
-                        {(status === "CanLoadMore" || status === "LoadingMore") && (
-
-                          <div ref={loadMoreRef} className="flex justify-center py-10">
-
-                            <Loader2 className="h-6 w-6 animate-spin text-purple-500" />
-
-                          </div>
-
-                        )}
-
-                      </>
-
-                    )}
-
-                  </section>
-
-                </div>
-
-              );
-
-            }
-
-            
-
+              </Link>
+            </motion.div>
+          ))}
+        </motion.div>
+      )}
+    </div>
+  );
+}

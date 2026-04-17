@@ -1,5 +1,5 @@
 import NextAuth from 'next-auth';
-import GoogleProvider from 'next-auth/providers/google';
+// import GoogleProvider from 'next-auth/providers/google';
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { db } from "@/lib/db";
 import type { DefaultSession } from 'next-auth';
@@ -17,12 +17,9 @@ declare module 'next-auth' {
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   adapter: DrizzleAdapter(db),
-  providers: [
-    GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    }),
-  ],
+  // OAuth providers are temporarily disabled for full-project testing.
+  // Re-enable GoogleProvider here after OAuth validation is complete.
+  providers: [],
   callbacks: {
     async session({ session, user }) {
       if (session.user) {

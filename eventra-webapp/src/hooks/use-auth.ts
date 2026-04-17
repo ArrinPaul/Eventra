@@ -1,6 +1,6 @@
 'use client';
 
-import { useSession, signIn as nextAuthSignIn, signOut as nextAuthSignOut } from 'next-auth/react';
+import { useSession, signOut as nextAuthSignOut } from 'next-auth/react';
 import { User } from '@/types';
 import { getErrorMessage } from '@/core/utils/utils';
 import { updateUserDetails } from '@/app/actions/users';
@@ -13,23 +13,17 @@ export function useAuth() {
   const user = session?.user as User | null;
 
   const signIn = async (options?: { role?: User['role']; callbackUrl?: string }) => {
-    try {
-      const preferredRole =
-        options?.role ||
-        (typeof window !== 'undefined' ? (sessionStorage.getItem('preferred_role') as User['role'] | null) : null) ||
-        'professional';
+    const preferredRole =
+      options?.role ||
+      (typeof window !== 'undefined' ? (sessionStorage.getItem('preferred_role') as User['role'] | null) : null) ||
+      'professional';
 
-      if (typeof window !== 'undefined' && preferredRole) {
-          sessionStorage.setItem('preferred_role', preferredRole);
-      }
-
-      await nextAuthSignIn('google', { 
-        callbackUrl: options?.callbackUrl || '/explore'
-      });
-    } catch (error) {
-      console.error('Failed to sign in:', error);
-      throw error;
+    if (typeof window !== 'undefined' && preferredRole) {
+      sessionStorage.setItem('preferred_role', preferredRole);
     }
+
+    // OAuth is intentionally disabled during broader testing.
+    throw new Error('Google OAuth is temporarily disabled for testing.');
   };
 
   const logout = async () => {

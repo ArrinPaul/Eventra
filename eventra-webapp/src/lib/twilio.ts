@@ -1,16 +1,29 @@
 import twilio from 'twilio';
 
-const accountSid = process.env.TWILIO_ACCOUNT_SID;
-const authToken = process.env.TWILIO_AUTH_TOKEN;
-const fromNumber = process.env.TWILIO_FROM_NUMBER;
+/**
+ * Lazy-initialized Twilio client.
+ * Prevents crash when env vars are not set (e.g. in dev environments).
+ */
+let _client: ReturnType<typeof twilio> | null = null;
 
-const client = twilio(accountSid, authToken);
+function getTwilioClient() {
+  const accountSid = process.env.TWILIO_ACCOUNT_SID;
+  const authToken = process.env.TWILIO_AUTH_TOKEN;
+  if (!accountSid || !authToken) return null;
+  if (!_client) {
+    _client = twilio(accountSid, authToken);
+  }
+  return _client;
+}
 
 /**
  * Send an SMS alert to a user
  */
 export async function sendSMS(to: string, message: string) {
-  if (!accountSid || !authToken || !fromNumber) {
+  const fromNumber = process.env.TWILIO_FROM_NUMBER;
+  const client = getTwilioClient();
+
+  if (!client || !fromNumber) {
     console.warn('Twilio credentials missing. Skipping SMS.');
     return null;
   }

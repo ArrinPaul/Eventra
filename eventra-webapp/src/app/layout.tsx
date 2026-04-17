@@ -3,7 +3,7 @@ import './globals.css';
 import { Providers } from '@/components/providers';
 import { Toaster } from '@/components/ui/toaster';
 import { NotificationWatcher } from '@/features/notifications/notification-watcher';
-import { Fraunces, Manrope } from 'next/font/google';
+import { DM_Sans } from 'next/font/google';
 import { baseMetadata, viewport as seoViewport, generateOrganizationSchema } from '@/core/services/seo';
 import { NextIntlClientProvider } from 'next-intl';
 import { getUserLocale } from '@/core/services/locale-service';
@@ -14,7 +14,7 @@ import esMessages from '../../messages/es.json';
 export const metadata: Metadata = {
   ...baseMetadata,
   title: {
-    default: 'Eventra - Modern Event Management Platform',
+    default: 'Eventra — Modern Event Management Platform',
     template: '%s | Eventra',
   },
   description: 'Intelligent Event Management Platform for universities and organizations. Create, manage, and discover events with powerful tools.',
@@ -22,16 +22,18 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = seoViewport;
 
-const fraunces = Fraunces({
-  subsets: ['latin'],
-  variable: '--font-heading',
-  display: 'swap',
-});
-
-const manrope = Manrope({
+const dmSans = DM_Sans({
   subsets: ['latin'],
   variable: '--font-body',
   display: 'swap',
+  weight: ['400', '500', '600', '700'],
+});
+
+const dmSansHeading = DM_Sans({
+  subsets: ['latin'],
+  variable: '--font-heading',
+  display: 'swap',
+  weight: ['500', '600', '700'],
 });
 
 const messagesByLocale: Record<string, Record<string, unknown>> = {
@@ -50,14 +52,14 @@ export default async function RootLayout({
   const organizationSchema = generateOrganizationSchema();
   
   return (
-    <html lang={safeLocale} suppressHydrationWarning className={`${fraunces.variable} ${manrope.variable}`}>
+    <html lang={safeLocale} suppressHydrationWarning className={`${dmSans.variable} ${dmSansHeading.variable}`}>
       <head>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
         />
       </head>
-      <body className="font-body antialiased bg-background text-foreground selection:bg-primary/20 selection:text-primary">
+      <body className="font-body antialiased bg-background text-foreground">
         <NextIntlClientProvider locale={safeLocale} messages={messages}>
           <Providers>
             {children}
@@ -69,4 +71,3 @@ export default async function RootLayout({
     </html>
   );
 }
-
