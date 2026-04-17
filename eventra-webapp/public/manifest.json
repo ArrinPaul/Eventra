@@ -1,0 +1,62 @@
+{
+  "name": "Eventra",
+  "short_name": "Eventra",
+  "description": "Modern Event Management Platform for universities and organizations",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#8b5cf6",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["events", "productivity", "education"],
+  "screenshots": [
+    {
+      "src": "/screenshots/dashboard.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide"
+    },
+    {
+      "src": "/screenshots/mobile.png",
+      "sizes": "750x1334",
+      "type": "image/png",
+      "form_factor": "narrow"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Create Event",
+      "short_name": "Create",
+      "description": "Create a new event",
+      "url": "/events/create",
+      "icons": [{ "src": "/icons/create-event.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "My Events",
+      "short_name": "My Events",
+      "description": "View your registered events",
+      "url": "/my-events",
+      "icons": [{ "src": "/icons/my-events.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Explore",
+      "short_name": "Explore",
+      "description": "Discover events",
+      "url": "/explore",
+      "icons": [{ "src": "/icons/explore.png", "sizes": "96x96" }]
+    }
+  ]
+}

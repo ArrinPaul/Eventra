@@ -1,0 +1,33 @@
+<svg width="1600" height="940" viewBox="0 0 1600 940" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1600" height="940" fill="#081426"/>
+  <text x="70" y="88" fill="#E9F2FF" font-size="46" font-weight="700" font-family="Segoe UI, Arial, sans-serif">Eventra Architecture Overview</text>
+  <text x="70" y="128" fill="#97B1D0" font-size="24" font-family="Segoe UI, Arial, sans-serif">Unified Next.js application with modular features and typed server actions.</text>
+
+  <g>
+    <rect x="70" y="184" width="1460" height="170" rx="18" fill="#10233E" stroke="#2E4E75"/>
+    <text x="104" y="235" fill="#8FE9D6" font-size="28" font-weight="700" font-family="Segoe UI, Arial, sans-serif">Presentation Layer</text>
+    <text x="104" y="278" fill="#D8E4F5" font-size="24" font-family="Segoe UI, Arial, sans-serif">app routes, layouts, UI primitives, feature components, i18n message rendering</text>
+    <text x="104" y="316" fill="#9FB8D6" font-size="21" font-family="Segoe UI, Arial, sans-serif">Key paths: src/app, src/features, src/components</text>
+  </g>
+
+  <g>
+    <rect x="70" y="394" width="1460" height="170" rx="18" fill="#0F2B30" stroke="#1E5B66"/>
+    <text x="104" y="445" fill="#9BEEDB" font-size="28" font-weight="700" font-family="Segoe UI, Arial, sans-serif">Application Layer</text>
+    <text x="104" y="488" fill="#D7EEF2" font-size="24" font-family="Segoe UI, Arial, sans-serif">server actions, auth flows, event workflows, recommendation engines</text>
+    <text x="104" y="526" fill="#9ECDD6" font-size="21" font-family="Segoe UI, Arial, sans-serif">Key paths: src/app/actions, src/core/actions, src/hooks, src/core/services</text>
+  </g>
+
+  <g>
+    <rect x="70" y="604" width="1460" height="220" rx="18" fill="#2B220D" stroke="#6A4D17"/>
+    <text x="104" y="656" fill="#F7DCAA" font-size="28" font-weight="700" font-family="Segoe UI, Arial, sans-serif">Data and Infrastructure Layer</text>
+    <text x="104" y="699" fill="#F4E7CC" font-size="24" font-family="Segoe UI, Arial, sans-serif">Supabase PostgreSQL, Drizzle ORM, Auth.js session strategy, external APIs</text>
+    <text x="104" y="737" fill="#D9C49B" font-size="21" font-family="Segoe UI, Arial, sans-serif">Key paths: drizzle, drizzle.config.ts, src/core/config, next.config.ts</text>
+
+    <rect x="1030" y="666" width="460" height="128" rx="14" fill="#3A2D10" stroke="#9A7130"/>
+    <text x="1060" y="712" fill="#F8E7C8" font-size="24" font-weight="700" font-family="Segoe UI, Arial, sans-serif">External Services</text>
+    <text x="1060" y="748" fill="#E3C999" font-size="20" font-family="Segoe UI, Arial, sans-serif">Google OAuth, Email APIs, QR APIs, CDN images</text>
+  </g>
+
+  <path d="M800 354V394" stroke="#5A86B8" stroke-width="3"/>
+  <path d="M800 564V604" stroke="#5FA6A4" stroke-width="3"/>
+</svg>

@@ -1,0 +1,18 @@
+import { Suspense } from 'react';
+import CertificateVerifyClient from './verify-client';
+
+export const dynamic = 'force-dynamic';
+
+export const metadata = {
+  title: 'Verify Certificate | Eventra',
+  description: 'Verify the authenticity of a certificate',
+};
+
+export default function VerifyCertificatePage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+      <CertificateVerifyClient />
+    </Suspense>
+  );
+}
+

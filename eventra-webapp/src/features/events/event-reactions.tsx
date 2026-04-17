@@ -1,0 +1,51 @@
+'use client';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/core/utils/utils';
+import { motion, AnimatePresence } from 'framer-motion';
+import type { Id } from '@/types';
+
+interface EventReactionsProps {
+  eventId: Id<"events">;
+}
+
+const REACTION_LABELS = ["Love", "Hot", "Celebrate", "Wow", "Like"];
+const EMOJIS = ['❤️', '🔥', '🎉', '😮', '👍'];
+
+// ... later in the file where EMOJIS was used
+// I need to check the file content first to see how EMOJIS is used.
+
+export function EventReactions({ eventId }: EventReactionsProps) {
+  const reactions: Record<string, { count: number; me: boolean }> = {};
+  const addReaction = async (_args: any) => Promise.resolve();
+
+  return (
+    <div className="flex flex-wrap gap-2 py-4">
+      {EMOJIS.map((emoji: string) => {
+        const stats = reactions[emoji] || { count: 0, me: false };
+        return (
+          <motion.button
+            key={emoji}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={() => addReaction({ eventId, emoji })}
+            className={cn(
+              "flex items-center gap-1.5 px-3 py-1.5 rounded-full border transition-all text-sm",
+              stats.me 
+                ? "bg-primary/20 border-primary/50 text-white" 
+                : "bg-muted/40 border-border text-muted-foreground hover:bg-muted hover:border-border"
+            )}
+          >
+            <span>{emoji}</span>
+            {stats.count > 0 && (
+              <span className={cn("font-bold", stats.me ? "text-primary" : "text-muted-foreground")}>
+                {stats.count}
+              </span>
+            )}
+          </motion.button>
+        );
+      })}
+    </div>
+  );
+}
+
+

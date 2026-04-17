@@ -1,0 +1,504 @@
+'use server';
+
+import { db } from '@/lib/db';
+import { tickets, events, waitlist, ticketTiers, notifications, users } from '@/lib/db/schema';
+import { auth } from '@/auth';
+import { eq, and, desc, sql } from 'drizzle-orm';
+import { revalidatePath } from 'next/cache';
+import { validateRole } from '@/lib/auth-utils';
+
+import { logActivity } from './feed';
+import { awardXP } from './gamification';
+import { generateQrPayload } from '@/core/utils/crypto';
+
+/**
+ * Register a user for an event (Create a ticket or join waitlist)
+ */
+export async function registerForEvent(eventId: string, data?: { tierId?: string }) {
+  const user = await validateRole(['attendee', 'organizer', 'admin', 'professional']);
+
+  try {
+    // 1. Check if already registered
+    const existing = await db
+      .select()
+      .from(tickets)
+      .where(and(eq(tickets.eventId, eventId), eq(tickets.userId, user.id)))
+      .limit(1);
+
+    if (existing.length > 0) {
+      return { success: false, message: 'Already registered' };
+    }
+
+    // 2. Get event details
+    const event = await db.query.events.findFirst({
+      where: eq(events.id, eventId),
+      with: {
+        ticketTiers: true
+      }
+    });
+
+    if (!event) throw new Error('Event not found');
+
+    // 3. Handle Tier Logic
+    let price = event.price;
+    let tier = null;
+    
+    if (data?.tierId) {
+      tier = await db.query.ticketTiers.findFirst({
+        where: eq(ticketTiers.id, data.tierId)
+      });
+      if (!tier) throw new Error('Ticket tier not found');
+      price = tier.price;
+      
+      if (tier.registeredCount >= tier.capacity) {
+        if (event.waitlistEnabled) return joinWaitlist(eventId, user.id);
+        throw new Error('This ticket tier is sold out');
+      }
+    } else if (event.registeredCount >= event.capacity) {
+      if (event.waitlistEnabled) return joinWaitlist(eventId, user.id);
+      throw new Error('Event is full');
+    }
+
+    // 4. Create ticket (In a real app, this happens AFTER payment)
+    const ticketNumber = `TKT-${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
+    
+    await db.transaction(async (tx) => {
+      await tx.insert(tickets).values({
+        eventId,
+        userId: user.id,
+        tierId: data?.tierId,
+        ticketNumber,
+        status: 'confirmed',
+        price: price,
+        qrCode: generateQrPayload(ticketNumber), 
+      });
+
+      // Update registration counts
+      const [updatedEvent] = await tx
+        .update(events)
+        .set({ registeredCount: sql`${events.registeredCount} + 1` })
+        .where(eq(events.id, eventId))
+        .returning();
+
+      // Milestone Logic
+      const percentage = Math.round((updatedEvent.registeredCount / updatedEvent.capacity) * 100);
+      const milestones = [50, 80, 100];
+      
+      if (milestones.includes(percentage)) {
+        await tx.insert(notifications).values({
+          userId: updatedEvent.organizerId,
+          title: 'Event Milestone Reached!',
+          message: `Congratulations! ${updatedEvent.title} is now ${percentage}% full.`,
+          type: 'achievement',
+          link: `/organizer/pulse/${eventId}`
+        });
+
+        await logActivity({
+          userId: updatedEvent.organizerId,
+          type: 'badge_awarded', // Use badge type for highlights
+          content: `${updatedEvent.title} reached ${percentage}% capacity milestone!`,
+          targetId: eventId
+        });
+      }
+
+      if (data?.tierId) {
+        await tx
+          .update(ticketTiers)
+          .set({ registeredCount: sql`${ticketTiers.registeredCount} + 1` })
+          .where(eq(ticketTiers.id, data.tierId));
+      }
+
+      // Create notification to trigger email
+      await tx.insert(notifications).values({
+        userId: user.id,
+        title: 'Registration Confirmed',
+        message: `EMAIL_TRIGGER:confirmation|${ticketNumber}|${event.title}`,
+        type: 'email',
+      });
+    });
+
+    // Log Activity
+    await logActivity({
+      userId: user.id,
+      type: 'registration',
+      targetId: eventId,
+      metadata: {
+        eventTitle: event.title,
+        ticketNumber
+      }
+    });
+
+    // Award XP
+    await awardXP(user.id, 100, `Registering for ${event.title}`);
+
+    revalidatePath(`/events/${eventId}`);
+    revalidatePath('/tickets');
+    
+    return { success: true, ticketNumber };
+  } catch (error: any) {
+    console.error('Registration failed:', error);
+    throw new Error(error.message || 'Registration failed');
+  }
+}
+
+/**
+ * Join the waitlist for an event
+ */
+async function joinWaitlist(eventId: string, userId: string) {
+  try {
+    const existing = await db
+      .select()
+      .from(waitlist)
+      .where(and(eq(waitlist.eventId, eventId), eq(waitlist.userId, userId)))
+      .limit(1);
+
+    if (existing.length > 0) {
+      return { success: false, message: 'Already on waitlist' };
+    }
+
+    // Get current max position
+    const lastEntry = await db
+      .select()
+      .from(waitlist)
+      .where(eq(waitlist.eventId, eventId))
+      .orderBy(desc(waitlist.position))
+      .limit(1);
+
+    const position = (lastEntry[0]?.position || 0) + 1;
+
+    await db.insert(waitlist).values({
+      eventId,
+      userId,
+      position,
+      status: 'waiting',
+    });
+
+    revalidatePath(`/events/${eventId}`);
+    return { success: true, message: 'Added to waitlist', position };
+  } catch (error) {
+    console.error('Waitlist join failed:', error);
+    throw new Error('Could not join waitlist');
+  }
+}
+
+/**
+ * Promote the next person from waitlist (Reservation model)
+ * Grants the user a 24-hour window to claim their spot.
+ */
+export async function autoPromoteFromWaitlist(eventId: string, tx?: any) {
+  const executePromotion = async (transaction: any) => {
+    // 1. Find next in line
+    const nextInLine = await transaction
+      .select({
+        id: waitlist.id,
+        userId: waitlist.userId,
+        user: {
+          id: users.id,
+          name: users.name,
+          email: users.email
+        }
+      })
+      .from(waitlist)
+      .innerJoin(users, eq(waitlist.userId, users.id))
+      .where(and(eq(waitlist.eventId, eventId), eq(waitlist.status, 'waiting')))
+      .orderBy(waitlist.position)
+      .limit(1);
+
+    if (nextInLine.length === 0) return null;
+
+    const entry = nextInLine[0];
+    const expiresAt = new Date();
+    expiresAt.setHours(expiresAt.getHours() + 24); // 24-hour window
+
+    // 2. Mark waitlist entry as reserved
+    await transaction
+      .update(waitlist)
+      .set({ 
+        status: 'reserved', 
+        expiresAt: expiresAt 
+      })
+      .where(eq(waitlist.id, entry.id));
+
+    // 3. Notify the user
+    await transaction.insert(notifications).values({
+      userId: entry.userId,
+      title: 'A spot is available!',
+      message: `A spot opened up for your waitlisted event. You have 24 hours to claim it before it goes to the next person.`,
+      type: 'achievement',
+      link: `/events/${eventId}/claim-spot`
+    });
+
+    return entry.userId;
+  };
+
+  if (tx) return await executePromotion(tx);
+  return await db.transaction(async (t) => await executePromotion(t));
+}
+
+/**
+ * Cleanup expired waitlist reservations and promote the next person
+ */
+export async function processWaitlistReservations(eventId: string) {
+  try {
+    const now = new Date();
+    
+    // 1. Find expired reservations
+    const expiredEntries = await db
+      .select()
+      .from(waitlist)
+      .where(and(
+        eq(waitlist.eventId, eventId),
+        eq(waitlist.status, 'reserved'),
+        sql`${waitlist.expiresAt} < ${now}`
+      ));
+
+    if (expiredEntries.length === 0) return { processed: 0 };
+
+    await db.transaction(async (tx) => {
+      for (const entry of expiredEntries) {
+        // Mark as expired
+        await tx
+          .update(waitlist)
+          .set({ status: 'expired' })
+          .where(eq(waitlist.id, entry.id));
+        
+        // Notify user about loss of spot
+        await tx.insert(notifications).values({
+          userId: entry.userId,
+          title: 'Reservation Expired',
+          message: `Your 24-hour window to claim your spot has expired.`,
+          type: 'info'
+        });
+
+        // Trigger next promotion
+        await autoPromoteFromWaitlist(eventId, tx);
+      }
+    });
+
+    return { processed: expiredEntries.length };
+  } catch (error) {
+    console.error('processWaitlistReservations Error:', error);
+    return { processed: 0 };
+  }
+}
+
+/**
+ * Claim a reserved spot from the waitlist
+ */
+export async function claimWaitlistSpot(eventId: string) {
+  const session = await auth();
+  if (!session?.user) throw new Error('Auth required');
+
+  try {
+    const result = await db.transaction(async (tx) => {
+      // 1. Verify reservation
+      const entry = await tx.query.waitlist.findFirst({
+        where: and(
+          eq(waitlist.eventId, eventId),
+          eq(waitlist.userId, session.user.id!),
+          eq(waitlist.status, 'reserved')
+        )
+      });
+
+      if (!entry) throw new Error('No active reservation found');
+      if (entry.expiresAt && entry.expiresAt < new Date()) {
+        throw new Error('Your reservation has expired');
+      }
+
+      // 2. Create the real ticket
+      const ticketNumber = `TKT-WAIT-${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
+      await tx.insert(tickets).values({
+        eventId,
+        userId: session.user.id!,
+        ticketNumber,
+        status: 'confirmed',
+        price: '0',
+        qrCode: generateQrPayload(ticketNumber),
+      });
+
+      // 3. Mark waitlist as promoted (fulfilled)
+      await tx
+        .update(waitlist)
+        .set({ status: 'promoted' })
+        .where(eq(waitlist.id, entry.id));
+
+      // 4. Update event count
+      await tx
+        .update(events)
+        .set({ registeredCount: sql`${events.registeredCount} + 1` })
+        .where(eq(events.id, eventId));
+
+      return { success: true, ticketNumber };
+    });
+
+    revalidatePath('/tickets');
+    revalidatePath(`/events/${eventId}`);
+    return result;
+  } catch (error: any) {
+    throw new Error(error.message || 'Failed to claim spot');
+  }
+}
+
+
+/**
+ * Cancel a registration and trigger waitlist promotion
+ */
+export async function cancelRegistration(ticketId: string) {
+  const user = await validateRole(['attendee', 'organizer', 'admin']);
+
+  try {
+    const ticket = await db.query.tickets.findFirst({
+      where: eq(tickets.id, ticketId)
+    });
+
+    if (!ticket) throw new Error('Ticket not found');
+    if (ticket.userId !== user.id && (user as any).role !== 'admin') {
+       throw new Error('Unauthorized');
+    }
+
+    await db.transaction(async (tx) => {
+      // 1. Mark ticket as cancelled
+      await tx
+        .update(tickets)
+        .set({ status: 'cancelled', updatedAt: new Date() })
+        .where(eq(tickets.id, ticketId));
+
+      // 2. Decrement count
+      await tx
+        .update(events)
+        .set({ registeredCount: sql`${events.registeredCount} - 1` })
+        .where(eq(events.id, ticket.eventId));
+
+      // 3. Trigger waitlist promotion
+      await autoPromoteFromWaitlist(ticket.eventId, tx);
+    });
+
+    revalidatePath('/tickets');
+    revalidatePath(`/events/${ticket.eventId}`);
+    return { success: true };
+  } catch (error: any) {
+    console.error('Cancellation failed:', error);
+    throw new Error(error.message);
+  }
+}
+
+/**
+ * Check if a user is registered for an event
+ */
+export async function getRegistrationStatus(eventId: string) {
+  const session = await auth();
+  if (!session?.user) return null;
+
+  try {
+    const result = await db
+      .select()
+      .from(tickets)
+      .where(
+        and(
+          eq(tickets.eventId, eventId),
+          eq(tickets.userId, session.user.id)
+        )
+      )
+      .limit(1);
+    
+    return result[0] || null;
+  } catch (error) {
+    return null;
+  }
+}
+
+/**
+ * Get all registrations for the current user
+ */
+export async function getUserRegistrations() {
+  const session = await auth();
+  if (!session?.user) return [];
+
+  try {
+    const result = await db
+      .select({
+        ticket: tickets,
+        event: events,
+      })
+      .from(tickets)
+      .innerJoin(events, eq(tickets.eventId, events.id))
+      .where(eq(tickets.userId, session.user.id))
+      .orderBy(desc(tickets.purchaseDate));
+    
+    return result;
+  } catch (error) {
+    console.error('Failed to fetch user registrations:', error);
+    return [];
+  }
+}
+
+/**
+ * Bulk import attendees (guests) for an event
+ */
+export async function importAttendees(eventId: string, guestList: { email: string, name?: string, tierId?: string }[]) {
+  const user = await validateRole(['organizer', 'admin']);
+  // validateEventOwnership is technically from lib/auth-utils but used in collab.ts
+  // Here we can use a direct check or import it.
+  
+  try {
+    const results = { success: 0, failed: 0, errors: [] as string[] };
+
+    for (const guest of guestList) {
+      try {
+        // 1. Find user
+        const targetUser = await db.query.users.findFirst({
+          where: eq(users.email, guest.email)
+        });
+
+        if (!targetUser) {
+          results.failed++;
+          results.errors.push(`User not found: ${guest.email}`);
+          continue;
+        }
+
+        // 2. Check if already registered
+        const existing = await db.query.tickets.findFirst({
+          where: and(eq(tickets.eventId, eventId), eq(tickets.userId, targetUser.id))
+        });
+
+        if (existing) {
+          results.failed++;
+          results.errors.push(`Already registered: ${guest.email}`);
+          continue;
+        }
+
+        // 3. Create ticket
+        const ticketNumber = `TKT-GUEST-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+        
+        await db.transaction(async (tx) => {
+          await tx.insert(tickets).values({
+            eventId,
+            userId: targetUser.id,
+            tierId: guest.tierId || null,
+            ticketNumber,
+            status: 'confirmed',
+            price: '0',
+            qrCode: generateQrPayload(ticketNumber),
+          });
+
+          await tx
+            .update(events)
+            .set({ registeredCount: sql`${events.registeredCount} + 1` })
+            .where(eq(events.id, eventId));
+        });
+
+        results.success++;
+      } catch (e: any) {
+        results.failed++;
+        results.errors.push(`${guest.email}: ${e.message}`);
+      }
+    }
+
+    revalidatePath(`/organizer/events/${eventId}`);
+    return results;
+  } catch (error: any) {
+    console.error('importAttendees Error:', error);
+    throw new Error('Failed to process guest list');
+  }
+}
+

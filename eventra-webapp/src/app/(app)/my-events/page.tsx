@@ -1,0 +1,15 @@
+export const dynamic = 'force-dynamic';
+
+import MyEventsClient from '@/features/events/my-events-client';
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'My Events | Eventra',
+  description: 'View and manage your registered events, past events, and wishlist.',
+};
+
+export default function MyEventsPage() {
+  return <MyEventsClient />;
+}
+
+

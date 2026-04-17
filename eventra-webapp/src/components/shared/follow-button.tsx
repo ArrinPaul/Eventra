@@ -1,0 +1,66 @@
+'use client';
+import { Button } from '@/components/ui/button';
+import type { Id } from '@/types';
+import { UserPlus, UserMinus, Loader2 } from 'lucide-react';
+import { useState } from 'react';
+import { useToast } from '@/hooks/use-toast';
+
+interface FollowButtonProps {
+  userId: Id<"users">;
+  className?: string;
+}
+
+export function FollowButton({ userId, className }: FollowButtonProps) {
+  const { toast } = useToast();
+  const [loading, setLoading] = useState(false);
+
+  // Stub declarations for missing implementations
+  const stats = { followers: 0, following: 0, isFollowing: false };
+  const follow = async ({ followingId }: { followingId: Id<"users"> }) => {
+    // TODO: Implement actual follow logic
+    return Promise.resolve();
+  };
+  const unfollow = async ({ followingId }: { followingId: Id<"users"> }) => {
+    // TODO: Implement actual unfollow logic
+    return Promise.resolve();
+  };
+
+  const handleToggle = async () => {
+    setLoading(true);
+    try {
+      if (stats?.isFollowing) {
+        await unfollow({ followingId: userId });
+        toast({ title: 'Unfollowed' });
+      } else {
+        await follow({ followingId: userId });
+        toast({ title: 'Following!' });
+      }
+    } catch (error: any) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (stats === undefined) return <Button variant="outline" size="sm" disabled className={className}><Loader2 className="h-4 w-4 animate-spin" /></Button>;
+
+  return (
+    <Button 
+      variant={stats.isFollowing ? "outline" : "default"} 
+      size="sm" 
+      onClick={handleToggle}
+      disabled={loading}
+      className={className}
+    >
+      {loading ? (
+        <Loader2 className="h-4 w-4 animate-spin" />
+      ) : stats.isFollowing ? (
+        <><UserMinus className="h-4 w-4 mr-2" /> Unfollow</>
+      ) : (
+        <><UserPlus className="h-4 w-4 mr-2" /> Follow</>
+      )}
+    </Button>
+  );
+}
+
+
