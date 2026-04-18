@@ -9,7 +9,7 @@ This TODO replaces older status-only checklists with an execution-first plan ali
 
 ## P0 - Critical Flow Repairs
 
-- [ ] Fix ticketing success fulfillment verification (do not trust query params alone; validate checkout session/webhook-backed fulfillment state).
+- [x] Fix ticketing success fulfillment verification (do not trust query params alone; validate checkout session/webhook-backed fulfillment state).
 - [x] Remove legacy /signup dead-path handling in middleware and keep auth-page redirect logic aligned with active routes only.
 - [x] Decide and implement auth provider strategy (re-enable OAuth safely or remove related UI paths until ready).
 - [ ] Add regression checks for ticket purchase -> success confirmation path.
@@ -28,13 +28,13 @@ This TODO replaces older status-only checklists with an execution-first plan ali
 - [x] Replace TODO/no-op in admin user management.
 - [x] Replace TODO/no-op in system settings.
 - [x] Replace TODO/no-op in event moderation.
-- [ ] Fix admin analytics component defect (Loader2 missing import + unreachable loading branch logic).
+- [x] Fix admin analytics component defect (Loader2 missing import + unreachable loading branch logic).
 
 ### Organizer
 - [x] Wire announcement manager to real actions.
 - [x] Wire webhook manager to real actions.
 - [ ] Validate co-organizer manager data flow against normalized IDs.
-- [ ] Wire revenue dashboard to real aggregates.
+- [x] Wire revenue dashboard to real aggregates.
 
 ### Networking and Ticketing
 - [x] Implement connection request/accept/decline/remove mutations.
@@ -44,7 +44,7 @@ This TODO replaces older status-only checklists with an execution-first plan ali
 - [x] Replace community list/detail TODO placeholders with real data calls.
 - [x] Replace feed post/comment TODO placeholders with real actions.
 - [x] Wire event discussion and polls fully.
-- [ ] Replace event reactions no-op mutation with real action wiring.
+- [x] Replace event reactions no-op mutation with real action wiring.
 - [x] Wire gamification challenge join/progress paths.
 
 ## P2 - Route UX Hardening

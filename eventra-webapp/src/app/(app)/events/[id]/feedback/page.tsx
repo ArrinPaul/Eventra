@@ -4,16 +4,17 @@ import { FeedbackSubmissionForm } from '@/features/feedback/feedback-submission-
 import { notFound } from 'next/navigation';
 import { auth } from '@/auth';
 
-export default async function EventFeedbackPage({ params }: { params: { id: string } }) {
+export default async function EventFeedbackPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const session = await auth();
   if (!session?.user) return <div>Please login to submit feedback.</div>;
 
-  const event = await getEventById(params.id);
+  const event = await getEventById(id);
   if (!event) notFound();
 
-  const templates = await getFeedbackTemplates(params.id);
+  const templates = await getFeedbackTemplates(id);
   // Use event-specific template or a default one
-  const template = templates.find(t => t.eventId === params.id) || templates[0] || {
+  const template = templates.find(t => t.eventId === id) || templates[0] || {
     title: "Event Feedback",
     description: "Please share your thoughts with us.",
     questions: []
@@ -22,7 +23,7 @@ export default async function EventFeedbackPage({ params }: { params: { id: stri
   return (
     <div className="container py-12">
       <FeedbackSubmissionForm 
-        eventId={params.id} 
+        eventId={id} 
         eventTitle={event.title} 
         template={template as any} 
       />

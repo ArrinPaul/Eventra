@@ -7,9 +7,13 @@ import { events, ticketTiers, tickets } from '@/lib/db/schema';
 import { and, eq, sql } from 'drizzle-orm';
 import { auth } from '@/auth';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-01-27' as any,
-});
+function getStripeClient(): Stripe | null {
+  const secretKey = process.env.STRIPE_SECRET_KEY;
+  if (!secretKey) return null;
+  return new Stripe(secretKey, {
+    apiVersion: '2025-01-27' as any,
+  });
+}
 
 export type ProcessTicketCancellationResult = {
   success: boolean;
@@ -95,6 +99,11 @@ export async function createCheckoutSession(data: {
   const session = await auth();
   if (!session?.user?.id) {
     return { success: false, error: 'Authentication required' };
+  }
+
+  const stripe = getStripeClient();
+  if (!stripe) {
+    return { success: false, error: 'Stripe is not configured' };
   }
 
   const user = session.user;
@@ -186,6 +195,15 @@ export async function verifyCheckoutFulfillment(data: {
   }
 
   try {
+    const stripe = getStripeClient();
+    if (!stripe) {
+      return {
+        success: false,
+        fulfilled: false,
+        message: 'Stripe is not configured',
+      };
+    }
+
     const stripeSession = await stripe.checkout.sessions.retrieve(data.sessionId);
 
     const sessionUserId = stripeSession.metadata?.userId || '';

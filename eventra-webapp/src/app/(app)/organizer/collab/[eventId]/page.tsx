@@ -5,19 +5,20 @@ import { db } from '@/lib/db';
 import { ticketTiers } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 
-export default async function EventCollabPage({ params }: { params: { eventId: string } }) {
-  const event = await getEventById(params.eventId);
+export default async function EventCollabPage({ params }: { params: Promise<{ eventId: string }> }) {
+  const { eventId } = await params;
+  const event = await getEventById(eventId);
   if (!event) notFound();
 
   // Fetch tiers for guest import
   const tiers = await db.query.ticketTiers.findMany({
-    where: eq(ticketTiers.eventId, params.eventId)
+    where: eq(ticketTiers.eventId, eventId)
   });
 
   return (
     <div className="container py-8">
       <CollabManagerClient 
-        eventId={params.eventId} 
+        eventId={eventId} 
         eventTitle={event.title} 
         ticketTiers={tiers} 
       />

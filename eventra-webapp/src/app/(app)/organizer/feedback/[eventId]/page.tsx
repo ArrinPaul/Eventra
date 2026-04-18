@@ -6,11 +6,12 @@ import { Button } from '@/components/ui/button';
 import { ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
 
-export default async function EventAnalyticsPage({ params }: { params: { eventId: string } }) {
-  const event = await getEventById(params.eventId);
+export default async function EventAnalyticsPage({ params }: { params: Promise<{ eventId: string }> }) {
+  const { eventId } = await params;
+  const event = await getEventById(eventId);
   if (!event) notFound();
 
-  const analytics = await getEventFeedbackAnalytics(params.eventId);
+  const analytics = await getEventFeedbackAnalytics(eventId);
 
   return (
     <div className="container py-8 space-y-6">

@@ -7,20 +7,21 @@ import { db } from '@/lib/db';
 import { waitlist } from '@/lib/db/schema';
 import { and, eq } from 'drizzle-orm';
 
-export default async function ClaimWaitlistSpotPage({ params }: { params: { id: string } }) {
+export default async function ClaimWaitlistSpotPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const session = await auth();
   if (!session?.user) redirect('/login');
 
   // 1. Run cleanup for the event before checking
-  await processWaitlistReservations(params.id);
+  await processWaitlistReservations(id);
 
-  const event = await getEventById(params.id);
+  const event = await getEventById(id);
   if (!event) notFound();
 
   // 2. Check if user has a valid reservation
   const reservation = await db.query.waitlist.findFirst({
     where: and(
-      eq(waitlist.eventId, params.id),
+      eq(waitlist.eventId, id),
       eq(waitlist.userId, session.user.id!),
       eq(waitlist.status, 'reserved')
     )
@@ -38,7 +39,7 @@ export default async function ClaimWaitlistSpotPage({ params }: { params: { id: 
   return (
     <div className="container py-20">
       <WaitlistClaimClient 
-        eventId={params.id} 
+        eventId={id} 
         eventTitle={event.title} 
         reservation={{ expiresAt: reservation.expiresAt! }} 
       />

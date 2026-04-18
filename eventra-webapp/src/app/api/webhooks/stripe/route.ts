@@ -5,9 +5,13 @@ import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { generateQrPayload } from '@/core/utils/crypto';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-01-27' as any,
-});
+function getStripeClient(): Stripe | null {
+  const secretKey = process.env.STRIPE_SECRET_KEY;
+  if (!secretKey) return null;
+  return new Stripe(secretKey, {
+    apiVersion: '2025-01-27' as any,
+  });
+}
 
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
@@ -16,6 +20,11 @@ function getMetadataValue(value: unknown): string | null {
 }
 
 export async function POST(req: Request) {
+  const stripe = getStripeClient();
+  if (!stripe) {
+    return NextResponse.json({ error: 'Stripe secret key is not configured' }, { status: 500 });
+  }
+
   if (!endpointSecret) {
     return NextResponse.json({ error: 'Stripe webhook secret is not configured' }, { status: 500 });
   }

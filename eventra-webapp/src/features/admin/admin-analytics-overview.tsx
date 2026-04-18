@@ -7,7 +7,7 @@ import {
   Users,
   Calendar,
   Activity,
-  Loader2,
+  RefreshCw,
   Ticket,
   TrendingUp,
   PieChart as PieChartIcon
@@ -56,7 +56,7 @@ export default function AdminAnalyticsOverview() {
   });
   
   if (loading) {
-    return <div className="p-20 text-center text-gray-500"><Loader2 className="animate-spin h-8 w-8 mx-auto mb-4" /> Loading platform analytics...</div>;
+    return <div className="p-20 text-center text-gray-500"><RefreshCw className="animate-spin h-8 w-8 mx-auto mb-4" /> Loading platform analytics...</div>;
   }
 
   const COLORS = ['#06b6d4', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981'];
@@ -274,9 +274,5 @@ export default function AdminAnalyticsOverview() {
       </Tabs>
     </div>
   );
-}
-
-function Loader2({ className }: { className?: string }) {
-  return <RefreshCw className={className} />;
 }
 

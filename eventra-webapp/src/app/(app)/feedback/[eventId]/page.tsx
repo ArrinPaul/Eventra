@@ -10,8 +10,8 @@ export const metadata: Metadata = {
   description: 'Share your thoughts about the event.',
 };
 
-export default async function FeedbackPage({ params }: { params: { eventId: string } }) {
-  const { eventId } = params;
+export default async function FeedbackPage({ params }: { params: Promise<{ eventId: string }> }) {
+  const { eventId } = await params;
 
   const event = await db.query.events.findFirst({
     where: eq(events.id, eventId),
