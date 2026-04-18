@@ -39,7 +39,6 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^3.6.0",
-    "drizzle-kit": "^0.31.10",
     "drizzle-orm": "^0.45.2",
     "framer-motion": "^12.29.2",
     "genkit": "^1.32.0",
@@ -71,6 +70,7 @@
     "@types/papaparse": "^5.5.2",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "drizzle-kit": "^0.31.10",
     "eslint": "9.39.2",
     "eslint-config-next": "^15.5.11",
     "postcss": "^8",
@@ -78,7 +78,3 @@
     "typescript": "^5"
   }
 }
-
-
-
-

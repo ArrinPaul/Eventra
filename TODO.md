@@ -100,11 +100,13 @@ This TODO now focuses on remaining UX hardening and code quality tasks.
 - [x] Loading/error boundaries added to 12 high-traffic routes (UX hardening complete)
 - [x] i18n infrastructure verified at 100% key parity (EN/ES complete)
 - [x] Route boundary scan reports ALL_CLEAR for page routes
+- [x] Fresh DB reset + schema migrate completed (public schema now has 25 tables, 38 foreign keys)
 - [ ] Manual smoke test passes for: create event, register ticket, view tickets, organizer tools, community, networking
 
 ## Working Notes
 
 - Build status: ✅ SUCCESS (exit code 0, all 41 routes compiled)
+- Database sync status: ✅ SUCCESS after clean reset (25 tables, 38 FKs verified in public schema)
 - Database error during build: HANDLED (graceful error logging, doesn't block build)
 - Schema tables: 25 (after removing auth-only account/session tables)
 - i18n key parity: 261 EN keys, 261 ES keys (complete)
