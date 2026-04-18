@@ -1,43 +1,55 @@
-import NextAuth from 'next-auth';
-import GoogleProvider from 'next-auth/providers/google';
-import { DrizzleAdapter } from "@auth/drizzle-adapter";
-import { db } from "@/lib/db";
-import type { DefaultSession } from 'next-auth';
-import type { UserRole } from './types';
+import { db } from '@/lib/db';
+import { users } from '@/lib/db/schema';
+import { eq } from 'drizzle-orm';
 
-// Extend the built-in session types
-declare module 'next-auth' {
-  interface Session {
-    user: {
-      id: string;
-      role: UserRole;
-    } & DefaultSession['user'];
-  }
+const GUEST_USER_ID = 'guest-user';
+
+async function ensureGuestUser() {
+  const existing = await db.query.users.findFirst({ where: eq(users.id, GUEST_USER_ID) });
+  if (existing) return existing;
+
+  const [guest] = await db
+    .insert(users)
+    .values({
+      id: GUEST_USER_ID,
+      name: 'Guest User',
+      email: 'guest@eventra.local',
+      role: 'attendee',
+      onboardingCompleted: true,
+      points: 0,
+      level: 1,
+      xp: 0,
+    })
+    .onConflictDoNothing()
+    .returning();
+
+  return guest || (await db.query.users.findFirst({ where: eq(users.id, GUEST_USER_ID) }));
 }
 
-export const { handlers, signIn, signOut, auth } = NextAuth({
-  adapter: DrizzleAdapter(db),
-  providers: (
-    process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
-      ? [
-          GoogleProvider({
-            clientId: process.env.GOOGLE_CLIENT_ID,
-            clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-          }),
-        ]
-      : []
-  ),
-  callbacks: {
-    async session({ session, user }) {
-      if (session.user) {
-        session.user.id = user.id;
-        // In this adapter mode, 'user' is the real DB user object
-        session.user.role = (user as any).role as UserRole;
-      }
-      return session;
+export async function auth() {
+  const guest = await ensureGuestUser();
+  if (!guest) return null;
+
+  return {
+    user: {
+      id: guest.id,
+      name: guest.name,
+      email: guest.email,
+      image: guest.image || undefined,
+      role: guest.role as any,
     },
-  },
-  pages: {
-    signIn: '/login',
-  },
-});
+  };
+}
+
+export async function signIn() {
+  return { ok: false, error: 'Authentication is disabled in this build.' };
+}
+
+export async function signOut() {
+  return { ok: true };
+}
+
+export const handlers = {
+  GET: async () => new Response('Authentication disabled', { status: 404 }),
+  POST: async () => new Response('Authentication disabled', { status: 404 }),
+};

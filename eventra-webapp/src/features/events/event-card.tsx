@@ -31,7 +31,6 @@ export function EventCard({ event, variant = 'default' }: { event: EventraEvent,
 
   const handleQuickRegister = async (e: React.MouseEvent) => {
     e.preventDefault(); e.stopPropagation();
-    if (!user) { router.push('/login'); return; }
     setIsRegistering(true);
     try {
       await registerMutation({ eventId: event.id as any });

@@ -40,7 +40,6 @@ export async function registerForEvent(eventId: string, data?: { tierId?: string
     if (!event) throw new Error('Event not found');
 
     // 3. Handle Tier Logic
-    let price = event.price;
     let tier = null;
     
     if (data?.tierId) {
@@ -48,8 +47,6 @@ export async function registerForEvent(eventId: string, data?: { tierId?: string
         where: eq(ticketTiers.id, data.tierId)
       });
       if (!tier) throw new Error('Ticket tier not found');
-      price = tier.price;
-      
       if (tier.registeredCount >= tier.capacity) {
         if (event.waitlistEnabled) return joinWaitlist(eventId, user.id);
         throw new Error('This ticket tier is sold out');
@@ -59,7 +56,7 @@ export async function registerForEvent(eventId: string, data?: { tierId?: string
       throw new Error('Event is full');
     }
 
-    // 4. Create ticket (In a real app, this happens AFTER payment)
+    // 4. Create free ticket for public registration
     const ticketNumber = `TKT-${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
     
     await db.transaction(async (tx) => {
@@ -69,7 +66,7 @@ export async function registerForEvent(eventId: string, data?: { tierId?: string
         tierId: data?.tierId,
         ticketNumber,
         status: 'confirmed',
-        price: price,
+        price: '0',
         qrCode: generateQrPayload(ticketNumber), 
       });
 

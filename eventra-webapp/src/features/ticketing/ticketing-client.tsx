@@ -13,7 +13,6 @@ import { cn } from '@/core/utils/utils';
 import Link from 'next/link';
 import { getEvents } from '@/app/actions/events';
 import { getUserRegistrations, registerForEvent } from '@/app/actions/registrations';
-import { createCheckoutSession } from '@/app/actions/payments';
 
 export function TicketingClient() {
   const { user } = useAuth();
@@ -43,21 +42,8 @@ export function TicketingClient() {
   }, [userId]);
 
   const handleBook = async (eventId: string) => {
-    if (!user) {
-      toast({ title: "Please sign in", description: "You need an account to book tickets." });
-      return;
-    }
-    
     setBookingId(eventId);
     try {
-      const event = events.find((e) => e.id === eventId || e._id === eventId);
-      if (event?.isPaid) {
-        const session = await createCheckoutSession({ eventId: eventId as any, origin: window.location.origin });
-        if (!session.success || !session.url) throw new Error(session.error || 'Checkout failed');
-        window.location.href = session.url;
-        return;
-      }
-
       const result = await registerForEvent(eventId as any);
       if (!result.success) throw new Error(result.message || 'Registration failed');
       toast({ title: "Booking Successful!", description: "Your ticket has been generated." });
@@ -102,7 +88,7 @@ export function TicketingClient() {
                   <div className="flex items-center gap-2"><MapPin size={14} className="text-cyan-400" /> {event.location?.venue || 'TBD'}</div>
                 </div>
                 <div className="pt-4 border-t border-white/10 flex items-center justify-between">
-                  <p className="text-2xl font-bold text-cyan-400">{event.isPaid ? `$${event.price}` : 'FREE'}</p>
+                  <p className="text-2xl font-bold text-cyan-400">FREE</p>
                   <Button onClick={() => handleBook(event.id || event._id)} disabled={bookingId === (event.id || event._id)}>
                     {bookingId === (event.id || event._id) ? <Loader2 className="animate-spin" /> : <ShoppingCart className="mr-2" size={16} />}
                     Book Now

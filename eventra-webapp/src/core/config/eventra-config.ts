@@ -128,17 +128,6 @@ export const EVENTRA_CONFIG = {
         ],
       },
     },
-    payments: {
-      stripe: {
-        enabled: true,
-        publicKey: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
-        webhookSecret: process.env.STRIPE_WEBHOOK_SECRET,
-      },
-      razorpay: {
-        enabled: true,
-        keyId: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-      },
-    },
     communications: {
       sendgrid: {
         enabled: true,
@@ -217,7 +206,7 @@ export const EVENTRA_CONFIG = {
     aiChatbot: true,
     advancedAnalytics: true,
     googleIntegration: true,
-    paymentProcessing: true,
+    paymentProcessing: false,
     automationWorkflows: true,
     mobileApp: true,
     whiteLabeling: true,

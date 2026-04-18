@@ -111,20 +111,6 @@ export default function MyEventsClient() {
   const nextEvent = registeredEvents
     .sort((a, b) => getEventDate(a).getTime() - getEventDate(b).getTime())[0];
 
-  if (!user && !loading) {
-    return (
-      <div className="container py-16 text-center">
-        <div className="max-w-md mx-auto">
-          <Calendar className="h-16 w-16 mx-auto mb-6 text-muted-foreground" />
-          <h1 className="text-2xl font-bold mb-4">Sign in to see your events</h1>
-          <div className="flex gap-4 justify-center">
-            <Button asChild><Link href="/login">Sign In</Link></Button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="container py-8">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">

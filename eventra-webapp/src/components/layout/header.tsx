@@ -186,10 +186,10 @@ export default function Header() {
             ) : (
               <div className="hidden md:flex items-center gap-2">
                 <Button asChild variant="ghost" size="sm" className="rounded-lg text-muted-foreground hover:text-foreground">
-                  <Link href="/login">Sign In</Link>
+                  <Link href="/explore">Browse Events</Link>
                 </Button>
                 <Button asChild size="sm" className="rounded-lg">
-                  <Link href="/register">Get Started</Link>
+                  <Link href="/tickets">View Tickets</Link>
                 </Button>
               </div>
             )}
@@ -232,29 +232,16 @@ export default function Header() {
                 </Link>
               ))}
 
-              {!user && (
-                <div className="pt-3 flex flex-col gap-2">
-                  <Button asChild variant="outline" className="w-full rounded-lg">
-                    <Link href="/login">Sign In</Link>
-                  </Button>
-                  <Button asChild className="w-full rounded-lg">
-                    <Link href="/register">Get Started</Link>
-                  </Button>
-                </div>
-              )}
-
-              {user && (
-                <div className="pt-3">
-                  <Button
-                    onClick={() => { logout(); setMobileMenuOpen(false); }}
-                    variant="outline"
-                    className="w-full rounded-lg text-destructive border-destructive/20 hover:bg-destructive/5"
-                  >
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Log Out
-                  </Button>
-                </div>
-              )}
+              <div className="pt-3">
+                <Button
+                  onClick={() => { logout(); setMobileMenuOpen(false); }}
+                  variant="outline"
+                  className="w-full rounded-lg text-destructive border-destructive/20 hover:bg-destructive/5"
+                >
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Log Out
+                </Button>
+              </div>
             </div>
           </motion.div>
         )}

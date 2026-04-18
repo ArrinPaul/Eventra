@@ -1,59 +1,29 @@
 'use client';
 
-import { useSession, signOut as nextAuthSignOut, signIn as nextAuthSignIn } from 'next-auth/react';
 import { User } from '@/types';
-import { getErrorMessage } from '@/core/utils/utils';
-import { updateUserDetails } from '@/app/actions/users';
+
+const GUEST_USER: User = {
+  id: 'guest-user',
+  name: 'Guest User',
+  email: 'guest@eventra.local',
+  role: 'attendee',
+  points: 0,
+  level: 1,
+  xp: 0,
+  onboardingCompleted: true,
+};
 
 export function useAuth() {
-  const { data: session, status, update } = useSession();
-  
-  const loading = status === 'loading';
-  const isAuthenticated = status === 'authenticated';
-  const user = session?.user as User | null;
+  const loading = false;
+  const isAuthenticated = false;
+  const user = GUEST_USER;
 
-  const signIn = async (options?: { role?: User['role']; callbackUrl?: string }) => {
-    const preferredRole =
-      options?.role ||
-      (typeof window !== 'undefined' ? (sessionStorage.getItem('preferred_role') as User['role'] | null) : null) ||
-      'professional';
+  const signIn = async () => ({ ok: false, error: 'Authentication is disabled.' });
 
-    if (typeof window !== 'undefined' && preferredRole) {
-      sessionStorage.setItem('preferred_role', preferredRole);
-    }
-
-    const callbackUrl = options?.callbackUrl || '/';
-    const result = await nextAuthSignIn('google', { callbackUrl });
-    return result;
-  };
-
-  const logout = async () => {
-    try {
-      await nextAuthSignOut({ callbackUrl: '/' });
-    } catch (error) {
-      console.error('Failed to sign out:', error);
-    }
-  };
+  const logout = async () => {};
 
   const updateUser = async (updatedUser: Partial<User>) => {
-    if (!user) return null;
-    
-    try {
-      const userId = user.id || (user as any)._id;
-      if (!userId) return null;
-      // 1. Persist to Database
-      const result = await updateUserDetails(userId, updatedUser);
-      
-      // 2. Update Session (triggers session callback on server)
-      if (result.success && result.user) {
-        await update(result.user);
-        return result.user;
-      }
-      return null;
-    } catch (error) {
-      console.error('Failed to update user:', error);
-      throw error;
-    }
+    return { ...user, ...updatedUser };
   };
 
   /**
@@ -71,7 +41,6 @@ export function useAuth() {
 
   const checkInUser = async (eventId: string) => {
     if (!user) return;
-    // For now we update user profile, but this could also be a separate check-in action
     await updateUser({ checkedIn: true });
   };
 
@@ -84,6 +53,6 @@ export function useAuth() {
     awardPoints,
     checkInUser,
     signIn,
-    authErrorMessage: (error: unknown) => getErrorMessage(error),
+    authErrorMessage: (error: unknown) => String(error),
   };
 }

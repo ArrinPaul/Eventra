@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { useAuth } from '@/hooks/use-auth';
 import { 
   Building2, 
@@ -41,9 +40,8 @@ export function RegisterWizard() {
   const [selectedRole, setSelectedRole] = useState<'student' | 'professional' | 'organizer'>('student');
 
   const handleSignIn = () => {
-    // We'll store the role in session storage or similar to use after OAuth redirect in onboarding
     sessionStorage.setItem('preferred_role', selectedRole);
-    signIn({ role: selectedRole });
+    signIn();
   };
 
   return (
@@ -76,7 +74,7 @@ export function RegisterWizard() {
       </div>
 
       <Button onClick={handleSignIn} className="w-full py-6 text-lg bg-white text-black hover:bg-gray-200">
-        Sign up with Google
+        Continue as guest
       </Button>
     </div>
   );

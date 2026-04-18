@@ -1,21 +1,11 @@
 'use client';
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
 import Header from '@/components/layout/header';
 import { ErrorBoundary } from '@/components/shared/error-boundary';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (!loading && !user) {
-      router.push('/login');
-    } else if (user && !user.onboardingCompleted) {
-      router.push('/onboarding');
-    }
-  }, [user, loading, router]);
 
   if (loading) {
     return (
@@ -26,10 +16,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </div>
       </div>
     );
-  }
-
-  if (!user) {
-    return null;
   }
 
   return (

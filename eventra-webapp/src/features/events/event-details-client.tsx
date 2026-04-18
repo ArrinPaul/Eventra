@@ -28,7 +28,6 @@ import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { EventChatbot, ChatbotTrigger } from '@/features/ai/event-chatbot';
 import { Progress } from '@/components/ui/progress';
-import { createCheckoutSession } from '@/app/actions/payments';
 import { EventDiscussionBoard } from './event-discussion-board';
 import { EventReactions } from './event-reactions';
 import { EventGallery } from './event-gallery';
@@ -52,7 +51,7 @@ import { updateEvent, cloneEvent } from '@/app/actions/events';
 
 export default function EventDetailsClient({ eventId, initialEvent }: { eventId: string, initialEvent: any }) {
   const router = useRouter();
-  const { user, updateUser } = useAuth();
+  const { user } = useAuth();
   const { toast } = useToast();
 
   const [event, setEvent] = useState(initialEvent);
@@ -79,11 +78,6 @@ export default function EventDetailsClient({ eventId, initialEvent }: { eventId:
   }, [eventId, user]);
 
   const handleRegister = async (tierId?: string) => {
-    if (!user) {
-      router.push(`/login?callbackUrl=/events/${eventId}`);
-      return;
-    }
-    
     setRegistering(true);
     try {
       const result = await registerForEvent(eventId, { tierId });
