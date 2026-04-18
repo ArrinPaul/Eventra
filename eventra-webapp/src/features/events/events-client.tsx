@@ -109,7 +109,10 @@ export default function EventsClient() {
   
   const handleDelete = async (eventId: string) => {
     try {
-      await deleteEvent(eventId);
+      const result = await deleteEvent(eventId);
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to delete event.');
+      }
       toast({ title: 'Event Deleted', variant: 'destructive' });
       loadEvents(); // Refresh list
     } catch (error) {

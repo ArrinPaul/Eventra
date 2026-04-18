@@ -2,7 +2,7 @@
 
 import { db } from '@/lib/db';
 import { sponsors } from '@/lib/db/schema';
-import { eq, and, desc, asc } from 'drizzle-orm';
+import { eq, desc, asc } from 'drizzle-orm';
 import { validateEventOwnership } from '@/lib/auth-utils';
 import { revalidatePath } from 'next/cache';
 
@@ -35,7 +35,7 @@ export async function upsertSponsor(data: {
         .returning();
       
       revalidatePath(`/events/${data.eventId}`);
-      return updated;
+      return { success: true, sponsor: updated, error: null as string | null };
     } else {
       const [created] = await db
         .insert(sponsors)
@@ -50,11 +50,11 @@ export async function upsertSponsor(data: {
         .returning();
       
       revalidatePath(`/events/${data.eventId}`);
-      return created;
+      return { success: true, sponsor: created, error: null as string | null };
     }
-  } catch (error: any) {
+  } catch (error) {
     console.error('upsertSponsor Error:', error);
-    throw new Error('Failed to save sponsor');
+    return { success: false, sponsor: null, error: 'Failed to save sponsor' };
   }
 }
 
@@ -67,15 +67,15 @@ export async function deleteSponsor(sponsorId: string) {
       where: eq(sponsors.id, sponsorId)
     });
 
-    if (!sponsor) throw new Error('Sponsor not found');
+    if (!sponsor) return { success: false, error: 'Sponsor not found' };
     await validateEventOwnership(sponsor.eventId);
 
     await db.delete(sponsors).where(eq(sponsors.id, sponsorId));
     revalidatePath(`/events/${sponsor.eventId}`);
-    return { success: true };
-  } catch (error: any) {
+    return { success: true, error: null as string | null };
+  } catch (error) {
     console.error('deleteSponsor Error:', error);
-    throw new Error('Failed to delete sponsor');
+    return { success: false, error: 'Failed to delete sponsor' };
   }
 }
 

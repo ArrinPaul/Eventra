@@ -52,7 +52,7 @@ The project follows a unified Next.js architecture:
 - Language: TypeScript 5
 - UI: Tailwind CSS, Radix UI, class-variance-authority
 - State and data fetching: TanStack React Query
-- Auth: Auth.js (NextAuth v5 beta), OAuth integration
+- Access model: Public guest-only platform (no login required)
 - i18n: next-intl
 - Charts: Recharts
 - Database: PostgreSQL (Supabase) + Drizzle ORM
@@ -113,10 +113,18 @@ Variable reference:
 | NEXT_PUBLIC_SUPABASE_URL | Client | Yes | Supabase project URL used by browser-facing requests. |
 | NEXT_PUBLIC_SUPABASE_ANON_KEY | Client | Yes | Public Supabase anonymous key for client operations. |
 | DATABASE_URL | Server | Yes | PostgreSQL connection string for server actions and Drizzle. |
-| AUTH_SECRET | Server | Yes | Secret used to sign and validate authentication sessions. |
-| GOOGLE_CLIENT_ID | Server | No | Google OAuth client ID for social login. |
-| GOOGLE_CLIENT_SECRET | Server | No | Google OAuth client secret for social login. |
+| RESEND_API_KEY | Server | No | Enables transactional email API routes. |
+| TWILIO_ACCOUNT_SID | Server | No | Enables Twilio SMS notifications. |
+| TWILIO_AUTH_TOKEN | Server | No | Auth token paired with Twilio SID. |
+| TWILIO_FROM_NUMBER | Server | No | Sender number for SMS notifications. |
+| GOOGLE_API_KEY | Server | No | Enables AI provider access for recommendation/chat flows. |
 | IMAGE_UPLOAD_SIZE | Server | No | Application image upload size setting (default: 520). |
+
+Validation command:
+```bash
+cd eventra-webapp
+npm run env:check
+```
 
 ## Database and Migrations
 Eventra uses Drizzle for schema and migration workflows.
@@ -146,7 +154,8 @@ All commands below are executed from the frontend directory:
 ## Quality Gates
 Recommended release checks before merge or deploy:
 ```bash
-cd frontend
+cd eventra-webapp
+npm run env:check
 npm run lint
 npm run typecheck
 npm run build
@@ -156,7 +165,6 @@ Production readiness standards:
 - No build-time TypeScript errors.
 - No unresolved imports.
 - Environment variables configured per environment.
-- Auth callbacks and allowed hosts validated.
 - Database schema changes reviewed before push.
 
 ## Deployment
@@ -168,7 +176,6 @@ Typical flow:
 5. Run post-deploy smoke tests on critical user journeys.
 
 Suggested smoke test set:
-- Login and session persistence
 - Event listing and details
 - Ticketing flow entry and completion path
 - Check-in scanner route load
@@ -177,7 +184,6 @@ Suggested smoke test set:
 ## Security Notes
 - Never commit real secrets to source control.
 - Rotate compromised credentials immediately.
-- Keep AUTH_SECRET unique per environment.
 - Restrict database users and permissions by environment.
 - Enforce HTTPS and secure cookie policies in production.
 
@@ -191,7 +197,7 @@ Current theme direction:
 
 ## Roadmap Snapshot
 In-progress focus areas:
-- Complete server-side authorization guards for write operations.
+- Complete server-side validation and error-envelope consistency for write operations.
 - Finalize end-to-end ticketing and check-in integrity.
 - Expand automated testing (unit, integration, E2E).
 - Harden CI/CD and release rollback procedures.

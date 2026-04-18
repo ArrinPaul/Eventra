@@ -1,20 +1,17 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
+import { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
 import { 
   Plus, 
   Trash2, 
   Globe, 
   Image as ImageIcon, 
   LayoutGrid, 
-  GripVertical, 
   Loader2,
-  ExternalLink,
   Award,
   Settings2
 } from 'lucide-react';
@@ -77,7 +74,7 @@ export function SponsorManagerClient({ eventId, eventTitle }: SponsorManagerProp
     e.preventDefault();
     setIsSaving(true);
     try {
-      await upsertSponsor({
+      const result = await upsertSponsor({
         id: editingId || undefined,
         eventId,
         name,
@@ -86,6 +83,9 @@ export function SponsorManagerClient({ eventId, eventTitle }: SponsorManagerProp
         tier,
         order: sponsors.length
       });
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to save sponsor');
+      }
       toast({ title: editingId ? "Sponsor Updated" : "Sponsor Added" });
       resetForm();
       loadSponsors();
@@ -99,11 +99,14 @@ export function SponsorManagerClient({ eventId, eventTitle }: SponsorManagerProp
   const handleDelete = async (id: string) => {
     if (!confirm("Remove this sponsor?")) return;
     try {
-      await deleteSponsor(id);
+      const result = await deleteSponsor(id);
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to remove sponsor');
+      }
       toast({ title: "Sponsor removed" });
       loadSponsors();
-    } catch (e) {
-      toast({ title: "Failed to remove", variant: "destructive" });
+    } catch (error: any) {
+      toast({ title: "Failed to remove", description: error.message, variant: "destructive" });
     }
   };
 

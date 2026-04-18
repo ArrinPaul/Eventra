@@ -240,7 +240,7 @@ export async function deleteEvent(id: string) {
     return { success: true };
   } catch (error) {
     console.error('deleteEvent Error:', error);
-    throw new Error('Database operation failed');
+    return { success: false, error: 'Database operation failed' };
   }
 }
 
@@ -255,7 +255,7 @@ export async function cloneEvent(id: string) {
       where: eq(events.id, id)
     });
 
-    if (!originalEvent) throw new Error('Original event not found');
+    if (!originalEvent) return { success: false, error: 'Original event not found' };
 
     const { id: _, createdAt: __, updatedAt: ___, embedding: ____, ...cloneData } = originalEvent;
 

@@ -30,10 +30,10 @@ export async function syncTicketQRCodes() {
       updatedCount++;
     }
 
-    return { success: true, updatedCount };
+    return { success: true, updatedCount, error: null as string | null };
   } catch (error) {
     console.error('Failed to sync QR codes:', error);
-    throw new Error('QR Sync failed');
+    return { success: false, updatedCount: 0, error: 'QR sync failed' };
   }
 }
 
@@ -58,7 +58,7 @@ export async function refreshTicketStatuses(eventId?: string) {
     const eventIds = finishedEvents.map(e => e.id);
 
     // Update tickets for these events that are still in 'confirmed' or 'pending' state
-    const result = await db
+    await db
       .update(tickets)
       .set({ status: 'expired' })
       .where(
@@ -71,9 +71,9 @@ export async function refreshTicketStatuses(eventId?: string) {
     revalidatePath('/tickets');
     if (eventId) revalidatePath(`/events/${eventId}`);
 
-    return { success: true, updatedCount: finishedEvents.length };
+    return { success: true, updatedCount: finishedEvents.length, error: null as string | null };
   } catch (error) {
-    console.error('Failed to refresh ticket statuses:', error);
+    console.warn('Failed to refresh ticket statuses (non-blocking):', error);
     // Return gracefully instead of throwing - DB may be unavailable during build
     return { success: false, updatedCount: 0, error: 'Could not refresh ticket statuses' };
   }

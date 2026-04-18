@@ -64,7 +64,10 @@ export default function OrganizerDashboard() {
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this event?')) return;
     try {
-      await deleteEvent(id);
+      const result = await deleteEvent(id);
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to delete event.');
+      }
       toast({ title: 'Event deleted' });
       loadData();
     } catch (e) {
