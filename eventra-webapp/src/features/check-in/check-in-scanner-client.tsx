@@ -84,6 +84,8 @@ export default function CheckInScannerClient() {
     }
   }, [selectedEventId]);
 
+  // syncOfflineQueue is intentionally omitted here to avoid resubscribing online/offline listeners on every queue change.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (user && (user.role === 'organizer' || user.role === 'admin' || user.role === 'professional' || user.role === 'attendee')) {
       // For now, let everyone load, the server action will protect it.
@@ -97,6 +99,36 @@ export default function CheckInScannerClient() {
   const checkInCount = selectedEvent?.checkInCount || 0;
   const totalRegistrations = selectedEvent?.registeredCount || 0;
   const checkInRate = totalRegistrations > 0 ? Math.round((checkInCount / totalRegistrations) * 100) : 0;
+
+  const syncOfflineQueue = useCallback(async () => {
+    if (offlineQueue.length === 0 || isSyncing) return;
+    
+    setIsSyncing(true);
+    const queue = [...offlineQueue];
+    setOfflineQueue([]); 
+    localStorage.removeItem(`offline_queue_${user?.id}`);
+    
+    let successCount = 0;
+    let failCount = 0;
+
+    for (const item of queue) {
+      try {
+        await checkInTicket(item.payload, selectedEventId);
+        successCount++;
+      } catch (e) {
+        failCount++;
+      }
+    }
+
+    if (successCount > 0) {
+      toast({ title: "Sync Complete", description: `Successfully synced ${successCount} check-ins.` });
+      fetchEvents(); 
+    }
+    if (failCount > 0) {
+      toast({ title: "Sync Warning", description: `${failCount} check-ins failed during sync.`, variant: "destructive" });
+    }
+    setIsSyncing(false);
+  }, [offlineQueue, isSyncing, selectedEventId, user?.id, toast, fetchEvents]);
 
   useEffect(() => {
     setIsOffline(!navigator.onLine);
@@ -169,36 +201,6 @@ export default function CheckInScannerClient() {
       setProcessing(false);
     }
   };
-
-  const syncOfflineQueue = useCallback(async () => {
-    if (offlineQueue.length === 0 || isSyncing) return;
-    
-    setIsSyncing(true);
-    const queue = [...offlineQueue];
-    setOfflineQueue([]); 
-    localStorage.removeItem(`offline_queue_${user?.id}`);
-    
-    let successCount = 0;
-    let failCount = 0;
-
-    for (const item of queue) {
-      try {
-        await checkInTicket(item.payload, selectedEventId);
-        successCount++;
-      } catch (e) {
-        failCount++;
-      }
-    }
-
-    if (successCount > 0) {
-      toast({ title: "Sync Complete", description: `Successfully synced ${successCount} check-ins.` });
-      fetchEvents(); 
-    }
-    if (failCount > 0) {
-      toast({ title: "Sync Warning", description: `${failCount} check-ins failed during sync.`, variant: "destructive" });
-    }
-    setIsSyncing(false);
-  }, [offlineQueue, isSyncing, selectedEventId, user?.id, toast, fetchEvents]);
 
   const handleProcessCheckIn = useCallback(async (payload: string) => {
     if (!selectedEventId) {
@@ -291,6 +293,16 @@ export default function CheckInScannerClient() {
     user?.id,
   ]);
 
+  const stopScanner = useCallback(async () => {
+    if (scannerRef.current) {
+      try {
+        await scannerRef.current.stop();
+      } catch (e) {}
+      scannerRef.current = null;
+      setScanning(false);
+    }
+  }, []);
+
   const startScanner = useCallback(async () => {
     try {
       const { Html5Qrcode } = await import('html5-qrcode');
@@ -312,16 +324,6 @@ export default function CheckInScannerClient() {
       toast({ title: 'Camera Error', description: 'Could not access camera', variant: 'destructive' });
     }
   }, [handleProcessCheckIn, stopScanner, toast]); 
-
-  const stopScanner = useCallback(async () => {
-    if (scannerRef.current) {
-      try {
-        await scannerRef.current.stop();
-      } catch (e) {}
-      scannerRef.current = null;
-      setScanning(false);
-    }
-  }, []);
 
   useEffect(() => {
     return () => {

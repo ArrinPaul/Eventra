@@ -11,6 +11,13 @@ import { logActivity } from './feed';
 import { awardXP } from './gamification';
 import { generateQrPayload } from '@/core/utils/crypto';
 
+function getErrorText(error: unknown, fallback: string) {
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+  return fallback;
+}
+
 /**
  * Register a user for an event (Create a ticket or join waitlist)
  */
@@ -37,7 +44,7 @@ export async function registerForEvent(eventId: string, data?: { tierId?: string
       }
     });
 
-    if (!event) throw new Error('Event not found');
+    if (!event) return { success: false, error: 'Event not found' };
 
     // 3. Handle Tier Logic
     let tier = null;
@@ -46,14 +53,14 @@ export async function registerForEvent(eventId: string, data?: { tierId?: string
       tier = await db.query.ticketTiers.findFirst({
         where: eq(ticketTiers.id, data.tierId)
       });
-      if (!tier) throw new Error('Ticket tier not found');
+      if (!tier) return { success: false, error: 'Ticket tier not found' };
       if (tier.registeredCount >= tier.capacity) {
         if (event.waitlistEnabled) return joinWaitlist(eventId, user.id);
-        throw new Error('This ticket tier is sold out');
+        return { success: false, error: 'This ticket tier is sold out' };
       }
     } else if (event.registeredCount >= event.capacity) {
       if (event.waitlistEnabled) return joinWaitlist(eventId, user.id);
-      throw new Error('Event is full');
+      return { success: false, error: 'Event is full' };
     }
 
     // 4. Create free ticket for public registration
@@ -134,7 +141,7 @@ export async function registerForEvent(eventId: string, data?: { tierId?: string
     return { success: true, ticketNumber };
   } catch (error: any) {
     console.error('Registration failed:', error);
-    throw new Error(error.message || 'Registration failed');
+    return { success: false, error: getErrorText(error, 'Registration failed') };
   }
 }
 
@@ -174,7 +181,7 @@ async function joinWaitlist(eventId: string, userId: string) {
     return { success: true, message: 'Added to waitlist', position };
   } catch (error) {
     console.error('Waitlist join failed:', error);
-    throw new Error('Could not join waitlist');
+    return { success: false, error: 'Could not join waitlist' };
   }
 }
 
@@ -284,7 +291,7 @@ export async function processWaitlistReservations(eventId: string) {
  */
 export async function claimWaitlistSpot(eventId: string) {
   const session = await auth();
-  if (!session?.user) throw new Error('Auth required');
+  if (!session?.user) return { success: false, error: 'Auth required' };
 
   try {
     const result = await db.transaction(async (tx) => {
@@ -332,7 +339,7 @@ export async function claimWaitlistSpot(eventId: string) {
     revalidatePath(`/events/${eventId}`);
     return result;
   } catch (error: any) {
-    throw new Error(error.message || 'Failed to claim spot');
+    return { success: false, error: getErrorText(error, 'Failed to claim spot') };
   }
 }
 
@@ -348,9 +355,9 @@ export async function cancelRegistration(ticketId: string) {
       where: eq(tickets.id, ticketId)
     });
 
-    if (!ticket) throw new Error('Ticket not found');
+    if (!ticket) return { success: false, error: 'Ticket not found' };
     if (ticket.userId !== user.id && (user as any).role !== 'admin') {
-       throw new Error('Unauthorized');
+      return { success: false, error: 'Unauthorized' };
     }
 
     await db.transaction(async (tx) => {
@@ -375,7 +382,7 @@ export async function cancelRegistration(ticketId: string) {
     return { success: true };
   } catch (error: any) {
     console.error('Cancellation failed:', error);
-    throw new Error(error.message);
+    return { success: false, error: getErrorText(error, 'Cancellation failed') };
   }
 }
 

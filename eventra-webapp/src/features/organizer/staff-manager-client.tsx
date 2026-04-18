@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -73,7 +73,7 @@ export function StaffManagerClient({ eventId, eventTitle }: StaffManagerProps) {
     { id: 'manage_staff', label: 'Manage Staff', desc: 'Add or remove other staff members.' },
   ];
 
-  const loadStaff = async () => {
+  const loadStaff = useCallback(async () => {
     setLoading(true);
     try {
       const data = await getEventStaff(eventId);
@@ -83,11 +83,11 @@ export function StaffManagerClient({ eventId, eventTitle }: StaffManagerProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [eventId]);
 
   useEffect(() => {
     loadStaff();
-  }, [eventId]);
+  }, [loadStaff]);
 
   const handleInvite = async (e: React.FormEvent) => {
     e.preventDefault();

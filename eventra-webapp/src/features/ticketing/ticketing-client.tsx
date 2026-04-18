@@ -45,7 +45,14 @@ export function TicketingClient() {
     setBookingId(eventId);
     try {
       const result = await registerForEvent(eventId as any);
-      if (!result.success) throw new Error(result.message || 'Registration failed');
+      if (!result.success) {
+        toast({
+          title: 'Booking Failed',
+          description: (result as any).error || (result as any).message || 'Registration failed',
+          variant: 'destructive',
+        });
+        return;
+      }
       toast({ title: "Booking Successful!", description: "Your ticket has been generated." });
       setActiveTab('my-tickets');
       const registrations = await getUserRegistrations();

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -33,7 +33,7 @@ export default function OrganizerDashboard() {
   const [activeTab, setActiveTab] = useState('events');
   const [isCloning, setIsCloning] = useState<string | null>(null);
 
-  async function loadData() {
+  const loadData = useCallback(async () => {
     if (!user) return;
     setLoading(true);
     try {
@@ -47,11 +47,11 @@ export default function OrganizerDashboard() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [toast, user]);
 
   useEffect(() => {
     loadData();
-  }, [user]);
+  }, [loadData]);
 
   const filteredEvents = managedEvents.filter((e: EventraEvent) =>
     e.title.toLowerCase().includes(searchTerm.toLowerCase())

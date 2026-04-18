@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -20,6 +20,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { getPendingMedia, moderateMedia, toggleMediaVisibility } from '@/app/actions/media';
 import Image from 'next/image';
+import { cn } from '@/core/utils/utils';
 
 interface MediaItem {
   id: string;
@@ -43,7 +44,7 @@ export function MediaModerationClient({ eventId, eventTitle }: MediaModerationPr
   const [loading, setLoading] = useState(true);
   const [processingId, setProcessingId] = useState<string | null>(null);
 
-  const loadPending = async () => {
+  const loadPending = useCallback(async () => {
     setLoading(true);
     try {
       const data = await getPendingMedia(eventId);
@@ -53,11 +54,11 @@ export function MediaModerationClient({ eventId, eventTitle }: MediaModerationPr
     } finally {
       setLoading(false);
     }
-  };
+  }, [eventId]);
 
   useEffect(() => {
     loadPending();
-  }, [eventId]);
+  }, [loadPending]);
 
   const handleAction = async (mediaId: string, action: 'approve' | 'reject') => {
     setProcessingId(mediaId);
@@ -156,5 +157,3 @@ export function MediaModerationClient({ eventId, eventTitle }: MediaModerationPr
     </div>
   );
 }
-
-import { cn } from '@/core/utils/utils';

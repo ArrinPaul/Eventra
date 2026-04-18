@@ -90,7 +90,11 @@ export default function EventDetailsClient({ eventId, initialEvent }: { eventId:
         const status = await getRegistrationStatus(eventId);
         setRegistration(status);
       } else {
-        toast({ title: 'Status', description: result.message, variant: 'default' });
+        toast({
+          title: 'Registration Status',
+          description: (result as any).error || (result as any).message || 'Registration could not be completed',
+          variant: 'default',
+        });
       }
     } catch (e: any) {
       toast({ title: 'Registration Failed', description: e.message, variant: 'destructive' });
@@ -102,9 +106,17 @@ export default function EventDetailsClient({ eventId, initialEvent }: { eventId:
   const handleClone = async () => {
     setCloning(true);
     try {
-      const newId = await cloneEvent(eventId);
+      const cloneResult = await cloneEvent(eventId);
+      if (!cloneResult.success || !cloneResult.id) {
+        toast({
+          title: 'Clone failed',
+          description: cloneResult.error || 'Could not clone this event',
+          variant: 'destructive',
+        });
+        return;
+      }
       toast({ title: 'Event cloned successfully!', description: 'Redirecting to the new event editor.' });
-      router.push(`/events/${newId}/edit`);
+      router.push(`/events/${cloneResult.id}/edit`);
     } catch (e: any) {
       toast({ title: 'Clone failed', description: e.message, variant: 'destructive' });
     } finally {

@@ -27,6 +27,7 @@ import {
   markDiscussionMessageAnswered,
 } from '@/app/actions/event-engagement';
 import { getUserById } from '@/app/actions/users';
+import { useTranslations } from 'next-intl';
 
 interface EventDiscussionBoardProps {
   eventId: Id<"events">;
@@ -35,6 +36,7 @@ interface EventDiscussionBoardProps {
 export function EventDiscussionBoard({ eventId }: EventDiscussionBoardProps) {
   const { user } = useAuth();
   const { toast } = useToast();
+  const t = useTranslations('Phase2I18n.eventDiscussion');
   const [content, setContent] = useState('');
   const [isQuestion, setIsQuestion] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -82,7 +84,7 @@ export function EventDiscussionBoard({ eventId }: EventDiscussionBoardProps) {
         content: content.trim(),
         isQuestion,
       });
-      if (!result.success || !result.id) throw new Error('Failed to post');
+      if (!result.success || !result.id) throw new Error(t('failedPost'));
 
       setMessages((prev) => [
         {
@@ -92,7 +94,7 @@ export function EventDiscussionBoard({ eventId }: EventDiscussionBoardProps) {
           isAnswered: false,
           likes: 0,
           createdAt: new Date(),
-          authorName: user?.name || 'You',
+          authorName: user?.name || t('youFallback'),
           authorImage: user?.image || '',
           authorRole: user?.role || 'attendee',
         },
@@ -101,9 +103,9 @@ export function EventDiscussionBoard({ eventId }: EventDiscussionBoardProps) {
 
       setContent('');
       setIsQuestion(false);
-      toast({ title: 'Message posted' });
+      toast({ title: t('posted') });
     } catch {
-      toast({ title: 'Failed to post', variant: 'destructive' });
+      toast({ title: t('failedPost'), variant: 'destructive' });
     } finally {
       setSubmitting(false);
     }
@@ -113,7 +115,7 @@ export function EventDiscussionBoard({ eventId }: EventDiscussionBoardProps) {
     <div className="space-y-8 animate-in fade-in duration-500">
       <Card className="bg-white/5 border-white/10 text-white overflow-hidden">
         <CardHeader className="border-b border-white/10">
-          <CardTitle className="text-lg">Discussion</CardTitle>
+          <CardTitle className="text-lg">{t('title')}</CardTitle>
         </CardHeader>
         <CardContent className="p-6">
           <div className="flex gap-4">
@@ -123,7 +125,7 @@ export function EventDiscussionBoard({ eventId }: EventDiscussionBoardProps) {
             </Avatar>
             <div className="flex-1 space-y-4">
               <Textarea 
-                placeholder="Ask a question or share a thought..." 
+                placeholder={t('textareaPlaceholder')} 
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 className="bg-white/5 border-white/10 min-h-[100px] resize-none focus-visible:ring-cyan-500"
@@ -140,7 +142,7 @@ export function EventDiscussionBoard({ eventId }: EventDiscussionBoardProps) {
                     )}
                   >
                     <HelpCircle className="w-3.5 h-3.5 mr-1.5" />
-                    Mark as Question
+                    {t('markQuestion')}
                   </Button>
                 </div>
                 <Button 
@@ -149,7 +151,7 @@ export function EventDiscussionBoard({ eventId }: EventDiscussionBoardProps) {
                   className="bg-cyan-600 hover:bg-cyan-500 text-white rounded-full px-6"
                 >
                   {submitting ? <Clock className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4 mr-2" />}
-                  Post
+                  {t('post')}
                 </Button>
               </div>
             </div>
@@ -161,8 +163,8 @@ export function EventDiscussionBoard({ eventId }: EventDiscussionBoardProps) {
         {messages.length === 0 ? (
           <div className="py-20 text-center border border-dashed border-white/10 rounded-3xl bg-white/5">
             <MessageSquare size={48} className="mx-auto mb-4 text-gray-700 opacity-20" />
-            <h3 className="text-lg font-bold text-gray-500">No discussions yet</h3>
-            <p className="text-sm text-gray-600">Be the first to start the conversation!</p>
+            <h3 className="text-lg font-bold text-gray-500">{t('noDiscussionsTitle')}</h3>
+            <p className="text-sm text-gray-600">{t('noDiscussionsDesc')}</p>
           </div>
         ) : (
           messages.map((msg) => (
@@ -193,7 +195,7 @@ export function EventDiscussionBoard({ eventId }: EventDiscussionBoardProps) {
                     "text-[10px] font-black uppercase tracking-widest px-2 py-0",
                     msg.isAnswered ? "bg-green-500 text-black border-0" : "bg-amber-500 text-black border-0"
                   )}>
-                    {msg.isAnswered ? "Resolved" : "Question"}
+                    {msg.isAnswered ? t('resolved') : t('question')}
                   </Badge>
                 )}
               </div>
@@ -215,11 +217,11 @@ export function EventDiscussionBoard({ eventId }: EventDiscussionBoardProps) {
                   >
                     <ThumbsUp size={14} className={msg.likes > 0 ? "text-cyan-400 fill-cyan-400/20" : ""} />
                     {msg.likes > 0 && <span>{msg.likes}</span>}
-                    <span>Helpful</span>
+                    <span>{t('helpful')}</span>
                   </button>
                   <button className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-white transition-colors">
                     <Reply size={14} />
-                    Reply
+                    {t('reply')}
                   </button>
                   {msg.isQuestion && !msg.isAnswered && (
                     <button 
@@ -234,7 +236,7 @@ export function EventDiscussionBoard({ eventId }: EventDiscussionBoardProps) {
                       className="ml-auto flex items-center gap-1.5 text-xs text-green-500/70 hover:text-green-400 transition-colors"
                     >
                       <CheckCircle2 size={14} />
-                      Mark as Answered
+                      {t('markAnswered')}
                     </button>
                   )}
                 </div>

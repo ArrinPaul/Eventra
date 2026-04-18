@@ -212,6 +212,10 @@ export const notifications = pgTable('notifications', {
   readIdx: index('notifications_read_idx').on(table.read),
 }));
 
+// Note: notifications are modeled as a simple users -> many(notifications) edge in `usersRelations`.
+// We intentionally avoid a dedicated `notificationsRelations` block right now because current access
+// patterns are user-centric list/read/delete operations and do not require reverse graph traversals.
+
 export const follows = pgTable('follows', {
   followerId: text('follower_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
   followingId: text('following_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
@@ -219,6 +223,10 @@ export const follows = pgTable('follows', {
 }, (t) => ({
   pk: primaryKey({ columns: [t.followerId, t.followingId] }),
 }));
+
+// Note: follows is a self-referential join table against `users`.
+// We currently keep this relation explicit at query time (instead of adding symmetrical relation
+// helpers) to avoid ambiguous aliasing and to keep typed relation graphs lean for now.
 
 export const chatRooms = pgTable('chat_rooms', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -248,6 +256,10 @@ export const chatMessages = pgTable('chat_messages', {
 }, (table) => ({
   roomIdx: index('chat_messages_room_idx').on(table.roomId),
 }));
+
+// Chat model scope: room -> participants/messages is enforced via foreign keys and indexes.
+// We intentionally do not expose a full bi-directional relations graph for every chat table yet;
+// most chat reads are targeted server actions with explicit joins and benefit from this simpler shape.
 
 export const aiChatSessions = pgTable('ai_chat_sessions', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -454,6 +466,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   feedback: many(eventFeedback),
   activityLogs: many(activityFeed),
   staff: many(eventStaff),
+  // Follow/chat edges are intentionally queried via explicit joins (see notes above).
 }));
 
 export const communitiesRelations = relations(communities, ({ one, many }) => ({

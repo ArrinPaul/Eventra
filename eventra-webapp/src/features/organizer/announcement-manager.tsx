@@ -18,9 +18,11 @@ import { Bell, Info, AlertCircle, Trash2, Loader2, Megaphone, Pencil } from 'luc
 import { cn } from '@/core/utils/utils';
 import { createAnnouncement, deactivateAnnouncement, listAnnouncements, updateAnnouncement } from '@/app/actions/organizer-tools';
 import { useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 
 export function AnnouncementManager({ eventId }: { eventId: string }) {
   const { toast } = useToast();
+  const t = useTranslations('Phase2I18n.announcement');
   const [announcements, setAnnouncements] = useState<any[]>([]);
 
   const [content, setContent] = useState('');
@@ -59,7 +61,7 @@ export function AnnouncementManager({ eventId }: { eventId: string }) {
           type,
           expiresHours: parseInt(expiresHours),
         });
-        toast({ title: 'Announcement updated' });
+        toast({ title: t('updated') });
       } else {
         await createAnnouncement({
           eventId: eventId as any,
@@ -67,7 +69,7 @@ export function AnnouncementManager({ eventId }: { eventId: string }) {
           type,
           expiresHours: parseInt(expiresHours),
         });
-        toast({ title: 'Announcement broadcasted!' });
+        toast({ title: t('broadcasted') });
       }
       setContent('');
       setEditingId(null);
@@ -76,7 +78,7 @@ export function AnnouncementManager({ eventId }: { eventId: string }) {
         rows.filter((r) => r.active).map((r) => ({ _id: r.id, content: r.content, type: r.type, expiresAt: r.expiresAt }))
       );
     } catch (error) {
-      toast({ title: editingId ? 'Failed to update' : 'Failed to broadcast', variant: 'destructive' });
+      toast({ title: editingId ? t('failedUpdate') : t('failedBroadcast'), variant: 'destructive' });
     } finally {
       setIsSubmitting(false);
     }
@@ -95,10 +97,10 @@ export function AnnouncementManager({ eventId }: { eventId: string }) {
   const handleDeactivate = async (id: string) => {
     try {
       await deactivateAnnouncement(id as any);
-      toast({ title: 'Announcement removed' });
+      toast({ title: t('removed') });
       setAnnouncements((prev) => prev.filter((a) => a._id !== id));
     } catch (error) {
-      toast({ title: 'Error removing announcement', variant: 'destructive' });
+      toast({ title: t('removeError'), variant: 'destructive' });
     }
   };
 
@@ -107,19 +109,19 @@ export function AnnouncementManager({ eventId }: { eventId: string }) {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Megaphone className="h-5 w-5 text-cyan-400" />
-          Broadcast Announcements
+          {t('title')}
         </CardTitle>
         <CardDescription className="text-gray-400 text-xs">
-          Send real-time banners to all attendees on the event page.
+          {t('description')}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="content" className="text-xs font-bold uppercase tracking-wider text-gray-500">Message</Label>
+            <Label htmlFor="content" className="text-xs font-bold uppercase tracking-wider text-gray-500">{t('messageLabel')}</Label>
             <Textarea 
               id="content"
-              placeholder="e.g. Workshop room changed to 304, or Starting in 10 minutes!"
+              placeholder={t('messagePlaceholder')}
               value={content}
               onChange={(e) => setContent(e.target.value)}
               className="bg-white/5 border-white/10 resize-none h-20"
@@ -129,7 +131,7 @@ export function AnnouncementManager({ eventId }: { eventId: string }) {
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label className="text-xs font-bold uppercase tracking-wider text-gray-500">Type</Label>
+              <Label className="text-xs font-bold uppercase tracking-wider text-gray-500">{t('typeLabel')}</Label>
               <Select value={type} onValueChange={(v: any) => setType(v)}>
                 <SelectTrigger className="bg-white/5 border-white/10 h-9">
                   <SelectValue />
@@ -142,7 +144,7 @@ export function AnnouncementManager({ eventId }: { eventId: string }) {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label className="text-xs font-bold uppercase tracking-wider text-gray-500">Duration (Hours)</Label>
+              <Label className="text-xs font-bold uppercase tracking-wider text-gray-500">{t('durationLabel')}</Label>
               <Select value={expiresHours} onValueChange={setExpiresHours}>
                 <SelectTrigger className="bg-white/5 border-white/10 h-9">
                   <SelectValue />
@@ -162,7 +164,7 @@ export function AnnouncementManager({ eventId }: { eventId: string }) {
             className="w-full bg-cyan-600 hover:bg-cyan-500" 
             disabled={isSubmitting || !content}
           >
-            {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : (editingId ? "Update Announcement" : "Broadcast Now")}
+            {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : (editingId ? t('updateAnnouncement') : t('broadcastNow'))}
           </Button>
 
           {editingId && (
@@ -177,14 +179,14 @@ export function AnnouncementManager({ eventId }: { eventId: string }) {
                 setExpiresHours('24');
               }}
             >
-              Cancel Edit
+              {t('cancelEdit')}
             </Button>
           )}
         </form>
 
         {announcements && announcements.length > 0 && (
           <div className="space-y-3 pt-4 border-t border-white/10">
-            <Label className="text-xs font-bold uppercase tracking-wider text-gray-500">Active Announcements</Label>
+            <Label className="text-xs font-bold uppercase tracking-wider text-gray-500">{t('activeAnnouncements')}</Label>
             <div className="space-y-2">
               {announcements.map((a) => (
                 <div 
@@ -199,7 +201,7 @@ export function AnnouncementManager({ eventId }: { eventId: string }) {
                   <div className="flex-1">
                     <p>{a.content}</p>
                     <p className="text-[9px] opacity-50 mt-1">
-                      Expires: {a.expiresAt ? new Date(a.expiresAt).toLocaleString() : 'Never'}
+                      {t('expires')}: {a.expiresAt ? new Date(a.expiresAt).toLocaleString() : t('never')}
                     </p>
                   </div>
                   <Button 

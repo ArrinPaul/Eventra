@@ -14,10 +14,12 @@ import {
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { createCommunity, getCommunities } from '@/app/actions/communities';
+import { useTranslations } from 'next-intl';
 
 export function CommunityListClient() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const t = useTranslations('Phase2I18n.communityList');
 
   const [communitiesRaw, setCommunitiesRaw] = useState<any[]>([]);
   const [status, setStatus] = useState<'LoadingFirstPage' | 'Exhausted'>('LoadingFirstPage');
@@ -44,15 +46,15 @@ export function CommunityListClient() {
     try {
       const result = await createCommunity(newCommunity);
       if (!result.success) {
-        throw new Error('Failed to create community');
+        throw new Error(t('failedCreateToast'));
       }
       const refreshed = await getCommunities(searchTerm || undefined);
       setCommunitiesRaw(refreshed);
       setShowCreateDialog(false);
       setNewCommunity({ name: '', description: '', category: 'General', isPrivate: false });
-      toast({ title: 'Community created' });
+      toast({ title: t('createdToast') });
     } catch (e) {
-      toast({ title: 'Failed to create', variant: 'destructive' });
+      toast({ title: t('failedCreateToast'), variant: 'destructive' });
     } finally {
       setLoading(false);
     }
@@ -80,14 +82,14 @@ export function CommunityListClient() {
   return (
     <div className="container mx-auto px-4 py-6 text-white">
       <div className="flex justify-between items-center mb-8">
-        <div><h1 className="text-3xl font-bold">Communities</h1><p className="text-gray-400">Join discussions and connect</p></div>
-        <Button onClick={() => setShowCreateDialog(true)}><Plus className="w-4 h-4 mr-2" /> Create</Button>
+        <div><h1 className="text-3xl font-bold">{t('title')}</h1><p className="text-gray-400">{t('subtitle')}</p></div>
+        <Button onClick={() => setShowCreateDialog(true)}><Plus className="w-4 h-4 mr-2" /> {t('create')}</Button>
       </div>
 
       <div className="relative mb-8">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4" />
         <Input 
-          placeholder="Search communities..." 
+          placeholder={t('searchPlaceholder')} 
           value={searchTerm} 
           onChange={e => setSearchTerm(e.target.value)} 
           className="pl-10 bg-white/5 border-white/10" 
@@ -121,7 +123,7 @@ export function CommunityListClient() {
 
       {communitiesRaw.length === 0 && status !== "LoadingFirstPage" && (
         <div className="py-20 text-center text-gray-500 border border-dashed border-white/10 rounded-lg">
-          No communities found.
+          {t('empty')}
         </div>
       )}
 
@@ -134,26 +136,26 @@ export function CommunityListClient() {
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
         <DialogContent className="bg-gray-900 text-white border-white/10">
           <DialogHeader>
-            <DialogTitle>Create New Community</DialogTitle>
+            <DialogTitle>{t('createDialogTitle')}</DialogTitle>
             <DialogDescription>
-              Connect with like-minded people.
+              {t('createDialogDescription')}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
              <Input 
-               placeholder="Community Name" 
+               placeholder={t('namePlaceholder')} 
                value={newCommunity.name} 
                onChange={(e) => setNewCommunity({...newCommunity, name: e.target.value})} 
                className="bg-white/5 border-white/10"
              />
              <Textarea 
-               placeholder="Description" 
+               placeholder={t('descriptionPlaceholder')} 
                value={newCommunity.description} 
                onChange={(e) => setNewCommunity({...newCommunity, description: e.target.value})} 
                className="bg-white/5 border-white/10"
              />
              <Input 
-               placeholder="Category" 
+               placeholder={t('categoryPlaceholder')} 
                value={newCommunity.category} 
                onChange={(e) => setNewCommunity({...newCommunity, category: e.target.value})} 
                className="bg-white/5 border-white/10"
@@ -165,13 +167,13 @@ export function CommunityListClient() {
                  onChange={(e) => setNewCommunity({...newCommunity, isPrivate: e.target.checked})} 
                  className="rounded border-gray-600 bg-gray-700"
                />
-               <span className="text-sm">Private Community</span>
+               <span className="text-sm">{t('privateCommunity')}</span>
              </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowCreateDialog(false)} className="border-white/10">Cancel</Button>
+            <Button variant="outline" onClick={() => setShowCreateDialog(false)} className="border-white/10">{t('cancel')}</Button>
             <Button onClick={handleCreateCommunity} disabled={loading} className="bg-cyan-600 hover:bg-cyan-500">
-              {loading ? 'Creating...' : 'Create'}
+              {loading ? t('creating') : t('create')}
             </Button>
           </DialogFooter>
         </DialogContent>

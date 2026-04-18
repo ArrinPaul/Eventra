@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import type { EventraEvent } from '@/types';
 import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
@@ -68,7 +68,7 @@ export default function EventsClient() {
 
   const isOrganizer = user?.role === 'organizer' || user?.role === 'admin';
 
-  async function loadEvents() {
+  const loadEvents = useCallback(async () => {
     setLoading(true);
     try {
       const data = await getEvents();
@@ -78,11 +78,11 @@ export default function EventsClient() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [toast]);
 
   useEffect(() => {
     loadEvents();
-  }, []);
+  }, [loadEvents]);
 
   const handleSave = async (eventData: Omit<EventraEvent, 'id'>) => {
     try {

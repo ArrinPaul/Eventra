@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -48,12 +48,12 @@ export function NotificationBell() {
   const [notificationsRaw, setNotifications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchNotifications = async () => {
+  const fetchNotifications = useCallback(async () => {
     if (!user) return;
     const data = await getNotifications(10);
     setNotifications(data);
     setLoading(false);
-  };
+  }, [user]);
 
   useEffect(() => {
     fetchNotifications();
@@ -84,7 +84,7 @@ export function NotificationBell() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user]);
+  }, [fetchNotifications, toast, user]);
 
   const unreadCount = notificationsRaw.filter(n => !n.read).length;
 

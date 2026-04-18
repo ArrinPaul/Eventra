@@ -15,9 +15,11 @@ import {
   Zap,
 } from 'lucide-react';
 import { getSystemSettings, updateSystemSettings } from '@/app/actions/admin';
+import { useTranslations } from 'next-intl';
 
 export default function SystemSettings() {
   const { toast } = useToast();
+  const t = useTranslations('Phase2I18n.systemSettings');
   
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState('general');
@@ -72,9 +74,9 @@ export default function SystemSettings() {
       const settings = await getSystemSettings();
       setSettingsRaw(Object.entries(settings).map(([key, value]) => ({ key, value: String(value) })));
       setLocalChanges({});
-      toast({ title: 'Settings Saved' });
+      toast({ title: t('settingsSaved') });
     } catch (e) {
-      toast({ title: 'Failed to save settings', variant: 'destructive' });
+      toast({ title: t('failedSave'), variant: 'destructive' });
     } finally {
       setSaving(false);
     }
@@ -86,31 +88,31 @@ export default function SystemSettings() {
     <div className="space-y-6">
       <div className="flex items-center justify-between text-white">
         <div>
-          <h2 className="text-2xl font-bold">System Settings</h2>
-          <p className="text-muted-foreground">Manage platform configuration</p>
+          <h2 className="text-2xl font-bold">{t('title')}</h2>
+          <p className="text-muted-foreground">{t('subtitle')}</p>
         </div>
         <Button onClick={handleSave} disabled={saving || !hasChanges} className="bg-cyan-600">
           {saving ? <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
-          Save Changes
+          {t('saveChanges')}
         </Button>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <TabsList className="bg-white/5 border-white/10 text-white">
-          <TabsTrigger value="general" className="gap-2"><Settings className="w-4 h-4" /> General</TabsTrigger>
-          <TabsTrigger value="features" className="gap-2"><Zap className="w-4 h-4" /> Features</TabsTrigger>
+          <TabsTrigger value="general" className="gap-2"><Settings className="w-4 h-4" /> {t('general')}</TabsTrigger>
+          <TabsTrigger value="features" className="gap-2"><Zap className="w-4 h-4" /> {t('features')}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="general">
           <Card className="bg-white/5 border-white/10 text-white">
-            <CardHeader><CardTitle>General</CardTitle></CardHeader>
+            <CardHeader><CardTitle>{t('general')}</CardTitle></CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label>Site Name</Label>
+                <Label>{t('siteName')}</Label>
                 <Input value={settings.siteName} onChange={e => handleUpdate('siteName', e.target.value)} className="bg-white/5 border-white/10" />
               </div>
               <div className="space-y-2">
-                <Label>Support Email</Label>
+                <Label>{t('supportEmail')}</Label>
                 <Input value={settings.supportEmail} onChange={e => handleUpdate('supportEmail', e.target.value)} className="bg-white/5 border-white/10" />
               </div>
             </CardContent>
@@ -119,13 +121,13 @@ export default function SystemSettings() {
 
         <TabsContent value="features">
           <Card className="bg-white/5 border-white/10 text-white">
-            <CardHeader><CardTitle>Features</CardTitle></CardHeader>
+            <CardHeader><CardTitle>{t('features')}</CardTitle></CardHeader>
             <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {[
-                { key: 'chatEnabled', label: 'Chat System' },
-                { key: 'feedEnabled', label: 'Community Feed' },
-                { key: 'gamificationEnabled', label: 'Gamification (XP/Badges)' },
-                { key: 'aiRecommendations', label: 'AI Recommendations' },
+                { key: 'chatEnabled', label: t('chatSystem') },
+                { key: 'feedEnabled', label: t('communityFeed') },
+                { key: 'gamificationEnabled', label: t('gamification') },
+                { key: 'aiRecommendations', label: t('aiRecommendations') },
               ].map((f) => (
                 <div key={f.key} className="flex items-center justify-between p-4 border border-white/10 rounded-lg">
                   <span>{f.label}</span>

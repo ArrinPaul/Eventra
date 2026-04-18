@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
 import { supabase } from '@/lib/supabase/client';
@@ -15,66 +15,7 @@ export function NotificationWatcher() {
   const { toast } = useToast();
   const lastNotifIdRef = useRef<string | null>(null);
 
-  useEffect(() => {
-    // 1. Request browser notification permission on mount
-    if (typeof window !== 'undefined' && 'Notification' in window) {
-      if (Notification.permission === 'default') {
-        Notification.requestPermission();
-      }
-    }
-  }, []);
-
-  useEffect(() => {
-    if (!user) return;
-
-    // 2. Real-time Subscription for notifications
-    const channel = supabase
-      .channel(`watcher:${user.id}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'notifications',
-          filter: `user_id=eq.${user.id}`,
-        },
-        async (payload) => {
-          const newest = payload.new as any;
-          
-          // Prevent double processing if already handled by other components
-          if (newest.id === lastNotifIdRef.current) return;
-          lastNotifIdRef.current = newest.id;
-
-          // Special case: Email triggers
-          // These are "hidden" notifications that trigger background actions
-          if (newest.type === 'email' || newest.message.startsWith('EMAIL_TRIGGER:')) {
-            handleEmailTrigger(newest);
-            return;
-          }
-
-          // 1. Show Toast
-          toast({
-            title: newest.title,
-            description: newest.message,
-          });
-
-          // 2. Show Browser Notification if permitted
-          if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
-            new Notification(newest.title, {
-              body: newest.message,
-              icon: '/favicon.ico',
-            });
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [user, toast]);
-
-  const handleEmailTrigger = async (notif: any) => {
+  const handleEmailTrigger = useCallback(async (notif: any) => {
     if (!user?.email) return;
     
     // Mark as read immediately to prevent multiple triggers if subscription re-fires
@@ -140,9 +81,68 @@ export function NotificationWatcher() {
         })
       });
     } catch (e) {
-      console.error("Failed to send email trigger:", e);
+      console.error('Failed to send email trigger:', e);
     }
-  };
+  }, [user?.email, user?.name]);
+
+  useEffect(() => {
+    // 1. Request browser notification permission on mount
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      if (Notification.permission === 'default') {
+        Notification.requestPermission();
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!user) return;
+
+    // 2. Real-time Subscription for notifications
+    const channel = supabase
+      .channel(`watcher:${user.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${user.id}`,
+        },
+        async (payload) => {
+          const newest = payload.new as any;
+          
+          // Prevent double processing if already handled by other components
+          if (newest.id === lastNotifIdRef.current) return;
+          lastNotifIdRef.current = newest.id;
+
+          // Special case: Email triggers
+          // These are "hidden" notifications that trigger background actions
+          if (newest.type === 'email' || newest.message.startsWith('EMAIL_TRIGGER:')) {
+            handleEmailTrigger(newest);
+            return;
+          }
+
+          // 1. Show Toast
+          toast({
+            title: newest.title,
+            description: newest.message,
+          });
+
+          // 2. Show Browser Notification if permitted
+          if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+            new Notification(newest.title, {
+              body: newest.message,
+              icon: '/favicon.ico',
+            });
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [handleEmailTrigger, toast, user]);
 
   return null;
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -45,7 +45,7 @@ export function WaitlistManagerClient({ eventId, eventTitle, capacity, registere
   const [isPromoting, setIsPromoting] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
 
-  const loadWaitlist = async () => {
+  const loadWaitlist = useCallback(async () => {
     setLoading(true);
     try {
       // We'll create this action next
@@ -56,11 +56,11 @@ export function WaitlistManagerClient({ eventId, eventTitle, capacity, registere
     } finally {
       setLoading(false);
     }
-  };
+  }, [eventId]);
 
   useEffect(() => {
     loadWaitlist();
-  }, [eventId]);
+  }, [loadWaitlist]);
 
   const handlePromote = async (userId: string) => {
     setIsPromoting(userId);

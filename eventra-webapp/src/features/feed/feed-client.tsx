@@ -26,10 +26,12 @@ import {
   likePost,
   updatePost,
 } from '@/app/actions/communities';
+import { useTranslations } from 'next-intl';
 
 export default function FeedClient() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const t = useTranslations('Phase2I18n.feed');
 
   const [communities, setCommunities] = useState<any[]>([]);
   const [postsRaw, setPostsRaw] = useState<any[]>([]);
@@ -87,14 +89,14 @@ export default function FeedClient() {
       // but usually the feed is scoped. For now, assuming first community or platform feed.
       const defaultCommunityId = communities?.[0]?._id;
       
-      if (!defaultCommunityId) throw new Error("No community found to post to");
+      if (!defaultCommunityId) throw new Error(t('noCommunityError'));
 
       const result = await createPost({ content: newPostContent, communityId: defaultCommunityId });
-      if (!result.success || !result.post) throw new Error('Failed to create post');
+      if (!result.success || !result.post) throw new Error(t('failedCreatePost'));
       setPostsRaw((prev) => [
         {
           _id: result.post.id,
-          authorName: user?.name || 'User',
+          authorName: user?.name || t('authorFallback'),
           authorImage: user?.image,
           createdAt: result.post.createdAt,
           content: result.post.content,
@@ -105,9 +107,9 @@ export default function FeedClient() {
       ]);
       setShowCreatePost(false);
       setNewPostContent('');
-      toast({ title: 'Posted successfully' });
+      toast({ title: t('postedSuccessfully') });
     } catch (e: any) {
-      toast({ title: 'Failed to post', description: e.message, variant: 'destructive' });
+      toast({ title: t('failedCreatePost'), description: e.message, variant: 'destructive' });
     } finally {
       setLoading(false);
     }
@@ -118,34 +120,34 @@ export default function FeedClient() {
     setLoading(true);
     try {
       const result = await updatePost(editingPost._id, editPostContent);
-      if (!result.success || !result.post) throw new Error('Update failed');
+      if (!result.success || !result.post) throw new Error(t('updateFailed'));
       setPostsRaw((prev) => prev.map((p) => (p._id === editingPost._id ? { ...p, content: result.post.content } : p)));
       setShowEditPost(false);
       setEditingPost(null);
-      toast({ title: 'Post updated' });
+      toast({ title: t('postUpdated') });
     } catch (e: any) {
-      toast({ title: 'Update failed', variant: 'destructive' });
+      toast({ title: t('updateFailed'), variant: 'destructive' });
     } finally {
       setLoading(false);
     }
   };
 
   const handleDeletePost = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this post?')) return;
+    if (!confirm(t('deleteConfirm'))) return;
     try {
       const result = await deletePost(id as any);
-      if (!result.success) throw new Error('Delete failed');
+      if (!result.success) throw new Error(t('deleteFailed'));
       setPostsRaw((prev) => prev.filter((p) => p._id !== id));
-      toast({ title: 'Post deleted' });
+      toast({ title: t('postDeleted') });
     } catch (e) {
-      toast({ title: 'Delete failed', variant: 'destructive' });
+      toast({ title: t('deleteFailed'), variant: 'destructive' });
     }
   };
 
   const handleLike = async (id: string) => {
     try {
       const result = await likePost(id as any);
-      if (!result.success) throw new Error('Like failed');
+      if (!result.success) throw new Error(t('likeFailed'));
       setPostsRaw((prev) => prev.map((p) => (p._id === id ? { ...p, likes: Number(p.likes || 0) + 1 } : p)));
     } catch (e) {}
   };
@@ -155,7 +157,7 @@ export default function FeedClient() {
       <Card className="mb-6 bg-white/5 border-white/10 text-white">
         <CardContent className="p-4 flex gap-3">
           <Avatar><AvatarFallback>{user?.name?.charAt(0) || 'U'}</AvatarFallback></Avatar>
-          <Button variant="outline" className="flex-1 justify-start text-gray-400 border-white/10" onClick={() => setShowCreatePost(true)}>What&apos;s happening?</Button>
+          <Button variant="outline" className="flex-1 justify-start text-gray-400 border-white/10" onClick={() => setShowCreatePost(true)}>{t('composerPrompt')}</Button>
         </CardContent>
       </Card>
 
@@ -170,7 +172,7 @@ export default function FeedClient() {
                     <AvatarFallback>{post.authorName?.charAt(0) || 'U'}</AvatarFallback>
                   </Avatar>
                   <div>
-                    <p className="font-bold">{post.authorName || 'User'}</p>
+                    <p className="font-bold">{post.authorName || t('authorFallback')}</p>
                     <p className="text-xs text-gray-500">{new Date(post.createdAt).toLocaleDateString()}</p>
                   </div>
                 </div>
@@ -191,13 +193,13 @@ export default function FeedClient() {
                         }}
                         className="cursor-pointer"
                       >
-                        <Edit2 className="w-4 h-4 mr-2" /> Edit
+                        <Edit2 className="w-4 h-4 mr-2" /> {t('edit')}
                       </DropdownMenuItem>
                       <DropdownMenuItem 
                         onClick={() => handleDeletePost(post._id)}
                         className="cursor-pointer text-red-400 focus:text-red-400 focus:bg-red-400/10"
                       >
-                        <Trash2 className="w-4 h-4 mr-2" /> Delete
+                        <Trash2 className="w-4 h-4 mr-2" /> {t('delete')}
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -236,7 +238,7 @@ export default function FeedClient() {
             className="w-full text-gray-400 hover:text-white" 
             onClick={() => loadMore(10)}
           >
-            Load More
+            {t('loadMore')}
           </Button>
         )}
         
@@ -250,10 +252,10 @@ export default function FeedClient() {
       {/* Create Post Dialog */}
       <Dialog open={showCreatePost} onOpenChange={setShowCreatePost}>
         <DialogContent className="bg-gray-900 border-white/10 text-white">
-          <DialogHeader><DialogTitle>Create Post</DialogTitle></DialogHeader>
-          <Textarea value={newPostContent} onChange={e => setNewPostContent(e.target.value)} placeholder="Share something..." className="bg-white/5 border-white/10" rows={4} />
+          <DialogHeader><DialogTitle>{t('createPostTitle')}</DialogTitle></DialogHeader>
+          <Textarea value={newPostContent} onChange={e => setNewPostContent(e.target.value)} placeholder={t('createPostPlaceholder')} className="bg-white/5 border-white/10" rows={4} />
           <DialogFooter>
-            <Button onClick={handleCreatePost} disabled={loading}>{loading ? 'Posting...' : 'Post'}</Button>
+            <Button onClick={handleCreatePost} disabled={loading}>{loading ? t('posting') : t('post')}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -261,11 +263,11 @@ export default function FeedClient() {
       {/* Edit Post Dialog */}
       <Dialog open={showEditPost} onOpenChange={setShowEditPost}>
         <DialogContent className="bg-gray-900 border-white/10 text-white">
-          <DialogHeader><DialogTitle>Edit Post</DialogTitle></DialogHeader>
-          <Textarea value={editPostContent} onChange={e => setEditPostContent(e.target.value)} placeholder="Update your post..." className="bg-white/5 border-white/10" rows={4} />
+          <DialogHeader><DialogTitle>{t('editPostTitle')}</DialogTitle></DialogHeader>
+          <Textarea value={editPostContent} onChange={e => setEditPostContent(e.target.value)} placeholder={t('editPostPlaceholder')} className="bg-white/5 border-white/10" rows={4} />
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowEditPost(false)} disabled={loading}>Cancel</Button>
-            <Button onClick={handleUpdatePost} disabled={loading}>{loading ? 'Saving...' : 'Save Changes'}</Button>
+            <Button variant="outline" onClick={() => setShowEditPost(false)} disabled={loading}>{t('cancel')}</Button>
+            <Button onClick={handleUpdatePost} disabled={loading}>{loading ? t('saving') : t('saveChanges')}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

@@ -34,10 +34,12 @@ import {
   respondToConnectionRequest,
   sendConnectionRequest,
 } from '@/app/actions/networking';
+import { useTranslations } from 'next-intl';
 
 export default function NetworkingClient() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const t = useTranslations('Phase2I18n.networking');
   const [searchTerm, setSearchTerm] = useState('');
 
   const [connections, setConnections] = useState<any[]>([]);
@@ -93,9 +95,9 @@ export default function NetworkingClient() {
           otherUser: publicUsers.find((u) => u._id === userId),
         },
       ]);
-      toast({ title: "Request Sent", description: "Connection request has been sent." });
+      toast({ title: t('requestSent'), description: t('requestSentDesc') });
     } catch (e: any) {
-      toast({ title: "Error", description: e.message || "Failed to send request", variant: "destructive" });
+      toast({ title: t('errorTitle'), description: e.message || t('sendRequestFailed'), variant: "destructive" });
     }
   };
 
@@ -105,16 +107,16 @@ export default function NetworkingClient() {
         <div className="space-y-2">
           <Badge className="bg-cyan-500/10 text-cyan-400 border-cyan-500/20 px-3 py-1">
             <Sparkles className="w-3 h-3 mr-2" />
-            AI-Powered Matchmaking
+            {t('badge')}
           </Badge>
-          <h1 className="text-4xl font-extrabold tracking-tight">Networking Hub</h1>
-          <p className="text-gray-400 text-lg">Connect with the right people to accelerate your growth.</p>
+          <h1 className="text-4xl font-extrabold tracking-tight">{t('title')}</h1>
+          <p className="text-gray-400 text-lg">{t('subtitle')}</p>
         </div>
         <div className="flex items-center gap-3">
           <div className="relative w-full md:w-64">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
             <Input 
-              placeholder="Search people..." 
+              placeholder={t('searchPlaceholder')} 
               className="pl-9 bg-white/5 border-white/10 text-white"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -127,15 +129,15 @@ export default function NetworkingClient() {
         <TabsList className="bg-white/5 border border-white/10 p-1 mb-8">
           <TabsTrigger value="ai-matches" className="data-[state=active]:bg-cyan-600 data-[state=active]:text-white">
             <Sparkles className="w-4 h-4 mr-2" />
-            AI Matchmaking
+            {t('aiMatchmaking')}
           </TabsTrigger>
           <TabsTrigger value="discover" className="data-[state=active]:bg-cyan-600 data-[state=active]:text-white">
             <Users className="w-4 h-4 mr-2" />
-            Discover All
+            {t('discoverAll')}
           </TabsTrigger>
           <TabsTrigger value="connections" className="data-[state=active]:bg-cyan-600 data-[state=active]:text-white">
             <MessageSquare className="w-4 h-4 mr-2" />
-            My Connections
+            {t('myConnections')}
           </TabsTrigger>
         </TabsList>
 
@@ -159,11 +161,11 @@ export default function NetworkingClient() {
                       </Avatar>
                       <div className="flex-1 min-w-0">
                         <h3 className="font-bold text-white truncate">{u.name}</h3>
-                        <p className="text-xs text-gray-500 truncate">{u.role || 'Member'}</p>
+                        <p className="text-xs text-gray-500 truncate">{u.role || t('member')}</p>
                       </div>
                     </div>
                     <p className="text-xs text-gray-400 line-clamp-2 mb-4 h-8 italic">
-                      {u.bio || u.interests || 'No bio provided yet.'}
+                      {u.bio || u.interests || t('noBio')}
                     </p>
                     <Button 
                       className="w-full bg-white/5 hover:bg-cyan-600 hover:text-white border-white/10 text-gray-300" 
@@ -173,7 +175,7 @@ export default function NetworkingClient() {
                       {connections.some((c: any) => c.otherUser?.id === u._id) ? (
                         <><Check className="w-4 h-4 mr-2" /> Connected</>
                       ) : (
-                        <><UserPlus className="w-4 h-4 mr-2" /> Connect</>
+                        <><UserPlus className="w-4 h-4 mr-2" /> {t('connect')}</>
                       )}
                     </Button>
                   </CardContent>
@@ -183,7 +185,7 @@ export default function NetworkingClient() {
           {publicUsers.length === 0 && (
             <div className="py-20 text-center text-gray-500 border border-white/10 rounded-lg">
               <Users size={48} className="mx-auto mb-4 opacity-20" />
-              <p>No other members found to connect with yet.</p>
+              <p>{t('noMembers')}</p>
             </div>
           )}
         </TabsContent>
@@ -191,7 +193,7 @@ export default function NetworkingClient() {
         <TabsContent value="connections" className="space-y-6">
           {pendingReceived.length > 0 && (
             <div className="space-y-3">
-              <h3 className="text-lg font-semibold">Pending Requests</h3>
+              <h3 className="text-lg font-semibold">{t('pendingRequests')}</h3>
               {pendingReceived.map((c: any) => (
                 <Card key={c._id} className="bg-white/5 border-white/10">
                   <CardContent className="p-4 flex items-center justify-between">
@@ -202,14 +204,14 @@ export default function NetworkingClient() {
                       </Avatar>
                       <div>
                         <p className="font-medium text-white">{c.otherUser?.name || 'Unknown'}</p>
-                        <p className="text-xs text-gray-500">{c.otherUser?.role || 'Member'}</p>
+                        <p className="text-xs text-gray-500">{c.otherUser?.role || t('member')}</p>
                       </div>
                     </div>
                     <div className="flex gap-2">
-                      <Button size="sm" className="bg-cyan-600 hover:bg-cyan-500" onClick={async () => { await respondToConnectionRequest(c._id, true); toast({ title: 'Accepted!' }); }}>
-                        <Check className="w-4 h-4 mr-1" /> Accept
+                      <Button size="sm" className="bg-cyan-600 hover:bg-cyan-500" onClick={async () => { await respondToConnectionRequest(c._id, true); toast({ title: t('accepted') }); }}>
+                        <Check className="w-4 h-4 mr-1" /> {t('accept')}
                       </Button>
-                      <Button size="sm" variant="outline" className="border-white/10 text-red-400 hover:bg-red-500/10" onClick={async () => { await respondToConnectionRequest(c._id, false); toast({ title: 'Declined' }); }}>
+                      <Button size="sm" variant="outline" className="border-white/10 text-red-400 hover:bg-red-500/10" onClick={async () => { await respondToConnectionRequest(c._id, false); toast({ title: t('declined') }); }}>
                         <X className="w-4 h-4" />
                       </Button>
                     </div>
@@ -221,7 +223,7 @@ export default function NetworkingClient() {
 
           {acceptedConnections.length > 0 ? (
             <div className="space-y-3">
-              <h3 className="text-lg font-semibold">My Connections ({acceptedConnections.length})</h3>
+              <h3 className="text-lg font-semibold">{t('myConnectionsTitle', { count: acceptedConnections.length })}</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {acceptedConnections.map((c: any) => (
                   <Card key={c._id} className="bg-white/5 border-white/10">
@@ -233,10 +235,10 @@ export default function NetworkingClient() {
                         </Avatar>
                         <div>
                           <p className="font-medium text-white">{c.otherUser?.name || 'Unknown'}</p>
-                          <p className="text-xs text-gray-500">{c.otherUser?.role || 'Member'}</p>
+                          <p className="text-xs text-gray-500">{c.otherUser?.role || t('member')}</p>
                         </div>
                       </div>
-                      <Button size="sm" variant="ghost" className="text-red-400 hover:bg-red-500/10" onClick={async () => { await removeConnection(c._id); setConnections((prev) => prev.filter((x) => x._id !== c._id)); toast({ title: 'Connection removed' }); }}>
+                      <Button size="sm" variant="ghost" className="text-red-400 hover:bg-red-500/10" onClick={async () => { await removeConnection(c._id); setConnections((prev) => prev.filter((x) => x._id !== c._id)); toast({ title: t('connectionRemoved') }); }}>
                         <UserMinus className="w-4 h-4" />
                       </Button>
                     </CardContent>
@@ -247,14 +249,14 @@ export default function NetworkingClient() {
           ) : pendingReceived.length === 0 ? (
             <div className="py-20 text-center text-gray-500 border border-white/10 rounded-lg">
               <Users size={48} className="mx-auto mb-4 opacity-20" />
-              <p className="font-medium text-white mb-1">No connections yet</p>
-              <p className="text-sm">Use AI Matchmaking to find people and connect!</p>
+              <p className="font-medium text-white mb-1">{t('noConnections')}</p>
+              <p className="text-sm">{t('noConnectionsSubtitle')}</p>
             </div>
           ) : null}
 
           {pendingSent.length > 0 && (
             <div className="space-y-3">
-              <h3 className="text-lg font-semibold text-gray-400">Sent Requests ({pendingSent.length})</h3>
+              <h3 className="text-lg font-semibold text-gray-400">{t('sentRequests', { count: pendingSent.length })}</h3>
               {pendingSent.map((c: any) => (
                 <Card key={c._id} className="bg-white/5 border-white/10">
                   <CardContent className="p-4 flex items-center justify-between">
@@ -265,11 +267,11 @@ export default function NetworkingClient() {
                       </Avatar>
                       <div>
                         <p className="font-medium text-white">{c.otherUser?.name || 'Unknown'}</p>
-                        <p className="text-xs text-gray-400">Pending...</p>
+                        <p className="text-xs text-gray-400">{t('pending')}</p>
                       </div>
                     </div>
-                    <Button size="sm" variant="ghost" className="text-gray-400 hover:bg-white/5" onClick={async () => { await removeConnection(c._id); toast({ title: 'Request cancelled' }); }}>
-                      Cancel
+                    <Button size="sm" variant="ghost" className="text-gray-400 hover:bg-white/5" onClick={async () => { await removeConnection(c._id); toast({ title: t('requestCancelled') }); }}>
+                      {t('cancel')}
                     </Button>
                   </CardContent>
                 </Card>

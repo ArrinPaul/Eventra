@@ -57,8 +57,14 @@ export function WaitlistClaimClient({ eventId, eventTitle, reservation }: Waitli
       const res = await claimWaitlistSpot(eventId);
       if (res.success) {
         setIsClaimed(true);
-        setTicketNumber(res.ticketNumber!);
+        setTicketNumber((res as any).ticketNumber || null);
         toast({ title: "Spot Claimed!", description: "Your ticket is now active." });
+      } else {
+        toast({
+          title: 'Claim Failed',
+          description: (res as any).error || 'Unable to claim this reservation',
+          variant: 'destructive',
+        });
       }
     } catch (error: any) {
       toast({ title: "Claim Failed", description: error.message, variant: "destructive" });
