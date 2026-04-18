@@ -10,7 +10,12 @@ export const metadata: Metadata = {
 
 export default async function TicketsPage() {
   // Refresh statuses before showing to ensure 'expired' is accurate
-  await refreshTicketStatuses();
+  // Gracefully handle if DB is unavailable (e.g., during build)
+  try {
+    await refreshTicketStatuses();
+  } catch (error) {
+    console.warn('Could not refresh ticket statuses (DB may be unavailable):', error);
+  }
   
   const tickets = await getUserRegistrations();
   

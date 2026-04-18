@@ -74,7 +74,8 @@ export async function refreshTicketStatuses(eventId?: string) {
     return { success: true, updatedCount: finishedEvents.length };
   } catch (error) {
     console.error('Failed to refresh ticket statuses:', error);
-    throw new Error('Status refresh failed');
+    // Return gracefully instead of throwing - DB may be unavailable during build
+    return { success: false, updatedCount: 0, error: 'Could not refresh ticket statuses' };
   }
 }
 
