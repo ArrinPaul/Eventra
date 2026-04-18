@@ -126,7 +126,7 @@ export default function CheckInScannerClient() {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
-  }, [user?.id, toast]);
+  }, [syncOfflineQueue, toast, user?.id]);
 
   useEffect(() => {
     if (selectedEventId) {
@@ -200,7 +200,7 @@ export default function CheckInScannerClient() {
     setIsSyncing(false);
   }, [offlineQueue, isSyncing, selectedEventId, user?.id, toast, fetchEvents]);
 
-  const handleProcessCheckIn = async (payload: string) => {
+  const handleProcessCheckIn = useCallback(async (payload: string) => {
     if (!selectedEventId) {
       toast({ title: 'Error', description: 'Please select an event first', variant: 'destructive' });
       return;
@@ -280,7 +280,16 @@ export default function CheckInScannerClient() {
       setProcessing(false);
       setManualSearch('');
     }
-  };
+  }, [
+    fetchEvents,
+    isOffline,
+    localAttendeeList,
+    offlineQueue,
+    selectedEventId,
+    soundEnabled,
+    toast,
+    user?.id,
+  ]);
 
   const startScanner = useCallback(async () => {
     try {
@@ -302,7 +311,7 @@ export default function CheckInScannerClient() {
       console.error(err);
       toast({ title: 'Camera Error', description: 'Could not access camera', variant: 'destructive' });
     }
-  }, [toast, selectedEventId]); 
+  }, [handleProcessCheckIn, stopScanner, toast]); 
 
   const stopScanner = useCallback(async () => {
     if (scannerRef.current) {

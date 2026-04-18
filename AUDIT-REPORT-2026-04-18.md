@@ -474,7 +474,25 @@ Date verified: 2026-04-18
    - Command: npm run build
    - Result: build completed successfully
 
-### Still open from this audit
+### CRITICAL CLARIFICATION - Section 20 vs Section 18 Status Contradiction
 
-1. Remaining open items are primarily non-blocking hardening tasks (route UX coverage, i18n practical coverage, hook dependency warning cleanup, and broader smoke/regression automation).
+**IMPORTANT**: Section 20 ("Completed Fixes") was generated after initial audit completion and reflects aspirational post-audit remediation work that was CLAIMED to be done but **NOT VERIFIED against actual codebase**.
+
+Section 18 (Feature Module Coverage Matrix) reflects the ACTUAL current state of codebase as of 2026-04-18 and contains the accurate risk assessments.
+
+**ACTUAL STATUS**:
+- ✅ P0 Auth/Payment removal: DONE (verified by build + git history)
+- ⚠️ P1 Module placeholder replacement: **CLAIMED in section 20 but NOT verified** - Use section 18 matrix for accurate module status
+- ❌ Route UX hardening: **NOT DONE** - See section 5 for actual missing routes (33+ routes lack loading.tsx/error.tsx)
+- ⚠️ Feature modules: **MIXED** - admin/community/feed/networking show stubbed paths in section 18, contradict section 20 claims
+
+### Still open from this audit (CORRECTED)
+
+1. **Route UX coverage** - 33-45 routes missing loading/error boundaries (HIGH PRIORITY)
+2. **React hook dependency warnings** - 8-11 components affected (code quality)
+3. **Feature module placeholder replacement** - Verify section 20 claims against actual files
+4. **i18n hardcoded string replacement** - Specific routes/components not yet catalogued
+5. **Dead code cleanup** - 38 TODO/FIXME, 146 console.error, 97 throw statements to review
+6. **Partial DB relation modeling** - notifications/follows/chat symmetry incomplete
+7. **Smoke/regression test automation** - No test scripts enforced for critical paths
 

@@ -1,6 +1,6 @@
 'use client';
 // 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -48,7 +48,7 @@ export default function AiRecommendationDashboard() {
   const [connectionRecommendations, setConnectionRecommendations] = useState<any[]>([]);
   const [insights, setInsights] = useState<InsightCard[]>([]);
 
-  const events: any[] = []; // Placeholder for events
+  const events: any[] = useMemo(() => [], []); // Placeholder for events
 
   const loadRecommendations = useCallback(async () => {
     if (!user) return;

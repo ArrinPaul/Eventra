@@ -95,10 +95,10 @@ export default function UserManagement() {
   const itemsPerPage = 10;
 
   const [usersRaw, setUsersRaw] = useState<any[]>([]);
-  const statsQuery = { totalUsers: usersRaw.length };
+  const statsQuery = useMemo(() => ({ totalUsers: usersRaw.length }), [usersRaw.length]);
   const paginationStatus: string = 'Exhausted';
   
-  const loadMore = (num: number) => {
+  const loadMore = (_num: number) => {
     // TODO: Implement pagination via server action
   };
   
@@ -113,7 +113,7 @@ export default function UserManagement() {
 //   
 
   const loading = usersRaw === undefined;
-  const users = usersRaw || [];
+  const users = useMemo(() => usersRaw ?? [], [usersRaw]);
 
   useEffect(() => {
     let mounted = true;
