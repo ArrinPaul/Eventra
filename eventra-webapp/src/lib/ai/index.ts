@@ -9,11 +9,65 @@ export const ai = genkit({
   model: 'googleai/gemini-1.5-flash',
 });
 
+const AI_TIMEOUT_MS = 15000;
+
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number = AI_TIMEOUT_MS): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error('AI_TIMEOUT')), timeoutMs);
+    promise
+      .then((value) => {
+        clearTimeout(timer);
+        resolve(value);
+      })
+      .catch((error) => {
+        clearTimeout(timer);
+        reject(error);
+      });
+  });
+}
+
+function getAiFailureReason(error: unknown): 'timeout' | 'quota' | 'unknown' {
+  const message = error instanceof Error ? error.message.toLowerCase() : String(error).toLowerCase();
+  if (message.includes('ai_timeout') || message.includes('timeout')) return 'timeout';
+  if (
+    message.includes('quota') ||
+    message.includes('rate limit') ||
+    message.includes('resource_exhausted') ||
+    message.includes('429')
+  ) {
+    return 'quota';
+  }
+  return 'unknown';
+}
+
+function logAiFailure(flowName: string, error: unknown) {
+  const reason = getAiFailureReason(error);
+  console.warn(`[AI:${flowName}] degraded due to ${reason}`, error);
+}
+
+async function safeGenerate(flowName: string, input: Parameters<typeof ai.generate>[0]) {
+  try {
+    return await withTimeout(ai.generate(input));
+  } catch (error) {
+    logAiFailure(flowName, error);
+    return null;
+  }
+}
+
+async function safeEmbed(input: Parameters<typeof ai.embed>[0]) {
+  try {
+    return await withTimeout(ai.embed(input));
+  } catch (error) {
+    logAiFailure('embed', error);
+    return null;
+  }
+}
+
 /**
  * Generate embeddings for a given text
  */
 export async function generateEmbedding(text: string) {
-  const result = await ai.embed({
+  const result = await safeEmbed({
     embedder: textEmbedding004,
     content: text,
   });
@@ -48,12 +102,12 @@ export const aiChatbotFlow = ai.defineFlow(
       ${input.question}
     `;
 
-    const result = await ai.generate({
+    const result = await safeGenerate('aiChatbotFlow', {
       prompt,
       messages: input.messages,
     });
 
-    return { answer: result.text || "I'm sorry, I couldn't generate an answer." };
+    return { answer: result?.text || "I'm sorry, I couldn't generate an answer right now." };
   }
 );
 
@@ -89,8 +143,8 @@ export const eventSummarizerFlow = ai.defineFlow(
       3. A thank you note to attendees.
     `;
 
-    const result = await ai.generate(prompt);
-    return { summary: result.text || "Summary generation failed." };
+    const result = await safeGenerate('eventSummarizerFlow', { prompt });
+    return { summary: result?.text || "Summary generation failed due to temporary AI limits." };
   }
 );
 
@@ -131,13 +185,13 @@ export const recommendationFlow = ai.defineFlow(
       Return your response as a JSON array of objects with eventId, relevanceScore (0-100), and reason.
     `;
 
-    const result = await ai.generate({
+    const result = await safeGenerate('recommendationFlow', {
       prompt,
       output: { format: 'json' },
     });
 
     try {
-      const parsed = result.output as any;
+      const parsed = result?.output as any;
       if (!parsed) return { recommendations: [] };
       const recommendations = Array.isArray(parsed) ? parsed : (parsed.recommendations || []);
       return { recommendations: recommendations.slice(0, 3) };
@@ -178,12 +232,12 @@ export const eventPlannerFlow = ai.defineFlow(
       Return as JSON with suggestedDescription and suggestedAgenda array.
     `;
 
-    const result = await ai.generate({
+    const result = await safeGenerate('eventPlannerFlow', {
       prompt,
       output: { format: 'json' },
     });
 
-    return (result.output as any) || { suggestedDescription: "", suggestedAgenda: [] };
+    return (result?.output as any) || { suggestedDescription: "", suggestedAgenda: [] };
   }
 );
 
@@ -203,8 +257,8 @@ export const socialMediaPostFlow = ai.defineFlow(
   },
   async (input) => {
     const prompt = `Create a viral ${input.platform} post for the event "${input.eventTitle}". Include hashtags.`;
-    const result = await ai.generate(prompt);
-    return { post: result.text || "" };
+    const result = await safeGenerate('socialMediaPostFlow', { prompt });
+    return { post: result?.text || "" };
   }
 );
 
@@ -228,11 +282,11 @@ export const aiModerationFlow = ai.defineFlow(
       Content: "${input.content}"
       Return JSON with isFlagged (boolean) and reason.
     `;
-    const result = await ai.generate({
+    const result = await safeGenerate('aiModerationFlow', {
       prompt,
       output: { format: 'json' },
     });
-    return (result.output as any) || { isFlagged: false };
+    return (result?.output as any) || { isFlagged: false };
   }
 );
 
@@ -261,13 +315,13 @@ export const matchmakingFlow = ai.defineFlow(
       Matches: ${JSON.stringify(input.potentialMatches)}
       Return top 3 as JSON array of objects with userId, matchScore, and reason.
     `;
-    const result = await ai.generate({
+    const result = await safeGenerate('matchmakingFlow', {
       prompt,
       output: { format: 'json' },
     });
     
     try {
-      const parsed = result.output as any;
+      const parsed = result?.output as any;
       if (!parsed) return { matches: [] };
       const matches = Array.isArray(parsed) ? parsed : (parsed.matches || []);
       return { matches: matches.slice(0, 3) };
@@ -296,8 +350,8 @@ export const smartSchedulerFlow = ai.defineFlow(
   },
   async (input) => {
     const prompt = `Suggest best days and times for: ${input.eventTitle}. Category: ${input.category}. Return JSON.`;
-    const result = await ai.generate({ prompt, output: { format: 'json' } });
-    return (result.output as any) || { bestDays: [], bestTimeSlots: [], reasoning: "" };
+    const result = await safeGenerate('smartSchedulerFlow', { prompt, output: { format: 'json' } });
+    return (result?.output as any) || { bestDays: [], bestTimeSlots: [], reasoning: "" };
   }
 );
 
@@ -319,8 +373,8 @@ export const predictiveAttendanceFlow = ai.defineFlow(
   },
   async (input) => {
     const prompt = `Predict final attendance based on trend: ${input.registrationTrend.join(',')}. Return JSON.`;
-    const result = await ai.generate({ prompt, output: { format: 'json' } });
-    return (result.output as any) || { predictedTotal: 0, confidenceScore: 0, factors: [] };
+    const result = await safeGenerate('predictiveAttendanceFlow', { prompt, output: { format: 'json' } });
+    return (result?.output as any) || { predictedTotal: 0, confidenceScore: 0, factors: [] };
   }
 );
 
@@ -346,11 +400,11 @@ export const aiSentimentAnalysisFlow = ai.defineFlow(
       
       Return JSON with overallSentiment, keyThemes (3-5 items), and averageRating (1-5 scale).
     `;
-    const result = await ai.generate({
+    const result = await safeGenerate('aiSentimentAnalysisFlow', {
       prompt,
       output: { format: 'json' },
     });
-    return (result.output as any) || { overallSentiment: 'neutral', keyThemes: [], averageRating: 3 };
+    return (result?.output as any) || { overallSentiment: 'neutral', keyThemes: [], averageRating: 3 };
   }
 );
 
@@ -377,8 +431,8 @@ export const certificatePersonalizedMessageFlow = ai.defineFlow(
       
       Make it professional yet inspiring. Max 2 sentences.
     `;
-    const result = await ai.generate(prompt);
-    return { personalizedMessage: result.text || "Congratulations on completing the event!" };
+    const result = await safeGenerate('certificatePersonalizedMessageFlow', { prompt });
+    return { personalizedMessage: result?.text || "Congratulations on completing the event!" };
   }
 );
 
@@ -411,13 +465,13 @@ export const organizerTaskListFlow = ai.defineFlow(
       Provide a list of clear, actionable tasks. Focus on logistics, marketing, and attendee engagement.
     `;
 
-    const result = await ai.generate({
+    const result = await safeGenerate('organizerTaskListFlow', {
       prompt,
       output: { format: 'json' },
     });
 
     try {
-      const parsed = result.output as any;
+      const parsed = result?.output as any;
       return { tasks: Array.isArray(parsed) ? parsed : (parsed.tasks || []) };
     } catch (e) {
       return { tasks: [] };
@@ -444,8 +498,8 @@ export const personalizedEventReminderFlow = ai.defineFlow(
   },
   async (input) => {
     const prompt = `Create personalized reminder for ${input.userName} about ${input.eventTitle}. Return JSON.`;
-    const result = await ai.generate({ prompt, output: { format: 'json' } });
-    return (result.output as any) || { reminderText: "", subjectLine: "" };
+    const result = await safeGenerate('personalizedEventReminderFlow', { prompt, output: { format: 'json' } });
+    return (result?.output as any) || { reminderText: "", subjectLine: "" };
   }
 );
 
@@ -466,8 +520,8 @@ export const engagementPicksFlow = ai.defineFlow(
   },
   async (input) => {
     const prompt = `Pick best next item for user based on activity. Return JSON.`;
-    const result = await ai.generate({ prompt, output: { format: 'json' } });
-    return (result.output as any) || { topPickId: "", rationale: "" };
+    const result = await safeGenerate('engagementPicksFlow', { prompt, output: { format: 'json' } });
+    return (result?.output as any) || { topPickId: "", rationale: "" };
   }
 );
 
@@ -491,13 +545,13 @@ export const contentRecommendationFlow = ai.defineFlow(
   },
   async (input) => {
     const prompt = `Recommend content based on interests. Return JSON array.`;
-    const result = await ai.generate({
+    const result = await safeGenerate('contentRecommendationFlow', {
       prompt,
       output: { format: 'json' },
     });
     
     try {
-      const parsed = result.output as any;
+      const parsed = result?.output as any;
       if (!parsed) return { recommendedContent: [] };
       const recommendations = Array.isArray(parsed) ? parsed : (parsed.recommendedContent || []);
       return { recommendedContent: recommendations.slice(0, 3) };
@@ -527,13 +581,13 @@ export const connectionRecommendationFlow = ai.defineFlow(
   },
   async (input) => {
     const prompt = `Suggest connections based on profile. Return JSON array.`;
-    const result = await ai.generate({
+    const result = await safeGenerate('connectionRecommendationFlow', {
       prompt,
       output: { format: 'json' },
     });
     
     try {
-      const parsed = result.output as any;
+      const parsed = result?.output as any;
       if (!parsed) return { connections: [] };
       const connections = Array.isArray(parsed) ? parsed : (parsed.connections || []);
       return { connections: connections.slice(0, 3) };
@@ -561,7 +615,7 @@ export const abTestingFlow = ai.defineFlow(
   },
   async (input) => {
     const prompt = `Generate 2 high-converting description variants. Return JSON.`;
-    const result = await ai.generate({ prompt, output: { format: 'json' } });
-    return (result.output as any) || { variantA: "", variantB: "", predictedWinner: "" };
+    const result = await safeGenerate('abTestingFlow', { prompt, output: { format: 'json' } });
+    return (result?.output as any) || { variantA: "", variantB: "", predictedWinner: "" };
   }
 );

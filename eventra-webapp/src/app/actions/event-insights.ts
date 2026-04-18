@@ -12,7 +12,33 @@ import {
   organizerTaskListFlow
 } from '@/lib/ai';
 
-export async function generateSocialMediaPosts(eventId: string) {
+type SocialPlatform = 'twitter' | 'linkedin' | 'instagram';
+
+export type PredictiveAttendanceResult = {
+  predictedTotal: number;
+  confidenceScore: number;
+  factors: string[];
+};
+
+export type OrganizerTasksResult = {
+  success: boolean;
+  tasks?: string[];
+  error?: string;
+};
+
+export type EventSummaryResult = {
+  success: boolean;
+  summary?: string;
+  error?: string;
+};
+
+export type SentimentResult = {
+  overallSentiment: 'positive' | 'neutral' | 'negative';
+  keyThemes: string[];
+  averageRating: number;
+};
+
+export async function generateSocialMediaPosts(eventId: string): Promise<string[]> {
   // Guard: Owner or admin
   await validateEventOwnership(eventId);
 
@@ -23,7 +49,7 @@ export async function generateSocialMediaPosts(eventId: string) {
 
     if (!event) throw new Error('Event not found');
 
-    const platforms: Array<'twitter' | 'linkedin' | 'instagram'> = ['twitter', 'linkedin', 'instagram'];
+    const platforms: SocialPlatform[] = ['twitter', 'linkedin', 'instagram'];
     
     const posts = await Promise.all(platforms.map(async (platform) => {
       const { post } = await socialMediaPostFlow({
@@ -74,7 +100,7 @@ export async function getPredictiveAttendance(eventId: string) {
       registrationTrend,
     });
 
-    return prediction;
+    return prediction as PredictiveAttendanceResult;
   } catch (error) {
     console.error('Prediction Error:', error);
     return { predictedTotal: 0, confidenceScore: 0, factors: [] };
@@ -84,7 +110,7 @@ export async function getPredictiveAttendance(eventId: string) {
 /**
  * Generate a comprehensive task list for an organizer based on event details
  */
-export async function generateOrganizerTasks(eventId: string) {
+export async function generateOrganizerTasks(eventId: string): Promise<OrganizerTasksResult> {
   await validateEventOwnership(eventId);
 
   try {
@@ -101,10 +127,10 @@ export async function generateOrganizerTasks(eventId: string) {
       startDate: event.startDate.toDateString(),
     });
 
-    return { success: true, tasks: result.tasks };
+    return { success: true, tasks: result.tasks || [] };
   } catch (error: any) {
     console.error('Task Generation Error:', error);
-    return { success: false, error: error.message };
+    return { success: false, error: error?.message || 'Failed to generate organizer tasks' };
   }
 }
 
@@ -212,13 +238,13 @@ export async function generateEventSummary(eventId: string) {
       feedback: feedbackComments,
     });
 
-    return { 
+    return {
       success: true, 
       summary 
-    };
+    } as EventSummaryResult;
   } catch (error: any) {
     console.error('Failed to generate summary:', error);
-    return { success: false, error: error.message };
+    return { success: false, error: error?.message || 'Failed to generate summary' } as EventSummaryResult;
   }
 }
 
@@ -239,16 +265,16 @@ export async function getFeedbackSentiment(eventId: string) {
       .filter(Boolean) as string[];
 
     if (feedbackComments.length === 0) {
-      return { overallSentiment: 'neutral', keyThemes: [], averageRating: 0 };
+      return { overallSentiment: 'neutral', keyThemes: [], averageRating: 0 } as SentimentResult;
     }
 
     const analysis = await aiSentimentAnalysisFlow({
       feedback: feedbackComments,
     });
 
-    return analysis;
+    return analysis as SentimentResult;
   } catch (error) {
     console.error('Sentiment Analysis Error:', error);
-    return { overallSentiment: 'neutral', keyThemes: [], averageRating: 0 };
+    return { overallSentiment: 'neutral', keyThemes: [], averageRating: 0 } as SentimentResult;
   }
 }

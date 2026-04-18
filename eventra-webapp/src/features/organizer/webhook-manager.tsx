@@ -10,17 +10,31 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { Globe, Trash2, Loader2, Link as LinkIcon, ShieldCheck } from 'lucide-react';
 import { cn } from '@/core/utils/utils';
+import { createWebhook, deleteWebhook, listWebhooks } from '@/app/actions/organizer-tools';
+import { useEffect } from 'react';
 
 export function WebhookManager({ eventId }: { eventId?: string }) {
   const { toast } = useToast();
-  // TODO: wire to backend
-  const webhooks: any[] = [];
-  const createWebhook = async (_args: any) => Promise.resolve();
-  const deleteWebhook = async (_args: any) => Promise.resolve();
+  const [webhooks, setWebhooks] = useState<any[]>([]);
 
   const [url, setUrl] = useState('');
   const [selectedEvents, setSelectedEvents] = useState<string[]>(['registration.created']);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+
+    async function load() {
+      const rows = await listWebhooks(eventId);
+      if (!mounted) return;
+      setWebhooks(rows.map((w) => ({ _id: w.id, url: w.url, events: w.events, secret: w.secret })));
+    }
+
+    load();
+    return () => {
+      mounted = false;
+    };
+  }, [eventId]);
 
   const eventOptions = [
     { id: 'registration.created', label: 'Registration Created' },
@@ -46,6 +60,8 @@ export function WebhookManager({ eventId }: { eventId?: string }) {
         eventId: eventId as any,
       });
       setUrl('');
+      const rows = await listWebhooks(eventId);
+      setWebhooks(rows.map((w) => ({ _id: w.id, url: w.url, events: w.events, secret: w.secret })));
       toast({ title: 'Webhook created!' });
     } catch (error) {
       toast({ title: 'Failed to create webhook', variant: 'destructive' });
@@ -120,7 +136,10 @@ export function WebhookManager({ eventId }: { eventId?: string }) {
                       variant="ghost" 
                       size="icon" 
                       className="h-6 w-6 text-red-400 hover:bg-red-400/10"
-                      onClick={() => deleteWebhook({ id: w._id })}
+                      onClick={async () => {
+                        await deleteWebhook(w._id);
+                        setWebhooks((prev) => prev.filter((x) => x._id !== w._id));
+                      }}
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                     </Button>

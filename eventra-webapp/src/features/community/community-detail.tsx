@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,28 +16,28 @@ import {
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { moderateContent } from '@/app/actions/moderation';
+import {
+  createPost,
+  flagPost,
+  getCommunityById,
+  getCommunityMembers,
+  getCommunityPosts,
+  getMyCommunityMembership,
+  joinCommunity,
+  likePost,
+} from '@/app/actions/communities';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export function CommunityDetailClient({ communityId }: { communityId: string }) {
   const { user } = useAuth();
-  const router = useRouter();
   const { toast } = useToast();
-  // TODO: Fetch from backend
-  const [community, setCommunity] = useState<any | null>(null);
-
-  // TODO: replace with backend queries/mutations
-  const memberStatus = null;
-  const posts: any[] = [];
-  const members: any[] = [];
-  const postsStatus: string = 'Exhausted';
-  const membersStatus: string = 'Exhausted';
-  const joinMutation = async (_args: any) => Promise.resolve();
-  const likePostMutation = async (_args: any) => Promise.resolve();
-  const createPostMutation = async (_args: any) => 'post-id';
-  const flagPostMutation = async (_args: any) => Promise.resolve();
-  const loadMorePosts = (_count: number) => {};
-  const loadMoreMembers = (_count: number) => {};
+  const [community, setCommunity] = useState<any | null | undefined>(undefined);
+  const [isMember, setIsMember] = useState(false);
+  const [posts, setPosts] = useState<any[]>([]);
+  const [members, setMembers] = useState<any[]>([]);
+  const [postsStatus, setPostsStatus] = useState<'LoadingFirstPage' | 'Exhausted'>('LoadingFirstPage');
+  const [membersStatus, setMembersStatus] = useState<'LoadingFirstPage' | 'Exhausted'>('LoadingFirstPage');
 //   
 //   
 //     { communityId: communityId as any },
@@ -53,11 +53,62 @@ export function CommunityDetailClient({ communityId }: { communityId: string }) 
   const [newPostContent, setNewPostContent] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const isMember = !!memberStatus;
+  useEffect(() => {
+    let mounted = true;
+
+    async function load() {
+      setPostsStatus('LoadingFirstPage');
+      setMembersStatus('LoadingFirstPage');
+
+      const [communityData, membership, postRows, memberRows] = await Promise.all([
+        getCommunityById(communityId),
+        getMyCommunityMembership(communityId),
+        getCommunityPosts(communityId),
+        getCommunityMembers(communityId),
+      ]);
+
+      if (!mounted) return;
+
+      setCommunity(communityData);
+      setIsMember(membership);
+      setPosts(
+        postRows.map((p: any) => ({
+          _id: p.post.id,
+          content: p.post.content,
+          createdAt: p.post.createdAt,
+          likes: p.post.likes,
+          authorName: p.author.name,
+          authorImage: p.author.image,
+          commentCount: 0,
+          meLiked: false,
+          imageUrl: p.post.imageUrl,
+        }))
+      );
+      setMembers(
+        memberRows.map((m) => ({
+          _id: m.id,
+          name: m.name,
+          image: m.image,
+          role: m.role,
+        }))
+      );
+      setPostsStatus('Exhausted');
+      setMembersStatus('Exhausted');
+    }
+
+    load();
+    return () => {
+      mounted = false;
+    };
+  }, [communityId]);
 
   const handleJoin = async () => {
     try {
-      await joinMutation({ id: communityId as any });
+      const result = await joinCommunity(communityId);
+      if (!result.success) {
+        throw new Error(result.error || result.message || 'Join failed');
+      }
+      setIsMember(true);
       toast({ title: 'Joined community!' });
     } catch (e) {
       toast({ title: 'Failed to join', variant: 'destructive' });
@@ -66,7 +117,11 @@ export function CommunityDetailClient({ communityId }: { communityId: string }) 
 
   const handleLike = async (postId: string) => {
     try {
-      await likePostMutation({ id: postId as any });
+      const result = await likePost(postId);
+      if (!result.success) throw new Error('Like failed');
+      setPosts((prev) =>
+        prev.map((post) => (post._id === postId ? { ...post, likes: Number(post.likes || 0) + 1 } : post))
+      );
     } catch (e) {
       toast({ title: 'Failed to like post' });
     }
@@ -77,10 +132,14 @@ export function CommunityDetailClient({ communityId }: { communityId: string }) 
     setLoading(true);
     try {
       // 1. Create Post
-      const postId = await createPostMutation({ 
+      const postResult = await createPost({ 
         content: newPostContent,
         communityId: communityId as any 
       });
+      if (!postResult.success || !postResult.post) {
+        throw new Error('Create post failed');
+      }
+      const postId = postResult.post.id;
       
       setShowCreatePost(false);
       setNewPostContent('');
@@ -89,10 +148,7 @@ export function CommunityDetailClient({ communityId }: { communityId: string }) 
       // 2. Async AI Moderation check
       const moderation = await moderateContent(newPostContent);
       if (!moderation.approved) {
-        await flagPostMutation({
-          postId: postId as any,
-          reason: moderation.reason || 'AI Flagged'
-        });
+        await flagPost(postId as any, moderation.reason || 'AI Flagged');
         toast({ 
           title: 'Post Flagged', 
           description: 'Your post is under review by our AI moderator.',
@@ -197,13 +253,7 @@ export function CommunityDetailClient({ communityId }: { communityId: string }) 
                   </div>
                 )}
 
-                {postsStatus === "CanLoadMore" && (
-                  <div className="flex justify-center pt-4">
-                    <Button variant="outline" onClick={() => loadMorePosts(10)} className="border-white/10">Load More Posts</Button>
-                  </div>
-                )}
-
-                {(postsStatus === "LoadingMore" || postsStatus === "LoadingFirstPage") && (
+                {postsStatus === "LoadingFirstPage" && (
                   <div className="flex justify-center pt-4"><Loader2 className="animate-spin text-cyan-500" /></div>
                 )}
             </div>
@@ -216,7 +266,7 @@ export function CommunityDetailClient({ communityId }: { communityId: string }) 
                         <div className="mt-4 space-y-2">
                           <div className="flex items-center gap-2">
                             <Calendar size={14} className="text-cyan-400" />
-                            <span>Created {new Date(community._creationTime).toLocaleDateString()}</span>
+                            <span>Created {new Date(community.createdAt).toLocaleDateString()}</span>
                           </div>
                           <div className="flex items-center gap-2">
                             <Info size={14} className="text-cyan-400" />
@@ -248,13 +298,7 @@ export function CommunityDetailClient({ communityId }: { communityId: string }) 
                 ))}
               </div>
 
-              {membersStatus === "CanLoadMore" && (
-                <div className="flex justify-center mt-6">
-                  <Button variant="outline" onClick={() => loadMoreMembers(20)} className="border-white/10">Load More Members</Button>
-                </div>
-              )}
-
-              {(membersStatus === "LoadingMore" || membersStatus === "LoadingFirstPage") && (
+              {membersStatus === "LoadingFirstPage" && (
                 <div className="flex justify-center mt-6"><Loader2 className="animate-spin text-cyan-500" /></div>
               )}
             </CardContent>

@@ -13,10 +13,28 @@ export interface RecommendationBundle {
 	people: Array<{ id: string; name: string; role?: string; score?: number }>;
 }
 
+export type AIEventRecommendation = {
+  eventId: string;
+  relevanceScore: number;
+  reason: string;
+};
+
+export type AIContentRecommendation = {
+  contentId: string;
+  relevanceScore: number;
+  reason: string;
+};
+
+export type AIConnectionRecommendation = {
+  userId: string;
+  strength: number;
+  conversationStarter: string;
+};
+
 /**
  * Get personalized recommendations using Genkit
  */
-export async function getAIRecommendations(userId: string) {
+export async function getAIRecommendations(userId: string): Promise<AIEventRecommendation[]> {
 	await validateRole(['attendee', 'organizer', 'admin', 'professional']);
 
   try {
@@ -48,7 +66,7 @@ export async function getAIRecommendations(userId: string) {
       availableEvents: availableEvents as any,
     });
 
-    return recommendations;
+    return (recommendations || []) as AIEventRecommendation[];
   } catch (error) {
     console.error('Recommendation Error:', error);
     return [];
@@ -65,7 +83,7 @@ export async function getPersonalizedRecommendations(userId?: string): Promise<R
 	};
 }
 
-export async function getAIContentRecommendations(userId: string) {
+export async function getAIContentRecommendations(userId: string): Promise<AIContentRecommendation[]> {
 	await validateRole(['attendee', 'organizer', 'admin', 'professional']);
 	
   try {
@@ -89,14 +107,14 @@ export async function getAIContentRecommendations(userId: string) {
       availableContent: mockContent,
     });
 
-    return recommendedContent;
+    return (recommendedContent || []) as AIContentRecommendation[];
   } catch (error) {
     console.error('Content Recommendation Error:', error);
     return [];
   }
 }
 
-export async function getAIConnectionRecommendations(userId: string) {
+export async function getAIConnectionRecommendations(userId: string): Promise<AIConnectionRecommendation[]> {
 	await validateRole(['attendee', 'organizer', 'admin', 'professional']);
 	
   try {
@@ -122,7 +140,7 @@ export async function getAIConnectionRecommendations(userId: string) {
       network: others,
     });
 
-    return connections;
+    return (connections || []) as AIConnectionRecommendation[];
   } catch (error) {
     console.error('Connection Recommendation Error:', error);
     return [];

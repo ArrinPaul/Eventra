@@ -1,8 +1,9 @@
 'use client';
-import { Button } from '@/components/ui/button';
+import { useEffect, useState } from 'react';
 import { cn } from '@/core/utils/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Id } from '@/types';
+import { addEventReaction, getEventReactions } from '@/app/actions/event-engagement';
 
 interface EventReactionsProps {
   eventId: Id<"events">;
@@ -11,12 +12,45 @@ interface EventReactionsProps {
 const REACTION_LABELS = ["Love", "Hot", "Celebrate", "Wow", "Like"];
 const EMOJIS = ['❤️', '🔥', '🎉', '😮', '👍'];
 
-// ... later in the file where EMOJIS was used
-// I need to check the file content first to see how EMOJIS is used.
-
 export function EventReactions({ eventId }: EventReactionsProps) {
-  const reactions: Record<string, { count: number; me: boolean }> = {};
-  const addReaction = async (_args: any) => Promise.resolve();
+  const [reactions, setReactions] = useState<Record<string, { count: number; me: boolean }>>({});
+
+  useEffect(() => {
+    let mounted = true;
+
+    async function load() {
+      const rows = await getEventReactions(eventId as any);
+      if (!mounted) return;
+
+      const map: Record<string, { count: number; me: boolean }> = {};
+      for (const row of rows) {
+        map[row.emoji] = { count: row.count, me: row.me };
+      }
+      setReactions(map);
+    }
+
+    load();
+    return () => {
+      mounted = false;
+    };
+  }, [eventId]);
+
+  async function handleReact(emoji: string) {
+    const result = await addEventReaction({ eventId: eventId as any, emoji });
+    if (!result.success) return;
+
+    setReactions((prev) => {
+      const current = prev[emoji] || { count: 0, me: false };
+      const next = {
+        ...prev,
+        [emoji]: {
+          me: result.reacted,
+          count: result.reacted ? current.count + 1 : Math.max(0, current.count - 1),
+        },
+      };
+      return next;
+    });
+  }
 
   return (
     <div className="flex flex-wrap gap-2 py-4">
@@ -27,7 +61,7 @@ export function EventReactions({ eventId }: EventReactionsProps) {
             key={emoji}
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
-            onClick={() => addReaction({ eventId, emoji })}
+            onClick={() => handleReact(emoji)}
             className={cn(
               "flex items-center gap-1.5 px-3 py-1.5 rounded-full border transition-all text-sm",
               stats.me 

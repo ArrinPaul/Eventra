@@ -1,6 +1,6 @@
 'use client';
 
-import { useSession, signOut as nextAuthSignOut } from 'next-auth/react';
+import { useSession, signOut as nextAuthSignOut, signIn as nextAuthSignIn } from 'next-auth/react';
 import { User } from '@/types';
 import { getErrorMessage } from '@/core/utils/utils';
 import { updateUserDetails } from '@/app/actions/users';
@@ -22,8 +22,9 @@ export function useAuth() {
       sessionStorage.setItem('preferred_role', preferredRole);
     }
 
-    // OAuth is intentionally disabled during broader testing.
-    throw new Error('Google OAuth is temporarily disabled for testing.');
+    const callbackUrl = options?.callbackUrl || '/';
+    const result = await nextAuthSignIn('google', { callbackUrl });
+    return result;
   };
 
   const logout = async () => {

@@ -1,6 +1,6 @@
 'use client';
 // 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -13,14 +13,20 @@ import {
   CheckCircle2, 
   HelpCircle,
   Clock,
-  Reply,
-  MoreVertical
+  Reply
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/core/utils/utils';
 import type { Id } from '@/types';
+import {
+  createDiscussionMessage,
+  getEventDiscussion,
+  likeDiscussionMessage,
+  markDiscussionMessageAnswered,
+} from '@/app/actions/event-engagement';
+import { getUserById } from '@/app/actions/users';
 
 interface EventDiscussionBoardProps {
   eventId: Id<"events">;
@@ -32,26 +38,71 @@ export function EventDiscussionBoard({ eventId }: EventDiscussionBoardProps) {
   const [content, setContent] = useState('');
   const [isQuestion, setIsQuestion] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [messages, setMessages] = useState<any[]>([]);
 
-  // TODO: wire to backend
-  const messages: any[] = [];
-  const createMessage = async (_args: any) => Promise.resolve();
-  const likeMessage = async (_args: any) => Promise.resolve();
-  const markAsAnswered = async (_args: any) => Promise.resolve();
+  useEffect(() => {
+    let mounted = true;
+
+    async function load() {
+      const rows = await getEventDiscussion(eventId as any);
+      const enriched = await Promise.all(
+        rows.map(async (row) => {
+          const author = await getUserById(row.authorId);
+          return {
+            _id: row.id,
+            content: row.content,
+            isQuestion: row.isQuestion,
+            isAnswered: row.isAnswered,
+            likes: row.likes,
+            createdAt: row.createdAt,
+            authorName: author?.name || 'Member',
+            authorImage: author?.image || '',
+            authorRole: author?.role || 'attendee',
+          };
+        })
+      );
+
+      if (mounted) {
+        setMessages(enriched);
+      }
+    }
+
+    load();
+    return () => {
+      mounted = false;
+    };
+  }, [eventId]);
 
   const handleSubmit = async () => {
     if (!content.trim() || !user) return;
     setSubmitting(true);
     try {
-      await createMessage({
-        eventId,
+      const result = await createDiscussionMessage({
+        eventId: eventId as any,
         content: content.trim(),
         isQuestion,
       });
+      if (!result.success || !result.id) throw new Error('Failed to post');
+
+      setMessages((prev) => [
+        {
+          _id: result.id,
+          content: content.trim(),
+          isQuestion,
+          isAnswered: false,
+          likes: 0,
+          createdAt: new Date(),
+          authorName: user?.name || 'You',
+          authorImage: user?.image || '',
+          authorRole: user?.role || 'attendee',
+        },
+        ...prev,
+      ]);
+
       setContent('');
       setIsQuestion(false);
       toast({ title: 'Message posted' });
-    } catch (e) {
+    } catch {
       toast({ title: 'Failed to post', variant: 'destructive' });
     } finally {
       setSubmitting(false);
@@ -60,8 +111,10 @@ export function EventDiscussionBoard({ eventId }: EventDiscussionBoardProps) {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
-      {/* Input Area */}
       <Card className="bg-white/5 border-white/10 text-white overflow-hidden">
+        <CardHeader className="border-b border-white/10">
+          <CardTitle className="text-lg">Discussion</CardTitle>
+        </CardHeader>
         <CardContent className="p-6">
           <div className="flex gap-4">
             <Avatar className="h-10 w-10 shrink-0">
@@ -104,7 +157,6 @@ export function EventDiscussionBoard({ eventId }: EventDiscussionBoardProps) {
         </CardContent>
       </Card>
 
-      {/* Messages List */}
       <div className="space-y-4">
         {messages.length === 0 ? (
           <div className="py-20 text-center border border-dashed border-white/10 rounded-3xl bg-white/5">
@@ -151,7 +203,14 @@ export function EventDiscussionBoard({ eventId }: EventDiscussionBoardProps) {
                 
                 <div className="flex items-center gap-4 mt-6 pt-4 border-t border-white/5">
                   <button 
-                    onClick={() => likeMessage({ id: msg._id })}
+                    onClick={async () => {
+                      const result = await likeDiscussionMessage(msg._id);
+                      if (result.success) {
+                        setMessages((prev) =>
+                          prev.map((m) => (m._id === msg._id ? { ...m, likes: Number(m.likes || 0) + 1 } : m))
+                        );
+                      }
+                    }}
                     className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-cyan-400 transition-colors"
                   >
                     <ThumbsUp size={14} className={msg.likes > 0 ? "text-cyan-400 fill-cyan-400/20" : ""} />
@@ -164,7 +223,14 @@ export function EventDiscussionBoard({ eventId }: EventDiscussionBoardProps) {
                   </button>
                   {msg.isQuestion && !msg.isAnswered && (
                     <button 
-                      onClick={() => markAsAnswered({ id: msg._id })}
+                      onClick={async () => {
+                        const result = await markDiscussionMessageAnswered(msg._id);
+                        if (result.success) {
+                          setMessages((prev) =>
+                            prev.map((m) => (m._id === msg._id ? { ...m, isAnswered: true } : m))
+                          );
+                        }
+                      }}
                       className="ml-auto flex items-center gap-1.5 text-xs text-green-500/70 hover:text-green-400 transition-colors"
                     >
                       <CheckCircle2 size={14} />

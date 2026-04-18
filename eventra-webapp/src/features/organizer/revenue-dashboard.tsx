@@ -1,4 +1,5 @@
 'use client';
+import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
@@ -16,21 +17,39 @@ import {
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { ExportButton } from '@/components/shared/export-button';
 import { cn } from '@/core/utils/utils';
+import { getOrganizerRevenueDashboard } from '@/app/actions/analytics';
 
 const COLORS = ['#06b6d4', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981'];
 
 export function RevenueDashboard() {
-  // TODO: load real organizer revenue analytics from backend
-  const stats = {
+  const [stats, setStats] = useState({
     totalRevenue: 0,
     revenueTrend: 0,
     ticketTrend: 0,
     revenueByEvent: [] as Array<{ title: string; revenue: number; ticketCount: number }>,
     dailyRevenue: [] as Array<{ date: string; amount: number }>,
     revenueByTier: {} as Record<string, number>,
-  };
+  });
+  const [loading, setLoading] = useState(true);
 
-  if (!stats) {
+  useEffect(() => {
+    let mounted = true;
+
+    async function load() {
+      setLoading(true);
+      const data = await getOrganizerRevenueDashboard();
+      if (!mounted) return;
+      setStats(data);
+      setLoading(false);
+    }
+
+    load();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader2 className="h-8 w-8 animate-spin text-cyan-500" />

@@ -7,15 +7,11 @@ import {
   Users,
   Calendar,
   Activity,
-  BarChart3,
-  RefreshCw,
+  Loader2,
   Ticket,
   TrendingUp,
-  MessageSquare,
-  Award,
   PieChart as PieChartIcon
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { 
   LineChart, 
   Line, 
@@ -33,6 +29,7 @@ import {
 
 export default function AdminAnalyticsOverview() {
   const [activeTab, setActiveTab] = useState('overview');
+  const [loading] = useState(false);
   
   // TODO: Fetch from backend - initialized with default values to prevent null reference errors
   const [stats, setStats] = useState({
@@ -58,8 +55,6 @@ export default function AdminAnalyticsOverview() {
     },
   });
   
-  const loading = !stats || !detailed;
-
   if (loading) {
     return <div className="p-20 text-center text-gray-500"><Loader2 className="animate-spin h-8 w-8 mx-auto mb-4" /> Loading platform analytics...</div>;
   }

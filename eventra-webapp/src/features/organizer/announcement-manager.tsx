@@ -16,20 +16,35 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Bell, Info, AlertCircle, Trash2, Loader2, Megaphone, Pencil } from 'lucide-react';
 import { cn } from '@/core/utils/utils';
+import { createAnnouncement, deactivateAnnouncement, listAnnouncements, updateAnnouncement } from '@/app/actions/organizer-tools';
+import { useEffect } from 'react';
 
 export function AnnouncementManager({ eventId }: { eventId: string }) {
   const { toast } = useToast();
-  // TODO: wire to backend
-  const announcements: any[] = [];
-  const createAnnouncement = async (_args: any) => Promise.resolve();
-  const updateAnnouncement = async (_args: any) => Promise.resolve();
-  const deactivateAnnouncement = async (_args: any) => Promise.resolve();
+  const [announcements, setAnnouncements] = useState<any[]>([]);
 
   const [content, setContent] = useState('');
   const [type, setType] = useState<'info' | 'warning' | 'urgent'>('info');
   const [expiresHours, setExpiresHours] = useState('24');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+
+    async function load() {
+      const rows = await listAnnouncements(eventId);
+      if (!mounted) return;
+      setAnnouncements(
+        rows.filter((r) => r.active).map((r) => ({ _id: r.id, content: r.content, type: r.type, expiresAt: r.expiresAt }))
+      );
+    }
+
+    load();
+    return () => {
+      mounted = false;
+    };
+  }, [eventId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,6 +71,10 @@ export function AnnouncementManager({ eventId }: { eventId: string }) {
       }
       setContent('');
       setEditingId(null);
+      const rows = await listAnnouncements(eventId);
+      setAnnouncements(
+        rows.filter((r) => r.active).map((r) => ({ _id: r.id, content: r.content, type: r.type, expiresAt: r.expiresAt }))
+      );
     } catch (error) {
       toast({ title: editingId ? 'Failed to update' : 'Failed to broadcast', variant: 'destructive' });
     } finally {
@@ -75,8 +94,9 @@ export function AnnouncementManager({ eventId }: { eventId: string }) {
 
   const handleDeactivate = async (id: string) => {
     try {
-      await deactivateAnnouncement({ id: id as any });
+      await deactivateAnnouncement(id as any);
       toast({ title: 'Announcement removed' });
+      setAnnouncements((prev) => prev.filter((a) => a._id !== id));
     } catch (error) {
       toast({ title: 'Error removing announcement', variant: 'destructive' });
     }

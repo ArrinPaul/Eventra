@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -28,18 +28,53 @@ import { MatchmakingSection } from './matchmaking-section';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/core/utils/utils';
+import {
+  getNetworkingSnapshot,
+  removeConnection,
+  respondToConnectionRequest,
+  sendConnectionRequest,
+} from '@/app/actions/networking';
 
 export default function NetworkingClient() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
 
-  // TODO: wire to backend queries/mutations
-  const connections: any[] = [];
-  const publicUsers: any[] = [];
-  const sendConnectionRequest = async (_args: any) => Promise.resolve();
-  const respondToRequest = async (_args: any) => Promise.resolve();
-  const removeConnection = async (_args: any) => Promise.resolve();
+  const [connections, setConnections] = useState<any[]>([]);
+  const [publicUsers, setPublicUsers] = useState<any[]>([]);
+
+  useEffect(() => {
+    let mounted = true;
+
+    async function load() {
+      try {
+        const snapshot = await getNetworkingSnapshot();
+        if (!mounted) return;
+
+        setPublicUsers(snapshot.publicUsers.map((u) => ({ ...u, _id: u.id })));
+        setConnections(
+          snapshot.acceptedConnections.map((c) => ({
+            _id: c.otherUser.id,
+            status: c.status,
+            direction: c.direction,
+            otherUser: {
+              id: c.otherUser.id,
+              name: c.otherUser.name,
+              image: c.otherUser.image,
+              role: c.otherUser.role,
+            },
+          }))
+        );
+      } catch (error) {
+        console.error('Networking load failed', error);
+      }
+    }
+
+    load();
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const acceptedConnections = connections.filter((c: any) => c.status === 'accepted');
   const pendingReceived = connections.filter((c: any) => c.status === 'pending' && c.direction === 'received');
@@ -47,7 +82,17 @@ export default function NetworkingClient() {
 
   const handleConnect = async (userId: string) => {
     try {
-      await sendConnectionRequest({ receiverId: userId as any });
+      const result = await sendConnectionRequest(userId as any);
+      if (!result.success) throw new Error(result.error || 'Failed to connect');
+      setConnections((prev) => [
+        ...prev,
+        {
+          _id: userId,
+          status: 'accepted',
+          direction: 'sent',
+          otherUser: publicUsers.find((u) => u._id === userId),
+        },
+      ]);
       toast({ title: "Request Sent", description: "Connection request has been sent." });
     } catch (e: any) {
       toast({ title: "Error", description: e.message || "Failed to send request", variant: "destructive" });
@@ -161,10 +206,10 @@ export default function NetworkingClient() {
                       </div>
                     </div>
                     <div className="flex gap-2">
-                      <Button size="sm" className="bg-cyan-600 hover:bg-cyan-500" onClick={async () => { await respondToRequest({ connectionId: c._id, accept: true }); toast({ title: 'Accepted!' }); }}>
+                      <Button size="sm" className="bg-cyan-600 hover:bg-cyan-500" onClick={async () => { await respondToConnectionRequest(c._id, true); toast({ title: 'Accepted!' }); }}>
                         <Check className="w-4 h-4 mr-1" /> Accept
                       </Button>
-                      <Button size="sm" variant="outline" className="border-white/10 text-red-400 hover:bg-red-500/10" onClick={async () => { await respondToRequest({ connectionId: c._id, accept: false }); toast({ title: 'Declined' }); }}>
+                      <Button size="sm" variant="outline" className="border-white/10 text-red-400 hover:bg-red-500/10" onClick={async () => { await respondToConnectionRequest(c._id, false); toast({ title: 'Declined' }); }}>
                         <X className="w-4 h-4" />
                       </Button>
                     </div>
@@ -191,7 +236,7 @@ export default function NetworkingClient() {
                           <p className="text-xs text-gray-500">{c.otherUser?.role || 'Member'}</p>
                         </div>
                       </div>
-                      <Button size="sm" variant="ghost" className="text-red-400 hover:bg-red-500/10" onClick={async () => { await removeConnection({ connectionId: c._id }); toast({ title: 'Connection removed' }); }}>
+                      <Button size="sm" variant="ghost" className="text-red-400 hover:bg-red-500/10" onClick={async () => { await removeConnection(c._id); setConnections((prev) => prev.filter((x) => x._id !== c._id)); toast({ title: 'Connection removed' }); }}>
                         <UserMinus className="w-4 h-4" />
                       </Button>
                     </CardContent>
@@ -223,7 +268,7 @@ export default function NetworkingClient() {
                         <p className="text-xs text-gray-400">Pending...</p>
                       </div>
                     </div>
-                    <Button size="sm" variant="ghost" className="text-gray-400 hover:bg-white/5" onClick={async () => { await removeConnection({ connectionId: c._id }); toast({ title: 'Request cancelled' }); }}>
+                    <Button size="sm" variant="ghost" className="text-gray-400 hover:bg-white/5" onClick={async () => { await removeConnection(c._id); toast({ title: 'Request cancelled' }); }}>
                       Cancel
                     </Button>
                   </CardContent>

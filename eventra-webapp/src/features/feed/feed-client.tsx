@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -18,19 +18,23 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  createPost,
+  deletePost,
+  getCommunities,
+  getCommunityPosts,
+  likePost,
+  updatePost,
+} from '@/app/actions/communities';
 
 export default function FeedClient() {
   const { user } = useAuth();
   const { toast } = useToast();
 
-  const communities: any[] = [];
-  const postsRaw: any[] = [];
+  const [communities, setCommunities] = useState<any[]>([]);
+  const [postsRaw, setPostsRaw] = useState<any[]>([]);
   const [status] = useState<'CanLoadMore' | 'LoadingMore' | 'Exhausted'>('Exhausted');
   const loadMore = (_count: number) => {};
-  const createPostMutation = async (data: any) => {};
-  const updatePostMutation = async (data: any) => {};
-  const deletePostMutation = async (data: any) => {};
-  const likePostMutation = async (data: any) => {};
   
   const [showCreatePost, setShowCreatePost] = useState(false);
   const [showEditPost, setShowEditPost] = useState(false);
@@ -39,6 +43,37 @@ export default function FeedClient() {
   const [editPostContent, setEditPostContent] = useState('');
   const [loading, setLoading] = useState(false);
   const [expandedComments, setExpandedComments] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    let mounted = true;
+
+    async function load() {
+      const allCommunities = await getCommunities();
+      if (!mounted) return;
+      setCommunities(allCommunities);
+
+      if (allCommunities.length > 0) {
+        const posts = await getCommunityPosts(allCommunities[0].id);
+        if (!mounted) return;
+        setPostsRaw(
+          posts.map((row: any) => ({
+            _id: row.post.id,
+            authorName: row.author.name,
+            authorImage: row.author.image,
+            createdAt: row.post.createdAt,
+            content: row.post.content,
+            likes: row.post.likes,
+            meLiked: false,
+          }))
+        );
+      }
+    }
+
+    load();
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const toggleComments = (postId: string) => {
     setExpandedComments(prev => ({ ...prev, [postId]: !prev[postId] }));
@@ -54,7 +89,20 @@ export default function FeedClient() {
       
       if (!defaultCommunityId) throw new Error("No community found to post to");
 
-      await createPostMutation({ content: newPostContent, communityId: defaultCommunityId });
+      const result = await createPost({ content: newPostContent, communityId: defaultCommunityId });
+      if (!result.success || !result.post) throw new Error('Failed to create post');
+      setPostsRaw((prev) => [
+        {
+          _id: result.post.id,
+          authorName: user?.name || 'User',
+          authorImage: user?.image,
+          createdAt: result.post.createdAt,
+          content: result.post.content,
+          likes: result.post.likes,
+          meLiked: false,
+        },
+        ...prev,
+      ]);
       setShowCreatePost(false);
       setNewPostContent('');
       toast({ title: 'Posted successfully' });
@@ -69,7 +117,9 @@ export default function FeedClient() {
     if (!editPostContent.trim() || !editingPost) return;
     setLoading(true);
     try {
-      await updatePostMutation({ id: editingPost._id, content: editPostContent });
+      const result = await updatePost(editingPost._id, editPostContent);
+      if (!result.success || !result.post) throw new Error('Update failed');
+      setPostsRaw((prev) => prev.map((p) => (p._id === editingPost._id ? { ...p, content: result.post.content } : p)));
       setShowEditPost(false);
       setEditingPost(null);
       toast({ title: 'Post updated' });
@@ -83,7 +133,9 @@ export default function FeedClient() {
   const handleDeletePost = async (id: string) => {
     if (!confirm('Are you sure you want to delete this post?')) return;
     try {
-      await deletePostMutation({ id: id as any });
+      const result = await deletePost(id as any);
+      if (!result.success) throw new Error('Delete failed');
+      setPostsRaw((prev) => prev.filter((p) => p._id !== id));
       toast({ title: 'Post deleted' });
     } catch (e) {
       toast({ title: 'Delete failed', variant: 'destructive' });
@@ -92,7 +144,9 @@ export default function FeedClient() {
 
   const handleLike = async (id: string) => {
     try {
-      await likePostMutation({ id: id as any });
+      const result = await likePost(id as any);
+      if (!result.success) throw new Error('Like failed');
+      setPostsRaw((prev) => prev.map((p) => (p._id === id ? { ...p, likes: Number(p.likes || 0) + 1 } : p)));
     } catch (e) {}
   };
 

@@ -33,8 +33,8 @@ export default async function middleware(request: NextRequest) {
     }
   }
 
-  // 2. Auth Page Protection: If logged in, don't show login/signup pages
-  if (session && (pathname === "/login" || pathname === "/signup")) {
+  // 2. Auth Page Protection: If logged in, don't show login/register pages
+  if (session && (pathname === "/login" || pathname === "/register")) {
     return NextResponse.redirect(new URL("/", request.url));
   }
 

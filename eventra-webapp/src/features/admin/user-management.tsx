@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
+import { useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -67,6 +68,7 @@ import {
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/core/utils/utils';
+import { listAdminUsers, updateAdminUserRole } from '@/app/actions/admin';
 
 interface UserFilters {
   search: string;
@@ -92,24 +94,17 @@ export default function UserManagement() {
   const [banReason, setBanReason] = useState('');
   const itemsPerPage = 10;
 
-  // TODO: Fetch from backend
-  const usersRaw: any[] = [];
-  const statsQuery = { totalUsers: 0 };
+  const [usersRaw, setUsersRaw] = useState<any[]>([]);
+  const statsQuery = { totalUsers: usersRaw.length };
   const paginationStatus: string = 'Exhausted';
   
   const loadMore = (num: number) => {
     // TODO: Implement pagination via server action
   };
   
-  const updateRoleMutation = async (data: any) => {
-    // TODO: Implement role update via server action
-    return Promise.resolve();
-  };
+  const updateRoleMutation = async (data: any) => updateAdminUserRole(data.userId, data.role);
   
-  const updateStatusMutation = async (data: any) => {
-    // TODO: Implement status update via server action
-    return Promise.resolve();
-  };
+  const updateStatusMutation = async (_data: any) => ({ success: false });
 //       role: filters.role,
 //       search: filters.search,
 //     },
@@ -119,6 +114,30 @@ export default function UserManagement() {
 
   const loading = usersRaw === undefined;
   const users = usersRaw || [];
+
+  useEffect(() => {
+    let mounted = true;
+
+    async function load() {
+      const rows = await listAdminUsers({ search: filters.search || undefined, role: filters.role, limit: 200 });
+      if (!mounted) return;
+      setUsersRaw(
+        rows.map((r) => ({
+          _id: r.id,
+          name: r.name,
+          email: r.email,
+          role: r.role,
+          points: r.points,
+          _creationTime: r.createdAt.getTime(),
+        }))
+      );
+    }
+
+    load();
+    return () => {
+      mounted = false;
+    };
+  }, [filters.search, filters.role]);
 
   // Transform and filter (status filter still client-side for simplicity)
   const filteredUsers = useMemo(() => {
@@ -163,6 +182,7 @@ export default function UserManagement() {
   const handleChangeRole = async (userId: string, newRole: any) => {
     try {
       await updateRoleMutation({ userId: userId as any, role: newRole });
+      setUsersRaw((prev) => prev.map((u) => (u._id === userId ? { ...u, role: newRole } : u)));
       toast({ title: 'Role Updated' });
     } catch (e) {
       toast({ title: 'Update Failed', variant: 'destructive' });
@@ -172,7 +192,7 @@ export default function UserManagement() {
   const handleChangeStatus = async (userId: string, newStatus: string) => {
     try {
       await updateStatusMutation({ userId: userId as any, status: newStatus });
-      toast({ title: 'Status Updated' });
+      toast({ title: 'Status updates are not supported by current schema', variant: 'destructive' });
     } catch (e) {
       toast({ title: 'Update Failed', variant: 'destructive' });
     }

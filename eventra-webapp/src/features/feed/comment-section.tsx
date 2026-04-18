@@ -1,18 +1,41 @@
 'use client';
 // 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Loader2, Send } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { createComment, getPostComments } from '@/app/actions/communities';
 
 export function CommentSection({ postId }: { postId: string }) {
-  const comments: any[] = [];
-  const addComment = async (_args: any) => Promise.resolve();
+  const [comments, setComments] = useState<any[] | undefined>(undefined);
   
   const [content, setContent] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+
+    async function load() {
+      const rows = await getPostComments(postId);
+      if (!mounted) return;
+      setComments(
+        rows.map((row: any) => ({
+          _id: row.comment.id,
+          authorName: row.author.name,
+          authorImage: row.author.image,
+          createdAt: row.comment.createdAt,
+          content: row.comment.content,
+        }))
+      );
+    }
+
+    load();
+    return () => {
+      mounted = false;
+    };
+  }, [postId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,7 +43,18 @@ export function CommentSection({ postId }: { postId: string }) {
 
     setIsSubmitting(true);
     try {
-      await addComment({ postId: postId as any, content });
+      const result = await createComment({ postId: postId as any, content });
+      if (!result.success || !result.comment) throw new Error('Comment failed');
+      setComments((prev) => [
+        {
+          _id: result.comment.id,
+          authorName: 'You',
+          authorImage: '',
+          createdAt: result.comment.createdAt,
+          content: result.comment.content,
+        },
+        ...(prev || []),
+      ]);
       setContent('');
     } catch (e) {
       console.error(e);

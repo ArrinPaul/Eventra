@@ -1,6 +1,6 @@
 'use client';
 // 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -14,6 +14,7 @@ import {
   RefreshCw,
   Zap,
 } from 'lucide-react';
+import { getSystemSettings, updateSystemSettings } from '@/app/actions/admin';
 
 export default function SystemSettings() {
   const { toast } = useToast();
@@ -22,12 +23,20 @@ export default function SystemSettings() {
   const [activeTab, setActiveTab] = useState('general');
   const [localChanges, setLocalChanges] = useState<Record<string, string>>({});
   
-  // TODO: Fetch settings from backend
-  const settingsRaw: any[] = useMemo(() => [], []);
-  const updateSettingMutation = async (data: any) => {
-    // TODO: Implement real setting update via server action
-    return Promise.resolve();
-  };
+  const [settingsRaw, setSettingsRaw] = useState<any[] | undefined>(undefined);
+
+  useEffect(() => {
+    let mounted = true;
+    async function load() {
+      const settings = await getSystemSettings();
+      if (!mounted) return;
+      setSettingsRaw(Object.entries(settings).map(([key, value]) => ({ key, value: String(value) })));
+    }
+    load();
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const settings = useMemo(() => {
     const base: Record<string, string> = {
@@ -57,9 +66,11 @@ export default function SystemSettings() {
     try {
       await Promise.all(
         Object.entries(localChanges).map(([key, value]) => 
-          updateSettingMutation({ key, value })
+          updateSystemSettings({ [key]: value === 'true' ? true : value === 'false' ? false : value } as any)
         )
       );
+      const settings = await getSystemSettings();
+      setSettingsRaw(Object.entries(settings).map(([key, value]) => ({ key, value: String(value) })));
       setLocalChanges({});
       toast({ title: 'Settings Saved' });
     } catch (e) {

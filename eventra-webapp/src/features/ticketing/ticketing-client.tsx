@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -11,19 +11,36 @@ import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { cn } from '@/core/utils/utils';
 import Link from 'next/link';
+import { getEvents } from '@/app/actions/events';
+import { getUserRegistrations, registerForEvent } from '@/app/actions/registrations';
+import { createCheckoutSession } from '@/app/actions/payments';
 
 export function TicketingClient() {
   const { user } = useAuth();
   const { toast } = useToast();
-  // TODO: wire to backend
-  const registerMutation = async (_args: any) => Promise.resolve();
-  const myTicketsRaw: any[] = [];
-  const events: any[] = [];
+  const [myTicketsRaw, setMyTicketsRaw] = useState<any[]>([]);
+  const [events, setEvents] = useState<any[]>([]);
   const userId = user?._id || user?.id;
 //   
   
   const [activeTab, setActiveTab] = useState('explore');
   const [bookingId, setBookingId] = useState<string | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+
+    async function load() {
+      const [eventRows, registrations] = await Promise.all([getEvents({ status: 'published', limit: 100 }), getUserRegistrations()]);
+      if (!mounted) return;
+      setEvents(eventRows as any[]);
+      setMyTicketsRaw((registrations || []).map((r: any) => ({ _id: r.ticket.id, ...r.ticket, event: r.event })));
+    }
+
+    load();
+    return () => {
+      mounted = false;
+    };
+  }, [userId]);
 
   const handleBook = async (eventId: string) => {
     if (!user) {
@@ -33,9 +50,20 @@ export function TicketingClient() {
     
     setBookingId(eventId);
     try {
-      await registerMutation({ eventId: eventId as any });
+      const event = events.find((e) => e.id === eventId || e._id === eventId);
+      if (event?.isPaid) {
+        const session = await createCheckoutSession({ eventId: eventId as any, origin: window.location.origin });
+        if (!session.success || !session.url) throw new Error(session.error || 'Checkout failed');
+        window.location.href = session.url;
+        return;
+      }
+
+      const result = await registerForEvent(eventId as any);
+      if (!result.success) throw new Error(result.message || 'Registration failed');
       toast({ title: "Booking Successful!", description: "Your ticket has been generated." });
       setActiveTab('my-tickets');
+      const registrations = await getUserRegistrations();
+      setMyTicketsRaw((registrations || []).map((r: any) => ({ _id: r.ticket.id, ...r.ticket, event: r.event })));
     } catch (error) {
       toast({ title: "Booking Failed", variant: "destructive" });
     } finally {
@@ -60,7 +88,7 @@ export function TicketingClient() {
         
         <TabsContent value="explore" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {events.filter((e: any) => e.status === 'published').map((event: any) => (
-            <Card key={event._id} className="bg-white/5 border-white/10 text-white overflow-hidden flex flex-col">
+            <Card key={event.id || event._id} className="bg-white/5 border-white/10 text-white overflow-hidden flex flex-col">
               <div className="h-40 bg-gradient-to-br from-cyan-900/40 to-purple-900/40 relative">
                 <Badge className="absolute top-2 right-2">{event.category}</Badge>
               </div>
@@ -75,8 +103,8 @@ export function TicketingClient() {
                 </div>
                 <div className="pt-4 border-t border-white/10 flex items-center justify-between">
                   <p className="text-2xl font-bold text-cyan-400">{event.isPaid ? `$${event.price}` : 'FREE'}</p>
-                  <Button onClick={() => handleBook(event._id)} disabled={bookingId === event._id}>
-                    {bookingId === event._id ? <Loader2 className="animate-spin" /> : <ShoppingCart className="mr-2" size={16} />}
+                  <Button onClick={() => handleBook(event.id || event._id)} disabled={bookingId === (event.id || event._id)}>
+                    {bookingId === (event.id || event._id) ? <Loader2 className="animate-spin" /> : <ShoppingCart className="mr-2" size={16} />}
                     Book Now
                   </Button>
                 </div>

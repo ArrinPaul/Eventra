@@ -279,3 +279,183 @@ export async function getPostComments(postId: string) {
     return [];
   }
 }
+
+export type CommunityListItem = {
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  memberCount: number;
+  isPrivate: boolean;
+  createdAt: Date;
+};
+
+export async function getCommunities(search?: string): Promise<CommunityListItem[]> {
+  try {
+    const whereCondition = search
+      ? sql`${communities.name} ILIKE ${`%${search}%`} OR ${communities.description} ILIKE ${`%${search}%`}`
+      : undefined;
+
+    const rows = await db
+      .select()
+      .from(communities)
+      .where(whereCondition)
+      .orderBy(desc(communities.createdAt));
+
+    return rows.map((c) => ({
+      id: c.id,
+      name: c.name,
+      description: c.description,
+      category: c.category,
+      memberCount: c.memberCount,
+      isPrivate: c.isPrivate,
+      createdAt: c.createdAt,
+    }));
+  } catch (error) {
+    console.error('getCommunities Error:', error);
+    return [];
+  }
+}
+
+export type CommunityDetail = {
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  memberCount: number;
+  isPrivate: boolean;
+  creatorId: string;
+  createdAt: Date;
+};
+
+export async function getCommunityById(communityId: string): Promise<CommunityDetail | null> {
+  try {
+    const community = await db.query.communities.findFirst({
+      where: eq(communities.id, communityId),
+    });
+
+    if (!community) return null;
+
+    return {
+      id: community.id,
+      name: community.name,
+      description: community.description,
+      category: community.category,
+      memberCount: community.memberCount,
+      isPrivate: community.isPrivate,
+      creatorId: community.creatorId,
+      createdAt: community.createdAt,
+    };
+  } catch (error) {
+    console.error('getCommunityById Error:', error);
+    return null;
+  }
+}
+
+export type CommunityMemberItem = {
+  id: string;
+  name: string | null;
+  image: string | null;
+  role: string;
+};
+
+export async function getCommunityMembers(communityId: string): Promise<CommunityMemberItem[]> {
+  try {
+    const rows = await db
+      .select({
+        id: users.id,
+        name: users.name,
+        image: users.image,
+        role: communityMembers.role,
+      })
+      .from(communityMembers)
+      .innerJoin(users, eq(communityMembers.userId, users.id))
+      .where(eq(communityMembers.communityId, communityId))
+      .orderBy(desc(communityMembers.joinedAt));
+
+    return rows;
+  } catch (error) {
+    console.error('getCommunityMembers Error:', error);
+    return [];
+  }
+}
+
+export async function getMyCommunityMembership(communityId: string): Promise<boolean> {
+  const session = await auth();
+  if (!session?.user?.id) return false;
+
+  try {
+    const row = await db.query.communityMembers.findFirst({
+      where: and(eq(communityMembers.communityId, communityId), eq(communityMembers.userId, session.user.id)),
+    });
+
+    return !!row;
+  } catch (error) {
+    console.error('getMyCommunityMembership Error:', error);
+    return false;
+  }
+}
+
+export async function updatePost(postId: string, content: string) {
+  const user = await validateRole(['attendee', 'organizer', 'admin', 'professional']);
+
+  try {
+    const existing = await db.query.posts.findFirst({ where: eq(posts.id, postId) });
+    if (!existing) return { success: false, error: 'Post not found' };
+
+    const isOwner = existing.authorId === user.id;
+    const isAdmin = (user as any).role === 'admin';
+    if (!isOwner && !isAdmin) return { success: false, error: 'Unauthorized' };
+
+    const [updated] = await db
+      .update(posts)
+      .set({ content: content.trim() })
+      .where(eq(posts.id, postId))
+      .returning();
+
+    revalidatePath('/feed');
+    return { success: true, post: updated };
+  } catch (error) {
+    console.error('updatePost Error:', error);
+    return { success: false, error: 'Failed to update post' };
+  }
+}
+
+export async function deletePost(postId: string) {
+  const user = await validateRole(['attendee', 'organizer', 'admin', 'professional']);
+
+  try {
+    const existing = await db.query.posts.findFirst({ where: eq(posts.id, postId) });
+    if (!existing) return { success: false, error: 'Post not found' };
+
+    const isOwner = existing.authorId === user.id;
+    const isAdmin = (user as any).role === 'admin';
+    if (!isOwner && !isAdmin) return { success: false, error: 'Unauthorized' };
+
+    await db.delete(posts).where(eq(posts.id, postId));
+    revalidatePath('/feed');
+    return { success: true };
+  } catch (error) {
+    console.error('deletePost Error:', error);
+    return { success: false, error: 'Failed to delete post' };
+  }
+}
+
+export async function flagPost(postId: string, reason: string) {
+  const user = await validateRole(['attendee', 'organizer', 'admin', 'professional']);
+
+  try {
+    await logActivity({
+      userId: user.id,
+      actorId: user.id,
+      type: 'comment',
+      targetId: postId,
+      content: `FLAGGED:${reason}`,
+      metadata: { reason },
+    });
+    return { success: true };
+  } catch (error) {
+    console.error('flagPost Error:', error);
+    return { success: false, error: 'Failed to flag post' };
+  }
+}

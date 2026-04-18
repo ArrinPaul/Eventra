@@ -288,7 +288,12 @@ export async function updateEventEmbedding(eventId: string) {
 
     const contentToEmbed = `${event.title} ${event.category} ${event.description}`;
     const embeddingResponse = await generateEmbedding(contentToEmbed);
-    const vectorData = embeddingResponse[0].embedding;
+    const vectorData = embeddingResponse?.[0]?.embedding;
+
+    if (!vectorData) {
+      console.warn('updateEventEmbedding skipped: embedding provider returned empty vector');
+      return;
+    }
 
     await db
       .update(events)
@@ -311,7 +316,13 @@ export async function getRecommendedEventsByVector(userId: string) {
     if (!user || !user.interests) return [];
 
     const userEmbeddingResponse = await generateEmbedding(user.interests);
-    const userVector = JSON.stringify(userEmbeddingResponse[0].embedding);
+    const userVectorRaw = userEmbeddingResponse?.[0]?.embedding;
+
+    if (!userVectorRaw) {
+      return [];
+    }
+
+    const userVector = JSON.stringify(userVectorRaw);
 
     const results = await db.execute(sql`
       SELECT id, title, category, image_url, start_date

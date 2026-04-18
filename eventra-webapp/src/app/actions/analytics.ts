@@ -3,7 +3,7 @@
 import { validateRole } from '@/lib/auth-utils';
 import { db } from '@/lib/db';
 import { events, tickets, ticketTiers } from '@/lib/db/schema';
-import { eq, sql, sum } from 'drizzle-orm';
+import { and, eq, gte, lt, sql, sum } from 'drizzle-orm';
 import { ai } from '@/lib/ai';
 
 export interface OrganizerAnalytics {
@@ -97,5 +97,133 @@ export async function getAIAnalyticsInsights(data: any) {
   } catch (error) {
     console.error('AI Insights Error:', error);
     return 'Unable to generate AI insights at this time.';
+  }
+}
+
+export interface OrganizerRevenueDashboard {
+  totalRevenue: number;
+  revenueTrend: number;
+  ticketTrend: number;
+  revenueByEvent: Array<{ title: string; revenue: number; ticketCount: number }>;
+  dailyRevenue: Array<{ date: string; amount: number }>;
+  revenueByTier: Record<string, number>;
+}
+
+export async function getOrganizerRevenueDashboard(): Promise<OrganizerRevenueDashboard> {
+  const user = await validateRole(['organizer', 'admin']);
+
+  try {
+    const now = new Date();
+    const currentStart = new Date(now);
+    currentStart.setDate(currentStart.getDate() - 30);
+
+    const previousStart = new Date(now);
+    previousStart.setDate(previousStart.getDate() - 60);
+
+    const currentTotals = await db
+      .select({
+        revenue: sql<string>`COALESCE(SUM(${tickets.price}::numeric), 0)`,
+        count: sql<string>`COUNT(${tickets.id})`,
+      })
+      .from(tickets)
+      .innerJoin(events, eq(tickets.eventId, events.id))
+      .where(
+        and(
+          eq(events.organizerId, user.id),
+          eq(tickets.status, 'confirmed'),
+          gte(tickets.purchaseDate, currentStart)
+        )
+      );
+
+    const previousTotals = await db
+      .select({
+        revenue: sql<string>`COALESCE(SUM(${tickets.price}::numeric), 0)`,
+        count: sql<string>`COUNT(${tickets.id})`,
+      })
+      .from(tickets)
+      .innerJoin(events, eq(tickets.eventId, events.id))
+      .where(
+        and(
+          eq(events.organizerId, user.id),
+          eq(tickets.status, 'confirmed'),
+          gte(tickets.purchaseDate, previousStart),
+          lt(tickets.purchaseDate, currentStart)
+        )
+      );
+
+    const currentRevenue = Number(currentTotals[0]?.revenue || 0);
+    const previousRevenue = Number(previousTotals[0]?.revenue || 0);
+    const currentTickets = Number(currentTotals[0]?.count || 0);
+    const previousTickets = Number(previousTotals[0]?.count || 0);
+
+    const revenueTrend = previousRevenue > 0 ? ((currentRevenue - previousRevenue) / previousRevenue) * 100 : currentRevenue > 0 ? 100 : 0;
+    const ticketTrend = previousTickets > 0 ? ((currentTickets - previousTickets) / previousTickets) * 100 : currentTickets > 0 ? 100 : 0;
+
+    const byEventRows = await db
+      .select({
+        title: events.title,
+        revenue: sql<string>`COALESCE(SUM(${tickets.price}::numeric), 0)`,
+        ticketCount: sql<string>`COUNT(${tickets.id})`,
+      })
+      .from(events)
+      .leftJoin(tickets, and(eq(tickets.eventId, events.id), eq(tickets.status, 'confirmed')))
+      .where(eq(events.organizerId, user.id))
+      .groupBy(events.id, events.title);
+
+    const dailyRows = await db
+      .select({
+        day: sql<string>`DATE(${tickets.purchaseDate})::text`,
+        amount: sql<string>`COALESCE(SUM(${tickets.price}::numeric), 0)`,
+      })
+      .from(tickets)
+      .innerJoin(events, eq(tickets.eventId, events.id))
+      .where(
+        and(
+          eq(events.organizerId, user.id),
+          eq(tickets.status, 'confirmed'),
+          gte(tickets.purchaseDate, currentStart)
+        )
+      )
+      .groupBy(sql`DATE(${tickets.purchaseDate})`)
+      .orderBy(sql`DATE(${tickets.purchaseDate})`);
+
+    const tierRows = await db
+      .select({
+        tierName: ticketTiers.name,
+        amount: sql<string>`COALESCE(SUM(${tickets.price}::numeric), 0)`,
+      })
+      .from(tickets)
+      .innerJoin(events, eq(tickets.eventId, events.id))
+      .leftJoin(ticketTiers, eq(tickets.tierId, ticketTiers.id))
+      .where(and(eq(events.organizerId, user.id), eq(tickets.status, 'confirmed')))
+      .groupBy(ticketTiers.name);
+
+    return {
+      totalRevenue: currentRevenue,
+      revenueTrend,
+      ticketTrend,
+      revenueByEvent: byEventRows.map((row) => ({
+        title: row.title,
+        revenue: Number(row.revenue || 0),
+        ticketCount: Number(row.ticketCount || 0),
+      })),
+      dailyRevenue: dailyRows.map((row) => ({
+        date: row.day,
+        amount: Number(row.amount || 0),
+      })),
+      revenueByTier: Object.fromEntries(
+        tierRows.map((row) => [row.tierName || 'General', Number(row.amount || 0)])
+      ),
+    };
+  } catch (error) {
+    console.error('getOrganizerRevenueDashboard Error:', error);
+    return {
+      totalRevenue: 0,
+      revenueTrend: 0,
+      ticketTrend: 0,
+      revenueByEvent: [],
+      dailyRevenue: [],
+      revenueByTier: {},
+    };
   }
 }

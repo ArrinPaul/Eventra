@@ -11,7 +11,15 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
+function getMetadataValue(value: unknown): string | null {
+  return typeof value === 'string' && value.length > 0 ? value : null;
+}
+
 export async function POST(req: Request) {
+  if (!endpointSecret) {
+    return NextResponse.json({ error: 'Stripe webhook secret is not configured' }, { status: 500 });
+  }
+
   const body = await req.text();
   const sig = req.headers.get('stripe-signature') as string;
 
@@ -26,20 +34,21 @@ export async function POST(req: Request) {
   switch (event.type) {
     case 'checkout.session.completed': {
       const session = event.data.object as Stripe.Checkout.Session;
-      const { userId, eventId, tierId } = session.metadata || {};
+      const userId = getMetadataValue(session.metadata?.userId);
+      const eventId = getMetadataValue(session.metadata?.eventId);
+      const tierId = getMetadataValue(session.metadata?.tierId);
 
       if (!userId || !eventId) {
         return NextResponse.json({ error: 'Missing metadata' }, { status: 400 });
       }
 
       try {
-        // Idempotency: Check if a ticket already exists for this payment
+        // Idempotency token derived from Stripe checkout session
+        const idempotencyTicketNumber = `TKT-STRIPE-${session.id}`;
+
+        // Idempotency: Check if this checkout session was already fulfilled
         const existingTicket = await db.query.tickets.findFirst({
-          where: and(
-            eq(tickets.eventId, eventId),
-            eq(tickets.userId, userId),
-            eq(tickets.status, 'confirmed')
-          )
+          where: eq(tickets.ticketNumber, idempotencyTicketNumber)
         });
 
         if (existingTicket) {
@@ -48,16 +57,14 @@ export async function POST(req: Request) {
         }
 
         await db.transaction(async (tx) => {
-          const ticketNumber = `TKT-${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
-
           await tx.insert(tickets).values({
             eventId,
             userId,
-            tierId: tierId || null,
-            ticketNumber,
+            tierId,
+            ticketNumber: idempotencyTicketNumber,
             status: 'confirmed',
             price: (session.amount_total! / 100).toString(),
-            qrCode: generateQrPayload(ticketNumber),
+            qrCode: generateQrPayload(idempotencyTicketNumber),
           });
 
           await tx
@@ -81,19 +88,17 @@ export async function POST(req: Request) {
 
     case 'charge.refunded': {
       const charge = event.data.object as Stripe.Charge;
-      const paymentIntentId = charge.payment_intent as string;
+      const eventId = getMetadataValue(charge.metadata?.eventId);
+      const userId = getMetadataValue(charge.metadata?.userId);
 
       try {
-        // Find and update tickets associated with this charge via metadata
-        // In a real setup, we'd store paymentIntentId on the ticket.
-        // For now, use the session metadata pattern.
-        if (charge.metadata?.userId && charge.metadata?.eventId) {
+        if (eventId && userId) {
           const [refundedTicket] = await db
             .update(tickets)
             .set({ status: 'refunded', updatedAt: new Date() })
             .where(and(
-              eq(tickets.eventId, charge.metadata.eventId),
-              eq(tickets.userId, charge.metadata.userId),
+              eq(tickets.eventId, eventId),
+              eq(tickets.userId, userId),
               eq(tickets.status, 'confirmed')
             ))
             .returning();
@@ -103,11 +108,11 @@ export async function POST(req: Request) {
             await db
               .update(events)
               .set({ registeredCount: sql`${events.registeredCount} - 1` })
-              .where(eq(events.id, charge.metadata.eventId));
+              .where(eq(events.id, eventId));
 
             // Notify user
             await db.insert(notifications).values({
-              userId: charge.metadata.userId,
+              userId,
               title: 'Refund Processed',
               message: `Your ticket has been refunded. The amount will appear in your account within 5-10 business days.`,
               type: 'info',
@@ -122,20 +127,23 @@ export async function POST(req: Request) {
 
     case 'charge.dispute.created': {
       const dispute = event.data.object as Stripe.Dispute;
+      const eventId = getMetadataValue(dispute.metadata?.eventId);
+      const userId = getMetadataValue(dispute.metadata?.userId);
+
       try {
         // Flag the associated ticket and notify the organizer
-        if (dispute.metadata?.userId && dispute.metadata?.eventId) {
+        if (eventId && userId) {
           await db
             .update(tickets)
             .set({ status: 'refunded', updatedAt: new Date() })
             .where(and(
-              eq(tickets.eventId, dispute.metadata.eventId),
-              eq(tickets.userId, dispute.metadata.userId)
+              eq(tickets.eventId, eventId),
+              eq(tickets.userId, userId)
             ));
 
           // Notify the event organizer about the dispute
           const event_record = await db.query.events.findFirst({
-            where: eq(events.id, dispute.metadata.eventId)
+            where: eq(events.id, eventId)
           });
 
           if (event_record) {

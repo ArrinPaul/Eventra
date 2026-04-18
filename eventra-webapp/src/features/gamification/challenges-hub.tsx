@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -8,17 +8,35 @@ import { Badge } from '@/components/ui/badge';
 import { Target, Trophy, Calendar, CheckCircle2, Clock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { Id } from '@/types';
+import { getChallenges, getUserChallenges, joinChallenge } from '@/app/actions/challenges';
 
 export function ChallengesHub() {
   const { toast } = useToast();
-  // TODO: wire to backend
-  const challenges: any[] = [];
-  const userChallenges: any[] = [];
-  const joinChallenge = async (_args: any) => Promise.resolve();
+  const [challenges, setChallenges] = useState<any[] | null>(null);
+  const [userChallenges, setUserChallenges] = useState<any[]>([]);
+
+  useEffect(() => {
+    let mounted = true;
+
+    async function load() {
+      const [challengeRows, joinedRows] = await Promise.all([getChallenges(), getUserChallenges()]);
+      if (!mounted) return;
+      setChallenges(challengeRows as any[]);
+      setUserChallenges(joinedRows as any[]);
+    }
+
+    load();
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const handleJoinChallenge = async (challengeId: Id<'challenges'>) => {
     try {
-      await joinChallenge({ challengeId });
+      const result = await joinChallenge(challengeId as any);
+      if (!result.success) throw new Error(result.error || 'Failed to join challenge');
+      const joinedRows = await getUserChallenges();
+      setUserChallenges(joinedRows as any[]);
       toast({
         title: 'Challenge Joined!',
         description: 'Track your progress on your gamification page.',

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -8,22 +8,45 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { Check, X, ShieldAlert, Loader2, Clock } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { listModerationEvents, moderateEventStatus } from '@/app/actions/admin';
 
 export default function EventModeration() {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('pending');
   const pageSize = 10;
   
-  const events: any[] = []; // Placeholder for events
+  const [events, setEvents] = useState<any[]>([]);
   const paginationStatus = 'Exhausted';
   const loadMore = (num: number) => {
     // TODO: Implement pagination via server action
   };
-  const moderateMutation = async (args: any) => {};
+  const moderateMutation = async (args: any) => moderateEventStatus(args.eventId, args.action);
+
+  useEffect(() => {
+    let mounted = true;
+
+    async function load() {
+      const rows = await listModerationEvents(activeTab === 'pending' ? 'draft' : 'all');
+      if (!mounted) return;
+      setEvents(rows.map((e) => ({ ...e, _id: e.id })));
+    }
+
+    load();
+    return () => {
+      mounted = false;
+    };
+  }, [activeTab]);
 
   const handleModerate = async (eventId: string, action: 'approve' | 'reject' | 'suspend') => {
     try {
       await moderateMutation({ eventId, action });
+      setEvents((prev) =>
+        prev.map((event) =>
+          event._id === eventId
+            ? { ...event, status: action === 'approve' ? 'published' : action === 'reject' ? 'cancelled' : 'draft' }
+            : event
+        )
+      );
       toast({ title: `Event ${action}ed` });
     } catch (e) {
       toast({ title: 'Moderation failed', variant: 'destructive' });

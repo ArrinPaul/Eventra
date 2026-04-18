@@ -27,7 +27,10 @@ export async function getMatches() {
     if (!user.embedding && (user.interests || user.bio)) {
       const content = `${user.interests || ''} ${user.bio || ''} ${user.role}`;
       const embedding = await generateEmbedding(content);
-      const vectorData = embedding[0].embedding;
+      const vectorData = embedding?.[0]?.embedding;
+      if (!vectorData) {
+        return [];
+      }
       await db.update(users).set({ embedding: vectorData }).where(eq(users.id, user.id));
       user.embedding = vectorData;
     }
