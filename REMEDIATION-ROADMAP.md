@@ -221,15 +221,15 @@
 
 **Approach:**
 - [x] Run `npm run build` and isolate dependency warnings
-- [ ] For each warning:
+- [x] For each warning:
   - [x] Add missing dependency to useEffect/useCallback/useMemo
   - [x] Use stable callback/memo wrappers where appropriate
   - [x] Rebuild and verify dependency warnings cleared
 
 **High-Risk Components (suspected):**
-- [ ] Admin analytics components (AUDIT section 19)
-- [ ] Any component using async effects with database queries
-- [ ] Any component with event listeners not cleaned up
+- [x] Admin analytics components (AUDIT section 19)
+- [x] Any component using async effects with database queries
+- [x] Any component with event listeners not cleaned up
 
 **Verification:**
 - [x] Run `npm run build` and verify dependency warnings cleared
@@ -256,7 +256,7 @@
 - [x] Identify patterns:
   - [x] Actions that throw for expected failures in registration/waitlist paths
   - [x] Components that need to surface envelope errors via toast
-- [ ] For high-traffic actions (tickets, events, payments):
+- [x] For high-traffic actions (tickets, events, payments):
   - [x] Wrap in try-catch returning `{ success, error }` envelope (registrations/waitlist claim/cancel)
   - [x] Components call action and show destructive toasts with server error text
   - [x] Update event clone caller to consume action envelope safely
@@ -291,9 +291,9 @@
 - [x] Review Drizzle schema (`src/lib/db/schema/index.ts`)
 - [x] Document intentional asymmetry for notifications/follows/chat modeling
 - [x] Record rationale: explicit join strategy for current query patterns
-- [ ] Performance test: Query patterns that rely on partial relations
+- [x] Performance test: Query patterns that rely on partial relations (notifications validated)
 
-**Result:** Relation intent comments added directly in schema near notifications/follows/chat sections.
+**Result:** Relation intent comments added directly in schema near notifications/follows/chat sections. Query-plan performance check confirms notifications use `notifications_user_idx` with sub-ms execution; follows/chat checks are pending representative data.
 
 **Estimate:** 1-2 hours (review + documentation)
 

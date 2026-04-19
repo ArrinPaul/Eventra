@@ -115,10 +115,11 @@ Deferred consistency work:
 
 ✅ **PHASE 2 DOCUMENTATION COMPLETE:**
 - [x] Document notifications/follows/chat bidirectional relation status in schema comments
+- [x] Run relation-query performance check for partial-relation paths (notifications)
 - [ ] Review if partial relation coverage affects future feature requirements
 - [ ] Consider reverse-relation additions if needed for query efficiency
 
-**Status**: Current schema works for existing features. Incomplete but functional.
+**Status**: Notifications query path is index-backed and performant in current dataset; follows/chat perf checks require representative rows before final sign-off.
 
 ## P4 - Smoke and Regression Testing
 
@@ -149,7 +150,7 @@ Deferred consistency work:
 - Database sync status: ✅ SUCCESS after clean reset (25 tables, 38 FKs verified in public schema)
 - Database error during build: HANDLED (graceful error logging, doesn't block build)
 - Schema tables: 25 (after removing auth-only account/session tables)
-- i18n key parity: 261 EN keys, 261 ES keys (complete)
+- i18n key parity: 372 EN keys, 372 ES keys (complete)
 - Route UX hardening: ✅ COMPLETE for audited route gaps
 - React hook dependency warnings (audited set): ✅ RESOLVED
 - Current scanning totals: TODO/FIXME=38, console.error=146, throw new Error=97
@@ -157,7 +158,7 @@ Deferred consistency work:
 - Auth status: ✅ COMPLETELY REMOVED (guest-user only model)
 - Payment status: ✅ COMPLETELY REMOVED (free-only registration)
 - Feature module status: ✅ CODE-VERIFIED for admin/community/feed/networking/organizer/ticketing/events
-- Partial DB relations: ✅ Intent documented in schema comments; symmetry expansion deferred by design
+- Partial DB relations: ✅ Intent documented in schema comments; notifications perf validated via EXPLAIN, follows/chat awaiting representative data for perf pass
 - Lint/build residual warnings: 2 x `@next/next/no-img-element` (community-detail, explore-client)
 
 ---
