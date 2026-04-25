@@ -1,6 +1,6 @@
 'use client';
 // 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -8,13 +8,16 @@ import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, MapPin, Clock } fr
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, isToday } from 'date-fns';
 import Link from 'next/link';
 import type { EventraEvent } from '@/types';
+import { getEvents } from '@/app/actions/events';
 
 export default function CalendarPage() {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  
-  // TODO: Fetch from backend
-  const events: any[] = useMemo(() => [], []);
+  const [events, setEvents] = useState<any[]>([]);
+
+  useEffect(() => {
+    getEvents({ status: 'published' }).then((data) => setEvents(data));
+  }, []);
 
   const days = useMemo(() => {
     const start = startOfMonth(currentMonth);

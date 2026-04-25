@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
@@ -13,6 +13,7 @@ import UserManagement from './user-management';
 import EventModeration from './event-moderation';
 import SystemSettings from './system-settings';
 import AdminAnalyticsOverview from './admin-analytics-overview';
+import { listAdminUsers } from '@/app/actions/admin';
 
 function downloadCSV(data: any[], filename: string) {
     const csvRows = [];
@@ -44,8 +45,13 @@ export default function AdminDashboardClient() {
     const [filterRole, setFilterRole] = useState<UserRole | 'all'>('all');
     const [searchTerm, setSearchTerm] = useState('');
     
-    // TODO: Fetch users from backend
-    const allUsersRaw: any[] = [];
+    const [allUsersRaw, setAllUsersRaw] = useState<any[] | undefined>(undefined);
+
+    useEffect(() => {
+        listAdminUsers({ limit: 200 }).then((rows) => {
+            setAllUsersRaw(rows);
+        });
+    }, []);
 
     const loading = allUsersRaw === undefined;
     const users = (allUsersRaw || []).map((u: any) => ({ ...u, id: u._id }));

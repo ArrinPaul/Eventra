@@ -214,6 +214,18 @@ export async function getUserBadges(userId: string) {
 }
 
 /**
+ * Get all available badge definitions
+ */
+export async function getAllBadges() {
+  try {
+    return await db.select().from(badges);
+  } catch (error) {
+    console.error('getAllBadges Error:', error);
+    return [];
+  }
+}
+
+/**
  * Get the global leaderboard
  */
 export async function getLeaderboard(limit = 10) {

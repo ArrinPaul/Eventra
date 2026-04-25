@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -9,18 +9,26 @@ import { useAuth } from '@/hooks/use-auth';
 import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/core/utils/utils';
 import { ChallengesHub } from './challenges-hub';
+import { getUserBadges, getAllBadges, getUserStats } from '@/app/actions/gamification';
 
 export function GamificationClient() {
   const { user } = useAuth();
   const userId = user?._id || user?.id;
 
-  // TODO: wire to backend
-  const userBadges: any[] = [];
-  const pointsHistory: any[] = [];
-  const badgeDefinitions: any[] = [];
+  const [userBadges, setUserBadges] = useState<any[]>([]);
+  const [badgeDefinitions, setBadgeDefinitions] = useState<any[]>([]);
+  const [pointsHistory, setPointsHistory] = useState<any[]>([]);
+  const [stats, setStats] = useState<any>(null);
   const [activeTab, setActiveTab] = useState('overview');
 
-  const earnedBadgeIds = new Set(userBadges.map((ub: any) => ub._id));
+  useEffect(() => {
+    if (!userId) return;
+    getUserBadges(userId).then((data) => setUserBadges(data.map((d) => ({ ...d.badge, awardedAt: d.awardedAt }))));
+    getAllBadges().then(setBadgeDefinitions);
+    getUserStats(userId).then(setStats);
+  }, [userId]);
+
+  const earnedBadgeIds = new Set(userBadges.map((ub: any) => ub.id));
 
   return (
     <div className="container mx-auto px-4 py-6 text-white space-y-8">
@@ -62,7 +70,7 @@ export function GamificationClient() {
               <CardContent>
                 <div className="space-y-4">
                   {pointsHistory.slice(0, 5).map((entry: any) => (
-                    <div key={entry._id} className="flex items-center justify-between p-3 bg-white/5 rounded-lg border border-white/10">
+                    <div key={entry.id} className="flex items-center justify-between p-3 bg-white/5 rounded-lg border border-white/10">
                       <div className="flex items-center gap-3">
                         <div className="p-2 bg-cyan-500/10 rounded-full"><Zap size={16} className="text-cyan-400" /></div>
                         <div>
@@ -104,9 +112,9 @@ export function GamificationClient() {
         <TabsContent value="badges">
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
             {badgeDefinitions.map((badge: any) => {
-              const isEarned = userBadges.some((ub: any) => ub._id === badge._id);
+              const isEarned = earnedBadgeIds.has(badge.id);
               return (
-                <Card key={badge._id} className={cn("bg-white/5 border-white/10 text-white transition-all hover:scale-105", !isEarned && "opacity-40 grayscale")}>
+                <Card key={badge.id} className={cn("bg-white/5 border-white/10 text-white transition-all hover:scale-105", !isEarned && "opacity-40 grayscale")}>
                   <CardContent className="p-6 flex flex-col items-center text-center gap-3">
                     <div className="text-4xl">{badge.icon}</div>
                     <div>
@@ -127,7 +135,7 @@ export function GamificationClient() {
             <CardContent className="p-0">
               <div className="divide-y divide-white/10">
                 {pointsHistory.map((entry: any) => (
-                  <div key={entry._id} className="p-4 flex items-center justify-between">
+                  <div key={entry.id} className="p-4 flex items-center justify-between">
                     <div>
                       <p className="font-medium">{entry.reason}</p>
                       <p className="text-xs text-gray-500">{new Date(entry.createdAt).toLocaleString()}</p>

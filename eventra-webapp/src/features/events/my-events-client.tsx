@@ -1,6 +1,6 @@
 'use client';
 // 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { EventraEvent } from '@/types';
 import { MyEventCard } from '@/features/events/my-event-card';
@@ -24,6 +24,7 @@ import {
 import Link from 'next/link';
 import { cn } from '@/core/utils/utils';
 import { format, isPast, isFuture, isToday } from 'date-fns';
+import { getUserRegistrations } from '@/app/actions/registrations';
 
 const getEventDate = (event: EventraEvent): Date => {
   const dateValue = event.startDate || event.date;
@@ -34,9 +35,15 @@ const getEventDate = (event: EventraEvent): Date => {
 export default function MyEventsClient() {
   const { user, updateUser } = useAuth();
   const { toast } = useToast();
-  // TODO: wire to backend
-  const allEventsRaw: any[] = [];
-  const myRegistrations: any[] = [];
+  const [allEventsRaw, setAllEventsRaw] = useState<any[] | undefined>(undefined);
+  const [myRegistrations, setMyRegistrations] = useState<any[]>([]);
+
+  useEffect(() => {
+    getUserRegistrations().then((regs) => {
+      setMyRegistrations(regs.map((r) => r.ticket));
+      setAllEventsRaw(regs.map((r) => r.event));
+    });
+  }, []);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('registered');

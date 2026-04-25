@@ -1,28 +1,33 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import Image from "next/image";
 import { Check, QrCode } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
+import { QRCodeSVG } from 'qrcode.react';
+import { getUserRegistrations } from '@/app/actions/registrations';
 
 
 export default function CheckInPage() {
     const { user } = useAuth();
     const [isScannerOpen, setIsScannerOpen] = useState(false);
     const { toast } = useToast();
+    const [myTickets, setMyTickets] = useState<any[]>([]);
+
+    useEffect(() => {
+        getUserRegistrations().then((regs) => {
+            setMyTickets(regs.map((r) => ({ ...r.ticket, event: r.event })));
+        });
+    }, []);
     
     if (!user) return null;
 
     const isOrganizer = user?.role === 'organizer' || user?.role === 'admin';
     
-    // TODO: Fetch tickets and QR URL properly
-    const myTickets: any[] = [];
     const firstTicket = myTickets[0];
-    const qrData = firstTicket?.ticketNumber ?? user?.id ?? 'NO-TICKET';
-    const qrUrl = '/grid.svg'; // Placeholder
+    const qrData = firstTicket?.qrCode ?? firstTicket?.ticketNumber ?? user?.id ?? 'NO-TICKET';
     
     const handleScanSuccess = (scannedData: any) => {
         setIsScannerOpen(false);
@@ -81,11 +86,9 @@ export default function CheckInPage() {
                     </CardHeader>
                     <CardContent className="flex flex-col items-center gap-6">
                          <div className="p-4 bg-white rounded-lg shadow-inner">
-                            <Image
-                                src={qrUrl}
-                                alt="Registration QR Code"
-                                width={300}
-                                height={300}
+                            <QRCodeSVG
+                                value={qrData}
+                                size={300}
                                 className="rounded-md"
                             />
                         </div>

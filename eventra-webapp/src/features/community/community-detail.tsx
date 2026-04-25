@@ -226,7 +226,7 @@ export function CommunityDetailClient({ communityId }: { communityId: string }) 
                         <p className="text-gray-200 whitespace-pre-wrap">{p.content}</p>
                         {p.imageUrl && (
                           <div className="mt-4 rounded-lg overflow-hidden border border-white/10">
-                            <img src={p.imageUrl} alt="Post content" className="w-full h-auto object-cover max-h-[400px]" />
+                            <Image src={p.imageUrl} alt="Post content" width={800} height={400} className="w-full h-auto object-cover max-h-[400px]" />
                           </div>
                         )}
                         

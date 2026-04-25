@@ -7,11 +7,12 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Gift, Copy, Check, Users, Loader2, ArrowRight } from 'lucide-react';
 import { cn } from '@/core/utils/utils';
+import { useAuth } from '@/hooks/use-auth';
 
 export function ReferralSystem() {
   const { toast } = useToast();
-  // TODO: Fetch from backend
-  const [user, setUser] = useState<any | null>(null);
+  const { user: authUser } = useAuth();
+  const [user, setUser] = useState<any>(authUser ?? null);
   const generateCode = async () => Promise.resolve();
   const redeemCode = async (_args: any) => Promise.resolve();
 

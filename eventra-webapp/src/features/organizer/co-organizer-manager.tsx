@@ -1,6 +1,6 @@
 'use client';
 // 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,6 +10,8 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Plus, UserMinus, UserPlus, Mail, ShieldCheck } from 'lucide-react';
 import type { Id } from '@/types';
+import { searchUsers, getUserById } from '@/app/actions/users';
+import { updateEvent } from '@/app/actions/events';
 
 interface CoOrganizerManagerProps {
   eventId: Id<"events">;
@@ -19,49 +21,53 @@ interface CoOrganizerManagerProps {
 
 export function CoOrganizerManager({ eventId, organizerId, coOrganizerIds = [] }: CoOrganizerManagerProps) {
   const { toast } = useToast();
-  // TODO: wire to backend
-  const allUsers: any[] = [];
-  const coOrganizers = allUsers.filter((u: any) => coOrganizerIds.includes(u._id));
-  const updateEventMutation = async (_args: any) => Promise.resolve();
+  const [coOrganizers, setCoOrganizers] = useState<any[]>([]);
+  const [mainOrganizer, setMainOrganizer] = useState<any>(null);
   const [email, setEmail] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
-// 
-  
-  // To show co-organizer details, we fetch them
-  // In a real app, a dedicated query for multiple IDs is better
-//   const coOrganizers = allUsers.filter((u: any) => coOrganizerIds.includes(u._id));
-  const mainOrganizer = allUsers.find((u: any) => u._id === organizerId);
+  const [currentCoOrgIds, setCurrentCoOrgIds] = useState<Id<"users">[]>(coOrganizerIds);
+
+  useEffect(() => {
+    getUserById(organizerId).then(setMainOrganizer);
+  }, [organizerId]);
+
+  useEffect(() => {
+    if (currentCoOrgIds.length === 0) {
+      setCoOrganizers([]);
+      return;
+    }
+    Promise.all(currentCoOrgIds.map((id) => getUserById(id))).then((users) => {
+      setCoOrganizers(users.filter(Boolean));
+    });
+  }, [currentCoOrgIds]);
 
   const handleAddByEmail = async () => {
     if (!email.trim()) return;
     setIsSearching(true);
     try {
-      // Find user by email
-      const targetUser = allUsers.find((u: any) => u.email === email.trim());
+      const results = await searchUsers(email.trim());
+      const targetUser = results.find((u: any) => u.email === email.trim());
       
       if (!targetUser) {
         toast({ title: "User not found", description: "No user found with this email address.", variant: "destructive" });
         return;
       }
 
-      if (targetUser._id === organizerId) {
+      if (targetUser.id === organizerId) {
         toast({ title: "Invalid action", description: "You are already the main organizer." });
         return;
       }
 
-      if (coOrganizerIds.includes(targetUser._id)) {
+      if (currentCoOrgIds.includes(targetUser.id as any)) {
         toast({ title: "Already added", description: "This user is already a co-organizer." });
         return;
       }
 
       setIsUpdating(true);
-      await updateEventMutation({
-        id: eventId,
-        updates: {
-          coOrganizerIds: [...coOrganizerIds, targetUser._id]
-        }
-      });
+      const newIds = [...currentCoOrgIds, targetUser.id as any];
+      await updateEvent(eventId, { coOrganizerIds: newIds });
+      setCurrentCoOrgIds(newIds);
 
       toast({ title: "Co-organizer added", description: `${targetUser.name} can now manage this event.` });
       setEmail('');
@@ -77,12 +83,9 @@ export function CoOrganizerManager({ eventId, organizerId, coOrganizerIds = [] }
   const handleRemove = async (userId: Id<"users">) => {
     setIsUpdating(true);
     try {
-      await updateEventMutation({
-        id: eventId,
-        updates: {
-          coOrganizerIds: coOrganizerIds.filter(id => id !== userId)
-        }
-      });
+      const newIds = currentCoOrgIds.filter(id => id !== userId);
+      await updateEvent(eventId, { coOrganizerIds: newIds });
+      setCurrentCoOrgIds(newIds);
       toast({ title: "Co-organizer removed" });
     } catch (error) {
       toast({ title: "Error", description: "Failed to remove co-organizer.", variant: "destructive" });
@@ -129,7 +132,7 @@ export function CoOrganizerManager({ eventId, organizerId, coOrganizerIds = [] }
               </p>
             ) : (
               coOrganizers.map((co: any) => (
-                <div key={co._id} className="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/5 group">
+                <div key={co.id} className="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/5 group">
                   <Avatar className="h-10 w-10">
                     <AvatarImage src={co.image} />
                     <AvatarFallback className="bg-purple-500/10 text-purple-500">{co.name?.charAt(0)}</AvatarFallback>
@@ -142,7 +145,7 @@ export function CoOrganizerManager({ eventId, organizerId, coOrganizerIds = [] }
                     variant="ghost" 
                     size="icon" 
                     className="ml-auto text-gray-500 hover:text-red-400 hover:bg-red-400/10"
-                    onClick={() => handleRemove(co._id)}
+                    onClick={() => handleRemove(co.id)}
                     disabled={isUpdating}
                   >
                     <UserMinus className="h-4 w-4" />

@@ -170,3 +170,17 @@ export async function removeConnection(otherUserId: string) {
     return { success: false, error: 'Failed to remove connection' };
   }
 }
+
+export async function getFollowStatus(targetUserId: string): Promise<{ isFollowing: boolean }> {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) return { isFollowing: false };
+    const existing = await db.query.follows.findFirst({
+      where: and(eq(follows.followerId, session.user.id), eq(follows.followingId, targetUserId)),
+    });
+    return { isFollowing: !!existing };
+  } catch (error) {
+    console.error('getFollowStatus Error:', error);
+    return { isFollowing: false };
+  }
+}

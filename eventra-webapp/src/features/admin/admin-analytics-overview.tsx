@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
@@ -26,12 +26,12 @@ import {
   PieChart,
   Pie
 } from 'recharts';
+import { getAdminAnalytics } from '@/app/actions/admin';
 
 export default function AdminAnalyticsOverview() {
   const [activeTab, setActiveTab] = useState('overview');
-  const [loading] = useState(false);
+  const [loading, setLoading] = useState(true);
   
-  // TODO: Fetch from backend - initialized with default values to prevent null reference errors
   const [stats, setStats] = useState({
     totalUsers: 0,
     activeEvents: 0,
@@ -45,15 +45,29 @@ export default function AdminAnalyticsOverview() {
       messages: 0,
       badgesEarned: 0,
     },
-    growthData: [],
+    growthData: [] as any[],
     usersByRole: {} as Record<string, number>,
     eventsByStatus: {} as Record<string, number>,
-    engagementTrends: [],
+    engagementTrends: [] as any[],
     demographics: {
       byRole: {} as Record<string, number>,
       byCountry: {} as Record<string, number>,
     },
   });
+
+  useEffect(() => {
+    getAdminAnalytics().then((data) => {
+      setStats(data.stats);
+      setDetailed((prev) => ({
+        ...prev,
+        engagement: data.detailed.engagement,
+        usersByRole: data.detailed.usersByRole,
+        eventsByStatus: data.detailed.eventsByStatus,
+        demographics: { byRole: data.detailed.usersByRole, byCountry: {} },
+      }));
+      setLoading(false);
+    });
+  }, []);
   
   if (loading) {
     return <div className="p-20 text-center text-gray-500"><RefreshCw className="animate-spin h-8 w-8 mx-auto mb-4" /> Loading platform analytics...</div>;

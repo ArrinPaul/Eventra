@@ -2,8 +2,9 @@
 import { Button } from '@/components/ui/button';
 import type { Id } from '@/types';
 import { UserPlus, UserMinus, Loader2 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { getFollowStatus, sendConnectionRequest, removeConnection } from '@/app/actions/networking';
 
 interface FollowButtonProps {
   userId: Id<"users">;
@@ -13,26 +14,26 @@ interface FollowButtonProps {
 export function FollowButton({ userId, className }: FollowButtonProps) {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [statusLoaded, setStatusLoaded] = useState(false);
 
-  // Stub declarations for missing implementations
-  const stats = { followers: 0, following: 0, isFollowing: false };
-  const follow = async ({ followingId }: { followingId: Id<"users"> }) => {
-    // TODO: Implement actual follow logic
-    return Promise.resolve();
-  };
-  const unfollow = async ({ followingId }: { followingId: Id<"users"> }) => {
-    // TODO: Implement actual unfollow logic
-    return Promise.resolve();
-  };
+  useEffect(() => {
+    getFollowStatus(userId).then((data) => {
+      setIsFollowing(data.isFollowing);
+      setStatusLoaded(true);
+    });
+  }, [userId]);
 
   const handleToggle = async () => {
     setLoading(true);
     try {
-      if (stats?.isFollowing) {
-        await unfollow({ followingId: userId });
+      if (isFollowing) {
+        await removeConnection(userId);
+        setIsFollowing(false);
         toast({ title: 'Unfollowed' });
       } else {
-        await follow({ followingId: userId });
+        await sendConnectionRequest(userId);
+        setIsFollowing(true);
         toast({ title: 'Following!' });
       }
     } catch (error: any) {
@@ -42,11 +43,11 @@ export function FollowButton({ userId, className }: FollowButtonProps) {
     }
   };
 
-  if (stats === undefined) return <Button variant="outline" size="sm" disabled className={className}><Loader2 className="h-4 w-4 animate-spin" /></Button>;
+  if (!statusLoaded) return <Button variant="outline" size="sm" disabled className={className}><Loader2 className="h-4 w-4 animate-spin" /></Button>;
 
   return (
     <Button 
-      variant={stats.isFollowing ? "outline" : "default"} 
+      variant={isFollowing ? "outline" : "default"} 
       size="sm" 
       onClick={handleToggle}
       disabled={loading}
@@ -54,7 +55,7 @@ export function FollowButton({ userId, className }: FollowButtonProps) {
     >
       {loading ? (
         <Loader2 className="h-4 w-4 animate-spin" />
-      ) : stats.isFollowing ? (
+      ) : isFollowing ? (
         <><UserMinus className="h-4 w-4 mr-2" /> Unfollow</>
       ) : (
         <><UserPlus className="h-4 w-4 mr-2" /> Follow</>
@@ -62,5 +63,4 @@ export function FollowButton({ userId, className }: FollowButtonProps) {
     </Button>
   );
 }
-
 

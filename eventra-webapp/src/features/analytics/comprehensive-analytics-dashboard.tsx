@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -18,10 +18,11 @@ import {
 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { AIInsightsWidget } from './ai-insights-widget';
+import { getPlatformStats } from '@/app/actions/admin';
 
 export default function AnalyticsDashboard() {
   const [selectedTab, setSelectedTab] = useState('overview');
-  // TODO: Fetch from backend
+  const [loading, setLoading] = useState(true);
   const [analytics, setAnalytics] = useState({
     totalEvents: 0,
     activeEvents: 0,
@@ -35,7 +36,14 @@ export default function AnalyticsDashboard() {
     averageRating: 0,
   });
 
-  if (!analytics) {
+  useEffect(() => {
+    getPlatformStats().then((data) => {
+      setAnalytics((prev) => ({ ...prev, ...data }));
+      setLoading(false);
+    });
+  }, []);
+
+  if (loading) {
     return (
       <div className="flex items-center justify-center py-20 text-white">
         <Loader2 className="h-8 w-8 animate-spin text-cyan-500" />

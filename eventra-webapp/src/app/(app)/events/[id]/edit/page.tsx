@@ -7,7 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { use } from 'react';
+import { use, useEffect, useState } from 'react';
 import { CoOrganizerManager } from '@/features/organizer/co-organizer-manager';
 import { AnnouncementManager } from '@/features/organizer/announcement-manager';
 import { WebhookManager } from '@/features/organizer/webhook-manager';
@@ -15,6 +15,7 @@ import { SocialPostGenerator } from '@/features/organizer/social-post-generator'
 import { AttendancePredictor } from '@/features/organizer/attendance-predictor';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { getEventById, updateEvent } from '@/app/actions/events';
 
 export default function EventEditPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -22,11 +23,11 @@ export default function EventEditPage({ params }: { params: Promise<{ id: string
   const router = useRouter();
   const { toast } = useToast();
   
-  // TODO: Fetch event from backend using id
-  const event: any = null;
-  const updateEvent = async (data: any) => {
-    toast({ description: 'Update not yet implemented' });
-  };
+  const [event, setEvent] = useState<any>(undefined);
+
+  useEffect(() => {
+    getEventById(id).then((data) => setEvent(data ?? null));
+  }, [id]);
 
   if (event === undefined) {
     return (
@@ -47,8 +48,8 @@ export default function EventEditPage({ params }: { params: Promise<{ id: string
     );
   }
 
-  const isMainOrganizer = user && (user._id === event.organizerId || user.role === 'admin');
-  const isCoOrganizer = user && event.coOrganizerIds?.includes(user._id);
+  const isMainOrganizer = user && (user._id === event.organizerId || user.id === event.organizerId || user.role === 'admin');
+  const isCoOrganizer = user && event.coOrganizerIds?.includes(user._id || user.id);
 
   if (!isMainOrganizer && !isCoOrganizer) {
     return (
@@ -64,21 +65,22 @@ export default function EventEditPage({ params }: { params: Promise<{ id: string
 
   const handleSave = async (eventData: any) => {
     try {
-      await updateEvent({
-        id: event._id,
-        updates: {
-          title: eventData.title,
-          description: eventData.description,
-          startDate: typeof eventData.startDate === 'number' ? eventData.startDate : new Date(eventData.startDate).getTime(),
-          endDate: typeof eventData.endDate === 'number' ? eventData.endDate : new Date(eventData.endDate).getTime(),
-          location: eventData.location,
-          type: eventData.type,
-          category: eventData.category,
-          capacity: eventData.capacity,
-          status: eventData.status,
-          targetAudience: eventData.targetAudience,
-        },
+      const result = await updateEvent(event.id, {
+        title: eventData.title,
+        description: eventData.description,
+        startDate: typeof eventData.startDate === 'number' ? eventData.startDate : new Date(eventData.startDate).getTime(),
+        endDate: typeof eventData.endDate === 'number' ? eventData.endDate : new Date(eventData.endDate).getTime(),
+        location: eventData.location,
+        type: eventData.type,
+        category: eventData.category,
+        capacity: eventData.capacity,
+        status: eventData.status,
+        targetAudience: eventData.targetAudience,
       });
+      if (result?.success === false) {
+        toast({ title: 'Error', description: 'Failed to update event', variant: 'destructive' });
+        return;
+      }
       toast({ title: 'Event updated successfully!' });
       router.push(`/events/${id}`);
     } catch (error: any) {
@@ -108,24 +110,24 @@ export default function EventEditPage({ params }: { params: Promise<{ id: string
               onSave={handleSave}
               event={{
                 ...event,
-                id: event._id,
+                id: event.id,
               } as any}
             />
           </div>
         </div>
 
         <div className="space-y-8">
-          <AnnouncementManager eventId={event._id} />
+          <AnnouncementManager eventId={event.id} />
           
-          <AttendancePredictor eventId={event._id} />
+          <AttendancePredictor eventId={event.id} />
 
-          <SocialPostGenerator eventId={event._id} />
+          <SocialPostGenerator eventId={event.id} />
 
-          <WebhookManager eventId={event._id} />
+          <WebhookManager eventId={event.id} />
 
           {isMainOrganizer && (
             <CoOrganizerManager 
-              eventId={event._id}
+              eventId={event.id}
               organizerId={event.organizerId}
               coOrganizerIds={event.coOrganizerIds}
             />
