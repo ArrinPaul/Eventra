@@ -1,206 +1,186 @@
-# Eventra
+# Eventra — The Ultimate Event Ecosystem
 
-![Eventra Cover](frontend/public/readme/eventra-cover.svg)
+![Eventra Cover](./eventra-webapp/public/readme/eventra-cover.svg)
 
-Eventra is a modern event management platform built with Next.js 15, TypeScript, and a modular feature-first architecture. It supports event publishing, ticketing workflows, community engagement, analytics, notifications, and AI-assisted recommendations.
+Eventra is a next-generation event management platform built for the modern web. It provides a seamless, end-to-end ecosystem for organizers to publish events, manage ticketing, foster communities, and leverage AI-driven insights, while offering attendees a polished discovery and engagement experience.
 
-## Table of Contents
-1. Project Overview
-2. Key Features
-3. Architecture
-4. Tech Stack
-5. Repository Structure
-6. Getting Started
-7. Environment Variables
-8. Database and Migrations
-9. Scripts
-10. Quality Gates
-11. Deployment
-12. Security Notes
-13. Roadmap Snapshot
+---
 
-## Project Overview
-Eventra is designed for organizations, campuses, and teams that need one platform to manage the full event lifecycle.
+## 🚀 Vision & Key Features
 
-Core goals:
-- Deliver fast and reliable event operations.
-- Provide role-aware user experiences for attendees, organizers, and admins.
-- Keep business logic modular and maintainable through feature boundaries.
-- Enable global readiness with internationalization support.
+Eventra bridges the gap between static event listing and interactive community engagement.
 
-## Key Features
-- Event discovery, details, and organizer workflows.
-- Ticketing and registration flow foundations.
-- Check-in and scanner modules.
-- Community spaces and social interactions.
-- Notifications and engagement modules.
-- Analytics dashboards and reporting surfaces.
-- AI recommendation and event intelligence actions.
-- Internationalization support (English and Spanish).
+### **For Attendees**
+- **Intuitive Discovery**: Explore events via an aurora-themed landing page with category-based filtering.
+- **Unified Wallet**: Access and manage all event tickets and QR codes in a single digital vault.
+- **Social Integration**: Participate in community discussion boards, real-time chats, and activity feeds.
+- **Gamification**: Earn XP, level up, and unlock distinctive badges for event participation.
+- **AI Personalization**: Receive tailored event recommendations based on interests and behavior.
 
-## Architecture
-![Architecture Diagram](frontend/public/readme/eventra-architecture.svg)
+### **For Organizers**
+- **Event Wizard**: Create complex physical, virtual, or hybrid events with ease.
+- **Advanced Management**: Manage ticket tiers, waitlists, and bulk certificate distribution.
+- **Engagement Tools**: Publish announcements, run live polls, and moderate community media.
+- **Rich Analytics**: Deep-dive into revenue trends, attendee demographics, and sentiment analysis.
+- **AI Copilot**: Generate marketing copy, predict attendance, and get smart scheduling suggestions.
 
-The project follows a unified Next.js architecture:
-- Presentation layer: app routes, layouts, feature components, design system.
-- Application layer: server actions, auth/session orchestration, business workflows.
-- Data layer: Supabase PostgreSQL with Drizzle ORM and typed access patterns.
+### **For Administrators**
+- **Global Governance**: Moderate users and events across the entire platform.
+- **System Control**: Toggle platform-wide features (Chat, Feed, AI) from a central command center.
+- **Platform Analytics**: Monitor total registration growth and platform health metrics.
 
-## Tech Stack
-- Runtime: Node.js
-- Framework: Next.js 15 (App Router)
-- Language: TypeScript 5
-- UI: Tailwind CSS, Radix UI, class-variance-authority
-- State and data fetching: TanStack React Query
-- Access model: Public guest-only platform (no login required)
-- i18n: next-intl
-- Charts: Recharts
-- Database: PostgreSQL (Supabase) + Drizzle ORM
+---
 
-## Repository Structure
-```text
-Eventra/
-  backend/                     # Reserved for backend services (currently empty)
-  frontend/                    # Main production app
-    public/
-      readme/                  # Documentation images
-    src/
-      app/                     # Next.js routes, layouts, server actions
-      components/              # Shared UI, layout, and provider components
-      core/                    # Shared services, config, utilities, auth
-      features/                # Feature modules (events, chat, analytics, etc.)
-      hooks/                   # Shared hooks
-      lib/                     # Library-level helpers
-      types/                   # Shared TypeScript types
+## 🛠️ Tech Stack
+
+Eventra is built using a "Clean Architecture" approach, prioritizing modularity and type safety.
+
+- **Framework**: [Next.js 15](https://nextjs.org/) (App Router, Server Actions)
+- **Language**: [TypeScript 5](https://www.typescriptlang.org/)
+- **Database**: [PostgreSQL](https://www.postgresql.org/) (Supabase)
+- **ORM**: [Drizzle ORM](https://orm.drizzle.team/)
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/) + [Radix UI](https://www.radix-ui.com/)
+- **State Management**: [TanStack React Query](https://tanstack.com/query/latest)
+- **i18n**: [next-intl](https://next-intl-docs.vercel.app/) (Multi-language support)
+- **AI Interface**: [Google Generative AI](https://ai.google.dev/) (via Genkit)
+- **Payments & Communication**: [Stripe](https://stripe.com/), [Twilio](https://www.twilio.com/), [Resend](https://resend.com/)
+
+---
+
+## 🏗️ System Architecture
+
+Eventra follows a modular **Feature-First Architecture**, where each of the 25+ modules (e.g., `events`, `ticketing`, `chat`) encapsulates its own logic, components, and data fetching.
+
+```mermaid
+graph TD
+    A[Client Browser] -->|Requests| B[Next.js App Router]
+    B -->|Layouts/Pages| C[Server Components]
+    B -->|Client Logic| D[Client Components]
+    D -->|Mutations| E[Server Actions]
+    E -->|Queries/Updates| F[Drizzle ORM]
+    F -->|Raw SQL/Typed Queries| G[(Supabase Postgres)]
+    E -->|Notifications| H[Twilio/Resend]
+    E -->|AI Insights| I[Google Gemini/Genkit]
+    E -->|Payments| J[Stripe]
+    D -->|State Sync| K[React Query]
 ```
 
-## Getting Started
-### Prerequisites
-- Node.js 20+ (LTS recommended)
-- npm 10+
-- PostgreSQL connection (Supabase URL or equivalent)
+---
 
-### Installation
+## 📊 Database Schema (ERD)
+
+The database is built for scale, supporting vector embeddings for AI recommendations and complex many-to-many relationships for community and networking features.
+
+```mermaid
+erDiagram
+    USER ||--o{ EVENT : organizes
+    USER ||--o{ TICKET : owns
+    USER ||--o{ NOTIFICATION : receives
+    USER ||--o{ USER_BADGE : earns
+    USER ||--o{ POST : authors
+    USER ||--o{ COMMENT : writes
+    USER ||--o{ FOLLOW : "follows/followed"
+    USER ||--o{ CHAT_PARTICIPANT : joins
+    USER ||--o{ COMMUNITY_MEMBER : belongs
+    
+    EVENT ||--o{ TICKET_TIER : defines
+    EVENT ||--o{ TICKET : issues
+    EVENT ||--o{ WAITLIST : manages
+    EVENT ||--o{ CHAT_ROOM : hosts
+    EVENT ||--o{ EVENT_FEEDBACK : receives
+    EVENT ||--o{ EVENT_MEDIA : displays
+    EVENT ||--o{ EVENT_STAFF : employs
+    EVENT ||--o{ SPONSOR : features
+    EVENT ||--o{ CERTIFICATE_TEMPLATE : provides
+    
+    TICKET_TIER ||--o{ TICKET : instantiates
+    
+    COMMUNITY ||--o{ COMMUNITY_MEMBER : has
+    COMMUNITY ||--o{ POST : contains
+    
+    POST ||--o{ COMMENT : receives
+    
+    CHAT_ROOM ||--o{ CHAT_PARTICIPANT : has
+    CHAT_ROOM ||--o{ CHAT_MESSAGE : contains
+    
+    AI_CHAT_SESSION ||--o{ AI_CHAT_MESSAGE : contains
+    USER ||--o{ AI_CHAT_SESSION : initiates
+```
+
+---
+
+## 🎨 Design System
+
+Eventra utilizes a tokenized UI system built with **HSL semantic tokens**, allowing for seamless light/dark mode transitions and consistent brand identity.
+
+![UI System](./eventra-webapp/public/readme/eventra-ui-system.svg)
+
+| Token | Dark Mode HSL | Light Mode HSL |
+| :--- | :--- | :--- |
+| **Background** | `222 47% 6%` | `220 30% 98%` |
+| **Card** | `222 40% 9%` | `0 0% 100%` |
+| **Primary** | `262 83% 66%` | `262 83% 58%` |
+| **Accent** | `188 86% 53%` | `188 86% 45%` |
+
+---
+
+## 🚦 Getting Started
+
+### **1. Clone & Install**
 ```bash
-cd frontend
+git clone <repository-url>
+cd Eventra/eventra-webapp
 npm install
 ```
 
-### Local Development
+### **2. Environment Setup**
+Create a `.env.local` file from the provided template:
+```bash
+cp .env.example .env.local
+```
+*Note: Ensure your `DATABASE_URL` (Supabase) and integration keys (Stripe, Twilio, etc.) are correctly configured.*
+
+### **3. Database Migration**
+Push the schema to your Supabase instance:
+```bash
+npm run db:push
+```
+
+### **4. Launch Development Server**
 ```bash
 npm run dev
 ```
-Default local URL:
-- http://localhost:9002
+The application will be accessible at [http://localhost:9002](http://localhost:9002).
 
-### Production Build
-```bash
-npm run build
-npm run start
-```
+---
 
-## Environment Variables
-Create a local environment file from the template:
-```bash
-cd frontend
-cp .env.example .env
-```
+## 📜 Essential Scripts
 
-Variable reference:
+| Script | Description |
+| :--- | :--- |
+| `npm run build` | Compiles the production application. |
+| `npm run typecheck` | Validates TypeScript integrity across the codebase. |
+| `npm run lint` | Runs ESLint for code style enforcement. |
+| `npm run test:smoke` | Seeds the database and runs E2E sanity checks. |
+| `npm run db:studio` | Opens the Drizzle interactive database explorer. |
 
-| Variable | Scope | Required | Description |
-|---|---|---|---|
-| NEXT_PUBLIC_SUPABASE_URL | Client | Yes | Supabase project URL used by browser-facing requests. |
-| NEXT_PUBLIC_SUPABASE_ANON_KEY | Client | Yes | Public Supabase anonymous key for client operations. |
-| DATABASE_URL | Server | Yes | PostgreSQL connection string for server actions and Drizzle. |
-| RESEND_API_KEY | Server | No | Enables transactional email API routes. |
-| TWILIO_ACCOUNT_SID | Server | No | Enables Twilio SMS notifications. |
-| TWILIO_AUTH_TOKEN | Server | No | Auth token paired with Twilio SID. |
-| TWILIO_FROM_NUMBER | Server | No | Sender number for SMS notifications. |
-| GOOGLE_API_KEY | Server | No | Enables AI provider access for recommendation/chat flows. |
-| IMAGE_UPLOAD_SIZE | Server | No | Application image upload size setting (default: 520). |
+---
 
-Validation command:
-```bash
-cd eventra-webapp
-npm run env:check
-```
+## 🚧 Status & Roadmap
 
-## Database and Migrations
-Eventra uses Drizzle for schema and migration workflows.
+Eventra recently completed a **Forced Stabilization Phase**, where core authentication and payment systems were removed to ensure a clean, high-performance build.
 
-Common commands:
-```bash
-cd frontend
-npm run db:generate
-npm run db:push
-npm run db:studio
-```
+### **Current Focus (Phase 1)**
+- [ ] **Auth Restoration**: Re-integrating Auth.js (v5) with corrected OAuth callback logic.
+- [ ] **Security Patching**: Fixing the stubbed server-side RBAC validation utility.
+- [ ] **Global ID Standard**: Refactoring legacy `_id` references to standardized `id`.
 
-## Scripts
-All commands below are executed from the frontend directory:
+### **Future Horizon (Phase 2 & 3)**
+- [ ] Re-integration of Stripe for paid event ticketing.
+- [ ] Comprehensive i18n coverage for Spanish/English across all features.
+- [ ] Deployment of the AI Marketing Copilot for event organizers.
 
-| Command | Category | Purpose |
-|---|---|---|
-| npm run dev | Development | Start the Next.js development server on port 9002. |
-| npm run build | Build | Create an optimized production build. |
-| npm run start | Build | Run the production server from the generated build output. |
-| npm run lint | Quality | Run ESLint checks using the Next.js configuration. |
-| npm run typecheck | Quality | Run TypeScript type checks without emitting files. |
-| npm run db:generate | Database | Generate Drizzle migration files from schema changes. |
-| npm run db:push | Database | Apply schema changes to the target database. |
-| npm run db:studio | Database | Open Drizzle Studio for schema and data inspection. |
+---
 
-## Quality Gates
-Recommended release checks before merge or deploy:
-```bash
-cd eventra-webapp
-npm run env:check
-npm run lint
-npm run typecheck
-npm run build
-```
-
-Production readiness standards:
-- No build-time TypeScript errors.
-- No unresolved imports.
-- Environment variables configured per environment.
-- Database schema changes reviewed before push.
-
-## Deployment
-Typical flow:
-1. Configure environment variables in hosting platform.
-2. Run lint, typecheck, and build in CI.
-3. Run database migration workflow for target environment.
-4. Deploy frontend artifact.
-5. Run post-deploy smoke tests on critical user journeys.
-
-Suggested smoke test set:
-- Event listing and details
-- Ticketing flow entry and completion path
-- Check-in scanner route load
-- Notifications route load
-
-## Security Notes
-- Never commit real secrets to source control.
-- Rotate compromised credentials immediately.
-- Restrict database users and permissions by environment.
-- Enforce HTTPS and secure cookie policies in production.
-
-## Design System Preview
-![Design System](frontend/public/readme/eventra-ui-system.svg)
-
-Current theme direction:
-- Deep navy surfaces with teal and amber accents.
-- Editorial headings and high-readability body typography.
-- Tokenized component styling for consistent spacing, radius, and elevation.
-
-## Roadmap Snapshot
-In-progress focus areas:
-- Complete server-side validation and error-envelope consistency for write operations.
-- Finalize end-to-end ticketing and check-in integrity.
-- Expand automated testing (unit, integration, E2E).
-- Harden CI/CD and release rollback procedures.
-
-## License
-No license file is currently defined in this repository. Add a LICENSE file if this project is intended for open distribution.
+## 📄 License
+This project is currently private. See individual files for licensing restrictions where applicable.
