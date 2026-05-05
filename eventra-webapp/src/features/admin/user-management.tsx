@@ -99,7 +99,7 @@ export default function UserManagement() {
   const paginationStatus: string = 'Exhausted';
   
   const loadMore = (_num: number) => {
-    // TODO: Implement pagination via server action
+    // Backlog(P3.1): server-driven pagination can replace current wide fetch once query cursors are introduced.
   };
   
   const updateRoleMutation = async (data: any) => updateAdminUserRole(data.userId, data.role);

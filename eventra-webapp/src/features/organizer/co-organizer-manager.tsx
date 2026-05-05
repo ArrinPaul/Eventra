@@ -19,7 +19,7 @@ interface CoOrganizerManagerProps {
 
 export function CoOrganizerManager({ eventId, organizerId, coOrganizerIds = [] }: CoOrganizerManagerProps) {
   const { toast } = useToast();
-  // TODO: wire to backend
+  // Backlog(P3.1): integrate user search and event mutation actions for co-organizer lifecycle.
   const allUsers: any[] = [];
   const coOrganizers = allUsers.filter((u: any) => coOrganizerIds.includes(u._id));
   const updateEventMutation = async (_args: any) => Promise.resolve();

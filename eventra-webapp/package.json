@@ -9,6 +9,10 @@
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "env:check": "node scripts/check-env.mjs",
+    "env:check:staging": "node scripts/check-env.mjs --mode staging --check-connectivity",
+    "test:smoke": "node scripts/seed-smoke.cjs",
+    "test:smoke:clean": "node scripts/cleanup-smoke.cjs --last",
+    "test:verify": "node scripts/verify-smoke-checklist.mjs",
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio"

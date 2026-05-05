@@ -31,7 +31,7 @@ export default function AdminAnalyticsOverview() {
   const [activeTab, setActiveTab] = useState('overview');
   const [loading] = useState(false);
   
-  // TODO: Fetch from backend - initialized with default values to prevent null reference errors
+  // Backlog(P3.1): bind overview metrics to analytics service; defaults protect initial render state.
   const [stats, setStats] = useState({
     totalUsers: 0,
     activeEvents: 0,

@@ -18,7 +18,7 @@ export default function CheckInPage() {
 
     const isOrganizer = user?.role === 'organizer' || user?.role === 'admin';
     
-    // TODO: Fetch tickets and QR URL properly
+    // Backlog(P3.1): hydrate attendee tickets from server action and compute QR payload from active ticket.
     const myTickets: any[] = [];
     const firstTicket = myTickets[0];
     const qrData = firstTicket?.ticketNumber ?? user?.id ?? 'NO-TICKET';

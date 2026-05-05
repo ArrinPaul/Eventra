@@ -14,14 +14,14 @@ export function FollowButton({ userId, className }: FollowButtonProps) {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
 
-  // Stub declarations for missing implementations
+  // Backlog(P3.1): connect follow/unfollow to networking actions once follow graph endpoints are finalized.
   const stats = { followers: 0, following: 0, isFollowing: false };
   const follow = async ({ followingId }: { followingId: Id<"users"> }) => {
-    // TODO: Implement actual follow logic
+    // Backlog(P3.1): replace no-op with persisted follow mutation.
     return Promise.resolve();
   };
   const unfollow = async ({ followingId }: { followingId: Id<"users"> }) => {
-    // TODO: Implement actual unfollow logic
+    // Backlog(P3.1): replace no-op with persisted unfollow mutation.
     return Promise.resolve();
   };
 

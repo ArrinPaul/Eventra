@@ -10,7 +10,7 @@ import { cn } from '@/core/utils/utils';
 
 export function ReferralSystem() {
   const { toast } = useToast();
-  // TODO: Fetch from backend
+  // Backlog(P3.1): connect referral profile and mutation actions once referral service lands.
   const [user, setUser] = useState<any | null>(null);
   const generateCode = async () => Promise.resolve();
   const redeemCode = async (_args: any) => Promise.resolve();

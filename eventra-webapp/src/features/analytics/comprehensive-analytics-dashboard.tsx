@@ -21,7 +21,7 @@ import { AIInsightsWidget } from './ai-insights-widget';
 
 export default function AnalyticsDashboard() {
   const [selectedTab, setSelectedTab] = useState('overview');
-  // TODO: Fetch from backend
+  // Backlog(P3.1): wire this dashboard to analytics server actions; default values prevent null access.
   const [analytics, setAnalytics] = useState({
     totalEvents: 0,
     activeEvents: 0,

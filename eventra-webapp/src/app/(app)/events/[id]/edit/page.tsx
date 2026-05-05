@@ -22,7 +22,7 @@ export default function EventEditPage({ params }: { params: Promise<{ id: string
   const router = useRouter();
   const { toast } = useToast();
   
-  // TODO: Fetch event from backend using id
+  // Backlog(P3.1): fetch event details by id from server action and enforce organizer ownership server-side.
   const event: any = null;
   const updateEvent = async (data: any) => {
     toast({ description: 'Update not yet implemented' });

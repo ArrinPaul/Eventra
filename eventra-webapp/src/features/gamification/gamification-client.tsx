@@ -14,7 +14,7 @@ export function GamificationClient() {
   const { user } = useAuth();
   const userId = user?._id || user?.id;
 
-  // TODO: wire to backend
+  // Backlog(P3.1): connect hub datasets to gamification actions once aggregate endpoints are finalized.
   const userBadges: any[] = [];
   const pointsHistory: any[] = [];
   const badgeDefinitions: any[] = [];

@@ -44,7 +44,7 @@ export default function AdminDashboardClient() {
     const [filterRole, setFilterRole] = useState<UserRole | 'all'>('all');
     const [searchTerm, setSearchTerm] = useState('');
     
-    // TODO: Fetch users from backend
+    // Backlog(P3.1): migrate attendee list to server-backed admin query.
     const allUsersRaw: any[] = [];
 
     const loading = allUsersRaw === undefined;

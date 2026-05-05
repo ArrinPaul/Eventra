@@ -34,7 +34,7 @@ const getEventDate = (event: EventraEvent): Date => {
 export default function MyEventsClient() {
   const { user, updateUser } = useAuth();
   const { toast } = useToast();
-  // TODO: wire to backend
+  // Backlog(P3.1): move my-events and registrations sourcing to dedicated server actions.
   const allEventsRaw: any[] = [];
   const myRegistrations: any[] = [];
 

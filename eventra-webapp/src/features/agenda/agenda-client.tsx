@@ -162,7 +162,7 @@ export default function AgendaClient() {
   const { user } = useAuth();
   const { toast } = useToast();
   
-  // TODO: Fetch events from backend
+  // Backlog(P3.1): replace local agenda stub with server-backed events query.
   const allEventsRaw: any[] = [];
   const AGENDA_STRING = 'Agenda';
   

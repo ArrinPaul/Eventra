@@ -18,7 +18,7 @@ export default function EventModeration() {
   const [events, setEvents] = useState<any[]>([]);
   const paginationStatus = 'Exhausted';
   const loadMore = (num: number) => {
-    // TODO: Implement pagination via server action
+    // Backlog(P3.1): switch to cursor-based moderation pagination when list size exceeds current cap.
   };
   const moderateMutation = async (args: any) => moderateEventStatus(args.eventId, args.action);
 

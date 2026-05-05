@@ -13,7 +13,7 @@ export default function CalendarPage() {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   
-  // TODO: Fetch from backend
+  // Backlog(P3.1): feed calendar grid from events action instead of local empty state.
   const events: any[] = useMemo(() => [], []);
 
   const days = useMemo(() => {
