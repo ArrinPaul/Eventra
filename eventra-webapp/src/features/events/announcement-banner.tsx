@@ -14,7 +14,7 @@ export function AnnouncementBanner({ eventId }: { eventId: string }) {
       <AnimatePresence>
         {announcements.map((a: any) => (
           <motion.div
-            key={a._id}
+            key={a.id}
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}

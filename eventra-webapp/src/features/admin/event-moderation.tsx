@@ -28,7 +28,7 @@ export default function EventModeration() {
     async function load() {
       const rows = await listModerationEvents(activeTab === 'pending' ? 'draft' : 'all');
       if (!mounted) return;
-      setEvents(rows.map((e) => ({ ...e, _id: e.id })));
+      setEvents(rows);
     }
 
     load();
@@ -42,7 +42,7 @@ export default function EventModeration() {
       await moderateMutation({ eventId, action });
       setEvents((prev) =>
         prev.map((event) =>
-          event._id === eventId
+          event.id === eventId
             ? { ...event, status: action === 'approve' ? 'published' : action === 'reject' ? 'cancelled' : 'draft' }
             : event
         )
@@ -75,7 +75,7 @@ export default function EventModeration() {
           ) : (
             <div className="grid gap-4">
               {events.map((e: any) => (
-                <Card key={e._id} className="bg-white/5 border-white/10 text-white overflow-hidden hover:border-cyan-500/30 transition-all">
+                <Card key={e.id} className="bg-white/5 border-white/10 text-white overflow-hidden hover:border-cyan-500/30 transition-all">
                   <CardContent className="p-6">
                     <div className="flex flex-col md:flex-row justify-between gap-6">
                       <div className="space-y-2 flex-1">
@@ -94,7 +94,7 @@ export default function EventModeration() {
                         <Button 
                           size="sm" 
                           className="bg-green-600 hover:bg-green-500" 
-                          onClick={() => handleModerate(e._id, 'approve')}
+                          onClick={() => handleModerate(e.id, 'approve')}
                           disabled={e.status === 'published'}
                         >
                           <Check className="w-4 h-4 mr-2" /> Approve
@@ -103,7 +103,7 @@ export default function EventModeration() {
                           size="sm" 
                           variant="outline" 
                           className="border-red-500/30 text-red-400 hover:bg-red-500/10"
-                          onClick={() => handleModerate(e._id, 'reject')}
+                          onClick={() => handleModerate(e.id, 'reject')}
                         >
                           <X className="w-4 h-4 mr-2" /> Reject
                         </Button>
@@ -111,7 +111,7 @@ export default function EventModeration() {
                           size="sm" 
                           variant="ghost" 
                           className="text-gray-500 hover:text-white"
-                          onClick={() => handleModerate(e._id, 'suspend')}
+                          onClick={() => handleModerate(e.id, 'suspend')}
                         >
                           <ShieldAlert className="w-4 h-4 mr-2" /> Suspend
                         </Button>

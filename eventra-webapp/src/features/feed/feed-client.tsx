@@ -59,9 +59,10 @@ export default function FeedClient() {
         if (!mounted) return;
         setPostsRaw(
           posts.map((row: any) => ({
-            _id: row.post.id,
+            id: row.post.id,
             authorName: row.author.name,
             authorImage: row.author.image,
+            authorId: row.author.id,
             createdAt: row.post.createdAt,
             content: row.post.content,
             likes: row.post.likes,
@@ -85,9 +86,7 @@ export default function FeedClient() {
     if (!newPostContent.trim()) return;
     setLoading(true);
     try {
-      // Note: This requires a communityId. For the global feed, we'll use a default community if needed,
-      // but usually the feed is scoped. For now, assuming first community or platform feed.
-      const defaultCommunityId = communities?.[0]?._id;
+      const defaultCommunityId = communities?.[0]?.id;
       
       if (!defaultCommunityId) throw new Error(t('noCommunityError'));
 
@@ -95,9 +94,10 @@ export default function FeedClient() {
       if (!result.success || !result.post) throw new Error(t('failedCreatePost'));
       setPostsRaw((prev) => [
         {
-          _id: result.post.id,
+          id: result.post.id,
           authorName: user?.name || t('authorFallback'),
           authorImage: user?.image,
+          authorId: user?.id,
           createdAt: result.post.createdAt,
           content: result.post.content,
           likes: result.post.likes,
@@ -119,9 +119,9 @@ export default function FeedClient() {
     if (!editPostContent.trim() || !editingPost) return;
     setLoading(true);
     try {
-      const result = await updatePost(editingPost._id, editPostContent);
+      const result = await updatePost(editingPost.id, editPostContent);
       if (!result.success || !result.post) throw new Error(t('updateFailed'));
-      setPostsRaw((prev) => prev.map((p) => (p._id === editingPost._id ? { ...p, content: result.post.content } : p)));
+      setPostsRaw((prev) => prev.map((p) => (p.id === editingPost.id ? { ...p, content: result.post.content } : p)));
       setShowEditPost(false);
       setEditingPost(null);
       toast({ title: t('postUpdated') });
@@ -137,7 +137,7 @@ export default function FeedClient() {
     try {
       const result = await deletePost(id as any);
       if (!result.success) throw new Error(t('deleteFailed'));
-      setPostsRaw((prev) => prev.filter((p) => p._id !== id));
+      setPostsRaw((prev) => prev.filter((p) => p.id !== id));
       toast({ title: t('postDeleted') });
     } catch (e) {
       toast({ title: t('deleteFailed'), variant: 'destructive' });
@@ -148,7 +148,7 @@ export default function FeedClient() {
     try {
       const result = await likePost(id as any);
       if (!result.success) throw new Error(t('likeFailed'));
-      setPostsRaw((prev) => prev.map((p) => (p._id === id ? { ...p, likes: Number(p.likes || 0) + 1 } : p)));
+      setPostsRaw((prev) => prev.map((p) => (p.id === id ? { ...p, likes: Number(p.likes || 0) + 1 } : p)));
     } catch (e) {}
   };
 
@@ -163,7 +163,7 @@ export default function FeedClient() {
 
       <div className="space-y-4">
         {postsRaw.map((post: any) => (
-          <Card key={post._id} className="bg-white/5 border-white/10 text-white">
+          <Card key={post.id} className="bg-white/5 border-white/10 text-white">
             <CardContent className="p-6">
               <div className="flex justify-between items-start mb-4">
                 <div className="flex gap-3">
@@ -177,7 +177,7 @@ export default function FeedClient() {
                   </div>
                 </div>
 
-                {user?._id === post.authorId && (
+                {user?.id === post.authorId && (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-white/10">
@@ -196,7 +196,7 @@ export default function FeedClient() {
                         <Edit2 className="w-4 h-4 mr-2" /> {t('edit')}
                       </DropdownMenuItem>
                       <DropdownMenuItem 
-                        onClick={() => handleDeletePost(post._id)}
+                        onClick={() => handleDeletePost(post.id)}
                         className="cursor-pointer text-red-400 focus:text-red-400 focus:bg-red-400/10"
                       >
                         <Trash2 className="w-4 h-4 mr-2" /> {t('delete')}
@@ -210,7 +210,7 @@ export default function FeedClient() {
                 <Button 
                   variant="ghost" 
                   size="sm" 
-                  onClick={() => handleLike(post._id)} 
+                  onClick={() => handleLike(post.id)} 
                   className={cn("gap-2 hover:bg-pink-500/10 hover:text-pink-400", post.meLiked && "text-pink-500")}
                 >
                   <Heart size={16} fill={post.meLiked ? "currentColor" : "none"} /> {post.likes}
@@ -218,15 +218,15 @@ export default function FeedClient() {
                 <Button 
                   variant="ghost" 
                   size="sm" 
-                  onClick={() => toggleComments(post._id)}
-                  className={cn("gap-2 hover:bg-cyan-500/10 hover:text-cyan-400", expandedComments[post._id] && "text-cyan-400")}
+                  onClick={() => toggleComments(post.id)}
+                  className={cn("gap-2 hover:bg-cyan-500/10 hover:text-cyan-400", expandedComments[post.id] && "text-cyan-400")}
                 >
                   <MessageCircle size={16} /> {post.commentCount || 0}
                 </Button>
               </div>
 
-              {expandedComments[post._id] && (
-                <CommentSection postId={post._id} />
+              {expandedComments[post.id] && (
+                <CommentSection postId={post.id} />
               )}
             </CardContent>
           </Card>
@@ -274,5 +274,3 @@ export default function FeedClient() {
     </div>
   );
 }
-
-

@@ -48,7 +48,7 @@ export default function AdminDashboardClient() {
     const allUsersRaw: any[] = [];
 
     const loading = allUsersRaw === undefined;
-    const users = (allUsersRaw || []).map((u: any) => ({ ...u, id: u._id }));
+    const users = (allUsersRaw || []).map((u: any) => ({ ...u, id: u.id }));
 
     const attendeeUsers = users.filter((user: any) => user.role !== 'organizer' && user.role !== 'admin');
     

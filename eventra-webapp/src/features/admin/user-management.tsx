@@ -121,16 +121,7 @@ export default function UserManagement() {
     async function load() {
       const rows = await listAdminUsers({ search: filters.search || undefined, role: filters.role, limit: 200 });
       if (!mounted) return;
-      setUsersRaw(
-        rows.map((r) => ({
-          _id: r.id,
-          name: r.name,
-          email: r.email,
-          role: r.role,
-          points: r.points,
-          _creationTime: r.createdAt.getTime(),
-        }))
-      );
+      setUsersRaw(rows);
     }
 
     load();
@@ -143,9 +134,8 @@ export default function UserManagement() {
   const filteredUsers = useMemo(() => {
     let result = [...users].map((u: any) => ({
       ...u,
-      id: u._id,
-      createdAt: new Date(u._creationTime),
-      lastActive: new Date(u._creationTime),
+      createdAt: new Date(u.createdAt),
+      lastActive: new Date(u.createdAt),
       eventsAttended: u.eventsAttended || 0,
       points: u.points || 0,
       status: u.status || 'active',
@@ -182,7 +172,7 @@ export default function UserManagement() {
   const handleChangeRole = async (userId: string, newRole: any) => {
     try {
       await updateRoleMutation({ userId: userId as any, role: newRole });
-      setUsersRaw((prev) => prev.map((u) => (u._id === userId ? { ...u, role: newRole } : u)));
+      setUsersRaw((prev) => prev.map((u) => (u.id === userId ? { ...u, role: newRole } : u)));
       toast({ title: 'Role Updated' });
     } catch (e) {
       toast({ title: 'Update Failed', variant: 'destructive' });

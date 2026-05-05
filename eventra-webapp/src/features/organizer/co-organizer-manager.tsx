@@ -1,6 +1,6 @@
 'use client';
-// 
-import { useState } from 'react';
+
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Plus, UserMinus, UserPlus, Mail, ShieldCheck } from 'lucide-react';
+import { Loader2, UserMinus, UserPlus, Mail, ShieldCheck } from 'lucide-react';
 import type { Id } from '@/types';
 
 interface CoOrganizerManagerProps {
@@ -19,19 +19,16 @@ interface CoOrganizerManagerProps {
 
 export function CoOrganizerManager({ eventId, organizerId, coOrganizerIds = [] }: CoOrganizerManagerProps) {
   const { toast } = useToast();
+  
   // Backlog(P3.1): integrate user search and event mutation actions for co-organizer lifecycle.
   const allUsers: any[] = [];
-  const coOrganizers = allUsers.filter((u: any) => coOrganizerIds.includes(u._id));
+  const coOrganizers = allUsers.filter((u: any) => coOrganizerIds.includes(u.id));
   const updateEventMutation = async (_args: any) => Promise.resolve();
   const [email, setEmail] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
-// 
-  
-  // To show co-organizer details, we fetch them
-  // In a real app, a dedicated query for multiple IDs is better
-//   const coOrganizers = allUsers.filter((u: any) => coOrganizerIds.includes(u._id));
-  const mainOrganizer = allUsers.find((u: any) => u._id === organizerId);
+
+  const mainOrganizer = allUsers.find((u: any) => u.id === organizerId);
 
   const handleAddByEmail = async () => {
     if (!email.trim()) return;
@@ -45,12 +42,12 @@ export function CoOrganizerManager({ eventId, organizerId, coOrganizerIds = [] }
         return;
       }
 
-      if (targetUser._id === organizerId) {
+      if (targetUser.id === organizerId) {
         toast({ title: "Invalid action", description: "You are already the main organizer." });
         return;
       }
 
-      if (coOrganizerIds.includes(targetUser._id)) {
+      if (coOrganizerIds.includes(targetUser.id)) {
         toast({ title: "Already added", description: "This user is already a co-organizer." });
         return;
       }
@@ -59,7 +56,7 @@ export function CoOrganizerManager({ eventId, organizerId, coOrganizerIds = [] }
       await updateEventMutation({
         id: eventId,
         updates: {
-          coOrganizerIds: [...coOrganizerIds, targetUser._id]
+          coOrganizerIds: [...coOrganizerIds, targetUser.id]
         }
       });
 
@@ -129,7 +126,7 @@ export function CoOrganizerManager({ eventId, organizerId, coOrganizerIds = [] }
               </p>
             ) : (
               coOrganizers.map((co: any) => (
-                <div key={co._id} className="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/5 group">
+                <div key={co.id} className="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/5 group">
                   <Avatar className="h-10 w-10">
                     <AvatarImage src={co.image} />
                     <AvatarFallback className="bg-purple-500/10 text-purple-500">{co.name?.charAt(0)}</AvatarFallback>
@@ -142,7 +139,7 @@ export function CoOrganizerManager({ eventId, organizerId, coOrganizerIds = [] }
                     variant="ghost" 
                     size="icon" 
                     className="ml-auto text-gray-500 hover:text-red-400 hover:bg-red-400/10"
-                    onClick={() => handleRemove(co._id)}
+                    onClick={() => handleRemove(co.id)}
                     disabled={isUpdating}
                   >
                     <UserMinus className="h-4 w-4" />
@@ -180,5 +177,3 @@ export function CoOrganizerManager({ eventId, organizerId, coOrganizerIds = [] }
     </Card>
   );
 }
-
-

@@ -175,7 +175,7 @@ export default function AgendaClient() {
   const sessions: Session[] = (allEventsRaw || []).flatMap((event: any) => 
     (event.agenda || []).map((session: any, index: number) => ({
        ...session,
-       id: session.id || `${event._id}-session-${index}`,
+        id: session.id || `${event.id}-session-${index}`,
        location: session.room || event.location?.venue?.name || 'TBD',
        startTime: session.startTime ? new Date(session.startTime) : undefined,
        endTime: session.endTime ? new Date(session.endTime) : undefined,

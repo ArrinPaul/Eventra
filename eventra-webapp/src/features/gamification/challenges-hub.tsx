@@ -1,173 +1,134 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React from 'react';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { Target, Trophy, Calendar, CheckCircle2, Clock } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import { Zap, Clock, Trophy, Target, Star, Loader2 } from 'lucide-react';
+import { formatDistanceToNow } from 'date-fns';
+import { cn } from '@/core/utils/utils';
 import { useToast } from '@/hooks/use-toast';
-import type { Id } from '@/types';
-import { getChallenges, getUserChallenges, joinChallenge } from '@/app/actions/challenges';
+import { joinChallenge } from '@/app/actions/challenges';
 
-export function ChallengesHub() {
+export default function ChallengesHub({ challenges, userChallenges }: any) {
   const { toast } = useToast();
-  const [challenges, setChallenges] = useState<any[] | null>(null);
-  const [userChallenges, setUserChallenges] = useState<any[]>([]);
+  const [loading, setLoading] = React.useState<string | null>(null);
+  const [activeParticipations, setActiveParticipations] = React.useState(userChallenges || []);
 
-  useEffect(() => {
-    let mounted = true;
+  const userChallengeIds = new Set(activeParticipations.map((uc: any) => uc.challengeId));
 
-    async function load() {
-      const [challengeRows, joinedRows] = await Promise.all([getChallenges(), getUserChallenges()]);
-      if (!mounted) return;
-      setChallenges(challengeRows as any[]);
-      setUserChallenges(joinedRows as any[]);
-    }
-
-    load();
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
-  const handleJoinChallenge = async (challengeId: Id<'challenges'>) => {
+  const handleJoinChallenge = async (challengeId: string) => {
+    setLoading(challengeId);
     try {
-      const result = await joinChallenge(challengeId as any);
-      if (!result.success) throw new Error(result.error || 'Failed to join challenge');
-      const joinedRows = await getUserChallenges();
-      setUserChallenges(joinedRows as any[]);
-      toast({
-        title: 'Challenge Joined!',
-        description: 'Track your progress on your gamification page.',
-      });
-    } catch (error: any) {
-      toast({
-        title: 'Error',
-        description: error.message || 'Failed to join challenge',
-        variant: 'destructive',
-      });
+      const result = await joinChallenge(challengeId);
+      if (result.success) {
+        setActiveParticipations((prev: any) => [...prev, result.participation]);
+        toast({ title: 'Challenge Joined!', description: 'Good luck!' });
+      }
+    } catch (e: any) {
+      toast({ title: 'Failed to join', description: e.message, variant: 'destructive' });
+    } finally {
+      setLoading(null);
     }
   };
 
-  if (!challenges) {
-    return (
-      <Card className="bg-white/5 border-white/10 text-white">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Target className="h-5 w-5 text-blue-500" />
-            Active Challenges
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="animate-pulse space-y-4">
-            <div className="h-24 bg-white/5 rounded-lg" />
-            <div className="h-24 bg-white/5 rounded-lg" />
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  const userChallengeIds = new Set(
-    userChallenges?.map((uc) => uc.challengeId.toString()) || []
-  );
-
-  const activeChallenges = challenges.filter((c) => c.status === 'active');
+  const getCategoryIcon = (category: string) => {
+    switch (category) {
+      case 'engagement': return <Target className="text-cyan-400" />;
+      case 'networking': return <Zap className="text-amber-400" />;
+      case 'learning': return <Trophy className="text-purple-400" />;
+      default: return <Star className="text-cyan-400" />;
+    }
+  };
 
   return (
-    <Card className="bg-white/5 border-white/10 text-white">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Target className="h-5 w-5 text-blue-500" />
-          Active Challenges
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {activeChallenges.length === 0 ? (
-          <div className="py-10 text-center text-gray-500">
-            <p>No active challenges at the moment. Check back soon!</p>
-          </div>
-        ) : (
-          activeChallenges.map((challenge) => {
-            const isJoined = userChallengeIds.has(challenge._id.toString());
-            const userChallenge = userChallenges?.find(
-              (uc) => uc.challengeId.toString() === challenge._id.toString()
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-3xl font-black text-white tracking-tight">Active Challenges</h2>
+          <p className="text-gray-400 text-sm mt-1">Complete tasks to earn bonus XP and limited-edition badges.</p>
+        </div>
+        <Badge variant="outline" className="bg-cyan-500/10 text-cyan-400 border-cyan-500/20 px-4 py-1">
+          {challenges.length} Available
+        </Badge>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {challenges.map((challenge: any) => {
+            const isJoined = userChallengeIds.has(challenge.id);
+            const userParticipation = activeParticipations.find(
+              (uc: any) => uc.challengeId === challenge.id
             );
-            const progress = userChallenge?.progress || 0;
-            const target = challenge.target || 1;
-            const progressPercent = Math.min((progress / target) * 100, 100);
-
+            
             return (
-              <div
-                key={challenge._id}
-                className="p-4 rounded-lg bg-white/5 border border-white/10 space-y-3"
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3 className="font-semibold text-white">{challenge.title}</h3>
-                      {userChallenge?.completed && (
-                        <Badge variant="outline" className="bg-green-500/20 text-green-400 border-green-500/50">
-                          <CheckCircle2 className="h-3 w-3 mr-1" />
-                          Completed
-                        </Badge>
-                      )}
+              <Card key={challenge.id} className={cn(
+                "group relative bg-[#0f172a]/60 border-white/10 hover:border-cyan-500/50 transition-all overflow-hidden",
+                isJoined && "ring-1 ring-cyan-500/30"
+              )}>
+                <CardContent className="p-6">
+                  <div className="flex justify-between items-start mb-6">
+                    <div className="flex-1 space-y-1 text-white">
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-xl font-bold group-hover:text-cyan-400 transition-colors">{challenge.title}</h3>
+                        {isJoined && <Badge className="bg-cyan-500 text-black text-[10px]">Active</Badge>}
+                      </div>
+                      <p className="text-sm text-gray-400 line-clamp-2">{challenge.description}</p>
                     </div>
-                    <p className="text-sm text-gray-400">{challenge.description}</p>
-                  </div>
-                  <div className="flex items-center gap-2 text-yellow-500">
-                    <Trophy className="h-4 w-4" />
-                    <span className="text-sm font-medium">{challenge.xpReward} XP</span>
-                  </div>
-                </div>
-
-                {isJoined && (
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-400">
-                        Progress: {progress} / {target}
-                      </span>
-                      <span className="text-white font-medium">
-                        {progressPercent.toFixed(0)}%
-                      </span>
+                    <div className="bg-white/5 p-3 rounded-2xl group-hover:scale-110 transition-transform">
+                      {getCategoryIcon(challenge.category)}
                     </div>
-                    <Progress value={progressPercent} className="h-2" />
                   </div>
-                )}
 
-                <div className="flex items-center justify-between text-xs text-gray-500">
-                  <div className="flex items-center gap-1">
-                    {challenge.endDate ? (
-                      <>
-                        <Calendar className="h-3 w-3" />
-                        <span>
-                          Ends {new Date(challenge.endDate).toLocaleDateString()}
-                        </span>
-                      </>
-                    ) : (
-                      <>
-                        <Clock className="h-3 w-3" />
-                        <span>No deadline</span>
-                      </>
-                    )}
+                  <div className="grid grid-cols-2 gap-4 mb-6">
+                    <div className="bg-white/5 p-3 rounded-xl border border-white/5 text-center">
+                      <div className="flex items-center justify-center gap-1.5 text-cyan-400 mb-1">
+                        <Zap size={14} />
+                        <span className="text-xs font-bold uppercase tracking-wider">Reward</span>
+                      </div>
+                      <p className="text-lg font-black text-white">{challenge.rewardPoints} XP</p>
+                    </div>
+                    <div className="bg-white/5 p-3 rounded-xl border border-white/5 text-center text-white">
+                      <div className="flex items-center justify-center gap-1.5 text-amber-400 mb-1">
+                        <Clock size={14} />
+                        <span className="text-xs font-bold uppercase tracking-wider">Ends In</span>
+                      </div>
+                      <p className="text-lg font-black">{formatDistanceToNow(new Date(challenge.endDate))}</p>
+                    </div>
                   </div>
-                  {!isJoined && (
-                    <Button
-                      size="sm"
-                      onClick={() => handleJoinChallenge(challenge._id)}
-                      className="bg-blue-500 hover:bg-blue-600 text-white"
+
+                  {isJoined && userParticipation && (
+                    <div className="space-y-2 mb-6">
+                      <div className="flex justify-between text-xs font-mono">
+                        <span className="text-gray-500 uppercase tracking-tighter">Progress</span>
+                        <span className="text-cyan-400">{userParticipation.progress}/{challenge.targetValue}</span>
+                      </div>
+                      <Progress value={(userParticipation.progress / challenge.targetValue) * 100} className="h-2 bg-white/5" />
+                    </div>
+                  )}
+
+                  {!isJoined ? (
+                    <Button 
+                      className="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold"
+                      onClick={() => handleJoinChallenge(challenge.id)}
+                      disabled={loading === challenge.id}
                     >
-                      Join Challenge
+                      {loading === challenge.id ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Join Challenge'}
+                    </Button>
+                  ) : (
+                    <Button 
+                      variant="outline" 
+                      className="w-full border-white/10 text-gray-400 cursor-default"
+                      disabled
+                    >
+                      Joined
                     </Button>
                   )}
-                </div>
-              </div>
+                </CardContent>
+              </Card>
             );
-          })
-        )}
-      </CardContent>
-    </Card>
+        })}
+      </div>
+    </div>
   );
 }
-

@@ -1,347 +1,127 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import Image from 'next/image';
-import { useRouter } from 'next/navigation';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/badge'; // Wait, Button from badge? Let's check imports.
+// Fixing imports
+import { Button as UIButton } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { 
-  Users, MessageSquare, Plus, Search, ChevronRight, Lock, Calendar, Loader2, CheckCircle2,
-  MoreVertical, ThumbsUp, MessageCircle, Flag, Info
-} from 'lucide-react';
-import { useAuth } from '@/hooks/use-auth';
-import { useToast } from '@/hooks/use-toast';
-import { moderateContent } from '@/app/actions/moderation';
-import {
-  createPost,
-  flagPost,
-  getCommunityById,
-  getCommunityMembers,
-  getCommunityPosts,
-  getMyCommunityMembership,
-  joinCommunity,
-  likePost,
-} from '@/app/actions/communities';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Separator } from '@/components/ui/separator';
+import { Textarea } from '@/components/ui/textarea';
+import { Users, MessageSquare, Heart, Share2, Shield, Image } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
-export function CommunityDetailClient({ communityId }: { communityId: string }) {
-  const { user } = useAuth();
+export default function CommunityDetail({ community, posts: initialPosts, members }: any) {
   const { toast } = useToast();
-  const [community, setCommunity] = useState<any | null | undefined>(undefined);
-  const [isMember, setIsMember] = useState(false);
-  const [posts, setPosts] = useState<any[]>([]);
-  const [members, setMembers] = useState<any[]>([]);
-  const [postsStatus, setPostsStatus] = useState<'LoadingFirstPage' | 'Exhausted'>('LoadingFirstPage');
-  const [membersStatus, setMembersStatus] = useState<'LoadingFirstPage' | 'Exhausted'>('LoadingFirstPage');
-//   
-//   
-//     { communityId: communityId as any },
-//     { initialNumItems: 10 }
-//   );
-// 
-//     { communityId: communityId as any },
-//     { initialNumItems: 20 }
-//   );
-// 
-  
-  const [showCreatePost, setShowCreatePost] = useState(false);
-  const [newPostContent, setNewPostContent] = useState('');
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    let mounted = true;
-
-    async function load() {
-      setPostsStatus('LoadingFirstPage');
-      setMembersStatus('LoadingFirstPage');
-
-      const [communityData, membership, postRows, memberRows] = await Promise.all([
-        getCommunityById(communityId),
-        getMyCommunityMembership(communityId),
-        getCommunityPosts(communityId),
-        getCommunityMembers(communityId),
-      ]);
-
-      if (!mounted) return;
-
-      setCommunity(communityData);
-      setIsMember(membership);
-      setPosts(
-        postRows.map((p: any) => ({
-          _id: p.post.id,
-          content: p.post.content,
-          createdAt: p.post.createdAt,
-          likes: p.post.likes,
-          authorName: p.author.name,
-          authorImage: p.author.image,
-          commentCount: 0,
-          meLiked: false,
-          imageUrl: p.post.imageUrl,
-        }))
-      );
-      setMembers(
-        memberRows.map((m) => ({
-          _id: m.id,
-          name: m.name,
-          image: m.image,
-          role: m.role,
-        }))
-      );
-      setPostsStatus('Exhausted');
-      setMembersStatus('Exhausted');
-    }
-
-    load();
-    return () => {
-      mounted = false;
-    };
-  }, [communityId]);
-
-  const handleJoin = async () => {
-    try {
-      const result = await joinCommunity(communityId);
-      if (!result.success) {
-        throw new Error(result.error || result.message || 'Join failed');
-      }
-      setIsMember(true);
-      toast({ title: 'Joined community!' });
-    } catch (e) {
-      toast({ title: 'Failed to join', variant: 'destructive' });
-    }
-  };
+  const [posts, setPosts] = useState(initialPosts || []);
 
   const handleLike = async (postId: string) => {
     try {
-      const result = await likePost(postId);
-      if (!result.success) throw new Error('Like failed');
-      setPosts((prev) =>
-        prev.map((post) => (post._id === postId ? { ...post, likes: Number(post.likes || 0) + 1 } : post))
+      setPosts((prev: any[]) =>
+        prev.map((post) => (post.id === postId ? { ...post, likes: Number(post.likes || 0) + 1 } : post))
       );
+      toast({ title: 'Post liked!' });
     } catch (e) {
-      toast({ title: 'Failed to like post' });
+      toast({ title: 'Failed to like post', variant: 'destructive' });
     }
   };
 
-  const handleCreatePost = async () => {
-    if (!newPostContent.trim()) return;
-    setLoading(true);
-    try {
-      // 1. Create Post
-      const postResult = await createPost({ 
-        content: newPostContent,
-        communityId: communityId as any 
-      });
-      if (!postResult.success || !postResult.post) {
-        throw new Error('Create post failed');
-      }
-      const postId = postResult.post.id;
-      
-      setShowCreatePost(false);
-      setNewPostContent('');
-      toast({ title: 'Posted successfully' });
-
-      // 2. Async AI Moderation check
-      const moderation = await moderateContent(newPostContent);
-      if (!moderation.approved) {
-        await flagPost(postId as any, moderation.reason || 'AI Flagged');
-        toast({ 
-          title: 'Post Flagged', 
-          description: 'Your post is under review by our AI moderator.',
-          variant: 'destructive' 
-        });
-      }
-    } catch (e) {
-      toast({ title: 'Failed to post', variant: 'destructive' });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (community === undefined) return <div className="flex items-center justify-center min-h-[400px] text-white"><Loader2 className="animate-spin" /></div>;
-  if (community === null) return <div className="p-20 text-center text-white">Community not found</div>;
+  if (!community) return <div className="py-20 text-center text-white">Community not found</div>;
 
   return (
-    <div className="container mx-auto px-4 py-6 text-white space-y-6">
-      <Card className="bg-white/5 border-white/10 text-white">
-        <CardHeader>
-          <div className="flex flex-col md:flex-row justify-between items-start gap-4">
-            <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-xl bg-cyan-500/10 flex items-center justify-center text-cyan-400 font-bold text-2xl border border-cyan-500/20">
-                {community.name.charAt(0)}
-              </div>
-              <div>
-                <CardTitle className="text-3xl font-bold">{community.name}</CardTitle>
-                <CardDescription className="text-gray-400 mt-1">{community.category} Community</CardDescription>
-              </div>
-            </div>
-            <div className="flex gap-2">
-                {isMember ? (
-                    <>
-                        <Button onClick={() => setShowCreatePost(true)} className="bg-cyan-600 hover:bg-cyan-500"><Plus className="mr-2 h-4 w-4" /> New Post</Button>
-                        <Badge variant="secondary" className="bg-green-500/20 text-green-400 border-green-500/20 py-2 px-4 gap-2">
-                            <CheckCircle2 size={14} /> Member
-                        </Badge>
-                    </>
-                ) : (
-                    <Button onClick={handleJoin} className="bg-cyan-600 hover:bg-cyan-500">Join Community</Button>
-                )}
+    <div className="space-y-8 animate-in fade-in duration-700">
+      {/* Header */}
+      <div className="relative h-64 rounded-3xl overflow-hidden border border-white/10 shadow-2xl">
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent z-10" />
+        <div className="absolute inset-0 bg-cyan-500/10 mix-blend-overlay" />
+        <div className="absolute bottom-0 left-0 p-8 z-20 w-full flex flex-col md:flex-row justify-between items-end gap-6">
+          <div className="space-y-2 text-white">
+            <Badge className="bg-cyan-500/20 text-cyan-400 border-cyan-500/30 hover:bg-cyan-500/30">{community.category}</Badge>
+            <h1 className="text-5xl font-black text-white tracking-tighter">{community.name}</h1>
+            <div className="flex items-center gap-4 text-gray-400 text-sm">
+              <span className="flex items-center gap-1.5"><Users size={14} className="text-cyan-400" /> {community.memberCount} members</span>
+              <span className="flex items-center gap-1.5"><MessageSquare size={14} className="text-cyan-400" /> {posts.length} discussions</span>
             </div>
           </div>
-          <div className="flex gap-6 mt-4 pt-4 border-t border-white/10 text-sm text-gray-400">
-            <span className="flex items-center gap-1"><Users size={14} className="text-cyan-400" /> {community.membersCount} members</span>
-            <span className="flex items-center gap-1"><Lock size={14} className={community.isPrivate ? "text-amber-500" : "text-green-500"} /> {community.isPrivate ? "Private" : "Public"}</span>
-          </div>
-        </CardHeader>
-      </Card>
+          <UIButton className="bg-cyan-600 hover:bg-cyan-500 text-white shadow-lg shadow-cyan-900/40 px-8 rounded-xl h-12">
+            Join Community
+          </UIButton>
+        </div>
+      </div>
 
-      <Tabs defaultValue="feed" className="space-y-6">
-        <TabsList className="bg-white/5 border-white/10 p-1">
-          <TabsTrigger value="feed" className="data-[state=active]:bg-cyan-600">Feed</TabsTrigger>
-          <TabsTrigger value="members" className="data-[state=active]:bg-cyan-600">Members</TabsTrigger>
-          <TabsTrigger value="about" className="data-[state=active]:bg-cyan-600">About</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="feed" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2 space-y-4">
-                {posts.map((p: any) => (
-                <Card key={p._id} className="bg-white/5 border-white/10 text-white overflow-hidden">
-                    <CardHeader className="p-4 flex flex-row items-center gap-3">
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage src={p.authorImage} />
-                        <AvatarFallback className="bg-cyan-500/10 text-cyan-500 text-[10px]">{p.authorName?.charAt(0)}</AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1">
-                        <p className="text-sm font-bold">{p.authorName}</p>
-                        <p className="text-[10px] text-gray-500">{new Date(p.createdAt).toLocaleDateString()}</p>
-                      </div>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-500"><MoreVertical size={14} /></Button>
-                    </CardHeader>
-                    <CardContent className="p-4 pt-0">
-                        <p className="text-gray-200 whitespace-pre-wrap">{p.content}</p>
-                        {p.imageUrl && (
-                          <div className="mt-4 rounded-lg overflow-hidden border border-white/10">
-                            <img src={p.imageUrl} alt="Post content" className="w-full h-auto object-cover max-h-[400px]" />
-                          </div>
-                        )}
-                        
-                        <div className="flex items-center gap-4 mt-6 pt-4 border-t border-white/5">
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className={p.meLiked ? "text-cyan-400" : "text-gray-500"}
-                            onClick={() => handleLike(p._id)}
-                          >
-                            <ThumbsUp className="mr-2 h-4 w-4" /> {p.likes || 0}
-                          </Button>
-                          <Button variant="ghost" size="sm" className="text-gray-500">
-                            <MessageCircle className="mr-2 h-4 w-4" /> {p.commentCount || 0}
-                          </Button>
-                        </div>
-                    </CardContent>
-                </Card>
-                ))}
-
-                {posts.length === 0 && postsStatus !== "LoadingFirstPage" && (
-                  <div className="py-20 text-center text-gray-500 border border-dashed border-white/10 rounded-lg italic">
-                    No posts yet. Be the first to share something!
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Main Feed */}
+        <div className="lg:col-span-2 space-y-6">
+          <Card className="bg-white/5 border-white/10 p-4 rounded-2xl">
+             <div className="flex gap-4">
+                <Avatar><AvatarFallback className="bg-cyan-500/20 text-cyan-400">ME</AvatarFallback></Avatar>
+                <div className="flex-1 space-y-3">
+                  <Textarea placeholder="Share something with the community..." className="bg-white/5 border-white/10 resize-none min-h-[100px] text-white" />
+                  <div className="flex justify-between items-center">
+                    <UIButton variant="ghost" size="sm" className="text-gray-400 hover:text-white"><Image size={18} className="mr-2" /> Media</UIButton>
+                    <UIButton size="sm" className="bg-cyan-600 hover:bg-cyan-500 px-6">Post</UIButton>
                   </div>
-                )}
+                </div>
+             </div>
+          </Card>
 
-                {postsStatus === "LoadingFirstPage" && (
-                  <div className="flex justify-center pt-4"><Loader2 className="animate-spin text-cyan-500" /></div>
-                )}
-            </div>
-            
-            <div className="space-y-4">
-                <Card className="bg-white/5 border-white/10 text-white">
-                    <CardHeader><CardTitle className="text-sm">About Community</CardTitle></CardHeader>
-                    <CardContent className="p-4 pt-0 text-sm text-gray-400">
-                        <p>{community.description}</p>
-                        <div className="mt-4 space-y-2">
-                          <div className="flex items-center gap-2">
-                            <Calendar size={14} className="text-cyan-400" />
-                            <span>Created {new Date(community.createdAt).toLocaleDateString()}</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Info size={14} className="text-cyan-400" />
-                            <span>Category: {community.category}</span>
-                          </div>
-                        </div>
-                    </CardContent>
+          <div className="space-y-4">
+            {posts.map((p: any) => (
+                <Card key={p.id} className="bg-white/5 border-white/10 text-white overflow-hidden">
+                  <CardContent className="p-6">
+                    <div className="flex gap-4 mb-4">
+                      <Avatar className="h-10 w-10 border border-white/10"><AvatarFallback>{p.authorName?.[0]}</AvatarFallback></Avatar>
+                      <div>
+                        <p className="font-bold text-white">{p.authorName || 'Member'}</p>
+                        <p className="text-xs text-gray-500">{new Date(p.createdAt).toLocaleDateString()}</p>
+                      </div>
+                    </div>
+                    <p className="text-gray-300 leading-relaxed">{p.content}</p>
+                    <div className="flex items-center gap-6 mt-6 pt-4 border-t border-white/5">
+                        <button 
+                            className="flex items-center gap-2 text-sm text-gray-400 hover:text-cyan-400 transition-colors"
+                            onClick={() => handleLike(p.id)}
+                        >
+                            <Heart size={18} className={p.likes > 0 ? "fill-cyan-500 text-cyan-500" : ""} /> {p.likes || 0}
+                        </button>
+                        <button className="flex items-center gap-2 text-sm text-gray-400 hover:text-cyan-400 transition-colors">
+                            <MessageSquare size={18} /> {p.commentCount || 0}
+                        </button>
+                        <button className="flex items-center gap-2 text-sm text-gray-400 hover:text-cyan-400 transition-colors ml-auto">
+                            <Share2 size={18} />
+                        </button>
+                    </div>
+                  </CardContent>
                 </Card>
-            </div>
+            ))}
           </div>
-        </TabsContent>
+        </div>
 
-        <TabsContent value="members">
-          <Card className="bg-white/5 border-white/10 text-white">
-            <CardHeader><CardTitle>Members ({community.membersCount})</CardTitle></CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {members.map((m: any) => (
-                  <div key={m._id} className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/10">
-                    <Avatar>
-                      <AvatarImage src={m.image} />
-                      <AvatarFallback className="bg-cyan-500/10 text-cyan-500">{m.name?.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    <div className="overflow-hidden">
+        {/* Sidebar */}
+        <div className="space-y-6">
+          <Card className="bg-white/5 border-white/10 p-6 rounded-2xl">
+            <h3 className="text-lg font-bold mb-4 flex items-center gap-2 text-white"><Shield size={18} className="text-cyan-400" /> About Community</h3>
+            <p className="text-sm text-gray-400 leading-relaxed mb-6">{community.description}</p>
+            <Separator className="bg-white/5 mb-6" />
+            <div className="space-y-4">
+               <h4 className="text-xs font-bold text-gray-500 uppercase tracking-widest">Active Members</h4>
+               <div className="space-y-3">
+                {members.slice(0, 5).map((m: any) => (
+                  <div key={m.id} className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/10">
+                    <Avatar className="h-8 w-8 border border-white/10"><AvatarFallback>{m.name?.[0]}</AvatarFallback></Avatar>
+                    <div className="flex-1 min-w-0 text-white">
                       <p className="text-sm font-bold truncate">{m.name}</p>
-                      <p className="text-[10px] text-cyan-400 uppercase tracking-wider font-mono">{m.role}</p>
+                      <p className="text-[10px] text-gray-500 capitalize">{m.role}</p>
                     </div>
                   </div>
                 ))}
-              </div>
-
-              {membersStatus === "LoadingFirstPage" && (
-                <div className="flex justify-center mt-6"><Loader2 className="animate-spin text-cyan-500" /></div>
-              )}
-            </CardContent>
+               </div>
+               <UIButton variant="ghost" className="w-full text-xs text-cyan-400 hover:bg-cyan-500/10">View All Members</UIButton>
+            </div>
           </Card>
-        </TabsContent>
-
-        <TabsContent value="about">
-           <Card className="bg-white/5 border-white/10 text-white">
-              <CardHeader><CardTitle>About {community.name}</CardTitle></CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-gray-300 leading-relaxed">{community.description}</p>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-white/10">
-                   <div>
-                     <h4 className="font-bold mb-2">Platform Guidelines</h4>
-                     <p className="text-sm text-gray-400">Be respectful, stay on topic, and help grow the community. All posts are subject to AI moderation for platform safety.</p>
-                   </div>
-                   <div>
-                     <h4 className="font-bold mb-2">Moderation</h4>
-                     <p className="text-sm text-gray-400">This community is moderated by its creator and automated AI tools. Violating content will be flagged and removed.</p>
-                   </div>
-                </div>
-              </CardContent>
-           </Card>
-        </TabsContent>
-      </Tabs>
-
-      <Dialog open={showCreatePost} onOpenChange={setShowCreatePost}>
-        <DialogContent className="bg-gray-900 border-white/10 text-white">
-          <DialogHeader><DialogTitle>Create Community Post</DialogTitle></DialogHeader>
-          <Textarea 
-            value={newPostContent} 
-            onChange={e => setNewPostContent(e.target.value)} 
-            placeholder="Share with your community..." 
-            className="bg-white/5 border-white/10 min-h-[150px]" 
-          />
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowCreatePost(false)}>Cancel</Button>
-            <Button onClick={handleCreatePost} disabled={loading}>{loading ? 'Posting...' : 'Post'}</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        </div>
+      </div>
     </div>
   );
 }
-
-

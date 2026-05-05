@@ -55,13 +55,13 @@ export default function AiRecommendationDashboard() {
     setLoading(true);
     try {
       const [eventsRes, contentRes, connectionsRes] = await Promise.all([
-        getAIRecommendations(user._id || user.id),
-        getAIContentRecommendations(user._id || user.id),
-        getAIConnectionRecommendations(user._id || user.id)
+        getAIRecommendations(user.id),
+        getAIContentRecommendations(user.id),
+        getAIConnectionRecommendations(user.id)
       ]);
 
       const enrichedEvents = (eventsRes as any[]).map((rec: any) => {
-        const fullEvent = events.find((e: any) => e._id === rec.eventId);
+        const fullEvent = events.find((e: any) => e.id === rec.eventId);
         return {
           eventId: rec.eventId || rec.id,
           title: fullEvent?.title || 'Unknown Event',

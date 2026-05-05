@@ -102,7 +102,7 @@ export default function EventCreationWizard() {
           : { venue: 'Virtual', virtualLink: values.virtualLink },
         capacity: values.capacity,
         status: 'published',
-        organizerId: (user._id || user.id) as any,
+        organizerId: user.id as any,
         registeredCount: 0,
         type: values.locationType,
         agenda: values.agenda,

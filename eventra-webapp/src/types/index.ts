@@ -10,7 +10,6 @@ export type Id<T extends string = string> = string & { readonly __brand: T };
 export type UserRole = 'student' | 'professional' | 'organizer' | 'admin' | 'speaker' | 'attendee' | 'vendor';
 
 export interface User {
-  _id?: string;
   id: string;
   name: string;
   email: string;
@@ -72,7 +71,6 @@ export interface AgendaItem {
 }
 
 export interface EventraEvent {
-  _id?: string;
   id: string;
   title: string;
   description: string;
@@ -104,7 +102,6 @@ export interface EventraEvent {
 }
 
 export interface EventTicket {
-  _id?: string;
   id: string;
   eventId: string;
   userId: string;
@@ -163,7 +160,6 @@ export function getUserAttendedEvents(user: User | null): string[] {
 }
 
 export interface ChatRoom {
-  _id?: string;
   id: string;
   name?: string;
   type: 'direct' | 'group' | 'event';
@@ -172,7 +168,6 @@ export interface ChatRoom {
 }
 
 export interface ChatMessage {
-  _id?: string;
   id: string;
   roomId: string;
   senderId: string;
@@ -183,7 +178,6 @@ export interface ChatMessage {
 }
 
 export interface Community {
-  _id?: string;
   id: string;
   name: string;
   description: string;
@@ -193,7 +187,6 @@ export interface Community {
 }
 
 export interface FeedPost {
-  _id?: string;
   id: string;
   authorId: string;
   content: string;

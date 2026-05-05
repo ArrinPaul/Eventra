@@ -47,8 +47,8 @@ export default function EventEditPage({ params }: { params: Promise<{ id: string
     );
   }
 
-  const isMainOrganizer = user && (user._id === event.organizerId || user.role === 'admin');
-  const isCoOrganizer = user && event.coOrganizerIds?.includes(user._id);
+  const isMainOrganizer = user && (user.id === event.organizerId || user.role === 'admin');
+  const isCoOrganizer = user && event.coOrganizerIds?.includes(user.id);
 
   if (!isMainOrganizer && !isCoOrganizer) {
     return (
@@ -65,7 +65,7 @@ export default function EventEditPage({ params }: { params: Promise<{ id: string
   const handleSave = async (eventData: any) => {
     try {
       await updateEvent({
-        id: event._id,
+        id: event.id,
         updates: {
           title: eventData.title,
           description: eventData.description,
@@ -108,24 +108,24 @@ export default function EventEditPage({ params }: { params: Promise<{ id: string
               onSave={handleSave}
               event={{
                 ...event,
-                id: event._id,
+                id: event.id,
               } as any}
             />
           </div>
         </div>
 
         <div className="space-y-8">
-          <AnnouncementManager eventId={event._id} />
+          <AnnouncementManager eventId={event.id} />
           
-          <AttendancePredictor eventId={event._id} />
+          <AttendancePredictor eventId={event.id} />
 
-          <SocialPostGenerator eventId={event._id} />
+          <SocialPostGenerator eventId={event.id} />
 
-          <WebhookManager eventId={event._id} />
+          <WebhookManager eventId={event.id} />
 
           {isMainOrganizer && (
             <CoOrganizerManager 
-              eventId={event._id}
+              eventId={event.id}
               organizerId={event.organizerId}
               coOrganizerIds={event.coOrganizerIds}
             />

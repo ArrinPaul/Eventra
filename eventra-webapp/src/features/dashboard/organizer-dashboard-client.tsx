@@ -192,9 +192,9 @@ export default function OrganizerDashboard() {
             <CardContent>
               <div className="space-y-3">
                 {filteredEvents.map((event: any) => {
-                  const isOwner = event.organizerId === (user?._id || user?.id);
+                  const isOwner = event.organizerId === user?.id;
                   return (
-                    <div key={event.id || event._id} className="flex items-center justify-between p-4 rounded-xl border border-border bg-card group hover:border-primary/20 hover:shadow-sm transition-all">
+                    <div key={event.id} className="flex items-center justify-between p-4 rounded-xl border border-border bg-card group hover:border-primary/20 hover:shadow-sm transition-all">
                       <div className="flex items-center gap-4">
                         <div className="w-12 h-12 rounded-xl bg-primary/5 border border-border flex flex-col items-center justify-center flex-shrink-0">
                           <span className="text-[10px] font-semibold uppercase text-primary">{format(event.startDate, 'MMM')}</span>
@@ -212,13 +212,13 @@ export default function OrganizerDashboard() {
                         </div>
                       </div>
                       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleClone(event.id || event._id)} disabled={isCloning === (event.id || event._id)}>
-                          {isCloning === (event.id || event._id) ? <Loader2 className="h-4 w-4 animate-spin" /> : <Copy size={14} />}
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleClone(event.id)} disabled={isCloning === event.id}>
+                          {isCloning === event.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Copy size={14} />}
                         </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8" asChild><Link href={`/events/${event.id || event._id}`}><ArrowUpRight size={14} /></Link></Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8" asChild><Link href={`/events/${event.id || event._id}/edit`}><Edit size={14} /></Link></Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8" asChild><Link href={`/events/${event.id}`}><ArrowUpRight size={14} /></Link></Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8" asChild><Link href={`/events/${event.id}/edit`}><Edit size={14} /></Link></Button>
                         {isOwner && (
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10" onClick={() => handleDelete(event.id || event._id)}><Trash2 size={14} /></Button>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10" onClick={() => handleDelete(event.id)}><Trash2 size={14} /></Button>
                         )}
                       </div>
                     </div>
