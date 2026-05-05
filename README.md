@@ -1,186 +1,171 @@
-# Eventra — The Ultimate Event Ecosystem
+# Eventra — The Intelligent Event Management Ecosystem
 
-![Eventra Cover](./eventra-webapp/public/readme/eventra-cover.svg)
+![Eventra Banner](./eventra-webapp/public/readme/eventra-cover.svg)
 
-Eventra is a next-generation event management platform built for the modern web. It provides a seamless, end-to-end ecosystem for organizers to publish events, manage ticketing, foster communities, and leverage AI-driven insights, while offering attendees a polished discovery and engagement experience.
-
----
-
-## 🚀 Vision & Key Features
-
-Eventra bridges the gap between static event listing and interactive community engagement.
-
-### **For Attendees**
-- **Intuitive Discovery**: Explore events via an aurora-themed landing page with category-based filtering.
-- **Unified Wallet**: Access and manage all event tickets and QR codes in a single digital vault.
-- **Social Integration**: Participate in community discussion boards, real-time chats, and activity feeds.
-- **Gamification**: Earn XP, level up, and unlock distinctive badges for event participation.
-- **AI Personalization**: Receive tailored event recommendations based on interests and behavior.
-
-### **For Organizers**
-- **Event Wizard**: Create complex physical, virtual, or hybrid events with ease.
-- **Advanced Management**: Manage ticket tiers, waitlists, and bulk certificate distribution.
-- **Engagement Tools**: Publish announcements, run live polls, and moderate community media.
-- **Rich Analytics**: Deep-dive into revenue trends, attendee demographics, and sentiment analysis.
-- **AI Copilot**: Generate marketing copy, predict attendance, and get smart scheduling suggestions.
-
-### **For Administrators**
-- **Global Governance**: Moderate users and events across the entire platform.
-- **System Control**: Toggle platform-wide features (Chat, Feed, AI) from a central command center.
-- **Platform Analytics**: Monitor total registration growth and platform health metrics.
+Eventra is a premium, enterprise-grade event management platform designed to automate the full lifecycle of complex events. Built with **Next.js 15**, **PostgreSQL**, and **Google Gemini AI**, Eventra transforms passive event hosting into an active, data-driven, and community-centric experience.
 
 ---
 
-## 🛠️ Tech Stack
+## 🚀 Core Technology Pillars
 
-Eventra is built using a "Clean Architecture" approach, prioritizing modularity and type safety.
+Eventra is powered by four specialized engines that work in concert to deliver a seamless experience for attendees, organizers, and platform administrators.
 
-- **Framework**: [Next.js 15](https://nextjs.org/) (App Router, Server Actions)
-- **Language**: [TypeScript 5](https://www.typescriptlang.org/)
-- **Database**: [PostgreSQL](https://www.postgresql.org/) (Supabase)
-- **ORM**: [Drizzle ORM](https://orm.drizzle.team/)
-- **Styling**: [Tailwind CSS](https://tailwindcss.com/) + [Radix UI](https://www.radix-ui.com/)
-- **State Management**: [TanStack React Query](https://tanstack.com/query/latest)
-- **i18n**: [next-intl](https://next-intl-docs.vercel.app/) (Multi-language support)
-- **AI Interface**: [Google Generative AI](https://ai.google.dev/) (via Genkit)
-- **Payments & Communication**: [Stripe](https://stripe.com/), [Twilio](https://www.twilio.com/), [Resend](https://resend.com/)
+### 1. **The Intelligence Engine (AI & Genkit)**
+Powered by **Google Gemini 1.5 Flash** and **Genkit**, our AI layer provides real-time automation and deep insights.
+- **Smart Event Planning**: Generates detailed descriptions, agendas, and SEO-optimized marketing copy from minimal inputs.
+- **Predictive Analytics**: Estimates attendee turnout based on registration trends and historical data.
+- **Automated Moderation**: Real-time sentiment analysis and content filtering for community feeds and media.
+- **Copilot for Organizers**: Generates actionable "To-Do" lists and smart scheduling suggestions (best days/times) based on category and audience.
+
+### 2. **The Vector-Powered Recommendation Engine**
+Eventra uses **pgvector** and semantic search to connect users with high-value content and connections.
+- **Semantic Matching**: Uses 768-dimensional vector embeddings to match user interests with event topics.
+- **Connection Matchmaking**: Suggests networking opportunities by identifying shared professional goals and skills.
+- **Hyper-Personalization**: Delivers curated "Engagement Picks" that evolve as the user interacts with the platform.
+
+### 3. **The Real-Time Communication Hub**
+A scalable chat and notification infrastructure built for high concurrency.
+- **Contextual Channels**: Automatic creation of event-specific chat rooms for attendees and staff.
+- **Direct & Group Messaging**: Full support for professional networking and private collaboration.
+- **Intelligent Notifications**: Multi-channel delivery (SMS via Twilio, Email via Resend) triggered by event milestones and AI alerts.
+
+### 4. **The Event Lifecycle Engine**
+The core structural layer managing the complexities of modern events.
+- **Dynamic Ticketing**: Multi-tier pricing, automated waitlists, and instant QR-based fulfillment.
+- **Recurring Instances**: Advanced RRule-based scheduling for series-based workshops or conferences.
+- **Credential Management**: Automated PDF certificate generation with AI-personalized congratulatory messages.
 
 ---
 
 ## 🏗️ System Architecture
 
-Eventra follows a modular **Feature-First Architecture**, where each of the 25+ modules (e.g., `events`, `ticketing`, `chat`) encapsulates its own logic, components, and data fetching.
+Eventra follows a **Feature-First modular architecture**, ensuring that every domain (Auth, AI, Payments, Chat) is isolated, testable, and scalable.
 
 ```mermaid
 graph TD
-    A[Client Browser] -->|Requests| B[Next.js App Router]
-    B -->|Layouts/Pages| C[Server Components]
-    B -->|Client Logic| D[Client Components]
-    D -->|Mutations| E[Server Actions]
-    E -->|Queries/Updates| F[Drizzle ORM]
-    F -->|Raw SQL/Typed Queries| G[(Supabase Postgres)]
-    E -->|Notifications| H[Twilio/Resend]
-    E -->|AI Insights| I[Google Gemini/Genkit]
-    E -->|Payments| J[Stripe]
-    D -->|State Sync| K[React Query]
+    subgraph Client_Layer [Frontend Layer]
+        A[Next.js Client Components] -->|Mutations| B[React Query / Server Actions]
+        A -->|UI Primitives| C[Radix UI / Tailwind CSS]
+    end
+
+    subgraph Application_Layer [Business Logic]
+        B --> D[AI Engine: Gemini & Genkit]
+        B --> E[Event Engine: RRule & Drizzle]
+        B --> F[Chat Hub: Real-time Streams]
+    end
+
+    subgraph Data_Layer [Persistence & Services]
+        E --> G[(Supabase Postgres)]
+        G -->|Vector Search| G1[pgvector Extension]
+        D -->|Email/SMS| H[Resend / Twilio]
+        D -->|Payments| I[Stripe Checkout]
+    end
+
+    style D fill:#7C3AED,stroke:#fff,color:#fff
+    style E fill:#06B6D4,stroke:#fff,color:#fff
+    style G fill:#111827,stroke:#fff,color:#fff
 ```
 
 ---
 
-## 📊 Database Schema (ERD)
+## 📊 High-Scale Database Architecture
 
-The database is built for scale, supporting vector embeddings for AI recommendations and complex many-to-many relationships for community and networking features.
+Our schema is optimized for relational integrity and fast vector retrieval, supporting a complex graph of users, communities, and real-time events.
 
 ```mermaid
 erDiagram
-    USER ||--o{ EVENT : organizes
-    USER ||--o{ TICKET : owns
-    USER ||--o{ NOTIFICATION : receives
-    USER ||--o{ USER_BADGE : earns
-    USER ||--o{ POST : authors
-    USER ||--o{ COMMENT : writes
-    USER ||--o{ FOLLOW : "follows/followed"
-    USER ||--o{ CHAT_PARTICIPANT : joins
-    USER ||--o{ COMMUNITY_MEMBER : belongs
+    USER ||--o{ EVENT : "organizes"
+    USER ||--o{ TICKET : "owns"
+    USER ||--o{ USER_BADGE : "earns"
+    USER ||--o{ CHAT_PARTICIPANT : "joins"
     
-    EVENT ||--o{ TICKET_TIER : defines
-    EVENT ||--o{ TICKET : issues
-    EVENT ||--o{ WAITLIST : manages
-    EVENT ||--o{ CHAT_ROOM : hosts
-    EVENT ||--o{ EVENT_FEEDBACK : receives
-    EVENT ||--o{ EVENT_MEDIA : displays
-    EVENT ||--o{ EVENT_STAFF : employs
-    EVENT ||--o{ SPONSOR : features
-    EVENT ||--o{ CERTIFICATE_TEMPLATE : provides
+    EVENT ||--o{ TICKET_TIER : "configures"
+    EVENT ||--o{ WAITLIST : "manages"
+    EVENT ||--o{ EVENT_MEDIA : "hosts"
+    EVENT ||--o{ AI_CHAT_SESSION : "anchors"
     
-    TICKET_TIER ||--o{ TICKET : instantiates
+    COMMUNITY ||--o{ COMMUNITY_MEMBER : "contains"
+    COMMUNITY ||--o{ POST : "aggregates"
     
-    COMMUNITY ||--o{ COMMUNITY_MEMBER : has
-    COMMUNITY ||--o{ POST : contains
+    POST ||--o{ COMMENT : "receives"
     
-    POST ||--o{ COMMENT : receives
-    
-    CHAT_ROOM ||--o{ CHAT_PARTICIPANT : has
-    CHAT_ROOM ||--o{ CHAT_MESSAGE : contains
-    
-    AI_CHAT_SESSION ||--o{ AI_CHAT_MESSAGE : contains
-    USER ||--o{ AI_CHAT_SESSION : initiates
+    CHAT_ROOM ||--o{ CHAT_MESSAGE : "persists"
+    CHAT_ROOM ||--o{ CHAT_PARTICIPANT : "tracks"
+
+    EVENT }|..|{ G1_VECTOR : "semantic_embedding"
+    USER }|..|{ G1_VECTOR : "interest_embedding"
 ```
 
 ---
 
-## 🎨 Design System
+## 🎨 Design System & UI
 
-Eventra utilizes a tokenized UI system built with **HSL semantic tokens**, allowing for seamless light/dark mode transitions and consistent brand identity.
+Eventra features a bespoke design system built on **HSL semantic tokens**, providing a lush, high-contrast aesthetic that remains accessible and performant.
 
 ![UI System](./eventra-webapp/public/readme/eventra-ui-system.svg)
 
-| Token | Dark Mode HSL | Light Mode HSL |
-| :--- | :--- | :--- |
-| **Background** | `222 47% 6%` | `220 30% 98%` |
-| **Card** | `222 40% 9%` | `0 0% 100%` |
-| **Primary** | `262 83% 66%` | `262 83% 58%` |
-| **Accent** | `188 86% 53%` | `188 86% 45%` |
+- **Typography**: Space Grotesk (Headlines) & Inter (Body).
+- **Surface**: Deep Navy (`#06080F`) with Glassmorphism overlays.
+- **Accents**: Cyber Cyan & Radiant Violet for high-signal CTAs.
 
 ---
 
-## 🚦 Getting Started
+## 🚦 Engineering Standards & Setup
 
-### **1. Clone & Install**
+### **1. Prerequisites**
+- **Node.js**: v20+ (LTS)
+- **Database**: PostgreSQL with `pgvector` extension.
+- **AI**: Google Cloud project with Gemini API access.
+
+### **2. Rapid Installation**
 ```bash
 git clone <repository-url>
 cd Eventra/eventra-webapp
 npm install
-```
-
-### **2. Environment Setup**
-Create a `.env.local` file from the provided template:
-```bash
 cp .env.example .env.local
 ```
-*Note: Ensure your `DATABASE_URL` (Supabase) and integration keys (Stripe, Twilio, etc.) are correctly configured.*
 
-### **3. Database Migration**
-Push the schema to your Supabase instance:
+### **3. Local Deployment**
 ```bash
+# Apply schema to database
 npm run db:push
-```
 
-### **4. Launch Development Server**
-```bash
+# Launch the engine
 npm run dev
 ```
-The application will be accessible at [http://localhost:9002](http://localhost:9002).
+The platform will initialize at [http://localhost:9002](http://localhost:9002).
 
 ---
 
-## 📜 Essential Scripts
+## 📜 Critical Workflows
 
-| Script | Description |
+| Script | Purpose |
 | :--- | :--- |
-| `npm run build` | Compiles the production application. |
-| `npm run typecheck` | Validates TypeScript integrity across the codebase. |
-| `npm run lint` | Runs ESLint for code style enforcement. |
-| `npm run test:smoke` | Seeds the database and runs E2E sanity checks. |
-| `npm run db:studio` | Opens the Drizzle interactive database explorer. |
+| `npm run test:smoke` | Executes the E2E "Seed & Verify" chain for events, tickets, and AI flows. |
+| `npm run build` | Generates the production-optimized Next.js bundle. |
+| `npm run db:studio` | Provides a GUI for real-time database management via Drizzle. |
+| `npm run typecheck` | Enforces total TypeScript coverage across all 25 modules. |
 
 ---
 
-## 🚧 Status & Roadmap
+## 🚧 Roadmap: The Path to Production
 
-Eventra recently completed a **Forced Stabilization Phase**, where core authentication and payment systems were removed to ensure a clean, high-performance build.
+Eventra has recently completed a **Forced Stabilization Phase**. Our immediate focus is on restoring the few systems simplified for the build release.
 
-### **Current Focus (Phase 1)**
-- [ ] **Auth Restoration**: Re-integrating Auth.js (v5) with corrected OAuth callback logic.
-- [ ] **Security Patching**: Fixing the stubbed server-side RBAC validation utility.
-- [ ] **Global ID Standard**: Refactoring legacy `_id` references to standardized `id`.
+1. **Phase 1: Security Hardening**
+   - [ ] Restore **Auth.js (v5)** with production-grade OAuth callbacks.
+   - [ ] Repair the server-side RBAC validation utility (`src/lib/auth-utils.ts`).
+   - [ ] Standardize 240+ error handlers to structured API envelopes.
 
-### **Future Horizon (Phase 2 & 3)**
-- [ ] Re-integration of Stripe for paid event ticketing.
-- [ ] Comprehensive i18n coverage for Spanish/English across all features.
-- [ ] Deployment of the AI Marketing Copilot for event organizers.
+2. **Phase 2: Commercial Re-integration**
+   - [ ] Re-add **Stripe** for tiered ticketing and sponsor revenue.
+   - [ ] Finalize the **AI Marketing Copilot** dashboard for event organizers.
+
+3. **Phase 3: Global Scale**
+   - [ ] Achieve 100% i18n coverage for Spanish and English locales.
+   - [ ] Deploy the **Vector Similarity Cache** to optimize high-volume recommendations.
 
 ---
 
 ## 📄 License
-This project is currently private. See individual files for licensing restrictions where applicable.
+This repository is currently private and confidential. Use without explicit permission is strictly prohibited.
