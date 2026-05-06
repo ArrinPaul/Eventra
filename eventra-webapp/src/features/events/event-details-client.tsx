@@ -161,7 +161,7 @@ export default function EventDetailsClient({ eventId, initialEvent }: { eventId:
   if (event === null) return <div className="flex items-center justify-center min-h-screen text-white">Event Not Found</div>;
 
   const isRegistered = !!registration;
-  const isOrganizer = user && (user._id === event.organizerId || user.role === 'admin');
+  const isOrganizer = user && (user.id === event.organizerId || user.role === 'admin');
   const capacityPercent = event.capacity > 0 ? Math.min(100, Math.round((event.registeredCount / event.capacity) * 100)) : 0;
   const isFull = event.registeredCount >= event.capacity;
 
