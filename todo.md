@@ -79,3 +79,6 @@ This document tracks the remaining work required to bring Eventra to a productio
 - **Phase 2**: [ ] 0%
 - **Phase 3**: [ ] 0%
 - **Overall**: [ ] 6%
+
+
+need to update and test frontend as well 
