@@ -51,7 +51,7 @@ export function EventDiscussionBoard({ eventId }: EventDiscussionBoardProps) {
         rows.map(async (row) => {
           const author = await getUserById(row.authorId);
           return {
-            _id: row.id,
+            id: row.id,
             content: row.content,
             isQuestion: row.isQuestion,
             isAnswered: row.isAnswered,
@@ -88,7 +88,7 @@ export function EventDiscussionBoard({ eventId }: EventDiscussionBoardProps) {
 
       setMessages((prev) => [
         {
-          _id: result.id,
+          id: result.id,
           content: content.trim(),
           isQuestion,
           isAnswered: false,
@@ -168,7 +168,7 @@ export function EventDiscussionBoard({ eventId }: EventDiscussionBoardProps) {
           </div>
         ) : (
           messages.map((msg) => (
-            <div key={msg._id} className={cn(
+            <div key={msg.id} className={cn(
               "p-6 rounded-2xl border transition-all",
               msg.isQuestion 
                 ? msg.isAnswered 
@@ -206,10 +206,10 @@ export function EventDiscussionBoard({ eventId }: EventDiscussionBoardProps) {
                 <div className="flex items-center gap-4 mt-6 pt-4 border-t border-white/5">
                   <button 
                     onClick={async () => {
-                      const result = await likeDiscussionMessage(msg._id);
+                      const result = await likeDiscussionMessage(msg.id);
                       if (result.success) {
                         setMessages((prev) =>
-                          prev.map((m) => (m._id === msg._id ? { ...m, likes: Number(m.likes || 0) + 1 } : m))
+                          prev.map((m) => (m.id === msg.id ? { ...m, likes: Number(m.likes || 0) + 1 } : m))
                         );
                       }
                     }}
@@ -226,10 +226,10 @@ export function EventDiscussionBoard({ eventId }: EventDiscussionBoardProps) {
                   {msg.isQuestion && !msg.isAnswered && (
                     <button 
                       onClick={async () => {
-                        const result = await markDiscussionMessageAnswered(msg._id);
+                        const result = await markDiscussionMessageAnswered(msg.id);
                         if (result.success) {
                           setMessages((prev) =>
-                            prev.map((m) => (m._id === msg._id ? { ...m, isAnswered: true } : m))
+                            prev.map((m) => (m.id === msg.id ? { ...m, isAnswered: true } : m))
                           );
                         }
                       }}

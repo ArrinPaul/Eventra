@@ -149,7 +149,7 @@ export function EventPolls({ eventId, isOrganizer }: EventPollsProps) {
       ) : (
         <div className="space-y-6">
           {polls.map((poll) => {
-            const pollId = poll.id || poll._id;
+            const pollId = poll.id;
             return (
             <Card key={pollId} className={cn(
               "bg-white/5 border-white/10 text-white transition-all",
@@ -166,7 +166,7 @@ export function EventPolls({ eventId, isOrganizer }: EventPollsProps) {
                         onClick={async () => {
                           const result = await toggleEventPoll(pollId);
                           if (result.success) {
-                            setPolls((prev) => prev.map((p) => ((p.id || p._id) === pollId ? { ...p, isActive: !poll.isActive } : p)));
+                            setPolls((prev) => prev.map((p) => (p.id === pollId ? { ...p, isActive: !poll.isActive } : p)));
                           }
                         }}
                         className="text-xs h-8"
@@ -181,7 +181,7 @@ export function EventPolls({ eventId, isOrganizer }: EventPollsProps) {
                         onClick={async () => {
                           const result = await deleteEventPoll(pollId);
                           if (result.success) {
-                            setPolls((prev) => prev.filter((p) => (p.id || p._id) !== pollId));
+                            setPolls((prev) => prev.filter((p) => p.id !== pollId));
                           }
                         }}
                       >
@@ -209,7 +209,7 @@ export function EventPolls({ eventId, isOrganizer }: EventPollsProps) {
                           if (!result.success) return;
                           setPolls((prev) =>
                             prev.map((p) => {
-                              if ((p.id || p._id) !== pollId) return p;
+                              if (p.id !== pollId) return p;
                               const results = Array.isArray(p.results) ? [...p.results] : [];
                               results[i] = Number(results[i] || 0) + 1;
                               return { ...p, results, totalVotes: Number(p.totalVotes || 0) + 1, myVote: i };

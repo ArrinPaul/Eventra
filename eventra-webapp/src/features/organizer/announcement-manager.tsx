@@ -38,7 +38,7 @@ export function AnnouncementManager({ eventId }: { eventId: string }) {
       const rows = await listAnnouncements(eventId);
       if (!mounted) return;
       setAnnouncements(
-        rows.filter((r) => r.active).map((r) => ({ _id: r.id, content: r.content, type: r.type, expiresAt: r.expiresAt }))
+        rows.filter((r) => r.active).map((r) => ({ id: r.id, content: r.content, type: r.type, expiresAt: r.expiresAt }))
       );
     }
 
@@ -75,7 +75,7 @@ export function AnnouncementManager({ eventId }: { eventId: string }) {
       setEditingId(null);
       const rows = await listAnnouncements(eventId);
       setAnnouncements(
-        rows.filter((r) => r.active).map((r) => ({ _id: r.id, content: r.content, type: r.type, expiresAt: r.expiresAt }))
+        rows.filter((r) => r.active).map((r) => ({ id: r.id, content: r.content, type: r.type, expiresAt: r.expiresAt }))
       );
     } catch (error) {
       toast({ title: editingId ? t('failedUpdate') : t('failedBroadcast'), variant: 'destructive' });
@@ -85,7 +85,7 @@ export function AnnouncementManager({ eventId }: { eventId: string }) {
   };
 
   const handleEdit = (a: any) => {
-    setEditingId(a._id);
+    setEditingId(a.id);
     setContent(a.content);
     setType(a.type);
     if (a.expiresAt) {
@@ -98,7 +98,7 @@ export function AnnouncementManager({ eventId }: { eventId: string }) {
     try {
       await deactivateAnnouncement(id as any);
       toast({ title: t('removed') });
-      setAnnouncements((prev) => prev.filter((a) => a._id !== id));
+      setAnnouncements((prev) => prev.filter((a) => a.id !== id));
     } catch (error) {
       toast({ title: t('removeError'), variant: 'destructive' });
     }
@@ -190,7 +190,7 @@ export function AnnouncementManager({ eventId }: { eventId: string }) {
             <div className="space-y-2">
               {announcements.map((a) => (
                 <div 
-                  key={a._id} 
+                  key={a.id} 
                   className={cn(
                     "p-3 rounded-lg border text-xs flex justify-between items-start gap-3",
                     a.type === 'info' && "bg-cyan-500/5 border-cyan-500/10 text-cyan-200",
@@ -216,7 +216,7 @@ export function AnnouncementManager({ eventId }: { eventId: string }) {
                     variant="ghost" 
                     size="icon" 
                     className="h-6 w-6 opacity-50 hover:opacity-100 hover:bg-red-500/20 hover:text-red-400"
-                    onClick={() => handleDeactivate(a._id)}
+                    onClick={() => handleDeactivate(a.id)}
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                   </Button>

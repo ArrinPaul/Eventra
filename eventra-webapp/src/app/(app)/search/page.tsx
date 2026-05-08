@@ -76,7 +76,7 @@ export default function SearchPage() {
 //               </div>
 //               <div className="grid gap-4">
 //                 {results.events.map((e: any) => (
-//                   <Link key={e._id} href={`/events/${e._id}`}>
+//                   <Link key={e.id} href={`/events/${e.id}`}>
 //                     <Card className="bg-white/5 border-white/10 hover:bg-white/10 transition-all group overflow-hidden">
 //                       <CardContent className="p-6 flex items-center justify-between">
 //                         <div className="space-y-1">
@@ -106,7 +106,7 @@ export default function SearchPage() {
 //               </div>
 //               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 //                 {results.users.map((u: any) => (
-//                   <Link key={u._id} href={`/profile/${u._id}`}>
+//                   <Link key={u.id} href={`/profile/${u.id}`}>
 //                     <Card className="bg-white/5 border-white/10 hover:border-purple-500/30 transition-all group h-full">
 //                       <CardContent className="p-6 flex items-center gap-4">
 //                         <Avatar className="h-14 w-14 border border-white/10 group-hover:border-purple-500/50 transition-all">
@@ -135,7 +135,7 @@ export default function SearchPage() {
 //               </div>
 //               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 //                 {results.communities.map((c: any) => (
-//                   <Link key={c._id} href={`/community/${c._id}`}>
+//                   <Link key={c.id} href={`/community/${c.id}`}>
 //                     <Card className="bg-white/5 border-white/10 hover:border-pink-500/30 transition-all group overflow-hidden h-full">
 //                       <CardContent className="p-6 flex items-center justify-between">
 //                         <div className="space-y-1">

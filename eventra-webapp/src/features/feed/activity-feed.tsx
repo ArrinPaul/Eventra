@@ -75,7 +75,7 @@ export function ActivityFeed({ userId, global }: { userId?: string; global?: boo
           const config = typeConfig[item.type] || typeConfig.registration;
           const Icon = config.icon;
           return (
-            <div key={item._id} className="flex items-start gap-3 py-3 border-b border-white/5 last:border-0">
+            <div key={item.id} className="flex items-start gap-3 py-3 border-b border-white/5 last:border-0">
               {/* Timeline dot */}
               <div className={`p-2 rounded-lg shrink-0 ${config.bg}`}>
                 <Icon className={`h-4 w-4 ${config.color}`} />

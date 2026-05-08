@@ -100,7 +100,7 @@ export default function CalendarPage() {
                       </span>
                       {dayEvents.length > 0 && (
                         <div className="mt-1 flex flex-wrap gap-1">
-                          {dayEvents.slice(0, 2).map((e: { _id: string }) => (
+                          {dayEvents.slice(0, 2).map((e: { id: string }) => (
                             <div key={e.id} className="w-full h-1.5 rounded-full bg-cyan-500/60" />
                           ))}
                           {dayEvents.length > 2 && (

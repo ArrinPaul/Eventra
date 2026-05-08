@@ -14,6 +14,9 @@ import EventModeration from './event-moderation';
 import SystemSettings from './system-settings';
 import AdminAnalyticsOverview from './admin-analytics-overview';
 
+import { useEffect } from 'react';
+import { listAdminUsers } from '@/app/actions/admin';
+
 function downloadCSV(data: any[], filename: string) {
     const csvRows = [];
     const headers = ['Name', 'Email', 'Role', 'Organization/College', 'Checked In'];
@@ -44,8 +47,17 @@ export default function AdminDashboardClient() {
     const [filterRole, setFilterRole] = useState<UserRole | 'all'>('all');
     const [searchTerm, setSearchTerm] = useState('');
     
-    // Backlog(P3.1): migrate attendee list to server-backed admin query.
-    const allUsersRaw: any[] = [];
+    const [allUsersRaw, setAllUsersRaw] = useState<any[] | undefined>(undefined);
+
+    useEffect(() => {
+        let mounted = true;
+        async function load() {
+            const users = await listAdminUsers({ limit: 500 });
+            if (mounted) setAllUsersRaw(users);
+        }
+        load();
+        return () => { mounted = false; };
+    }, []);
 
     const loading = allUsersRaw === undefined;
     const users = (allUsersRaw || []).map((u: any) => ({ ...u, id: u.id }));

@@ -27,7 +27,7 @@ export function WebhookManager({ eventId }: { eventId?: string }) {
     async function load() {
       const rows = await listWebhooks(eventId);
       if (!mounted) return;
-      setWebhooks(rows.map((w) => ({ _id: w.id, url: w.url, events: w.events, secret: w.secret })));
+      setWebhooks(rows.map((w) => ({ id: w.id, url: w.url, events: w.events, secret: w.secret })));
     }
 
     load();
@@ -61,7 +61,7 @@ export function WebhookManager({ eventId }: { eventId?: string }) {
       });
       setUrl('');
       const rows = await listWebhooks(eventId);
-      setWebhooks(rows.map((w) => ({ _id: w.id, url: w.url, events: w.events, secret: w.secret })));
+      setWebhooks(rows.map((w) => ({ id: w.id, url: w.url, events: w.events, secret: w.secret })));
       toast({ title: 'Webhook created!' });
     } catch (error) {
       toast({ title: 'Failed to create webhook', variant: 'destructive' });
@@ -127,7 +127,7 @@ export function WebhookManager({ eventId }: { eventId?: string }) {
             <Label className="text-xs font-bold uppercase tracking-wider text-gray-500">Your Webhooks</Label>
             <div className="space-y-2">
               {webhooks.map((w) => (
-                <div key={w._id} className="p-3 rounded-lg border border-white/10 bg-white/5 text-xs">
+                <div key={w.id} className="p-3 rounded-lg border border-white/10 bg-white/5 text-xs">
                   <div className="flex justify-between items-start mb-2">
                     <div className="flex-1 min-w-0 pr-2">
                       <p className="truncate font-mono text-cyan-400">{w.url}</p>
@@ -137,8 +137,8 @@ export function WebhookManager({ eventId }: { eventId?: string }) {
                       size="icon" 
                       className="h-6 w-6 text-red-400 hover:bg-red-400/10"
                       onClick={async () => {
-                        await deleteWebhook(w._id);
-                        setWebhooks((prev) => prev.filter((x) => x._id !== w._id));
+                        await deleteWebhook(w.id);
+                        setWebhooks((prev) => prev.filter((x) => x.id !== w.id));
                       }}
                     >
                       <Trash2 className="h-3.5 w-3.5" />

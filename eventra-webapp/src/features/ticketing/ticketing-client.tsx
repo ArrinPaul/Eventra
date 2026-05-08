@@ -19,7 +19,7 @@ export function TicketingClient() {
   const { toast } = useToast();
   const [myTicketsRaw, setMyTicketsRaw] = useState<any[]>([]);
   const [events, setEvents] = useState<any[]>([]);
-  const userId = user?._id || user?.id;
+  const userId = user?.id;
 //   
   
   const [activeTab, setActiveTab] = useState('explore');
@@ -32,7 +32,7 @@ export function TicketingClient() {
       const [eventRows, registrations] = await Promise.all([getEvents({ status: 'published', limit: 100 }), getUserRegistrations()]);
       if (!mounted) return;
       setEvents(eventRows as any[]);
-      setMyTicketsRaw((registrations || []).map((r: any) => ({ _id: r.ticket.id, ...r.ticket, event: r.event })));
+      setMyTicketsRaw((registrations || []).map((r: any) => ({ id: r.ticket.id, ...r.ticket, event: r.event })));
     }
 
     load();
@@ -56,7 +56,7 @@ export function TicketingClient() {
       toast({ title: "Booking Successful!", description: "Your ticket has been generated." });
       setActiveTab('my-tickets');
       const registrations = await getUserRegistrations();
-      setMyTicketsRaw((registrations || []).map((r: any) => ({ _id: r.ticket.id, ...r.ticket, event: r.event })));
+      setMyTicketsRaw((registrations || []).map((r: any) => ({ id: r.ticket.id, ...r.ticket, event: r.event })));
     } catch (error) {
       toast({ title: "Booking Failed", variant: "destructive" });
     } finally {
@@ -81,7 +81,7 @@ export function TicketingClient() {
         
         <TabsContent value="explore" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {events.filter((e: any) => e.status === 'published').map((event: any) => (
-            <Card key={event.id || event._id} className="bg-white/5 border-white/10 text-white overflow-hidden flex flex-col">
+            <Card key={event.id} className="bg-white/5 border-white/10 text-white overflow-hidden flex flex-col">
               <div className="h-40 bg-gradient-to-br from-cyan-900/40 to-purple-900/40 relative">
                 <Badge className="absolute top-2 right-2">{event.category}</Badge>
               </div>
@@ -96,8 +96,8 @@ export function TicketingClient() {
                 </div>
                 <div className="pt-4 border-t border-white/10 flex items-center justify-between">
                   <p className="text-2xl font-bold text-cyan-400">FREE</p>
-                  <Button onClick={() => handleBook(event.id || event._id)} disabled={bookingId === (event.id || event._id)}>
-                    {bookingId === (event.id || event._id) ? <Loader2 className="animate-spin" /> : <ShoppingCart className="mr-2" size={16} />}
+                  <Button onClick={() => handleBook(event.id)} disabled={bookingId === event.id}>
+                    {bookingId === event.id ? <Loader2 className="animate-spin" /> : <ShoppingCart className="mr-2" size={16} />}
                     Book Now
                   </Button>
                 </div>
@@ -109,7 +109,7 @@ export function TicketingClient() {
         
         <TabsContent value="my-tickets" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {myTicketsRaw.map((ticket: any) => (
-            <Card key={ticket._id} className="bg-white/5 border-white/10 text-white overflow-hidden relative">
+            <Card key={ticket.id} className="bg-white/5 border-white/10 text-white overflow-hidden relative">
               <div className="absolute top-0 left-0 w-1 h-full bg-cyan-500" />
               <CardHeader className="pb-2">
                 <div className="flex justify-between items-start">

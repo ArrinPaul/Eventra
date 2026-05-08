@@ -45,7 +45,7 @@ export default function MyEventsClient() {
   
   const events: EventraEvent[] = (allEventsRaw || []).map((e: any) => ({
     ...e,
-    id: e._id,
+    id: e.id,
   }));
 
   // Get event IDs from real registrations

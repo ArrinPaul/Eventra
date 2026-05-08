@@ -22,7 +22,7 @@ export function CommentSection({ postId }: { postId: string }) {
       if (!mounted) return;
       setComments(
         rows.map((row: any) => ({
-          _id: row.comment.id,
+          id: row.comment.id,
           authorName: row.author.name,
           authorImage: row.author.image,
           createdAt: row.comment.createdAt,
@@ -47,7 +47,7 @@ export function CommentSection({ postId }: { postId: string }) {
       if (!result.success || !result.comment) throw new Error('Comment failed');
       setComments((prev) => [
         {
-          _id: result.comment.id,
+          id: result.comment.id,
           authorName: 'You',
           authorImage: '',
           createdAt: result.comment.createdAt,
@@ -70,7 +70,7 @@ export function CommentSection({ postId }: { postId: string }) {
       ) : (
         <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
           {comments.map((comment: any) => (
-            <div key={comment._id} className="flex gap-3 text-sm">
+            <div key={comment.id} className="flex gap-3 text-sm">
               <Avatar className="h-8 w-8">
                 <AvatarImage src={comment.authorImage} />
                 <AvatarFallback>{comment.authorName?.charAt(0) || 'U'}</AvatarFallback>

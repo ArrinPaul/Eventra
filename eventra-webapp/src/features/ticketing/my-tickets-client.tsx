@@ -118,7 +118,7 @@ export default function MyTicketsClient({ initialTickets = [] }: { initialTicket
     initialTickets.map((t: any) => ({
       ...(t.ticket || t),
       event: t.event || t.ticket?.event || {},
-      id: t.id || t.ticket?.id || t._id
+      id: t.id || t.ticket?.id
     }))
   );
   
