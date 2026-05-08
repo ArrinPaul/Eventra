@@ -93,7 +93,16 @@ export async function getMatches() {
       potentialMatches,
     });
 
-    return matches;
+    // 5. Enrich with names
+    const enrichedMatches = matches.map(match => {
+      const original = potentialMatches.find(p => p.id === match.userId);
+      return {
+        ...match,
+        name: original?.name || 'Member',
+      };
+    });
+
+    return enrichedMatches;
   } catch (error) {
     console.error('Matchmaking Error:', error);
     return [];

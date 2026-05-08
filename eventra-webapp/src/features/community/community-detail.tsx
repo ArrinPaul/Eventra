@@ -12,9 +12,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Users, MessageSquare, Heart, Share2, Shield, Image } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
-export default function CommunityDetail({ community, posts: initialPosts, members }: any) {
+export function CommunityDetailClient({ communityId, community: initialCommunity, posts: initialPosts, members: initialMembers }: any) {
   const { toast } = useToast();
+  const [community, setCommunity] = useState(initialCommunity || null);
   const [posts, setPosts] = useState(initialPosts || []);
+  const [members, setMembers] = useState(initialMembers || []);
 
   const handleLike = async (postId: string) => {
     try {

@@ -8,7 +8,7 @@ import { Trophy, Star, Zap, Target, History, Award, Loader2, ListChecks } from '
 import { useAuth } from '@/hooks/use-auth';
 import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/core/utils/utils';
-import { ChallengesHub } from './challenges-hub';
+import ChallengesHub from './challenges-hub';
 
 export function GamificationClient() {
   const { user } = useAuth();
