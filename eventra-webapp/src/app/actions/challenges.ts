@@ -92,20 +92,36 @@ export async function joinChallenge(challengeId: string) {
     });
 
     if (exists) {
-      return { success: true };
+      return { 
+        success: true, 
+        participation: {
+          challengeId,
+          progress: 0,
+          completed: false,
+          createdAt: exists.createdAt,
+        }
+      };
     }
 
-    await db.insert(activityFeed).values({
+    const [row] = await db.insert(activityFeed).values({
       userId: user.id,
       actorId: user.id,
       type: 'challenge_join',
       targetId: challengeId,
       content: 'Joined challenge',
       metadata: { progress: 0, completed: false },
-    });
+    }).returning();
 
     await awardXP(user.id, 10, `Joined challenge ${challengeId}`);
-    return { success: true };
+    return { 
+      success: true,
+      participation: {
+        challengeId,
+        progress: 0,
+        completed: false,
+        createdAt: row.createdAt,
+      }
+    };
   } catch (error) {
     console.error('joinChallenge Error:', error);
     return { success: false, error: 'Failed to join challenge' };

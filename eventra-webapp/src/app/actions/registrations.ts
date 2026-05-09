@@ -291,7 +291,8 @@ export async function processWaitlistReservations(eventId: string) {
  */
 export async function claimWaitlistSpot(eventId: string) {
   const session = await auth();
-  if (!session?.user) return { success: false, error: 'Auth required' };
+  if (!session?.user?.id) return { success: false, error: 'Auth required' };
+  const userId = session.user.id;
 
   try {
     const result = await db.transaction(async (tx) => {
@@ -299,7 +300,7 @@ export async function claimWaitlistSpot(eventId: string) {
       const entry = await tx.query.waitlist.findFirst({
         where: and(
           eq(waitlist.eventId, eventId),
-          eq(waitlist.userId, session.user.id!),
+          eq(waitlist.userId, userId),
           eq(waitlist.status, 'reserved')
         )
       });
@@ -313,7 +314,7 @@ export async function claimWaitlistSpot(eventId: string) {
       const ticketNumber = `TKT-WAIT-${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
       await tx.insert(tickets).values({
         eventId,
-        userId: session.user.id!,
+        userId: userId,
         ticketNumber,
         status: 'confirmed',
         price: '0',
@@ -391,7 +392,8 @@ export async function cancelRegistration(ticketId: string) {
  */
 export async function getRegistrationStatus(eventId: string) {
   const session = await auth();
-  if (!session?.user) return null;
+  if (!session?.user?.id) return null;
+  const userId = session.user.id;
 
   try {
     const result = await db
@@ -400,7 +402,7 @@ export async function getRegistrationStatus(eventId: string) {
       .where(
         and(
           eq(tickets.eventId, eventId),
-          eq(tickets.userId, session.user.id)
+          eq(tickets.userId, userId)
         )
       )
       .limit(1);
@@ -416,7 +418,8 @@ export async function getRegistrationStatus(eventId: string) {
  */
 export async function getUserRegistrations() {
   const session = await auth();
-  if (!session?.user) return [];
+  if (!session?.user?.id) return [];
+  const userId = session.user.id;
 
   try {
     const result = await db
@@ -426,7 +429,7 @@ export async function getUserRegistrations() {
       })
       .from(tickets)
       .innerJoin(events, eq(tickets.eventId, events.id))
-      .where(eq(tickets.userId, session.user.id))
+      .where(eq(tickets.userId, userId))
       .orderBy(desc(tickets.purchaseDate));
     
     return result;

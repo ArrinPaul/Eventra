@@ -1,47 +1,68 @@
 'use client';
 
+import { useSession, signIn as nextAuthSignIn, signOut as nextAuthSignOut } from "next-auth/react";
 import { User } from '@/types';
-
-const GUEST_USER: User = {
-  id: 'guest-user',
-  name: 'Guest User',
-  email: 'guest@eventra.local',
-  role: 'attendee',
-  points: 0,
-  level: 1,
-  xp: 0,
-  onboardingCompleted: true,
-};
+import { updateUserDetails } from "@/app/actions/users";
+import { awardXP as awardXPServer } from "@/app/actions/gamification";
 
 export function useAuth() {
-  const loading = false;
-  const isAuthenticated = false;
-  const user = GUEST_USER;
+  const { data: session, status, update } = useSession();
+  const loading = status === "loading";
+  const isAuthenticated = status === "authenticated";
+  
+  const user = session?.user ? {
+    id: session.user.id,
+    name: session.user.name,
+    email: session.user.email,
+    image: session.user.image,
+    // @ts-ignore
+    role: session.user.role || "attendee",
+    // @ts-ignore
+    onboardingCompleted: session.user.onboardingCompleted,
+    // These might be missing from the basic session user but can be added if needed
+    points: (session.user as any).points || 0,
+    level: (session.user as any).level || 1,
+    xp: (session.user as any).xp || 0,
+  } as User : null;
 
-  const signIn = async () => ({ ok: false, error: 'Authentication is disabled.' });
+  const signIn = async () => {
+    try {
+      await nextAuthSignIn("google");
+      return { ok: true };
+    } catch (error) {
+      return { ok: false, error: String(error) };
+    }
+  };
 
-  const logout = async () => {};
+  const logout = async () => {
+    await nextAuthSignOut({ callbackUrl: "/" });
+  };
 
-  const updateUser = async (updatedUser: Partial<User>) => {
-    return { ...user, ...updatedUser };
+  const updateUser = async (data: Partial<User>) => {
+    if (!user?.id) return null;
+    const result = await updateUserDetails(user.id, data);
+    if (result.success) {
+      await update(); // Refresh session
+    }
+    return result.user;
   };
 
   /**
    * Award points to the current user and persist to DB
    */
-  const awardPoints = async (points: number) => {
-    if (!user) return;
-    
-    const nextXp = (user.xp || 0) + points;
-    const nextLevel = Math.floor(nextXp / 500) + 1;
-    const nextPoints = (user.points || 0) + points;
-    
-    await updateUser({ xp: nextXp, level: nextLevel, points: nextPoints });
+  const awardPoints = async (points: number, reason: string = "Platform Activity") => {
+    if (!user?.id) return;
+    const result = await awardXPServer(user.id, points, reason);
+    if (result?.success) {
+      await update(); // Refresh session
+    }
   };
 
   const checkInUser = async (eventId: string) => {
-    if (!user) return;
-    await updateUser({ checkedIn: true });
+    if (!user?.id) return;
+    // This should ideally be handled by a check-in specific action, 
+    // but for the hook consistency:
+    await updateUser({ checkedIn: true } as any);
   };
 
   return {

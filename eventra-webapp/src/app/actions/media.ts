@@ -18,7 +18,8 @@ export async function uploadEventMedia(data: {
   metadata?: any;
 }) {
   const session = await auth();
-  if (!session?.user) throw new Error('Authentication required');
+  if (!session?.user?.id) throw new Error('Authentication required');
+  const userId = session.user.id as string;
 
   try {
     // 1. Check if user is organizer/staff (Auto-approve) or attendee
@@ -27,14 +28,14 @@ export async function uploadEventMedia(data: {
     });
     if (!event) throw new Error('Event not found');
 
-    const isStaff = event.organizerId === session.user.id || event.coOrganizerIds?.includes(session.user.id!);
+    const isStaff = event.organizerId === userId || event.coOrganizerIds?.includes(userId);
     
     // 2. Insert media record
     const [media] = await db
       .insert(eventMedia)
       .values({
         eventId: data.eventId,
-        authorId: session.user.id!,
+        authorId: userId,
         url: data.url,
         storageId: data.storageId,
         caption: data.caption,

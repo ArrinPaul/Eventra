@@ -12,11 +12,11 @@ export async function validateRole(requiredRoles: UserRole[]) {
   const session = await auth();
   const user = session?.user;
 
-  if (!user || !requiredRoles.includes(user.role as UserRole)) {
+  if (!user || !user.id || !requiredRoles.includes((user as any).role as UserRole)) {
     throw new Error('Unauthorized: Insufficient permissions');
   }
 
-  return user;
+  return user as { id: string; role: UserRole; [key: string]: any };
 }
 
 /**

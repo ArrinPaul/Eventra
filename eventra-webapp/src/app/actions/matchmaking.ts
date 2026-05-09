@@ -14,7 +14,7 @@ import { sql } from 'drizzle-orm';
 export async function getMatches() {
   const session = await auth();
   if (!session?.user?.id) throw new Error('Auth required');
-  const userId = session.user.id;
+  const userId = session.user.id as string;
 
   try {
     // 1. Get current user

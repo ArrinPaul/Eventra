@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/badge'; // Wait, Button from badge? Let's check imports.
 // Fixing imports
 import { Button as UIButton } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';

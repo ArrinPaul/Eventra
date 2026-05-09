@@ -159,8 +159,8 @@ export async function updateSystemSettings(partial: Partial<SystemSettings>) {
     const merged = { ...(await getSystemSettings()), ...partial };
 
     await db.insert(activityFeed).values({
-      userId: user.id,
-      actorId: user.id,
+      userId: user.id as string,
+      actorId: user.id as string,
       type: 'admin_setting',
       targetId: 'global',
       content: 'Updated admin settings',

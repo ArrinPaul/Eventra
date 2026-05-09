@@ -259,7 +259,7 @@ export async function bulkIssueCertificates(eventId: string) {
  */
 export async function getUserCertificates() {
   const session = await auth();
-  if (!session?.user) return [];
+  if (!session?.user?.id) return [];
 
   try {
     const result = await db

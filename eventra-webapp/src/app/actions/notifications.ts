@@ -12,12 +12,13 @@ import { revalidatePath } from 'next/cache';
 export async function getNotifications(limit = 20) {
   const session = await auth();
   if (!session?.user?.id) return [];
+  const userId = session.user.id;
 
   try {
     const results = await db
       .select()
       .from(notifications)
-      .where(eq(notifications.userId, session.user.id))
+      .where(eq(notifications.userId, userId))
       .orderBy(desc(notifications.createdAt))
       .limit(limit);
     
@@ -34,12 +35,13 @@ export async function getNotifications(limit = 20) {
 export async function markNotificationRead(id: string) {
   const session = await auth();
   if (!session?.user?.id) throw new Error('Auth required');
+  const userId = session.user.id;
 
   try {
     await db
       .update(notifications)
       .set({ read: true })
-      .where(and(eq(notifications.id, id), eq(notifications.userId, session.user.id)));
+      .where(and(eq(notifications.id, id), eq(notifications.userId, userId)));
     
     revalidatePath('/');
     return { success: true };
@@ -54,12 +56,13 @@ export async function markNotificationRead(id: string) {
 export async function markAllNotificationsRead() {
   const session = await auth();
   if (!session?.user?.id) throw new Error('Auth required');
+  const userId = session.user.id;
 
   try {
     await db
       .update(notifications)
       .set({ read: true })
-      .where(eq(notifications.userId, session.user.id));
+      .where(eq(notifications.userId, userId));
     
     revalidatePath('/');
     return { success: true };
@@ -74,11 +77,12 @@ export async function markAllNotificationsRead() {
 export async function deleteNotification(id: string) {
   const session = await auth();
   if (!session?.user?.id) throw new Error('Auth required');
+  const userId = session.user.id;
 
   try {
     await db
       .delete(notifications)
-      .where(and(eq(notifications.id, id), eq(notifications.userId, session.user.id)));
+      .where(and(eq(notifications.id, id), eq(notifications.userId, userId)));
     
     revalidatePath('/');
     return { success: true };

@@ -101,7 +101,6 @@ export function verifySessionToken(token: string): SessionPayload | null {
 export function sessionPayloadToUser(payload: SessionPayload): User {
   return {
     id: payload.sub,
-    _id: payload.sub,
     name: payload.name,
     email: payload.email,
     role: payload.role,

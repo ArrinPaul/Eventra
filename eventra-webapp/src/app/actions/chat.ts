@@ -26,7 +26,7 @@ const createRoomSchema = z.object({
 export async function getChatRooms() {
   const session = await auth();
   if (!session?.user?.id) return [];
-  const userId = session.user.id;
+  const userId = session.user.id as string;
 
   try {
     const userRooms = await db
@@ -55,7 +55,7 @@ export async function getChatRooms() {
 export async function getChatMessages(roomId: string, limit: number = 50) {
   const session = await auth();
   if (!session?.user?.id) return [];
-  const userId = session.user.id;
+  const userId = session.user.id as string;
 
   try {
     // Security: Check if user is a participant
@@ -95,7 +95,7 @@ export async function getChatMessages(roomId: string, limit: number = 50) {
 export async function sendMessage(rawInput: any) {
   const session = await auth();
   if (!session?.user?.id) throw new Error('Authentication required');
-  const userId = session.user.id;
+  const userId = session.user.id as string;
 
   const validated = sendMessageSchema.safeParse(rawInput);
   if (!validated.success) return { success: false, error: 'Invalid message' };
@@ -132,7 +132,7 @@ export async function sendMessage(rawInput: any) {
 export async function createChatRoom(rawInput: any) {
   const session = await auth();
   if (!session?.user?.id) throw new Error('Authentication required');
-  const userId = session.user.id;
+  const userId = session.user.id as string;
 
   const validated = createRoomSchema.safeParse(rawInput);
   if (!validated.success) throw new Error('Invalid room data');

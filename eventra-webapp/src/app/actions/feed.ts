@@ -80,7 +80,7 @@ export async function getActivityFeed(options?: { userId?: string, limit?: numbe
 export async function getPersonalizedFeed() {
   const session = await auth();
   if (!session?.user?.id) return getActivityFeed();
-  const userId = session.user.id;
+  const userId = session.user.id as string;
 
   try {
     // 1. Get user follows

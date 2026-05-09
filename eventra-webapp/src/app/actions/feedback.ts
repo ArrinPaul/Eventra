@@ -100,7 +100,7 @@ export async function submitEventFeedback(data: {
 }) {
   const session = await auth();
   if (!session?.user?.id) throw new Error('Authentication required');
-  const userId = session.user.id;
+  const userId = session.user.id as string;
 
   // Verify the user actually attended/checked-in
   const ticket = await db.query.tickets.findFirst({
