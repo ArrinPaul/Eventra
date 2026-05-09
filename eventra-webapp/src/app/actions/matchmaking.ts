@@ -14,11 +14,12 @@ import { sql } from 'drizzle-orm';
 export async function getMatches() {
   const session = await auth();
   if (!session?.user?.id) throw new Error('Auth required');
+  const userId = session.user.id;
 
   try {
     // 1. Get current user
     const user = await db.query.users.findFirst({
-      where: eq(users.id, session.user.id)
+      where: eq(users.id, userId)
     });
 
     if (!user) throw new Error('User not found');
@@ -31,7 +32,7 @@ export async function getMatches() {
       if (!vectorData) {
         return [];
       }
-      await db.update(users).set({ embedding: vectorData }).where(eq(users.id, user.id));
+      await db.update(users).set({ embedding: vectorData }).where(eq(users.id, userId));
       user.embedding = vectorData;
     }
 
