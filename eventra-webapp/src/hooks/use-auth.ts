@@ -1,10 +1,10 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { User } from '@/types';
 
 /**
  * AUTH BYPASS MODE (Development)
- * This hook returns a mock admin user to allow full access to the frontend.
  */
 const MOCK_NORMAL_USER: User = {
   id: 'dev-user-id',
@@ -18,15 +18,33 @@ const MOCK_NORMAL_USER: User = {
 };
 
 export function useAuth() {
-  const loading = false;
-  const isAuthenticated = true;
-  const user = MOCK_NORMAL_USER;
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(true);
+  const [loading, setLoading] = useState(true);
 
-  const signIn = async () => ({ ok: true });
+  useEffect(() => {
+    // Check if user has "logged out" in this session
+    const status = sessionStorage.getItem('eventra_bypass_auth');
+    if (status === 'false') {
+      setIsAuthenticated(false);
+    } else {
+      setIsAuthenticated(true);
+    }
+    setLoading(false);
+  }, []);
+
+  const signIn = async () => {
+    sessionStorage.setItem('eventra_bypass_auth', 'true');
+    setIsAuthenticated(true);
+    return { ok: true };
+  };
+
   const logout = async () => { 
-    console.log('Bypass mode: logout called');
+    sessionStorage.setItem('eventra_bypass_auth', 'false');
+    setIsAuthenticated(false);
     window.location.href = '/'; 
   };
+
+  const user = isAuthenticated ? MOCK_NORMAL_USER : null;
 
   const updateUser = async (data: Partial<User>) => {
     console.log('Bypass mode: updateUser called with', data);

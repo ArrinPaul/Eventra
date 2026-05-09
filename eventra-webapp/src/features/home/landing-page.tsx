@@ -34,7 +34,11 @@ const FADE_UP = {
 };
 
 const STAGGER = {
-  visible: { transition: { staggerChildren: 0.1 } },
+  hidden: { opacity: 0 },
+  visible: { 
+    opacity: 1,
+    transition: { staggerChildren: 0.1 } 
+  },
 };
 
 export default function LandingPage({ featuredEvents = [] }: { featuredEvents?: EventraEvent[] }) {
@@ -72,11 +76,13 @@ export default function LandingPage({ featuredEvents = [] }: { featuredEvents?: 
                   Eventra provides a high-performance infrastructure for organizations to deploy, manage, and scale physical and digital experiences with absolute precision.
                 </p>
                 <div className="flex flex-wrap gap-4">
-                  <Button size="xl" className="group">
-                    Deploy Event <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-all" />
+                  <Button size="xl" className="group" asChild>
+                    <Link href="/events/create">
+                      Deploy Event <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-all" />
+                    </Link>
                   </Button>
-                  <Button size="xl" variant="outline" className="border-zinc-800">
-                    Infrastructure
+                  <Button size="xl" variant="outline" className="border-zinc-800" asChild>
+                    <Link href="/explore">Infrastructure</Link>
                   </Button>
                 </div>
               </motion.div>

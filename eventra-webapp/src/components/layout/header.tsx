@@ -156,68 +156,70 @@ export default function Header() {
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-11 w-11 rounded-xl ml-1 p-0 group" data-testid="header-user-menu">
-                    <Avatar className="h-10 w-10 border-2 border-transparent group-hover:border-primary/50 transition-all">
-                      <AvatarImage src={user.image || ''} alt={user.name || 'User'} />
-                      <AvatarFallback className="bg-primary/10 text-primary text-sm font-bold">
+                  <Button variant="ghost" className="relative h-11 w-11 rounded-none ml-1 p-0 group border border-transparent hover:border-border" data-testid="header-user-menu">
+                    <Avatar className="h-10 w-10 rounded-none border border-transparent group-hover:border-lavender transition-all">
+                      <AvatarImage src={user.image || ''} alt={user.name || 'User'} className="rounded-none" />
+                      <AvatarFallback className="bg-lavender/10 text-lavender text-sm font-bold rounded-none">
                         {user.name?.charAt(0) || user.email?.charAt(0) || 'U'}
                       </AvatarFallback>
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-72 mt-4 p-3 rounded-[1.5rem] glass-card border-white/10 shadow-2xl animate-scale-in" align="end">
-                  <div className="flex items-center gap-4 p-4 mb-3 rounded-2xl bg-primary/5 border border-primary/10">
-                    <Avatar className="h-14 w-14 border-2 border-primary/20">
-                      <AvatarImage src={user.image || ''} />
-                      <AvatarFallback className="bg-primary/20 text-primary font-black text-xl">
+                <DropdownMenuContent className="w-72 mt-4 p-0 rounded-none bg-zinc-950 border-border shadow-2xl animate-scale-in" align="end">
+                  <div className="flex items-center gap-4 p-4 bg-zinc-900 border-b border-border">
+                    <Avatar className="h-14 w-14 rounded-none border border-lavender/20">
+                      <AvatarImage src={user.image || ''} className="rounded-none" />
+                      <AvatarFallback className="bg-lavender/20 text-lavender font-bold text-xl rounded-none">
                         {user.name?.charAt(0) || 'U'}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex flex-col min-w-0">
-                      <span className="text-base font-black text-foreground truncate">{user.name || 'User'}</span>
-                      <span className="text-xs font-bold text-muted-foreground truncate">{user.email}</span>
-                      <Badge variant="secondary" className="mt-1 w-fit text-[10px] uppercase font-black tracking-widest bg-primary/20 text-primary border-none">
+                      <span className="text-base font-bold text-white truncate uppercase tracking-tight">{user.name || 'User'}</span>
+                      <span className="text-xs font-mono font-bold text-zinc-500 truncate uppercase tracking-widest">{user.email}</span>
+                      <Badge variant="secondary" className="mt-2 w-fit">
                         {user.role}
                       </Badge>
                     </div>
                   </div>
-                  <div className="space-y-1">
-                    <DropdownMenuItem asChild className="cursor-pointer rounded-xl p-3 font-bold hover:bg-primary/10 hover:text-primary transition-colors">
+                  <div className="p-2 space-y-1">
+                    <DropdownMenuItem asChild className="cursor-pointer rounded-none p-3 font-bold uppercase tracking-widest text-[10px] hover:bg-lavender/10 hover:text-lavender transition-colors">
                       <Link href="/profile">
-                        <Calendar className="mr-3 h-5 w-5 opacity-70" />
+                        <Calendar className="mr-3 h-4 w-4 opacity-70" />
                         My Profile
                       </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem asChild className="cursor-pointer rounded-xl p-3 font-bold hover:bg-primary/10 hover:text-primary transition-colors">
+                    <DropdownMenuItem asChild className="cursor-pointer rounded-none p-3 font-bold uppercase tracking-widest text-[10px] hover:bg-lavender/10 hover:text-lavender transition-colors">
                       <Link href="/tickets">
-                        <Ticket className="mr-3 h-5 w-5 opacity-70" />
-                        Passes & Tickets
+                        <Ticket className="mr-3 h-4 w-4 opacity-70" />
+                        Access Passes
                       </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem asChild className="cursor-pointer rounded-xl p-3 font-bold hover:bg-primary/10 hover:text-primary transition-colors">
+                    <DropdownMenuItem asChild className="cursor-pointer rounded-none p-3 font-bold uppercase tracking-widest text-[10px] hover:bg-lavender/10 hover:text-lavender transition-colors">
                       <Link href="/preferences">
-                        <Settings className="mr-3 h-5 w-5 opacity-70" />
-                        Account Settings
+                        <Settings className="mr-3 h-4 w-4 opacity-70" />
+                        Node Settings
                       </Link>
                     </DropdownMenuItem>
                   </div>
-                  <DropdownMenuSeparator className="my-3 opacity-10" />
-                  <DropdownMenuItem
-                    onClick={logout}
-                    className="text-destructive focus:text-destructive cursor-pointer rounded-xl p-3 font-bold hover:bg-destructive/10 transition-colors"
-                  >
-                    <LogOut className="mr-3 h-5 w-5 opacity-70" />
-                    Sign Out
-                  </DropdownMenuItem>
+                  <DropdownMenuSeparator className="bg-border opacity-50" />
+                  <div className="p-2">
+                    <DropdownMenuItem
+                      onClick={logout}
+                      className="text-destructive focus:text-destructive cursor-pointer rounded-none p-3 font-bold uppercase tracking-widest text-[10px] hover:bg-destructive/10 transition-colors"
+                    >
+                      <LogOut className="mr-3 h-4 w-4 opacity-70" />
+                      De-authenticate
+                    </DropdownMenuItem>
+                  </div>
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <div className="hidden md:flex items-center gap-3 ml-2">
-                <Button asChild variant="ghost" className="rounded-xl font-bold text-foreground hover:bg-white/5" data-testid="header-signin">
-                  <Link href="/login">Sign In</Link>
+              <div className="hidden md:flex items-center gap-4 ml-2">
+                <Button asChild variant="ghost" className="font-bold text-zinc-500 hover:text-white" data-testid="header-signin">
+                  <Link href="/login">Auth_In</Link>
                 </Button>
-                <Button asChild className="rounded-xl font-bold px-6 bg-primary hover:bg-primary/90 shadow-glow" data-testid="header-signup">
-                  <Link href="/register">Get Started</Link>
+                <Button asChild className="px-8" data-testid="header-signup">
+                  <Link href="/register">Initialize</Link>
                 </Button>
               </div>
             )}
