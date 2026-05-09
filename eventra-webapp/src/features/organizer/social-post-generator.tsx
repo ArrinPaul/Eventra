@@ -35,13 +35,13 @@ export function SocialPostGenerator({ eventId }: { eventId: string }) {
   };
 
   return (
-    <Card className="bg-white/5 border-white/10 text-white">
+    <Card className="bg-card border-border text-foreground">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Share2 className="h-5 w-5 text-purple-400" />
           AI Social Promo
         </CardTitle>
-        <CardDescription className="text-gray-400 text-xs">
+        <CardDescription className="text-muted-foreground text-xs">
           Generate platform-ready posts to promote your event.
         </CardDescription>
       </CardHeader>
@@ -57,7 +57,7 @@ export function SocialPostGenerator({ eventId }: { eventId: string }) {
           </Button>
         ) : (
           <Tabs defaultValue="X (MessageSquare)" className="w-full">
-            <TabsList className="bg-white/5 border-white/10 w-full justify-start overflow-x-auto">
+            <TabsList className="bg-card border-border w-full justify-start overflow-x-auto">
               {posts.map((p) => (
                 <TabsTrigger key={p.platform} value={p.platform} className="text-xs data-[state=active]:bg-purple-600">
                   {p.platform === 'X (MessageSquare)' && <MessageSquare className="h-3 w-3 mr-1" />}
@@ -69,8 +69,8 @@ export function SocialPostGenerator({ eventId }: { eventId: string }) {
             </TabsList>
             {posts.map((p, i) => (
               <TabsContent key={p.platform} value={p.platform} className="mt-4 space-y-4">
-                <div className="bg-white/5 rounded-xl p-4 border border-white/10 relative group">
-                  <p className="text-sm text-gray-300 leading-relaxed whitespace-pre-wrap">{p.content}</p>
+                <div className="bg-card rounded-xl p-4 border border-border relative group">
+                  <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-wrap">{p.content}</p>
                   <div className="mt-3 flex flex-wrap gap-1">
                     {p.hashtags.map((h: string) => (
                       <span key={h} className="text-[10px] text-purple-400 font-medium">{h}</span>
@@ -82,7 +82,7 @@ export function SocialPostGenerator({ eventId }: { eventId: string }) {
                     className="absolute top-2 right-2 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
                     onClick={() => handleCopy(p.content + '\n\n' + p.hashtags.join(' '), i)}
                   >
-                    {copiedIndex === i ? <Check className="h-4 w-4 text-green-400" /> : <Copy className="h-4 w-4" />}
+                    {copiedIndex === i ? <Check className="h-4 w-4 text-success" /> : <Copy className="h-4 w-4" />}
                   </Button>
                 </div>
               </TabsContent>
@@ -90,7 +90,7 @@ export function SocialPostGenerator({ eventId }: { eventId: string }) {
             <Button 
               variant="link" 
               size="sm" 
-              className="text-gray-500 text-[10px] w-full mt-2"
+              className="text-muted-foreground text-[10px] w-full mt-2"
               onClick={() => setPosts(null)}
             >
               Regenerate

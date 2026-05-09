@@ -73,13 +73,13 @@ export default function AdminDashboardClient() {
     };
 
     if (adminUser?.role !== 'admin' && adminUser !== undefined) {
-        return <div className="container py-20 text-center text-white">Unauthorized Access</div>;
+        return <div className="container py-20 text-center text-foreground">Unauthorized Access</div>;
     }
 
     return (
-        <div className="container py-8 space-y-6 text-white">
+        <div className="container py-8 space-y-6 text-foreground">
             <div>
-                <h1 className="text-4xl font-bold font-headline mb-2 text-white">Admin Dashboard</h1>
+                <h1 className="text-4xl font-bold font-headline mb-2 text-foreground">Admin Dashboard</h1>
                 <p className="text-muted-foreground">Manage platform settings, users, events, and analytics.</p>
             </div>
 
@@ -98,37 +98,37 @@ export default function AdminDashboardClient() {
                     ) : (
                         <div className="grid grid-cols-1 gap-8">
                             <div>
-                                <h2 className="text-2xl font-bold font-headline mb-4 text-white">Participants</h2>
+                                <h2 className="text-2xl font-bold font-headline mb-4 text-foreground">Participants</h2>
                                 <div className="flex flex-col md:flex-row gap-4 mb-6">
                                     <div className="relative flex-1">
                                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                        <Input placeholder="Search attendees..." className="pl-10 text-white" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+                                        <Input placeholder="Search attendees..." className="pl-10 text-foreground" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
                                     </div>
                                     <Button onClick={handleExport}><Download className="mr-2 h-4 w-4" /> Export CSV</Button>
                                 </div>
                                 
-                                <div className="border rounded-lg overflow-hidden bg-white/5 border-white/10">
+                                <div className="border rounded-lg overflow-hidden bg-card border-border">
                                     <Table>
                                         <TableHeader>
-                                            <TableRow className="border-white/10">
-                                                <TableHead className="text-white">Name</TableHead>
-                                                <TableHead className="text-white">Email</TableHead>
-                                                <TableHead className="text-white">Role</TableHead>
-                                                <TableHead className="text-center text-white">Checked In</TableHead>
+                                            <TableRow className="border-border">
+                                                <TableHead className="text-foreground">Name</TableHead>
+                                                <TableHead className="text-foreground">Email</TableHead>
+                                                <TableHead className="text-foreground">Role</TableHead>
+                                                <TableHead className="text-center text-foreground">Checked In</TableHead>
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
                                             {filteredUsers.length > 0 ? filteredUsers.map((user: any) => (
-                                                <TableRow key={user.id} className="border-white/10">
-                                                    <TableCell className="font-medium text-white">{user.name}</TableCell>
-                                                    <TableCell className="text-gray-300">{user.email}</TableCell>
+                                                <TableRow key={user.id} className="border-border">
+                                                    <TableCell className="font-medium text-foreground">{user.name}</TableCell>
+                                                    <TableCell className="text-foreground/80">{user.email}</TableCell>
                                                     <TableCell><Badge className="capitalize">{user.role}</Badge></TableCell>
                                                     <TableCell className="text-center">
-                                                        {user.checkedIn ? <Check className="h-5 w-5 text-green-500 mx-auto" /> : <X className="h-5 w-5 text-red-500 mx-auto" />}
+                                                        {user.checkedIn ? <Check className="h-5 w-5 text-success mx-auto" /> : <X className="h-5 w-5 text-destructive mx-auto" />}
                                                     </TableCell>
                                                 </TableRow>
                                             )) : (
-                                                <TableRow><TableCell colSpan={4} className="text-center h-24 text-gray-400">No participants found.</TableCell></TableRow>
+                                                <TableRow><TableCell colSpan={4} className="text-center h-24 text-muted-foreground">No participants found.</TableCell></TableRow>
                                             )}
                                         </TableBody>
                                     </Table>

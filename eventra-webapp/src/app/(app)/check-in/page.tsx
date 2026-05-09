@@ -52,7 +52,7 @@ export default function CheckInPage() {
                             <DialogHeader>
                                 <DialogTitle>Scan QR Code</DialogTitle>
                             </DialogHeader>
-                            <div className="p-4 text-center text-gray-500">
+                            <div className="p-4 text-center text-muted-foreground">
                                 QR Scanner Component - To be implemented
                             </div>
                         </DialogContent>
@@ -70,7 +70,7 @@ export default function CheckInPage() {
                             {firstTicket ? (
                                 <>
                                     Status:{' '}
-                                    <span className={firstTicket.status === 'checked-in' ? 'text-green-500 font-bold' : 'text-yellow-500 font-bold'}>
+                                    <span className={firstTicket.status === 'checked-in' ? 'text-success font-bold' : 'text-warning font-bold'}>
                                         {firstTicket.status === 'checked-in' ? ' CHECKED IN' : ' NOT CHECKED IN'}
                                     </span>
                                 </>

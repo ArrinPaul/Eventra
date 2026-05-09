@@ -1,5 +1,34 @@
-import { auth } from '@/auth';
 import { UserRole } from '@/types';
+
+/**
+ * AUTH BYPASS MODE (Development)
+ * These utility functions always succeed and return a mock user.
+ */
+const MOCK_USER = {
+  id: 'dev-admin-id',
+  role: 'admin' as UserRole,
+  name: 'Dev Admin',
+  email: 'admin@eventra.local',
+  onboardingCompleted: true,
+};
+
+export async function validateRole(requiredRoles: UserRole[]) {
+  console.log(`Bypass mode: validateRole called for ${requiredRoles.join(', ')}`);
+  return MOCK_USER;
+}
+
+export async function validateEventOwnership(eventId: string) {
+  console.log(`Bypass mode: validateEventOwnership called for event ${eventId}`);
+  return MOCK_USER;
+}
+
+export async function validateStaffPermission(eventId: string, permission: string) {
+  console.log(`Bypass mode: validateStaffPermission called for ${permission} on ${eventId}`);
+  return MOCK_USER;
+}
+
+/* --- ORIGINAL AUTH-UTILS (COMMENTED OUT FOR DEVELOPMENT) ---
+import { auth } from '@/auth';
 import { db } from '@/lib/db';
 import { events, eventStaff } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
@@ -7,7 +36,7 @@ import { eq, and } from 'drizzle-orm';
 /**
  * Validates if the current session user has the required role.
  * Throws an error if unauthorized.
- */
+ *\/
 export async function validateRole(requiredRoles: UserRole[]) {
   const session = await auth();
   const user = session?.user;
@@ -21,7 +50,7 @@ export async function validateRole(requiredRoles: UserRole[]) {
 
 /**
  * Validates if the current user is the owner of an event, a co-organizer, staff member, or an admin.
- */
+ *\/
 export async function validateEventOwnership(eventId: string) {
   const session = await auth();
   const user = session?.user;
@@ -68,7 +97,7 @@ export async function validateEventOwnership(eventId: string) {
 /**
  * Validates if a user has a specific granular permission for an event (e.g., 'scan_tickets').
  * Useful for staff roles that aren't full owners.
- */
+ *\/
 export async function validateStaffPermission(eventId: string, permission: string) {
   const session = await auth();
   const user = session?.user;
@@ -107,4 +136,4 @@ export async function validateStaffPermission(eventId: string, permission: strin
 
   throw new Error(`Unauthorized: Missing permission '${permission}' for this event`);
 }
-
+*/

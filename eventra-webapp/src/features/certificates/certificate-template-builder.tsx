@@ -190,7 +190,7 @@ export function CertificateTemplateBuilder({ eventId, initialTemplate }: Certifi
             {previewMode ? <Settings2 className="w-4 h-4 mr-2" /> : <Eye className="w-4 h-4 mr-2" />}
             {previewMode ? 'Design Mode' : 'Preview'}
           </Button>
-          <Button size="sm" className="bg-cyan-600 hover:bg-cyan-500 text-white" onClick={handleSave} disabled={isSaving}>
+          <Button size="sm" className="bg-primary hover:bg-primary/90 text-foreground" onClick={handleSave} disabled={isSaving}>
             {isSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
             Save Template
           </Button>
@@ -230,13 +230,13 @@ export function CertificateTemplateBuilder({ eventId, initialTemplate }: Certifi
                   key={field.id} 
                   className={cn(
                     "flex items-center gap-2 p-2 rounded-lg border text-sm transition-all cursor-pointer",
-                    selectedFieldId === field.id ? "bg-cyan-500/10 border-cyan-500/30" : "bg-background border-border hover:border-cyan-500/20"
+                    selectedFieldId === field.id ? "bg-primary/10 border-primary/30" : "bg-background border-border hover:border-cyan-500/20"
                   )}
                   onClick={() => setSelectedFieldId(field.id)}
                 >
-                  {field.type === 'text' ? <Type size={14} className="text-muted-foreground" /> : <Wand2 size={14} className="text-cyan-500" />}
+                  {field.type === 'text' ? <Type size={14} className="text-muted-foreground" /> : <Wand2 size={14} className="text-primary" />}
                   <span className="flex-1 truncate">{field.name}</span>
-                  <Button size="icon" variant="ghost" className="h-6 w-6 text-muted-foreground hover:text-red-500" onClick={(e) => { e.stopPropagation(); removeField(field.id); }}>
+                  <Button size="icon" variant="ghost" className="h-6 w-6 text-muted-foreground hover:text-destructive" onClick={(e) => { e.stopPropagation(); removeField(field.id); }}>
                     <Trash2 size={12} />
                   </Button>
                 </div>
@@ -391,7 +391,7 @@ export function CertificateTemplateBuilder({ eventId, initialTemplate }: Certifi
                 </div>
               </div>
 
-              <Button variant="outline" className="w-full text-red-500 hover:text-red-600 hover:bg-red-500/10 mt-8" onClick={() => removeField(selectedField.id)}>
+              <Button variant="outline" className="w-full text-destructive hover:text-red-600 hover:bg-destructive/10 mt-8" onClick={() => removeField(selectedField.id)}>
                 <Trash2 size={14} className="mr-2" /> Delete Field
               </Button>
             </div>

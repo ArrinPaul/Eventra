@@ -105,38 +105,38 @@ export function AnnouncementManager({ eventId }: { eventId: string }) {
   };
 
   return (
-    <Card className="bg-white/5 border-white/10 text-white">
+    <Card className="bg-card border-border text-foreground">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Megaphone className="h-5 w-5 text-cyan-400" />
+          <Megaphone className="h-5 w-5 text-primary" />
           {t('title')}
         </CardTitle>
-        <CardDescription className="text-gray-400 text-xs">
+        <CardDescription className="text-muted-foreground text-xs">
           {t('description')}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="content" className="text-xs font-bold uppercase tracking-wider text-gray-500">{t('messageLabel')}</Label>
+            <Label htmlFor="content" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{t('messageLabel')}</Label>
             <Textarea 
               id="content"
               placeholder={t('messagePlaceholder')}
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              className="bg-white/5 border-white/10 resize-none h-20"
+              className="bg-card border-border resize-none h-20"
               required
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label className="text-xs font-bold uppercase tracking-wider text-gray-500">{t('typeLabel')}</Label>
+              <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{t('typeLabel')}</Label>
               <Select value={type} onValueChange={(v: any) => setType(v)}>
-                <SelectTrigger className="bg-white/5 border-white/10 h-9">
+                <SelectTrigger className="bg-card border-border h-9">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-gray-900 border-white/10 text-white">
+                <SelectContent className="bg-card border-border text-foreground">
                   <SelectItem value="info">Info (Blue)</SelectItem>
                   <SelectItem value="warning">Warning (Yellow)</SelectItem>
                   <SelectItem value="urgent">Urgent (Red)</SelectItem>
@@ -144,12 +144,12 @@ export function AnnouncementManager({ eventId }: { eventId: string }) {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label className="text-xs font-bold uppercase tracking-wider text-gray-500">{t('durationLabel')}</Label>
+              <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{t('durationLabel')}</Label>
               <Select value={expiresHours} onValueChange={setExpiresHours}>
-                <SelectTrigger className="bg-white/5 border-white/10 h-9">
+                <SelectTrigger className="bg-card border-border h-9">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-gray-900 border-white/10 text-white">
+                <SelectContent className="bg-card border-border text-foreground">
                   <SelectItem value="1">1 Hour</SelectItem>
                   <SelectItem value="4">4 Hours</SelectItem>
                   <SelectItem value="24">24 Hours</SelectItem>
@@ -161,7 +161,7 @@ export function AnnouncementManager({ eventId }: { eventId: string }) {
 
           <Button 
             type="submit" 
-            className="w-full bg-cyan-600 hover:bg-cyan-500" 
+            className="w-full bg-primary hover:bg-primary/90" 
             disabled={isSubmitting || !content}
           >
             {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : (editingId ? t('updateAnnouncement') : t('broadcastNow'))}
@@ -171,7 +171,7 @@ export function AnnouncementManager({ eventId }: { eventId: string }) {
             <Button
               type="button"
               variant="outline"
-              className="w-full border-white/10"
+              className="w-full border-border"
               onClick={() => {
                 setEditingId(null);
                 setContent('');
@@ -185,17 +185,17 @@ export function AnnouncementManager({ eventId }: { eventId: string }) {
         </form>
 
         {announcements && announcements.length > 0 && (
-          <div className="space-y-3 pt-4 border-t border-white/10">
-            <Label className="text-xs font-bold uppercase tracking-wider text-gray-500">{t('activeAnnouncements')}</Label>
+          <div className="space-y-3 pt-4 border-t border-border">
+            <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{t('activeAnnouncements')}</Label>
             <div className="space-y-2">
               {announcements.map((a) => (
                 <div 
                   key={a.id} 
                   className={cn(
                     "p-3 rounded-lg border text-xs flex justify-between items-start gap-3",
-                    a.type === 'info' && "bg-cyan-500/5 border-cyan-500/10 text-cyan-200",
-                    a.type === 'warning' && "bg-amber-500/5 border-amber-500/10 text-amber-200",
-                    a.type === 'urgent' && "bg-red-500/5 border-red-500/10 text-red-200"
+                    a.type === 'info' && "bg-primary/10 border-cyan-500/10 text-cyan-200",
+                    a.type === 'warning' && "bg-warning/10 border-amber-500/10 text-amber-200",
+                    a.type === 'urgent' && "bg-destructive/10 border-red-500/10 text-red-200"
                   )}
                 >
                   <div className="flex-1">
@@ -207,7 +207,7 @@ export function AnnouncementManager({ eventId }: { eventId: string }) {
                   <Button 
                     variant="ghost" 
                     size="icon" 
-                    className="h-6 w-6 opacity-50 hover:opacity-100 hover:bg-white/10"
+                    className="h-6 w-6 opacity-50 hover:opacity-100 hover:bg-muted"
                     onClick={() => handleEdit(a)}
                   >
                     <Pencil className="h-3.5 w-3.5" />
@@ -215,7 +215,7 @@ export function AnnouncementManager({ eventId }: { eventId: string }) {
                   <Button 
                     variant="ghost" 
                     size="icon" 
-                    className="h-6 w-6 opacity-50 hover:opacity-100 hover:bg-red-500/20 hover:text-red-400"
+                    className="h-6 w-6 opacity-50 hover:opacity-100 hover:bg-destructive/20 hover:text-destructive"
                     onClick={() => handleDeactivate(a.id)}
                   >
                     <Trash2 className="h-3.5 w-3.5" />

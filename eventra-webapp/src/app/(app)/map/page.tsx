@@ -15,8 +15,8 @@ export default function MapPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold text-white mb-8">Campus Navigation</h1>
-      <div className="bg-white/5 border border-white/10 rounded-3xl overflow-hidden h-[700px]">
+      <h1 className="text-3xl font-bold text-foreground mb-8">Campus Navigation</h1>
+      <div className="bg-card border border-border rounded-3xl overflow-hidden h-[700px]">
         <InteractiveCampusMap
           zones={CAMPUS_ZONES}
           events={SAMPLE_EVENTS}

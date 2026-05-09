@@ -1,28 +1,31 @@
 import * as React from "react"
-
+import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/core/utils/utils"
 
-interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
-  variant?: 'default' | 'glass' | 'premium' | 'gradient'
-}
+const cardVariants = cva(
+  "rounded-2xl border text-card-foreground shadow-sm transition-all duration-200",
+  {
+    variants: {
+      variant: {
+        default: "bg-card border-border",
+        glass: "bg-card/60 backdrop-blur-xl border-border dark:border-border/50 shadow-xl",
+        elevated: "bg-card border-border shadow-elevated hover:shadow-glow",
+        gradient: "bg-gradient-to-br from-card to-muted border-border shadow-sm",
+        outline: "bg-transparent border-border/50",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+    },
+  }
+)
+
+export interface CardProps extends React.HTMLAttributes<HTMLDivElement>, VariantProps<typeof cardVariants> {}
 
 const Card = React.forwardRef<HTMLDivElement, CardProps>(
-  ({ className, variant = 'default', ...props }, ref) => {
-    const variants = {
-      default: "rounded-2xl border border-border/80 bg-card/88 text-card-foreground shadow-[0_10px_28px_-18px_rgba(8,18,36,0.9)] backdrop-blur-sm transition-all duration-300 hover:border-primary/35 hover:shadow-[0_22px_46px_-24px_rgba(8,18,36,0.95)]",
-      glass: "rounded-2xl bg-white/10 dark:bg-slate-900/70 backdrop-blur-xl border border-white/15 dark:border-white/10 shadow-[0_14px_36px_-22px_rgba(0,0,0,0.7)] text-card-foreground transition-all duration-300 hover:border-primary/40 hover:shadow-[0_20px_44px_-20px_rgba(20,84,120,0.35)]",
-      premium: "rounded-2xl border border-border/70 bg-card/95 text-card-foreground shadow-[0_18px_44px_-24px_rgba(7,14,30,0.8)] transition-all duration-300 hover:-translate-y-0.5 hover:border-secondary/45 hover:shadow-[0_24px_50px_-20px_rgba(9,20,40,0.85)]",
-      gradient: "rounded-2xl bg-gradient-to-br from-cyan-500/12 via-blue-500/10 to-orange-400/10 border border-cyan-400/20 text-card-foreground shadow-[0_14px_36px_-22px_rgba(6,34,52,0.75)] transition-all duration-300 hover:border-cyan-300/35 hover:shadow-[0_20px_46px_-20px_rgba(22,151,173,0.32)]",
-    }
-
-    return (
-      <div
-        ref={ref}
-        className={cn(variants[variant], className)}
-        {...props}
-      />
-    )
-  }
+  ({ className, variant, ...props }, ref) => (
+    <div ref={ref} className={cn(cardVariants({ variant, className }))} {...props} />
+  )
 )
 Card.displayName = "Card"
 
@@ -39,13 +42,13 @@ const CardHeader = React.forwardRef<
 CardHeader.displayName = "CardHeader"
 
 const CardTitle = React.forwardRef<
-  HTMLHeadingElement,
-  React.HTMLAttributes<HTMLHeadingElement>
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => (
-  <h3
+  <div
     ref={ref}
     className={cn(
-      "text-2xl font-semibold leading-none tracking-tight font-headline",
+      "font-display text-2xl font-bold leading-none tracking-tight",
       className
     )}
     {...props}
@@ -54,12 +57,12 @@ const CardTitle = React.forwardRef<
 CardTitle.displayName = "CardTitle"
 
 const CardDescription = React.forwardRef<
-  HTMLParagraphElement,
-  React.HTMLAttributes<HTMLParagraphElement>
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => (
-  <p
+  <div
     ref={ref}
-    className={cn("text-sm text-muted-foreground/90", className)}
+    className={cn("text-sm text-muted-foreground", className)}
     {...props}
   />
 ))
@@ -85,5 +88,4 @@ const CardFooter = React.forwardRef<
 ))
 CardFooter.displayName = "CardFooter"
 
-export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent }
-
+export { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter, cardVariants }

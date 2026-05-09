@@ -410,7 +410,7 @@ export default function InteractiveCampusMap({
 
         {/* Compass */}
         <g transform="translate(750, 50)">
-          <circle r="25" fill="currentColor" className="text-white dark:text-slate-800" stroke="currentColor" strokeWidth="2" />
+          <circle r="25" fill="currentColor" className="text-foreground dark:text-slate-800" stroke="currentColor" strokeWidth="2" />
           <text x="0" y="-8" textAnchor="middle" className="text-[10px] font-bold fill-red-500">N</text>
           <text x="0" y="14" textAnchor="middle" className="text-[8px] fill-slate-400">S</text>
           <text x="-10" y="3" textAnchor="middle" className="text-[8px] fill-slate-400">W</text>
@@ -430,7 +430,7 @@ export default function InteractiveCampusMap({
 
         {/* Legend */}
         <g transform="translate(60, 80)">
-          <rect x="-10" y="-15" width="100" height="90" fill="currentColor" className="text-white/80 dark:text-slate-800/80" rx="8" />
+          <rect x="-10" y="-15" width="100" height="90" fill="currentColor" className="text-foreground/80 dark:text-slate-800/80" rx="8" />
           <text x="0" y="0" className="text-[10px] font-medium fill-slate-700 dark:fill-slate-300">Legend</text>
           
           <circle cx="5" cy="18" r="4" fill="#22c55e" />
@@ -466,7 +466,7 @@ export default function InteractiveCampusMap({
                   <p className="font-medium">{zone.name}</p>
                   <p className="text-xs text-muted-foreground">{zone.description}</p>
                   {liveEvents.length > 0 && (
-                    <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
+                    <p className="text-xs text-destructive mt-1 flex items-center gap-1">
                       <span className="relative flex h-2 w-2">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
                         <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>

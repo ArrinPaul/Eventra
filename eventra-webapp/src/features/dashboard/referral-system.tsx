@@ -64,9 +64,9 @@ export function ReferralSystem() {
       <CardHeader className="pb-4">
         <div className="flex items-center gap-2">
           <Gift className="w-5 h-5 text-indigo-400" />
-          <CardTitle className="text-white">Referral Rewards</CardTitle>
+          <CardTitle className="text-foreground">Referral Rewards</CardTitle>
         </div>
-        <CardDescription className="text-gray-400">Invite friends and earn bonus XP</CardDescription>
+        <CardDescription className="text-muted-foreground">Invite friends and earn bonus XP</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6 relative z-10">
         {!user.referralCode ? (
@@ -76,28 +76,28 @@ export function ReferralSystem() {
           </Button>
         ) : (
           <div className="space-y-4">
-            <p className="text-xs text-gray-500 uppercase font-black tracking-widest">Your Code</p>
-            <div className="flex items-center gap-2 p-3 bg-white/5 border border-white/10 rounded-xl">
-              <span className="flex-1 font-mono text-2xl font-black text-white tracking-widest">{user.referralCode}</span>
-              <Button size="icon" variant="ghost" onClick={handleCopy} className="h-10 w-10 hover:bg-white/10">
-                {copied ? <Check className="h-5 w-5 text-green-400" /> : <Copy className="h-5 w-5" />}
+            <p className="text-xs text-muted-foreground uppercase font-black tracking-widest">Your Code</p>
+            <div className="flex items-center gap-2 p-3 bg-card border border-border rounded-xl">
+              <span className="flex-1 font-mono text-2xl font-black text-foreground tracking-widest">{user.referralCode}</span>
+              <Button size="icon" variant="ghost" onClick={handleCopy} className="h-10 w-10 hover:bg-muted">
+                {copied ? <Check className="h-5 w-5 text-success" /> : <Copy className="h-5 w-5" />}
               </Button>
             </div>
-            <p className="text-[10px] text-gray-500 italic">Share this code to get 100 XP for every friend who joins.</p>
+            <p className="text-[10px] text-muted-foreground italic">Share this code to get 100 XP for every friend who joins.</p>
           </div>
         )}
 
         {!user.referredBy && (
-          <div className="pt-4 border-t border-white/5 space-y-3">
-            <p className="text-xs text-gray-500 uppercase font-black tracking-widest">Have a code?</p>
+          <div className="pt-4 border-t border-border/50 space-y-3">
+            <p className="text-xs text-muted-foreground uppercase font-black tracking-widest">Have a code?</p>
             <div className="flex gap-2">
               <Input 
                 placeholder="Enter friend's code" 
                 value={inputCode} 
                 onChange={e => setInputCode(e.target.value)}
-                className="bg-white/5 border-white/10 font-mono text-sm uppercase tracking-widest h-10"
+                className="bg-card border-border font-mono text-sm uppercase tracking-widest h-10"
               />
-              <Button onClick={handleRedeem} disabled={loading || !inputCode} className="bg-white/10 hover:bg-white/20 text-white h-10">
+              <Button onClick={handleRedeem} disabled={loading || !inputCode} className="bg-muted hover:bg-white/20 text-foreground h-10">
                 Redeem
               </Button>
             </div>
@@ -105,7 +105,7 @@ export function ReferralSystem() {
         )}
         
         {user.referredBy && (
-          <div className="flex items-center gap-2 text-xs text-green-400 bg-green-500/5 p-2 rounded-lg border border-green-500/20">
+          <div className="flex items-center gap-2 text-xs text-success bg-success/10 p-2 rounded-lg border border-green-500/20">
             <Check className="w-3 h-3" />
             <span>Referral bonus active! (Code: {user.referredBy})</span>
           </div>

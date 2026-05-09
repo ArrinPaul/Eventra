@@ -199,17 +199,17 @@ export default function UserManagement() {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
-        <Card className="p-4 text-white">
+        <Card className="p-4 text-foreground">
             <p className="text-2xl font-bold">{stats.total}</p>
-            <p className="text-xs text-muted-foreground text-white">Total Users</p>
+            <p className="text-xs text-muted-foreground text-foreground">Total Users</p>
         </Card>
-        <Card className="p-4 bg-green-500/10 text-white">
+        <Card className="p-4 bg-green-500/10 text-foreground">
             <p className="text-2xl font-bold">{stats.active}</p>
-            <p className="text-xs text-muted-foreground text-white">Active</p>
+            <p className="text-xs text-muted-foreground text-foreground">Active</p>
         </Card>
-        <Card className="p-4 bg-red-500/10 text-white">
+        <Card className="p-4 bg-destructive/10 text-foreground">
             <p className="text-2xl font-bold">{stats.banned}</p>
-            <p className="text-xs text-muted-foreground text-white">Banned</p>
+            <p className="text-xs text-muted-foreground text-foreground">Banned</p>
         </Card>
       </div>
 
@@ -218,10 +218,10 @@ export default function UserManagement() {
           <div className="flex flex-col lg:flex-row gap-4 justify-between">
             <div className="relative flex-1 min-w-[200px]">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input placeholder="Search users..." className="pl-10 text-white" value={filters.search} onChange={(e) => setFilters({ ...filters, search: e.target.value })} />
+                <Input placeholder="Search users..." className="pl-10 text-foreground" value={filters.search} onChange={(e) => setFilters({ ...filters, search: e.target.value })} />
             </div>
             <Select value={filters.role} onValueChange={(v) => setFilters({ ...filters, role: v })}>
-                <SelectTrigger className="w-[140px] text-white"><SelectValue placeholder="Role" /></SelectTrigger>
+                <SelectTrigger className="w-[140px] text-foreground"><SelectValue placeholder="Role" /></SelectTrigger>
                 <SelectContent><SelectItem value="all">All Roles</SelectItem><SelectItem value="admin">Admin</SelectItem><SelectItem value="organizer">Organizer</SelectItem><SelectItem value="attendee">Attendee</SelectItem></SelectContent>
             </Select>
           </div>
@@ -230,22 +230,22 @@ export default function UserManagement() {
 
       <Card className="overflow-hidden">
         <Table>
-            <TableHeader><TableRow><TableHead className="text-white">User</TableHead><TableHead className="text-white">Role</TableHead><TableHead className="text-white">Status</TableHead><TableHead className="text-white text-right">Points</TableHead><TableHead className="w-12"></TableHead></TableRow></TableHeader>
+            <TableHeader><TableRow><TableHead className="text-foreground">User</TableHead><TableHead className="text-foreground">Role</TableHead><TableHead className="text-foreground">Status</TableHead><TableHead className="text-foreground text-right">Points</TableHead><TableHead className="w-12"></TableHead></TableRow></TableHeader>
             <TableBody>
                 {filteredUsers.map((user) => (
-                <TableRow key={user.id} className="border-white/10">
+                <TableRow key={user.id} className="border-border">
                     <TableCell>
-                        <div className="flex items-center gap-3 text-white">
+                        <div className="flex items-center gap-3 text-foreground">
                             <Avatar className="h-9 w-9"><AvatarImage src={user.photoURL} /><AvatarFallback>{user.name?.charAt(0) || '?'}</AvatarFallback></Avatar>
-                            <div><p className="font-medium">{user.name || 'Unknown'}</p><p className="text-xs text-gray-400">{user.email}</p></div>
+                            <div><p className="font-medium">{user.name || 'Unknown'}</p><p className="text-xs text-muted-foreground">{user.email}</p></div>
                         </div>
                     </TableCell>
-                    <TableCell className="text-white capitalize">{user.role}</TableCell>
+                    <TableCell className="text-foreground capitalize">{user.role}</TableCell>
                     <TableCell><Badge className={cn("capitalize", getStatusColor(user.status))}>{user.status}</Badge></TableCell>
-                    <TableCell className="text-right text-white font-mono">{user.points}</TableCell>
+                    <TableCell className="text-right text-foreground font-mono">{user.points}</TableCell>
                     <TableCell>
                         <DropdownMenu>
-                            <DropdownMenuTrigger asChild><Button variant="ghost" size="icon"><MoreHorizontal className="w-4 h-4 text-white" /></Button></DropdownMenuTrigger>
+                            <DropdownMenuTrigger asChild><Button variant="ghost" size="icon"><MoreHorizontal className="w-4 h-4 text-foreground" /></Button></DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                                 <DropdownMenuItem onClick={() => handleChangeRole(user.id, 'admin')}>Set as Admin</DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => handleChangeRole(user.id, 'organizer')}>Set as Organizer</DropdownMenuItem>
@@ -260,14 +260,14 @@ export default function UserManagement() {
         </Table>
       </Card>
 
-      <div className="flex items-center justify-center text-white py-4">
+      <div className="flex items-center justify-center text-foreground py-4">
         {paginationStatus === "CanLoadMore" && (
           <Button variant="outline" size="sm" onClick={handleLoadMore}>
             Load More Users
           </Button>
         )}
         {paginationStatus === "LoadingMore" && (
-          <Loader2 className="w-6 h-6 animate-spin text-cyan-500" />
+          <Loader2 className="w-6 h-6 animate-spin text-primary" />
         )}
       </div>
 

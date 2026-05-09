@@ -67,7 +67,7 @@ export function MyEventCard({
       return {
         label: 'Live Now',
         variant: 'default' as const,
-        className: 'bg-red-500 text-white animate-pulse',
+        className: 'bg-red-500 text-foreground animate-pulse',
         icon: 'ðŸ”´'
       };
     }
@@ -90,7 +90,7 @@ export function MyEventCard({
       return {
         label: `Starts in ${minutesUntil}m`,
         variant: 'default' as const,
-        className: 'bg-orange-500 text-white',
+        className: 'bg-orange-500 text-foreground',
         icon: 'â°'
       };
     } else if (hoursUntil < 24) {
@@ -215,7 +215,7 @@ export function MyEventCard({
                     className={cn(
                       "h-5 w-5",
                       (hoverRating >= star || rating >= star)
-                        ? "fill-yellow-400 text-yellow-400"
+                        ? "fill-yellow-400 text-warning"
                         : "text-muted-foreground"
                     )}
                   />

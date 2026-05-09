@@ -1,7 +1,58 @@
 'use client';
 
-import { useSession, signIn as nextAuthSignIn, signOut as nextAuthSignOut } from "next-auth/react";
 import { User } from '@/types';
+
+/**
+ * AUTH BYPASS MODE (Development)
+ * This hook returns a mock admin user to allow full access to the frontend.
+ */
+const MOCK_ADMIN_USER: User = {
+  id: 'dev-admin-id',
+  name: 'Dev Admin',
+  email: 'admin@eventra.local',
+  role: 'admin',
+  points: 1000,
+  level: 10,
+  xp: 5000,
+  onboardingCompleted: true,
+};
+
+export function useAuth() {
+  const loading = false;
+  const isAuthenticated = true;
+  const user = MOCK_ADMIN_USER;
+
+  const signIn = async () => ({ ok: true });
+  const logout = async () => { window.location.href = '/'; };
+
+  const updateUser = async (data: Partial<User>) => {
+    console.log('Bypass mode: updateUser called with', data);
+    return { ...user, ...data };
+  };
+
+  const awardPoints = async (points: number, reason: string = "Platform Activity") => {
+    console.log(`Bypass mode: awardPoints ${points} for ${reason}`);
+  };
+
+  const checkInUser = async (eventId: string) => {
+    console.log(`Bypass mode: checkInUser for ${eventId}`);
+  };
+
+  return {
+    user,
+    loading,
+    isAuthenticated,
+    logout,
+    updateUser,
+    awardPoints,
+    checkInUser,
+    signIn,
+    authErrorMessage: (error: unknown) => String(error),
+  };
+}
+
+/* --- ORIGINAL USE-AUTH (COMMENTED OUT FOR DEVELOPMENT) ---
+import { useSession, signIn as nextAuthSignIn, signOut as nextAuthSignOut } from "next-auth/react";
 import { updateUserDetails } from "@/app/actions/users";
 import { awardXP as awardXPServer } from "@/app/actions/gamification";
 
@@ -49,7 +100,7 @@ export function useAuth() {
 
   /**
    * Award points to the current user and persist to DB
-   */
+   *\/
   const awardPoints = async (points: number, reason: string = "Platform Activity") => {
     if (!user?.id) return;
     const result = await awardXPServer(user.id, points, reason);
@@ -77,3 +128,4 @@ export function useAuth() {
     authErrorMessage: (error: unknown) => String(error),
   };
 }
+*/

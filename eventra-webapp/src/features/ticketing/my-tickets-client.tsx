@@ -51,7 +51,7 @@ function TicketStatusBadge({ status }: { status: EventTicket['status'] }) {
     'checked-in': { label: 'Checked In', className: 'bg-primary/10 text-primary border-primary/20' },
     'cancelled': { label: 'Cancelled', className: 'bg-destructive/10 text-destructive border-destructive/20' },
     'refunded': { label: 'Refunded', className: 'bg-muted text-muted-foreground border-muted' },
-    'expired': { label: 'Expired', className: 'bg-red-500/10 text-red-500 border-red-500/20' },
+    'expired': { label: 'Expired', className: 'bg-destructive/10 text-destructive border-red-500/20' },
   };
   const config = statusConfig[status] || statusConfig['pending'];
   return <Badge variant="outline" className={config.className}>{config.label}</Badge>;
@@ -67,7 +67,7 @@ function TicketCard({ ticket, onViewTicket, onPrint, onCancel }: {
   const isCancellable = ticket.status !== 'cancelled' && ticket.status !== 'refunded' && ticket.status !== 'expired' && !isPast(eventDate);
 
   return (
-    <Card className="bg-white/5 border-white/10 text-white overflow-hidden group hover:border-white/20 transition-all">
+    <Card className="bg-card border-border text-foreground overflow-hidden group hover:border-border transition-all">
       <CardContent className="p-5">
         <div className="flex gap-4">
           <div className="relative w-24 h-24 rounded-lg bg-cyan-900/20 flex items-center justify-center">
@@ -78,25 +78,25 @@ function TicketCard({ ticket, onViewTicket, onPrint, onCancel }: {
               <h3 className="font-bold truncate">{ticket.event?.title || 'Event'}</h3>
               <TicketStatusBadge status={ticket.status} />
             </div>
-            <div className="text-xs text-gray-400 mt-2 space-y-1">
+            <div className="text-xs text-muted-foreground mt-2 space-y-1">
               <p className="flex items-center gap-1"><Calendar size={12} /> {format(eventDate, 'EEE, MMM d, yyyy')}</p>
               <p className="flex items-center gap-1"><QrCode size={12} /> {ticket.ticketNumber}</p>
             </div>
           </div>
         </div>
         <div className="flex gap-2 mt-4">
-          <Button size="sm" className="flex-[2] bg-cyan-600 hover:bg-cyan-500" onClick={() => onViewTicket(ticket)}>View QR</Button>
-          <Button size="sm" variant="outline" className="flex-1 border-white/10" title="Download Ticket" onClick={() => onPrint(ticket)}><Download className="h-4 w-4" /></Button>
+          <Button size="sm" className="flex-[2] bg-primary hover:bg-primary/90" onClick={() => onViewTicket(ticket)}>View QR</Button>
+          <Button size="sm" variant="outline" className="flex-1 border-border" title="Download Ticket" onClick={() => onPrint(ticket)}><Download className="h-4 w-4" /></Button>
           
           {isCancellable && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button size="sm" variant="ghost" className="h-9 w-9 p-0 hover:bg-white/10"><MoreVertical className="h-4 w-4" /></Button>
+                <Button size="sm" variant="ghost" className="h-9 w-9 p-0 hover:bg-muted"><MoreVertical className="h-4 w-4" /></Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="bg-gray-900 border-white/10 text-white">
+              <DropdownMenuContent className="bg-card border-border text-foreground">
                 <DropdownMenuItem 
                   onClick={() => onCancel(ticket)}
-                  className="text-red-400 focus:text-red-400 focus:bg-red-400/10 cursor-pointer"
+                  className="text-destructive focus:text-destructive focus:bg-red-400/10 cursor-pointer"
                 >
                   <XCircle className="w-4 h-4 mr-2" /> 
                   {ticket.price > 0 ? 'Cancel & Refund' : 'Cancel Registration'}
@@ -231,10 +231,10 @@ export default function MyTicketsClient({ initialTickets = [] }: { initialTicket
   };
 
   return (
-    <div className="container py-8 space-y-8 text-white">
+    <div className="container py-8 space-y-8 text-foreground">
       <h1 className="text-3xl font-bold">My Tickets</h1>
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="bg-white/5 border-white/10 text-white">
+        <TabsList className="bg-card border-border text-foreground">
           <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
           <TabsTrigger value="past">Past</TabsTrigger>
         </TabsList>
@@ -247,7 +247,7 @@ export default function MyTicketsClient({ initialTickets = [] }: { initialTicket
       </Tabs>
 
       <Dialog open={!!selectedTicket} onOpenChange={() => setSelectedTicket(null)}>
-        <DialogContent className="bg-gray-900 text-white border-white/10">
+        <DialogContent className="bg-card text-foreground border-border">
           <DialogHeader><DialogTitle className="text-center">Your Ticket</DialogTitle></DialogHeader>
           <div className="flex flex-col items-center py-6">
             <div className="bg-white p-4 rounded-xl mb-4"><QRCodeSVG value={selectedTicket?.ticketNumber || ''} size={200} /></div>

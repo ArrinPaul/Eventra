@@ -16,7 +16,7 @@ export default function AdminPage() {
 
     if (loading || user?.role !== 'admin') {
         return (
-            <div className="flex items-center justify-center h-screen text-white">
+            <div className="flex items-center justify-center h-screen text-foreground">
                 <p>Unauthorized access...</p>
             </div>
         );

@@ -45,10 +45,10 @@ export function RegisterWizard() {
   };
 
   return (
-    <div className="w-full max-w-lg mx-auto text-white">
+    <div className="w-full max-w-lg mx-auto text-foreground">
       <div className="text-center space-y-2 mb-8">
         <h2 className="text-3xl font-bold">Join Eventra</h2>
-        <p className="text-gray-400">Choose your role to get started</p>
+        <p className="text-muted-foreground">Choose your role to get started</p>
       </div>
       
       <div className="grid gap-4 mb-8">
@@ -57,8 +57,8 @@ export function RegisterWizard() {
             key={role.id}
             onClick={() => setSelectedRole(role.id as any)}
             className={cn(
-              "relative flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all hover:bg-white/5",
-              selectedRole === role.id ? "border-cyan-500 bg-cyan-500/5" : "border-white/10 bg-white/5"
+              "relative flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all hover:bg-card",
+              selectedRole === role.id ? "border-cyan-500 bg-primary/10" : "border-border bg-card"
             )}
           >
             <div className={cn("h-12 w-12 rounded-full flex items-center justify-center shrink-0", role.color)}>
@@ -66,9 +66,9 @@ export function RegisterWizard() {
             </div>
             <div className="flex-1">
               <h3 className="font-semibold text-lg">{role.title}</h3>
-              <p className="text-sm text-gray-400">{role.description}</p>
+              <p className="text-sm text-muted-foreground">{role.description}</p>
             </div>
-            {selectedRole === role.id && <CheckCircle className="h-5 w-5 text-cyan-500" />}
+            {selectedRole === role.id && <CheckCircle className="h-5 w-5 text-primary" />}
           </div>
         ))}
       </div>

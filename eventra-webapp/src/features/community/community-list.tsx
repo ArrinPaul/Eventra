@@ -80,34 +80,34 @@ export function CommunityListClient() {
   }, [searchTerm]);
 
   return (
-    <div className="container mx-auto px-4 py-6 text-white">
+    <div className="container mx-auto px-4 py-6 text-foreground">
       <div className="flex justify-between items-center mb-8">
-        <div><h1 className="text-3xl font-bold">{t('title')}</h1><p className="text-gray-400">{t('subtitle')}</p></div>
+        <div><h1 className="text-3xl font-bold">{t('title')}</h1><p className="text-muted-foreground">{t('subtitle')}</p></div>
         <Button onClick={() => setShowCreateDialog(true)}><Plus className="w-4 h-4 mr-2" /> {t('create')}</Button>
       </div>
 
       <div className="relative mb-8">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
         <Input 
           placeholder={t('searchPlaceholder')} 
           value={searchTerm} 
           onChange={e => setSearchTerm(e.target.value)} 
-          className="pl-10 bg-white/5 border-white/10" 
+          className="pl-10 bg-card border-border" 
         />
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {communitiesRaw.map((c: any) => (
           <Link key={c.id} href={`/community/${c.id}`}>
-            <Card className="bg-white/5 border-white/10 hover:bg-white/10 transition-colors cursor-pointer text-white h-full flex flex-col">
+            <Card className="bg-card border-border hover:bg-muted transition-colors cursor-pointer text-foreground h-full flex flex-col">
               <CardHeader>
                 <div className="flex justify-between items-start">
                   <CardTitle className="line-clamp-1">{c.name}</CardTitle>
                   <Badge variant="secondary">{c.category}</Badge>
                 </div>
-                <CardDescription className="text-gray-400 line-clamp-2">{c.description}</CardDescription>
+                <CardDescription className="text-muted-foreground line-clamp-2">{c.description}</CardDescription>
               </CardHeader>
-              <CardContent className="mt-auto pt-4 border-t border-white/5 flex items-center justify-between text-sm text-gray-500">
+              <CardContent className="mt-auto pt-4 border-t border-border/50 flex items-center justify-between text-sm text-muted-foreground">
                 <div className="flex gap-4">
                   <div className="flex items-center gap-1">
                     <Users size={14} /> {c.memberCount}
@@ -122,19 +122,19 @@ export function CommunityListClient() {
       </div>
 
       {communitiesRaw.length === 0 && status !== "LoadingFirstPage" && (
-        <div className="py-20 text-center text-gray-500 border border-dashed border-white/10 rounded-lg">
+        <div className="py-20 text-center text-muted-foreground border border-dashed border-border rounded-lg">
           {t('empty')}
         </div>
       )}
 
       {status === "LoadingFirstPage" && (
         <div className="mt-8 flex justify-center">
-          <Loader2 className="h-6 w-6 animate-spin text-cyan-500" />
+          <Loader2 className="h-6 w-6 animate-spin text-primary" />
         </div>
       )}
 
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-        <DialogContent className="bg-gray-900 text-white border-white/10">
+        <DialogContent className="bg-card text-foreground border-border">
           <DialogHeader>
             <DialogTitle>{t('createDialogTitle')}</DialogTitle>
             <DialogDescription>
@@ -146,19 +146,19 @@ export function CommunityListClient() {
                placeholder={t('namePlaceholder')} 
                value={newCommunity.name} 
                onChange={(e) => setNewCommunity({...newCommunity, name: e.target.value})} 
-               className="bg-white/5 border-white/10"
+               className="bg-card border-border"
              />
              <Textarea 
                placeholder={t('descriptionPlaceholder')} 
                value={newCommunity.description} 
                onChange={(e) => setNewCommunity({...newCommunity, description: e.target.value})} 
-               className="bg-white/5 border-white/10"
+               className="bg-card border-border"
              />
              <Input 
                placeholder={t('categoryPlaceholder')} 
                value={newCommunity.category} 
                onChange={(e) => setNewCommunity({...newCommunity, category: e.target.value})} 
-               className="bg-white/5 border-white/10"
+               className="bg-card border-border"
              />
              <div className="flex items-center gap-2">
                <input 
@@ -171,8 +171,8 @@ export function CommunityListClient() {
              </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowCreateDialog(false)} className="border-white/10">{t('cancel')}</Button>
-            <Button onClick={handleCreateCommunity} disabled={loading} className="bg-cyan-600 hover:bg-cyan-500">
+            <Button variant="outline" onClick={() => setShowCreateDialog(false)} className="border-border">{t('cancel')}</Button>
+            <Button onClick={handleCreateCommunity} disabled={loading} className="bg-primary hover:bg-primary/90">
               {loading ? t('creating') : t('create')}
             </Button>
           </DialogFooter>

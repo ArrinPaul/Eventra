@@ -102,22 +102,22 @@ export default function NetworkingClient() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-7xl text-white space-y-8">
+    <div className="container mx-auto px-4 py-8 max-w-7xl text-foreground space-y-8">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div className="space-y-2">
-          <Badge className="bg-cyan-500/10 text-cyan-400 border-cyan-500/20 px-3 py-1">
+          <Badge className="bg-primary/10 text-primary border-cyan-500/20 px-3 py-1">
             <Sparkles className="w-3 h-3 mr-2" />
             {t('badge')}
           </Badge>
           <h1 className="text-4xl font-extrabold tracking-tight">{t('title')}</h1>
-          <p className="text-gray-400 text-lg">{t('subtitle')}</p>
+          <p className="text-muted-foreground text-lg">{t('subtitle')}</p>
         </div>
         <div className="flex items-center gap-3">
           <div className="relative w-full md:w-64">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input 
               placeholder={t('searchPlaceholder')} 
-              className="pl-9 bg-white/5 border-white/10 text-white"
+              className="pl-9 bg-card border-border text-foreground"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -126,16 +126,16 @@ export default function NetworkingClient() {
       </div>
 
       <Tabs defaultValue="ai-matches" className="w-full">
-        <TabsList className="bg-white/5 border border-white/10 p-1 mb-8">
-          <TabsTrigger value="ai-matches" className="data-[state=active]:bg-cyan-600 data-[state=active]:text-white">
+        <TabsList className="bg-card border border-border p-1 mb-8">
+          <TabsTrigger value="ai-matches" className="data-[state=active]:bg-primary data-[state=active]:text-foreground">
             <Sparkles className="w-4 h-4 mr-2" />
             {t('aiMatchmaking')}
           </TabsTrigger>
-          <TabsTrigger value="discover" className="data-[state=active]:bg-cyan-600 data-[state=active]:text-white">
+          <TabsTrigger value="discover" className="data-[state=active]:bg-primary data-[state=active]:text-foreground">
             <Users className="w-4 h-4 mr-2" />
             {t('discoverAll')}
           </TabsTrigger>
-          <TabsTrigger value="connections" className="data-[state=active]:bg-cyan-600 data-[state=active]:text-white">
+          <TabsTrigger value="connections" className="data-[state=active]:bg-primary data-[state=active]:text-foreground">
             <MessageSquare className="w-4 h-4 mr-2" />
             {t('myConnections')}
           </TabsTrigger>
@@ -152,23 +152,23 @@ export default function NetworkingClient() {
                 (u.name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
                  u.interests?.toLowerCase().includes(searchTerm.toLowerCase())))
               .map((u: any) => (
-                <Card key={u.id} className="bg-white/5 border-white/10 hover:border-cyan-500/30 transition-all group">
+                <Card key={u.id} className="bg-card border-border hover:border-primary/30 transition-all group">
                   <CardContent className="p-6">
                     <div className="flex items-center gap-4 mb-4">
-                      <Avatar className="h-12 w-12 border border-white/10">
+                      <Avatar className="h-12 w-12 border border-border">
                         <AvatarImage src={u.image} />
-                        <AvatarFallback className="bg-cyan-500/10 text-cyan-500">{u.name?.charAt(0)}</AvatarFallback>
+                        <AvatarFallback className="bg-primary/10 text-primary">{u.name?.charAt(0)}</AvatarFallback>
                       </Avatar>
-                      <div className="flex-1 min-w-0 text-white">
+                      <div className="flex-1 min-w-0 text-foreground">
                         <h3 className="font-bold truncate">{u.name}</h3>
-                        <p className="text-xs text-gray-500 truncate">{u.role || t('member')}</p>
+                        <p className="text-xs text-muted-foreground truncate">{u.role || t('member')}</p>
                       </div>
                     </div>
-                    <p className="text-xs text-gray-400 line-clamp-2 mb-4 h-8 italic">
+                    <p className="text-xs text-muted-foreground line-clamp-2 mb-4 h-8 italic">
                       {u.bio || u.interests || t('noBio')}
                     </p>
                     <Button 
-                      className="w-full bg-white/5 hover:bg-cyan-600 hover:text-white border-white/10 text-gray-300" 
+                      className="w-full bg-card hover:bg-primary hover:text-foreground border-border text-foreground/80" 
                       onClick={() => handleConnect(u.id)}
                       disabled={connections.some((c: any) => c.id === u.id)}
                     >
@@ -183,7 +183,7 @@ export default function NetworkingClient() {
               ))}
           </div>
           {publicUsers.length === 0 && (
-            <div className="py-20 text-center text-gray-500 border border-white/10 rounded-lg">
+            <div className="py-20 text-center text-muted-foreground border border-border rounded-lg">
               <Users size={48} className="mx-auto mb-4 opacity-20" />
               <p>{t('noMembers')}</p>
             </div>
@@ -193,25 +193,25 @@ export default function NetworkingClient() {
         <TabsContent value="connections" className="space-y-6">
           {pendingReceived.length > 0 && (
             <div className="space-y-3">
-              <h3 className="text-lg font-semibold text-white">{t('pendingRequests')}</h3>
+              <h3 className="text-lg font-semibold text-foreground">{t('pendingRequests')}</h3>
               {pendingReceived.map((c: any) => (
-                <Card key={c.id} className="bg-white/5 border-white/10">
+                <Card key={c.id} className="bg-card border-border">
                   <CardContent className="p-4 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <Avatar className="h-10 w-10">
                         <AvatarImage src={c.otherUser?.image} />
-                        <AvatarFallback className="bg-cyan-500/10 text-cyan-500">{c.otherUser?.name?.charAt(0) || '?'}</AvatarFallback>
+                        <AvatarFallback className="bg-primary/10 text-primary">{c.otherUser?.name?.charAt(0) || '?'}</AvatarFallback>
                       </Avatar>
-                      <div className="text-white">
+                      <div className="text-foreground">
                         <p className="font-medium">{c.otherUser?.name || 'Unknown'}</p>
-                        <p className="text-xs text-gray-500">{c.otherUser?.role || t('member')}</p>
+                        <p className="text-xs text-muted-foreground">{c.otherUser?.role || t('member')}</p>
                       </div>
                     </div>
                     <div className="flex gap-2">
-                      <Button size="sm" className="bg-cyan-600 hover:bg-cyan-500 text-white" onClick={async () => { await respondToConnectionRequest(c.id, true); toast({ title: t('accepted') }); }}>
+                      <Button size="sm" className="bg-primary hover:bg-primary/90 text-foreground" onClick={async () => { await respondToConnectionRequest(c.id, true); toast({ title: t('accepted') }); }}>
                         <Check className="w-4 h-4 mr-1" /> {t('accept')}
                       </Button>
-                      <Button size="sm" variant="outline" className="border-white/10 text-red-400 hover:bg-red-500/10" onClick={async () => { await respondToConnectionRequest(c.id, false); toast({ title: t('declined') }); }}>
+                      <Button size="sm" variant="outline" className="border-border text-destructive hover:bg-destructive/10" onClick={async () => { await respondToConnectionRequest(c.id, false); toast({ title: t('declined') }); }}>
                         <X className="w-4 h-4" />
                       </Button>
                     </div>
@@ -223,22 +223,22 @@ export default function NetworkingClient() {
 
           {acceptedConnections.length > 0 ? (
             <div className="space-y-3">
-              <h3 className="text-lg font-semibold text-white">{t('myConnectionsTitle', { count: acceptedConnections.length })}</h3>
+              <h3 className="text-lg font-semibold text-foreground">{t('myConnectionsTitle', { count: acceptedConnections.length })}</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {acceptedConnections.map((c: any) => (
-                  <Card key={c.id} className="bg-white/5 border-white/10">
+                  <Card key={c.id} className="bg-card border-border">
                     <CardContent className="p-4 flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <Avatar className="h-10 w-10">
                           <AvatarImage src={c.otherUser?.image} />
-                          <AvatarFallback className="bg-cyan-500/10 text-cyan-500">{c.otherUser?.name?.charAt(0) || '?'}</AvatarFallback>
+                          <AvatarFallback className="bg-primary/10 text-primary">{c.otherUser?.name?.charAt(0) || '?'}</AvatarFallback>
                         </Avatar>
-                        <div className="text-white">
+                        <div className="text-foreground">
                           <p className="font-medium">{c.otherUser?.name || 'Unknown'}</p>
-                          <p className="text-xs text-gray-500">{c.otherUser?.role || t('member')}</p>
+                          <p className="text-xs text-muted-foreground">{c.otherUser?.role || t('member')}</p>
                         </div>
                       </div>
-                      <Button size="sm" variant="ghost" className="text-red-400 hover:bg-red-500/10" onClick={async () => { await removeConnection(c.id); setConnections((prev) => prev.filter((x) => x.id !== c.id)); toast({ title: t('connectionRemoved') }); }}>
+                      <Button size="sm" variant="ghost" className="text-destructive hover:bg-destructive/10" onClick={async () => { await removeConnection(c.id); setConnections((prev) => prev.filter((x) => x.id !== c.id)); toast({ title: t('connectionRemoved') }); }}>
                         <UserMinus className="w-4 h-4" />
                       </Button>
                     </CardContent>
@@ -247,30 +247,30 @@ export default function NetworkingClient() {
               </div>
             </div>
           ) : pendingReceived.length === 0 ? (
-            <div className="py-20 text-center text-gray-500 border border-white/10 rounded-lg">
+            <div className="py-20 text-center text-muted-foreground border border-border rounded-lg">
               <Users size={48} className="mx-auto mb-4 opacity-20" />
-              <p className="font-medium text-white mb-1">{t('noConnections')}</p>
+              <p className="font-medium text-foreground mb-1">{t('noConnections')}</p>
               <p className="text-sm">{t('noConnectionsSubtitle')}</p>
             </div>
           ) : null}
 
           {pendingSent.length > 0 && (
             <div className="space-y-3">
-              <h3 className="text-lg font-semibold text-gray-400">{t('sentRequests', { count: pendingSent.length })}</h3>
+              <h3 className="text-lg font-semibold text-muted-foreground">{t('sentRequests', { count: pendingSent.length })}</h3>
               {pendingSent.map((c: any) => (
-                <Card key={c.id} className="bg-white/5 border-white/10">
+                <Card key={c.id} className="bg-card border-border">
                   <CardContent className="p-4 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <Avatar className="h-10 w-10">
                         <AvatarImage src={c.otherUser?.image} />
-                        <AvatarFallback className="bg-cyan-500/10 text-cyan-500">{c.otherUser?.name?.charAt(0) || '?'}</AvatarFallback>
+                        <AvatarFallback className="bg-primary/10 text-primary">{c.otherUser?.name?.charAt(0) || '?'}</AvatarFallback>
                       </Avatar>
-                      <div className="text-white">
+                      <div className="text-foreground">
                         <p className="font-medium">{c.otherUser?.name || 'Unknown'}</p>
-                        <p className="text-xs text-gray-400">{t('pending')}</p>
+                        <p className="text-xs text-muted-foreground">{t('pending')}</p>
                       </div>
                     </div>
-                    <Button size="sm" variant="ghost" className="text-gray-400 hover:bg-white/5" onClick={async () => { await removeConnection(c.id); toast({ title: t('requestCancelled') }); }}>
+                    <Button size="sm" variant="ghost" className="text-muted-foreground hover:bg-card" onClick={async () => { await removeConnection(c.id); toast({ title: t('requestCancelled') }); }}>
                       {t('cancel')}
                     </Button>
                   </CardContent>

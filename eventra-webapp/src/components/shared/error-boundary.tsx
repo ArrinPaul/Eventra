@@ -40,18 +40,18 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       if (this.props.fallback) return this.props.fallback;
 
       return (
-        <Card className="bg-red-500/5 border-red-500/20 text-white m-4">
+        <Card className="bg-destructive/10 border-red-500/20 text-foreground m-4">
           <CardContent className="p-6 flex flex-col items-center text-center gap-4">
-            <AlertTriangle className="h-10 w-10 text-red-400" />
+            <AlertTriangle className="h-10 w-10 text-destructive" />
             <div>
               <h3 className="font-semibold text-lg">Something went wrong</h3>
-              <p className="text-sm text-gray-400 mt-1">
+              <p className="text-sm text-muted-foreground mt-1">
                 {this.state.error?.message || 'An unexpected error occurred'}
               </p>
             </div>
             <Button
               variant="outline"
-              className="border-red-500/20 text-red-400 hover:bg-red-500/10"
+              className="border-red-500/20 text-destructive hover:bg-destructive/10"
               onClick={this.handleReset}
             >
               <RefreshCw className="h-4 w-4 mr-2" />

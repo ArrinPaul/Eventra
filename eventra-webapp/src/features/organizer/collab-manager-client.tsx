@@ -17,17 +17,17 @@ export function CollabManagerClient({ eventId, eventTitle, ticketTiers }: Collab
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-black text-white">Collaboration Hub</h1>
-          <p className="text-gray-400">Manage your team and guest lists for <span className="text-white font-bold">{eventTitle}</span></p>
+          <h1 className="text-3xl font-black text-foreground">Collaboration Hub</h1>
+          <p className="text-muted-foreground">Manage your team and guest lists for <span className="text-foreground font-bold">{eventTitle}</span></p>
         </div>
       </div>
 
       <Tabs defaultValue="staff" className="w-full">
-        <TabsList className="bg-white/5 border border-white/10 p-1 mb-8">
-          <TabsTrigger value="staff" className="data-[state=active]:bg-cyan-600 data-[state=active]:text-white">
+        <TabsList className="bg-card border border-border p-1 mb-8">
+          <TabsTrigger value="staff" className="data-[state=active]:bg-primary data-[state=active]:text-foreground">
             <ShieldCheck className="w-4 h-4 mr-2" /> Event Staff
           </TabsTrigger>
-          <TabsTrigger value="guests" className="data-[state=active]:bg-emerald-600 data-[state=active]:text-white">
+          <TabsTrigger value="guests" className="data-[state=active]:bg-emerald-600 data-[state=active]:text-foreground">
             <UserCheck className="w-4 h-4 mr-2" /> Guest List Import
           </TabsTrigger>
         </TabsList>

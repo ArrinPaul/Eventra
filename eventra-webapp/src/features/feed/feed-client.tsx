@@ -153,17 +153,17 @@ export default function FeedClient() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-2xl text-white">
-      <Card className="mb-6 bg-white/5 border-white/10 text-white">
+    <div className="container mx-auto px-4 py-8 max-w-2xl text-foreground">
+      <Card className="mb-6 bg-card border-border text-foreground">
         <CardContent className="p-4 flex gap-3">
           <Avatar><AvatarFallback>{user?.name?.charAt(0) || 'U'}</AvatarFallback></Avatar>
-          <Button variant="outline" className="flex-1 justify-start text-gray-400 border-white/10" onClick={() => setShowCreatePost(true)}>{t('composerPrompt')}</Button>
+          <Button variant="outline" className="flex-1 justify-start text-muted-foreground border-border" onClick={() => setShowCreatePost(true)}>{t('composerPrompt')}</Button>
         </CardContent>
       </Card>
 
       <div className="space-y-4">
         {postsRaw.map((post: any) => (
-          <Card key={post.id} className="bg-white/5 border-white/10 text-white">
+          <Card key={post.id} className="bg-card border-border text-foreground">
             <CardContent className="p-6">
               <div className="flex justify-between items-start mb-4">
                 <div className="flex gap-3">
@@ -173,18 +173,18 @@ export default function FeedClient() {
                   </Avatar>
                   <div>
                     <p className="font-bold">{post.authorName || t('authorFallback')}</p>
-                    <p className="text-xs text-gray-500">{new Date(post.createdAt).toLocaleDateString()}</p>
+                    <p className="text-xs text-muted-foreground">{new Date(post.createdAt).toLocaleDateString()}</p>
                   </div>
                 </div>
 
                 {user?.id === post.authorId && (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-white/10">
+                      <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-muted">
                         <MoreVertical size={16} />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent className="bg-gray-900 border-white/10 text-white">
+                    <DropdownMenuContent className="bg-card border-border text-foreground">
                       <DropdownMenuItem 
                         onClick={() => {
                           setEditingPost(post);
@@ -197,7 +197,7 @@ export default function FeedClient() {
                       </DropdownMenuItem>
                       <DropdownMenuItem 
                         onClick={() => handleDeletePost(post.id)}
-                        className="cursor-pointer text-red-400 focus:text-red-400 focus:bg-red-400/10"
+                        className="cursor-pointer text-destructive focus:text-destructive focus:bg-red-400/10"
                       >
                         <Trash2 className="w-4 h-4 mr-2" /> {t('delete')}
                       </DropdownMenuItem>
@@ -206,7 +206,7 @@ export default function FeedClient() {
                 )}
               </div>
               <p className="text-gray-200 whitespace-pre-wrap">{post.content}</p>
-              <div className="flex gap-6 mt-6 pt-4 border-t border-white/10">
+              <div className="flex gap-6 mt-6 pt-4 border-t border-border">
                 <Button 
                   variant="ghost" 
                   size="sm" 
@@ -219,7 +219,7 @@ export default function FeedClient() {
                   variant="ghost" 
                   size="sm" 
                   onClick={() => toggleComments(post.id)}
-                  className={cn("gap-2 hover:bg-cyan-500/10 hover:text-cyan-400", expandedComments[post.id] && "text-cyan-400")}
+                  className={cn("gap-2 hover:bg-primary/10 hover:text-primary", expandedComments[post.id] && "text-primary")}
                 >
                   <MessageCircle size={16} /> {post.commentCount || 0}
                 </Button>
@@ -235,7 +235,7 @@ export default function FeedClient() {
         {status === "CanLoadMore" && (
           <Button 
             variant="ghost" 
-            className="w-full text-gray-400 hover:text-white" 
+            className="w-full text-muted-foreground hover:text-foreground" 
             onClick={() => loadMore(10)}
           >
             {t('loadMore')}
@@ -244,16 +244,16 @@ export default function FeedClient() {
         
         {status === "LoadingMore" && (
           <div className="flex justify-center py-4">
-            <Loader2 className="h-6 w-6 animate-spin text-cyan-500" />
+            <Loader2 className="h-6 w-6 animate-spin text-primary" />
           </div>
         )}
       </div>
 
       {/* Create Post Dialog */}
       <Dialog open={showCreatePost} onOpenChange={setShowCreatePost}>
-        <DialogContent className="bg-gray-900 border-white/10 text-white">
+        <DialogContent className="bg-card border-border text-foreground">
           <DialogHeader><DialogTitle>{t('createPostTitle')}</DialogTitle></DialogHeader>
-          <Textarea value={newPostContent} onChange={e => setNewPostContent(e.target.value)} placeholder={t('createPostPlaceholder')} className="bg-white/5 border-white/10" rows={4} />
+          <Textarea value={newPostContent} onChange={e => setNewPostContent(e.target.value)} placeholder={t('createPostPlaceholder')} className="bg-card border-border" rows={4} />
           <DialogFooter>
             <Button onClick={handleCreatePost} disabled={loading}>{loading ? t('posting') : t('post')}</Button>
           </DialogFooter>
@@ -262,9 +262,9 @@ export default function FeedClient() {
 
       {/* Edit Post Dialog */}
       <Dialog open={showEditPost} onOpenChange={setShowEditPost}>
-        <DialogContent className="bg-gray-900 border-white/10 text-white">
+        <DialogContent className="bg-card border-border text-foreground">
           <DialogHeader><DialogTitle>{t('editPostTitle')}</DialogTitle></DialogHeader>
-          <Textarea value={editPostContent} onChange={e => setEditPostContent(e.target.value)} placeholder={t('editPostPlaceholder')} className="bg-white/5 border-white/10" rows={4} />
+          <Textarea value={editPostContent} onChange={e => setEditPostContent(e.target.value)} placeholder={t('editPostPlaceholder')} className="bg-card border-border" rows={4} />
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowEditPost(false)} disabled={loading}>{t('cancel')}</Button>
             <Button onClick={handleUpdatePost} disabled={loading}>{loading ? t('saving') : t('saveChanges')}</Button>

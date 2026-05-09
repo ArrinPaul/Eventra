@@ -56,7 +56,7 @@ export default function AdminAnalyticsOverview() {
   });
   
   if (loading) {
-    return <div className="p-20 text-center text-gray-500"><RefreshCw className="animate-spin h-8 w-8 mx-auto mb-4" /> Loading platform analytics...</div>;
+    return <div className="p-20 text-center text-muted-foreground"><RefreshCw className="animate-spin h-8 w-8 mx-auto mb-4" /> Loading platform analytics...</div>;
   }
 
   const COLORS = ['#06b6d4', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981'];
@@ -68,11 +68,11 @@ export default function AdminAnalyticsOverview() {
   ];
 
   return (
-    <div className="space-y-6 text-white pb-10">
+    <div className="space-y-6 text-foreground pb-10">
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-3xl font-bold tracking-tight">Platform Insights</h2>
-          <p className="text-gray-400">Comprehensive overview of platform growth and user engagement</p>
+          <p className="text-muted-foreground">Comprehensive overview of platform growth and user engagement</p>
         </div>
       </div>
 
@@ -80,14 +80,14 @@ export default function AdminAnalyticsOverview() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
           { label: 'Total Users', value: stats.totalUsers, icon: Users, color: 'text-blue-400' },
-          { label: 'Active Events', value: stats.activeEvents, icon: Calendar, color: 'text-green-400' },
+          { label: 'Active Events', value: stats.activeEvents, icon: Calendar, color: 'text-success' },
           { label: 'Registrations', value: stats.totalRegistrations, icon: Ticket, color: 'text-amber-400' },
-          { label: 'Growth', value: `${(stats as any).userTrend || 0}%`, icon: TrendingUp, color: (stats as any).userTrend >= 0 ? 'text-cyan-400' : 'text-red-400' },
+          { label: 'Growth', value: `${(stats as any).userTrend || 0}%`, icon: TrendingUp, color: (stats as any).userTrend >= 0 ? 'text-primary' : 'text-destructive' },
         ].map((s, i) => (
-          <Card key={i} className="bg-white/5 border-white/10 text-white overflow-hidden">
+          <Card key={i} className="bg-card border-border text-foreground overflow-hidden">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-2">
-                <p className="text-[10px] uppercase font-black text-gray-500 tracking-widest">{s.label}</p>
+                <p className="text-[10px] uppercase font-black text-muted-foreground tracking-widest">{s.label}</p>
                 <s.icon className={`h-4 w-4 ${s.color}`} />
               </div>
               <p className="text-3xl font-bold">{s.value}</p>
@@ -97,17 +97,17 @@ export default function AdminAnalyticsOverview() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="bg-white/5 border-white/10 text-white p-1">
-          <TabsTrigger value="overview" className="data-[state=active]:bg-cyan-600">Growth Overview</TabsTrigger>
-          <TabsTrigger value="engagement" className="data-[state=active]:bg-cyan-600">User Engagement</TabsTrigger>
+        <TabsList className="bg-card border-border text-foreground p-1">
+          <TabsTrigger value="overview" className="data-[state=active]:bg-primary">Growth Overview</TabsTrigger>
+          <TabsTrigger value="engagement" className="data-[state=active]:bg-primary">User Engagement</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <Card className="lg:col-span-2 bg-white/5 border-white/10 text-white">
+            <Card className="lg:col-span-2 bg-card border-border text-foreground">
               <CardHeader>
                 <CardTitle className="text-lg">User Acquisition</CardTitle>
-                <CardDescription className="text-gray-500">New user signups over time</CardDescription>
+                <CardDescription className="text-muted-foreground">New user signups over time</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="h-[300px] w-full">
@@ -127,10 +127,10 @@ export default function AdminAnalyticsOverview() {
               </CardContent>
             </Card>
 
-            <Card className="bg-white/5 border-white/10 text-white">
+            <Card className="bg-card border-border text-foreground">
               <CardHeader>
                 <CardTitle className="text-lg">User Distribution</CardTitle>
-                <CardDescription className="text-gray-500">By persona</CardDescription>
+                <CardDescription className="text-muted-foreground">By persona</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="h-[300px] w-full">
@@ -158,7 +158,7 @@ export default function AdminAnalyticsOverview() {
                     <div key={role} className="flex items-center justify-between text-xs">
                       <div className="flex items-center gap-2">
                         <div className="w-2 h-2 rounded-full" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
-                        <span className="capitalize text-gray-400">{role}</span>
+                        <span className="capitalize text-muted-foreground">{role}</span>
                       </div>
                       <span className="font-bold">{count as number}</span>
                     </div>
@@ -171,10 +171,10 @@ export default function AdminAnalyticsOverview() {
 
         <TabsContent value="engagement" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card className="bg-white/5 border-white/10 text-white">
+            <Card className="bg-card border-border text-foreground">
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2"><Activity className="w-4 h-4 text-purple-400" /> Activity Volume</CardTitle>
-                <CardDescription className="text-gray-500">Total interactions on platform</CardDescription>
+                <CardDescription className="text-muted-foreground">Total interactions on platform</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="h-[300px] w-full">
@@ -197,16 +197,16 @@ export default function AdminAnalyticsOverview() {
               </CardContent>
             </Card>
 
-            <Card className="bg-white/5 border-white/10 text-white">
+            <Card className="bg-card border-border text-foreground">
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2"><PieChartIcon className="w-4 h-4 text-amber-400" /> Event Status</CardTitle>
-                <CardDescription className="text-gray-500">Current event lifecycle distribution</CardDescription>
+                <CardDescription className="text-muted-foreground">Current event lifecycle distribution</CardDescription>
               </CardHeader>
               <CardContent className="flex items-center justify-center py-6">
                 <div className="grid grid-cols-2 gap-8">
                   {Object.entries(detailed.eventsByStatus).map(([status, count], i) => (
                     <div key={status} className="text-center">
-                      <div className={`text-2xl font-bold ${status === 'published' ? 'text-green-400' : 'text-gray-400'}`}>{count as number}</div>
+                      <div className={`text-2xl font-bold ${status === 'published' ? 'text-success' : 'text-muted-foreground'}`}>{count as number}</div>
                       <div className="text-[10px] uppercase font-black tracking-widest text-gray-600">{status}</div>
                     </div>
                   ))}
@@ -216,10 +216,10 @@ export default function AdminAnalyticsOverview() {
           </div>
 
           {detailed.engagementTrends && detailed.engagementTrends.length > 0 && (
-            <Card className="bg-white/5 border-white/10 text-white">
+            <Card className="bg-card border-border text-foreground">
               <CardHeader>
                 <CardTitle className="text-lg">30-Day Engagement Trend</CardTitle>
-                <CardDescription className="text-gray-500">Registrations, messages, and reviews over time</CardDescription>
+                <CardDescription className="text-muted-foreground">Registrations, messages, and reviews over time</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="h-[320px] w-full">
@@ -241,28 +241,28 @@ export default function AdminAnalyticsOverview() {
 
           {detailed.demographics && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card className="bg-white/5 border-white/10 text-white">
+              <Card className="bg-card border-border text-foreground">
                 <CardHeader>
                   <CardTitle className="text-lg">Attendee Demographics by Role</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2">
                   {Object.entries(detailed.demographics.byRole || {}).map(([role, count]) => (
                     <div key={role} className="flex items-center justify-between text-sm">
-                      <span className="capitalize text-gray-400">{role}</span>
+                      <span className="capitalize text-muted-foreground">{role}</span>
                       <span className="font-semibold">{count as number}</span>
                     </div>
                   ))}
                 </CardContent>
               </Card>
 
-              <Card className="bg-white/5 border-white/10 text-white">
+              <Card className="bg-card border-border text-foreground">
                 <CardHeader>
                   <CardTitle className="text-lg">Attendee Demographics by Country</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2">
                   {Object.entries(detailed.demographics.byCountry || {}).slice(0, 8).map(([country, count]) => (
                     <div key={country} className="flex items-center justify-between text-sm">
-                      <span className="text-gray-400">{country}</span>
+                      <span className="text-muted-foreground">{country}</span>
                       <span className="font-semibold">{count as number}</span>
                     </div>
                   ))}

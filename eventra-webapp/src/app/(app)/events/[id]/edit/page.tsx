@@ -31,14 +31,14 @@ export default function EventEditPage({ params }: { params: Promise<{ id: string
   if (event === undefined) {
     return (
       <div className="container py-16 flex justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-cyan-500" />
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
   if (!event) {
     return (
-      <div className="container py-16 text-center text-white">
+      <div className="container py-16 text-center text-foreground">
         <h1 className="text-2xl font-bold">Event not found</h1>
         <Button asChild variant="outline" className="mt-4">
           <Link href="/events">Back to Events</Link>
@@ -52,9 +52,9 @@ export default function EventEditPage({ params }: { params: Promise<{ id: string
 
   if (!isMainOrganizer && !isCoOrganizer) {
     return (
-      <div className="container py-16 text-center text-white">
+      <div className="container py-16 text-center text-foreground">
         <h1 className="text-2xl font-bold">Unauthorized</h1>
-        <p className="text-gray-400 mt-2">You can only edit events you organize.</p>
+        <p className="text-muted-foreground mt-2">You can only edit events you organize.</p>
         <Button asChild variant="outline" className="mt-4">
           <Link href={`/events/${id}`}>Back to Event</Link>
         </Button>
@@ -87,7 +87,7 @@ export default function EventEditPage({ params }: { params: Promise<{ id: string
   };
 
   return (
-    <div className="container py-8 max-w-4xl mx-auto text-white">
+    <div className="container py-8 max-w-4xl mx-auto text-foreground">
       <div className="flex items-center gap-4 mb-8">
         <Button asChild variant="ghost" size="icon">
           <Link href={`/events/${id}`}>
@@ -96,13 +96,13 @@ export default function EventEditPage({ params }: { params: Promise<{ id: string
         </Button>
         <div>
           <h1 className="text-3xl font-extrabold tracking-tight">Manage Event</h1>
-          <p className="text-gray-400 mt-1">Configure event details and team members</p>
+          <p className="text-muted-foreground mt-1">Configure event details and team members</p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">
-          <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
+          <div className="bg-card border border-border rounded-2xl p-6">
             <h2 className="text-xl font-bold mb-6">Event Details</h2>
             <EventForm
               onSave={handleSave}
@@ -131,18 +131,18 @@ export default function EventEditPage({ params }: { params: Promise<{ id: string
             />
           )}
           
-          <Card className="bg-white/5 border-white/10 text-white">
+          <Card className="bg-card border-border text-foreground">
             <CardHeader>
               <CardTitle className="text-lg">Event Status</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-400">Current Status</span>
-                <Badge variant="outline" className="capitalize border-cyan-500/30 text-cyan-400">
+                <span className="text-sm text-muted-foreground">Current Status</span>
+                <Badge variant="outline" className="capitalize border-primary/30 text-primary">
                   {event.status}
                 </Badge>
               </div>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-muted-foreground">
                 You can change the event status in the main form. Published events are visible to all users.
               </p>
             </CardContent>

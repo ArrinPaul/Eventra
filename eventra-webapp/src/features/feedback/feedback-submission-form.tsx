@@ -67,7 +67,7 @@ export function FeedbackSubmissionForm({ eventId, eventTitle, template }: Feedba
 
   if (isSubmitted) {
     return (
-      <Card className="bg-white/5 border-white/10 text-white text-center py-12">
+      <Card className="bg-card border-border text-foreground text-center py-12">
         <CardContent className="space-y-6">
           <div className="relative inline-block">
             <div className="absolute inset-0 bg-emerald-500/20 blur-3xl rounded-full" />
@@ -75,9 +75,9 @@ export function FeedbackSubmissionForm({ eventId, eventTitle, template }: Feedba
           </div>
           <div className="space-y-2">
             <h2 className="text-3xl font-black">Thank You!</h2>
-            <p className="text-gray-400">Your feedback helps us make future events even better.</p>
+            <p className="text-muted-foreground">Your feedback helps us make future events even better.</p>
           </div>
-          <Button asChild className="bg-white/10 hover:bg-white/20 border-white/10">
+          <Button asChild className="bg-muted hover:bg-white/20 border-border">
             <a href="/explore">Explore More Events</a>
           </Button>
         </CardContent>
@@ -88,15 +88,15 @@ export function FeedbackSubmissionForm({ eventId, eventTitle, template }: Feedba
   return (
     <form onSubmit={handleSubmit} className="max-w-2xl mx-auto space-y-8">
       <div className="text-center space-y-2">
-        <h1 className="text-3xl font-black text-white">{template.title}</h1>
-        <p className="text-gray-400">{template.description}</p>
-        <div className="inline-block px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-bold mt-2">
+        <h1 className="text-3xl font-black text-foreground">{template.title}</h1>
+        <p className="text-muted-foreground">{template.description}</p>
+        <div className="inline-block px-3 py-1 rounded-full bg-primary/10 border border-cyan-500/20 text-primary text-xs font-bold mt-2">
           Event: {eventTitle}
         </div>
       </div>
 
-      <Card className="bg-white/5 border-white/10 text-white shadow-2xl">
-        <CardHeader className="border-b border-white/5">
+      <Card className="bg-card border-border text-foreground shadow-2xl">
+        <CardHeader className="border-b border-border/50">
           <CardTitle className="text-lg">Overall Experience</CardTitle>
           <CardDescription>How would you rate the event as a whole?</CardDescription>
         </CardHeader>
@@ -116,7 +116,7 @@ export function FeedbackSubmissionForm({ eventId, eventTitle, template }: Feedba
               </button>
             ))}
           </div>
-          <div className="text-sm font-bold uppercase tracking-widest text-gray-500">
+          <div className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
             {rating === 1 && "Poor"}
             {rating === 2 && "Fair"}
             {rating === 3 && "Good"}
@@ -128,11 +128,11 @@ export function FeedbackSubmissionForm({ eventId, eventTitle, template }: Feedba
       </Card>
 
       {template.questions.map((q, i) => (
-        <Card key={q.id} className="bg-white/5 border-white/10 text-white">
+        <Card key={q.id} className="bg-card border-border text-foreground">
           <CardHeader>
             <CardTitle className="text-base flex items-start gap-3">
-              <span className="text-cyan-500 font-mono text-sm pt-0.5">{i + 1}.</span>
-              {q.label} {q.required && <span className="text-red-500">*</span>}
+              <span className="text-primary font-mono text-sm pt-0.5">{i + 1}.</span>
+              {q.label} {q.required && <span className="text-destructive">*</span>}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -143,7 +143,7 @@ export function FeedbackSubmissionForm({ eventId, eventTitle, template }: Feedba
               >
                 {[1, 2, 3, 4, 5].map((val) => (
                   <div key={val} className="flex flex-col items-center gap-2">
-                    <RadioGroupItem value={val.toString()} id={`${q.id}-${val}`} className="border-white/20" />
+                    <RadioGroupItem value={val.toString()} id={`${q.id}-${val}`} className="border-border" />
                     <Label htmlFor={`${q.id}-${val}`} className="text-xs">{val}</Label>
                   </div>
                 ))}
@@ -153,7 +153,7 @@ export function FeedbackSubmissionForm({ eventId, eventTitle, template }: Feedba
             {q.type === 'text' && (
               <Textarea 
                 placeholder="Type your answer here..."
-                className="bg-white/5 border-white/10 min-h-[100px]"
+                className="bg-card border-border min-h-[100px]"
                 onChange={(e) => handleResponseChange(q.id, e.target.value)}
                 required={q.required}
               />
@@ -165,8 +165,8 @@ export function FeedbackSubmissionForm({ eventId, eventTitle, template }: Feedba
                 className="space-y-3"
               >
                 {q.options?.map((opt: string, idx: number) => (
-                  <div key={idx} className="flex items-center space-x-3 p-3 rounded-lg bg-white/5 border border-white/5 hover:border-white/10 transition-colors">
-                    <RadioGroupItem value={opt} id={`${q.id}-${idx}`} className="border-white/20" />
+                  <div key={idx} className="flex items-center space-x-3 p-3 rounded-lg bg-card border border-border/50 hover:border-border transition-colors">
+                    <RadioGroupItem value={opt} id={`${q.id}-${idx}`} className="border-border" />
                     <Label htmlFor={`${q.id}-${idx}`} className="flex-1 cursor-pointer">{opt}</Label>
                   </div>
                 ))}
@@ -176,17 +176,17 @@ export function FeedbackSubmissionForm({ eventId, eventTitle, template }: Feedba
         </Card>
       ))}
 
-      <Card className="bg-white/5 border-white/10 text-white">
+      <Card className="bg-card border-border text-foreground">
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
-            <MessageSquare className="h-4 w-4 text-cyan-500" />
+            <MessageSquare className="h-4 w-4 text-primary" />
             Additional Comments (Optional)
           </CardTitle>
         </CardHeader>
         <CardContent>
           <Textarea 
             placeholder="Anything else you'd like to share?"
-            className="bg-white/5 border-white/10 min-h-[120px]"
+            className="bg-card border-border min-h-[120px]"
             value={comment}
             onChange={(e) => setComment(e.target.value)}
           />
@@ -195,7 +195,7 @@ export function FeedbackSubmissionForm({ eventId, eventTitle, template }: Feedba
 
       <Button 
         type="submit" 
-        className="w-full h-14 text-lg font-bold bg-cyan-600 hover:bg-cyan-500 text-white shadow-xl shadow-cyan-900/20"
+        className="w-full h-14 text-lg font-bold bg-primary hover:bg-primary/90 text-foreground shadow-xl shadow-cyan-900/20"
         disabled={isSubmitting}
       >
         {isSubmitting ? <Loader2 className="h-6 w-6 animate-spin mr-2" /> : <Send className="h-5 w-5 mr-2" />}

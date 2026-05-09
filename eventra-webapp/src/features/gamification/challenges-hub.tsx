@@ -35,10 +35,10 @@ export default function ChallengesHub({ challenges, userChallenges }: any) {
 
   const getCategoryIcon = (category: string) => {
     switch (category) {
-      case 'engagement': return <Target className="text-cyan-400" />;
+      case 'engagement': return <Target className="text-primary" />;
       case 'networking': return <Zap className="text-amber-400" />;
       case 'learning': return <Trophy className="text-purple-400" />;
-      default: return <Star className="text-cyan-400" />;
+      default: return <Star className="text-primary" />;
     }
   };
 
@@ -46,10 +46,10 @@ export default function ChallengesHub({ challenges, userChallenges }: any) {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-black text-white tracking-tight">Active Challenges</h2>
-          <p className="text-gray-400 text-sm mt-1">Complete tasks to earn bonus XP and limited-edition badges.</p>
+          <h2 className="text-3xl font-black text-foreground tracking-tight">Active Challenges</h2>
+          <p className="text-muted-foreground text-sm mt-1">Complete tasks to earn bonus XP and limited-edition badges.</p>
         </div>
-        <Badge variant="outline" className="bg-cyan-500/10 text-cyan-400 border-cyan-500/20 px-4 py-1">
+        <Badge variant="outline" className="bg-primary/10 text-primary border-cyan-500/20 px-4 py-1">
           {challenges.length} Available
         </Badge>
       </div>
@@ -63,32 +63,32 @@ export default function ChallengesHub({ challenges, userChallenges }: any) {
             
             return (
               <Card key={challenge.id} className={cn(
-                "group relative bg-[#0f172a]/60 border-white/10 hover:border-cyan-500/50 transition-all overflow-hidden",
+                "group relative bg-card/60 border-border hover:border-primary/50 transition-all overflow-hidden",
                 isJoined && "ring-1 ring-cyan-500/30"
               )}>
                 <CardContent className="p-6">
                   <div className="flex justify-between items-start mb-6">
-                    <div className="flex-1 space-y-1 text-white">
+                    <div className="flex-1 space-y-1 text-foreground">
                       <div className="flex items-center gap-2">
-                        <h3 className="text-xl font-bold group-hover:text-cyan-400 transition-colors">{challenge.title}</h3>
+                        <h3 className="text-xl font-bold group-hover:text-primary transition-colors">{challenge.title}</h3>
                         {isJoined && <Badge className="bg-cyan-500 text-black text-[10px]">Active</Badge>}
                       </div>
-                      <p className="text-sm text-gray-400 line-clamp-2">{challenge.description}</p>
+                      <p className="text-sm text-muted-foreground line-clamp-2">{challenge.description}</p>
                     </div>
-                    <div className="bg-white/5 p-3 rounded-2xl group-hover:scale-110 transition-transform">
+                    <div className="bg-card p-3 rounded-2xl group-hover:scale-110 transition-transform">
                       {getCategoryIcon(challenge.category)}
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4 mb-6">
-                    <div className="bg-white/5 p-3 rounded-xl border border-white/5 text-center">
-                      <div className="flex items-center justify-center gap-1.5 text-cyan-400 mb-1">
+                    <div className="bg-card p-3 rounded-xl border border-border/50 text-center">
+                      <div className="flex items-center justify-center gap-1.5 text-primary mb-1">
                         <Zap size={14} />
                         <span className="text-xs font-bold uppercase tracking-wider">Reward</span>
                       </div>
-                      <p className="text-lg font-black text-white">{challenge.rewardPoints} XP</p>
+                      <p className="text-lg font-black text-foreground">{challenge.rewardPoints} XP</p>
                     </div>
-                    <div className="bg-white/5 p-3 rounded-xl border border-white/5 text-center text-white">
+                    <div className="bg-card p-3 rounded-xl border border-border/50 text-center text-foreground">
                       <div className="flex items-center justify-center gap-1.5 text-amber-400 mb-1">
                         <Clock size={14} />
                         <span className="text-xs font-bold uppercase tracking-wider">Ends In</span>
@@ -100,16 +100,16 @@ export default function ChallengesHub({ challenges, userChallenges }: any) {
                   {isJoined && userParticipation && (
                     <div className="space-y-2 mb-6">
                       <div className="flex justify-between text-xs font-mono">
-                        <span className="text-gray-500 uppercase tracking-tighter">Progress</span>
-                        <span className="text-cyan-400">{userParticipation.progress}/{challenge.targetValue}</span>
+                        <span className="text-muted-foreground uppercase tracking-tighter">Progress</span>
+                        <span className="text-primary">{userParticipation.progress}/{challenge.targetValue}</span>
                       </div>
-                      <Progress value={(userParticipation.progress / challenge.targetValue) * 100} className="h-2 bg-white/5" />
+                      <Progress value={(userParticipation.progress / challenge.targetValue) * 100} className="h-2 bg-card" />
                     </div>
                   )}
 
                   {!isJoined ? (
                     <Button 
-                      className="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold"
+                      className="w-full bg-primary hover:bg-primary/90 text-foreground font-bold"
                       onClick={() => handleJoinChallenge(challenge.id)}
                       disabled={loading === challenge.id}
                     >
@@ -118,7 +118,7 @@ export default function ChallengesHub({ challenges, userChallenges }: any) {
                   ) : (
                     <Button 
                       variant="outline" 
-                      className="w-full border-white/10 text-gray-400 cursor-default"
+                      className="w-full border-border text-muted-foreground cursor-default"
                       disabled
                     >
                       Joined

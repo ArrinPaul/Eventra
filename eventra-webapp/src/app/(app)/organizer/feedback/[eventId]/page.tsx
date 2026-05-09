@@ -16,12 +16,12 @@ export default async function EventAnalyticsPage({ params }: { params: Promise<{
   return (
     <div className="container py-8 space-y-6">
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild className="text-white hover:bg-white/5">
+        <Button variant="ghost" size="icon" asChild className="text-foreground hover:bg-card">
           <Link href="/organizer/feedback">
             <ChevronLeft className="h-5 w-5" />
           </Link>
         </Button>
-        <h1 className="text-xl font-bold text-white">Back to Feedback Manager</h1>
+        <h1 className="text-xl font-bold text-foreground">Back to Feedback Manager</h1>
       </div>
       
       <FeedbackAnalyticsDashboard 

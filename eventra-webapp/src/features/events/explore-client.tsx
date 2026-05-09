@@ -196,7 +196,7 @@ export default function ExploreClient() {
                       <Badge className={`text-xs font-medium ${
                         event.isPaid
                           ? 'bg-foreground text-background'
-                          : 'bg-green-500/90 text-white'
+                          : 'bg-green-500/90 text-foreground'
                       }`}>
                         {event.isPaid ? `$${event.price}` : 'Free'}
                       </Badge>
@@ -231,7 +231,7 @@ export default function ExploreClient() {
                         className={`text-xs capitalize ${
                           event.type === 'virtual' ? 'border-blue-200 text-blue-600 dark:border-blue-800 dark:text-blue-400' :
                           event.type === 'hybrid' ? 'border-purple-200 text-purple-600 dark:border-purple-800 dark:text-purple-400' :
-                          'border-green-200 text-green-600 dark:border-green-800 dark:text-green-400'
+                          'border-green-200 text-green-600 dark:border-green-800 dark:text-success'
                         }`}
                       >
                         {event.type === 'physical' ? 'In Person' : event.type}

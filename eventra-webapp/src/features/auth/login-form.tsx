@@ -15,13 +15,13 @@ export function LoginForm() {
         Sign in with Google (Temporarily Disabled)
       </Button>
 
-      <p className="text-center text-xs text-gray-400">
+      <p className="text-center text-xs text-muted-foreground">
         Google OAuth is temporarily disabled during testing.
       </p>
 
-      <div className="text-center text-sm text-gray-400">
+      <div className="text-center text-sm text-muted-foreground">
         New to Eventra?{' '}
-        <Link href="/register" className="text-cyan-400 font-semibold hover:text-cyan-300">
+        <Link href="/register" className="text-primary font-semibold hover:text-primary-foreground">
           Create account
         </Link>
       </div>
