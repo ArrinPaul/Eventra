@@ -93,20 +93,15 @@ export default {
         },
       },
       boxShadow: {
-        'card': '0 1px 2px 0 rgba(0, 0, 0, 0.03), 0 1px 3px 0 rgba(0, 0, 0, 0.06)',
-        'card-hover': '0 10px 40px -10px rgba(0, 0, 0, 0.1), 0 5px 20px -5px rgba(0, 0, 0, 0.04)',
-        'soft': '0 2px 8px -2px rgba(0, 0, 0, 0.06), 0 4px 12px -4px rgba(0, 0, 0, 0.05)',
-        'elevated': '0 20px 50px -12px rgba(0, 0, 0, 0.15)',
-        'glow': '0 0 20px -5px hsl(var(--primary) / 0.5)',
-        'neon': '0 0 15px -2px hsl(var(--primary)), 0 0 30px -5px hsl(var(--primary) / 0.3)',
+        'solid': '0 0 0 1px hsl(var(--border)), 0 8px 16px -4px rgba(0,0,0,0.1)',
+        'solid-hover': '0 0 0 2px #7C4DFF, 0 12px 24px -6px rgba(124, 77, 255, 0.2)',
+        'grid': '1px 1px 0 0 hsl(var(--border) / 0.3)',
       },
       borderRadius: {
         lg: 'var(--radius)',
-        md: 'calc(var(--radius) - 4px)',
-        sm: 'calc(var(--radius) - 8px)',
-        '2xl': '1.5rem',
-        '3xl': '2rem',
-        'full': '9999px',
+        md: 'calc(var(--radius) - 2px)',
+        sm: 'calc(var(--radius) - 4px)',
+        'none': '0',
       },
 
       keyframes: {

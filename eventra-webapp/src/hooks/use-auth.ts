@@ -6,24 +6,27 @@ import { User } from '@/types';
  * AUTH BYPASS MODE (Development)
  * This hook returns a mock admin user to allow full access to the frontend.
  */
-const MOCK_ADMIN_USER: User = {
-  id: 'dev-admin-id',
-  name: 'Dev Admin',
-  email: 'admin@eventra.local',
-  role: 'admin',
-  points: 1000,
-  level: 10,
-  xp: 5000,
+const MOCK_NORMAL_USER: User = {
+  id: 'dev-user-id',
+  name: 'Alex Explorer',
+  email: 'alex@example.com',
+  role: 'attendee',
+  points: 150,
+  level: 2,
+  xp: 450,
   onboardingCompleted: true,
 };
 
 export function useAuth() {
   const loading = false;
   const isAuthenticated = true;
-  const user = MOCK_ADMIN_USER;
+  const user = MOCK_NORMAL_USER;
 
   const signIn = async () => ({ ok: true });
-  const logout = async () => { window.location.href = '/'; };
+  const logout = async () => { 
+    console.log('Bypass mode: logout called');
+    window.location.href = '/'; 
+  };
 
   const updateUser = async (data: Partial<User>) => {
     console.log('Bypass mode: updateUser called with', data);

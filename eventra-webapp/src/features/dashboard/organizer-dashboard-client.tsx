@@ -9,7 +9,7 @@ import { cn } from '@/core/utils/utils';
 import {
   Plus, Calendar, Users, Ticket, ArrowUpRight, Search,
   Loader2, Trash2, Edit, Copy, BrainCircuit, ChevronRight,
-  Award, MessageSquare, Clock, Activity, DollarSign
+  Award, MessageSquare, Clock, Activity, DollarSign, Sparkles
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { format } from 'date-fns';

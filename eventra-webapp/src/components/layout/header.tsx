@@ -82,46 +82,42 @@ export default function Header() {
   return (
     <header
       className={cn(
-        "fixed top-0 left-0 right-0 z-50 transition-all duration-500 ease-smooth",
+        "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
         scrolled
-          ? "py-3"
-          : "py-6"
+          ? "bg-background/90 backdrop-blur-md border-b border-border"
+          : "bg-transparent"
       )}
     >
       <div className="container mx-auto px-4">
-        <div className={cn(
-          "flex items-center justify-between h-16 px-6 rounded-2xl transition-all duration-500",
-          scrolled 
-            ? "glass-card shadow-elevated border-white/10" 
-            : "bg-transparent border-transparent"
-        )}>
+        <div className="flex items-center justify-between h-16">
 
           {/* Logo */}
           <Link href="/" className="flex items-center gap-3 shrink-0 group" data-testid="header-logo">
-            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-primary via-primary to-info flex items-center justify-center shadow-glow group-hover:scale-110 transition-transform duration-500">
-              <Sparkles className="w-6 h-6 text-white" strokeWidth={2.5} />
+            <div className="w-10 h-10 border border-lavender flex items-center justify-center group-hover:bg-lavender transition-all duration-300">
+              <span className="text-[10px] font-mono font-bold group-hover:text-white transition-colors">EV</span>
             </div>
-            <span className="text-2xl font-display font-black text-foreground tracking-tighter hidden lg:block">
-              Eventra
+            <span className="text-lg font-display font-bold tracking-[0.2em] text-foreground hidden lg:block">
+              EVENTRA
             </span>
           </Link>
 
-          {/* Desktop Nav - Floating Pills */}
+          {/* Desktop Nav - Institutional List */}
           <nav className="hidden md:flex items-center justify-center flex-1 mx-8" data-testid="app-header">
-            <div className="flex items-center gap-1 p-1 rounded-xl glass border border-white/10">
-              {navLinks.map((link) => {
+            <div className="flex items-center gap-8">
+              {navLinks.map((link, i) => {
                 const isActive = pathname === link.href;
                 return (
                   <Link
                     key={link.href}
                     href={link.href}
                     className={cn(
-                      "relative px-5 py-2 text-sm font-bold rounded-lg transition-all duration-300",
+                      "relative text-[10px] font-mono font-bold uppercase tracking-[0.2em] transition-all duration-300",
                       isActive
-                        ? "text-primary-foreground bg-primary shadow-glow scale-105"
-                        : "text-muted-foreground hover:text-foreground hover:bg-white/5"
+                        ? "text-lavender underline underline-offset-8"
+                        : "text-muted-foreground hover:text-foreground"
                     )}
                   >
+                    <span className="opacity-40 mr-1.5">0{i+1}</span>
                     {link.label}
                   </Link>
                 );
@@ -130,16 +126,16 @@ export default function Header() {
           </nav>
 
           {/* Right Actions */}
-          <div className="flex items-center justify-end gap-3 shrink-0">
+          <div className="flex items-center justify-end gap-4 shrink-0">
             <Button
               variant="ghost"
               size="icon"
-              className="hidden sm:flex rounded-xl w-10 h-10 glass border border-white/5 text-muted-foreground hover:text-primary hover:border-primary/50 transition-all"
+              className="hidden sm:flex rounded-none w-9 h-9 border border-transparent hover:border-border transition-all"
               asChild
               data-testid="header-search-btn"
             >
               <Link href="/search">
-                <Search className="w-5 h-5" />
+                <Search className="w-4 h-4" />
               </Link>
             </Button>
 

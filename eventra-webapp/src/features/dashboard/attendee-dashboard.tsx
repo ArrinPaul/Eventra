@@ -19,7 +19,8 @@ import {
   QrCode, 
   Loader2, 
   Zap, 
-  Star 
+  Star,
+  Sparkles
 } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
