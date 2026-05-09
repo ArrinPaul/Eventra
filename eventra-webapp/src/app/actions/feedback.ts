@@ -99,13 +99,14 @@ export async function submitEventFeedback(data: {
   responses?: any;
 }) {
   const session = await auth();
-  if (!session?.user) throw new Error('Authentication required');
+  if (!session?.user?.id) throw new Error('Authentication required');
+  const userId = session.user.id;
 
   // Verify the user actually attended/checked-in
   const ticket = await db.query.tickets.findFirst({
     where: and(
       eq(tickets.eventId, data.eventId),
-      eq(tickets.userId, session.user.id),
+      eq(tickets.userId, userId),
       eq(tickets.status, 'checked-in')
     )
   });
@@ -119,7 +120,7 @@ export async function submitEventFeedback(data: {
       .insert(eventFeedback)
       .values({
         eventId: data.eventId,
-        userId: session.user.id,
+        userId: userId,
         rating: data.rating,
         comment: data.comment,
         responses: data.responses,
