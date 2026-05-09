@@ -9,7 +9,7 @@ import { cn } from '@/core/utils/utils';
 import {
   Plus, Calendar, Users, Ticket, ArrowUpRight, Search,
   Loader2, Trash2, Edit, Copy, BrainCircuit, ChevronRight,
-  Award, MessageSquare, Clock, Activity, DollarSign, Sparkles
+  Award, MessageSquare, Clock, Activity, DollarSign, Sparkles, MapPin
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { format } from 'date-fns';
@@ -245,7 +245,7 @@ export default function OrganizerDashboard() {
                     <div className="p-3 rounded-xl bg-primary/10 text-primary">
                       <BrainCircuit size={24} />
                     </div>
-                    <Badge variant="premium">AI Ready</Badge>
+                    <Badge variant="glass">AI Ready</Badge>
                   </div>
                   <CardTitle className="text-lg font-black truncate text-foreground group-hover:text-primary transition-colors">{event.title}</CardTitle>
                   <CardDescription className="font-bold text-xs mt-2 uppercase tracking-widest">Predictive Analytics Available</CardDescription>

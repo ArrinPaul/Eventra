@@ -48,40 +48,40 @@ export function EventCard({ event, variant = 'default' }: { event: EventraEvent,
 
   return (
     <Link href={`/events/${event.id}`}>
-      <Card variant="default" className="group h-full overflow-hidden border-border/40 hover:border-primary/50 hover:shadow-card-hover transition-all duration-300 rounded-[1.75rem] bg-card">
-        <div className="aspect-[16/10] bg-secondary relative overflow-hidden">
-            <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-            <Badge variant="glass" className="absolute top-4 left-4 z-10 backdrop-blur-md border-white/10 text-[9px] font-bold">
+      <Card variant="default" className="group h-full overflow-hidden border-white/5 hover:border-primary/50 transition-all duration-500 rounded-3xl bg-zinc-900/30 backdrop-blur-md">
+        <div className="aspect-[16/10] bg-zinc-900 relative overflow-hidden">
+            <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <Badge variant="glass" className="absolute top-4 left-4 z-10 backdrop-blur-md border-white/5 text-[9px] font-bold">
               {event.category || 'General'}
             </Badge>
             {/* Visual pattern for placeholder */}
             <div className="absolute inset-0 flex items-center justify-center opacity-10 group-hover:scale-105 transition-transform duration-500">
-               <Zap size={60} className="text-foreground" />
+               <Zap size={50} className="text-white/20" />
             </div>
         </div>
-        <CardContent className="p-6 space-y-4">
-          <div className="space-y-1">
-            <h3 className="text-lg font-bold text-foreground group-hover:text-primary transition-colors line-clamp-1 leading-tight tracking-tight">
+        <CardContent className="p-6 space-y-6">
+          <div className="space-y-1.5">
+            <h3 className="text-xl font-medium text-white group-hover:text-primary transition-colors line-clamp-1 leading-tight tracking-tight">
               {event.title}
             </h3>
-            <div className="flex items-center gap-3 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
-              <span className="flex items-center gap-1.5"><Calendar size={12} className="text-primary" /> {format(displayDate, 'MMM d, yyyy')}</span>
-              <span className="flex items-center gap-1.5"><MapPin size={12} className="text-primary" /> {event.location?.venue || 'Virtual'}</span>
+            <div className="flex items-center gap-4 text-[10px] font-medium text-zinc-300 uppercase tracking-widest">
+              <span className="flex items-center gap-1.5 font-bold"><Calendar size={12} className="text-primary" /> {format(displayDate, 'MMM d, yyyy')}</span>
+              <span className="flex items-center gap-1.5 font-bold"><MapPin size={12} className="text-primary" /> {typeof event.location === 'string' ? event.location : (event.location as any)?.venue || 'Virtual'}</span>
             </div>
           </div>
 
-          <div className="flex justify-between items-center pt-2">
+          <div className="flex justify-between items-center pt-2 border-t border-white/5">
             <div className="flex flex-col">
-              <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground opacity-60">Price</span>
-              <span className="text-sm font-bold text-foreground">{event.isPaid ? `$${event.price}` : 'FREE'}</span>
+              <span className="text-[9px] font-medium uppercase tracking-widest text-zinc-300 font-bold">Registration</span>
+              <span className="text-sm font-semibold text-white">{event.isPaid ? `$${event.price}` : 'Free Access'}</span>
             </div>
             <Button 
               size="sm" 
               onClick={handleQuickRegister} 
               disabled={isRegistering} 
-              className="rounded-full font-bold px-5 bg-primary text-white hover:opacity-90 transition-all shadow-sm"
+              className="rounded-full font-bold px-6 bg-white text-black hover:bg-zinc-200 transition-all shadow-xl"
             >
-              {isRegistering ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Get Pass'}
+              {isRegistering ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Register'}
             </Button>
           </div>
         </CardContent>

@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
-import { Menu, LogOut, Moon, Sun, Search, Settings, Ticket, Calendar, X, Sparkles } from 'lucide-react';
+import { Menu, LogOut, Moon, Sun, Search, Settings, Ticket, Calendar, X, Sparkles, Zap } from 'lucide-react';
 import { cn } from '@/core/utils/utils';
 import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
@@ -82,42 +82,49 @@ export default function Header() {
   return (
     <header
       className={cn(
-        "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
+        "fixed top-0 left-0 right-0 z-50 transition-all duration-500",
         scrolled
-          ? "bg-background/90 backdrop-blur-md border-b border-border"
-          : "bg-transparent"
+          ? "py-4 flex justify-center"
+          : "py-6"
       )}
     >
-      <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
+      <div className={cn(
+        "container mx-auto px-4 transition-all duration-500",
+        scrolled ? "max-w-4xl" : "max-w-7xl"
+      )}>
+        <div className={cn(
+          "flex items-center justify-between h-14 px-6 rounded-full transition-all duration-500",
+          scrolled 
+            ? "bg-zinc-900/60 backdrop-blur-2xl border border-white/10 shadow-2xl" 
+            : "bg-transparent border-transparent"
+        )}>
 
           {/* Logo */}
           <Link href="/" className="flex items-center gap-3 shrink-0 group" data-testid="header-logo">
-            <div className="w-10 h-10 border border-lavender flex items-center justify-center group-hover:bg-lavender transition-all duration-300">
-              <span className="text-[10px] font-mono font-bold group-hover:text-white transition-colors">EV</span>
+            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shadow-glow group-hover:scale-105 transition-transform duration-300">
+              <Zap className="w-4 h-4 text-white" />
             </div>
-            <span className="text-lg font-display font-bold tracking-[0.2em] text-foreground hidden lg:block">
-              EVENTRA
+            <span className="text-base font-display font-bold tracking-tighter text-white hidden sm:block">
+              Eventra
             </span>
           </Link>
 
-          {/* Desktop Nav - Institutional List */}
+          {/* Desktop Nav - Centered Pills */}
           <nav className="hidden md:flex items-center justify-center flex-1 mx-8" data-testid="app-header">
-            <div className="flex items-center gap-8">
-              {navLinks.map((link, i) => {
+            <div className="flex items-center gap-1">
+              {navLinks.map((link) => {
                 const isActive = pathname === link.href;
                 return (
                   <Link
                     key={link.href}
                     href={link.href}
                     className={cn(
-                      "relative text-[10px] font-mono font-bold uppercase tracking-[0.2em] transition-all duration-300",
+                      "relative px-4 py-1.5 text-[11px] font-bold uppercase tracking-widest transition-all duration-300",
                       isActive
-                        ? "text-lavender underline underline-offset-8"
-                        : "text-muted-foreground hover:text-foreground"
+                        ? "text-primary"
+                        : "text-zinc-400 hover:text-white"
                     )}
                   >
-                    <span className="opacity-40 mr-1.5">0{i+1}</span>
                     {link.label}
                   </Link>
                 );
@@ -126,11 +133,11 @@ export default function Header() {
           </nav>
 
           {/* Right Actions */}
-          <div className="flex items-center justify-end gap-4 shrink-0">
+          <div className="flex items-center justify-end gap-3 shrink-0">
             <Button
               variant="ghost"
               size="icon"
-              className="hidden sm:flex rounded-none w-9 h-9 border border-transparent hover:border-border transition-all"
+              className="hidden sm:flex rounded-full w-8 h-8 text-zinc-400 hover:text-white transition-all"
               asChild
               data-testid="header-search-btn"
             >
@@ -175,7 +182,7 @@ export default function Header() {
                     </Avatar>
                     <div className="flex flex-col min-w-0">
                       <span className="text-base font-bold text-white truncate uppercase tracking-tight">{user.name || 'User'}</span>
-                      <span className="text-xs font-mono font-bold text-zinc-500 truncate uppercase tracking-widest">{user.email}</span>
+                      <span className="text-xs font-mono font-bold text-zinc-400 truncate uppercase tracking-widest">{user.email}</span>
                       <Badge variant="secondary" className="mt-2 w-fit">
                         {user.role}
                       </Badge>
@@ -215,7 +222,7 @@ export default function Header() {
               </DropdownMenu>
             ) : (
               <div className="hidden md:flex items-center gap-4 ml-2">
-                <Button asChild variant="ghost" className="font-bold text-zinc-500 hover:text-white" data-testid="header-signin">
+                <Button asChild variant="ghost" className="font-bold text-zinc-400 hover:text-white" data-testid="header-signin">
                   <Link href="/login">Auth_In</Link>
                 </Button>
                 <Button asChild className="px-8" data-testid="header-signup">
