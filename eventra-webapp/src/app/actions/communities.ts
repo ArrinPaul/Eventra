@@ -383,10 +383,11 @@ export async function getCommunityMembers(communityId: string): Promise<Communit
 export async function getMyCommunityMembership(communityId: string): Promise<boolean> {
   const session = await auth();
   if (!session?.user?.id) return false;
+  const userId = session.user.id;
 
   try {
     const row = await db.query.communityMembers.findFirst({
-      where: and(eq(communityMembers.communityId, communityId), eq(communityMembers.userId, session.user.id)),
+      where: and(eq(communityMembers.communityId, communityId), eq(communityMembers.userId, userId)),
     });
 
     return !!row;
