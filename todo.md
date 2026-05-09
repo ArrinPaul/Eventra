@@ -34,10 +34,9 @@ This document tracks the remaining work required to bring Eventra to a productio
 - [ ] **Restore Middleware**: Update `src/middleware.ts` to enforce route protection for `/admin` and `/organizer`.
 - [ ] **Session Management**: Switch from the `guest-user` model back to real session-based identities in `src/auth.ts`.
 
-### **2.2 Payment & Ticketing Re-integration (P1)**
-- [ ] **Re-integrate Stripe**: Restore Stripe SDK and webhook handlers.
-- [ ] **Paid Tier Logic**: Update `src/app/actions/tickets.ts` to handle Stripe checkout sessions for non-zero price tiers.
-- [ ] **Payment Status Tracking**: Ensure ticket status updates to 'confirmed' only after successful payment webhook.
+### **2.2 Ticketing Refinement (P1)**
+- [ ] **Advanced Ticketing Logic**: Update `src/app/actions/tickets.ts` to handle free and community-based ticketing tiers.
+- [ ] **QR Validation**: Ensure the check-in scanner correctly validates all ticket types.
 
 ### **2.3 Standardized Error Handling (P2)**
 - [ ] **Server Action Envelopes**: Convert all raw `throw new Error` calls in `src/app/actions/*` to return `{ success: false, error: "Friendly message" }`.

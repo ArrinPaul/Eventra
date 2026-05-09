@@ -3,15 +3,16 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/core/utils/utils"
 
 const cardVariants = cva(
-  "rounded-2xl border text-card-foreground shadow-sm transition-all duration-200",
+  "rounded-3xl border text-card-foreground transition-all duration-500",
   {
     variants: {
       variant: {
-        default: "bg-card border-border",
-        glass: "bg-card/60 backdrop-blur-xl border-border dark:border-border/50 shadow-xl",
-        elevated: "bg-card border-border shadow-elevated hover:shadow-glow",
-        gradient: "bg-gradient-to-br from-card to-muted border-border shadow-sm",
-        outline: "bg-transparent border-border/50",
+        default: "bg-card border-border shadow-sm hover:shadow-card-hover",
+        glass: "bg-card/40 backdrop-blur-2xl border-white/10 dark:border-white/5 shadow-2xl",
+        elevated: "bg-card border-border shadow-elevated hover:shadow-neon hover:-translate-y-1",
+        gradient: "bg-gradient-to-br from-card via-card to-primary/5 border-border shadow-soft",
+        outline: "bg-transparent border-border/50 hover:border-primary/30",
+        neon: "bg-card border-primary/20 shadow-neon hover:border-primary/50",
       },
     },
     defaultVariants: {

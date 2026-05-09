@@ -4,30 +4,27 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/core/utils/utils"
 
 const badgeVariants = cva(
-  "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+  "inline-flex items-center rounded-lg border px-3 py-1 text-[10px] font-black uppercase tracking-widest transition-all focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 select-none",
   {
     variants: {
       variant: {
-        default: "border-transparent bg-primary text-primary-foreground hover:bg-primary/80",
+        default: "border-transparent bg-primary text-primary-foreground shadow-glow hover:bg-primary/90",
         secondary: "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",
         destructive: "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",
-        outline: "text-foreground",
+        outline: "border-border bg-background text-foreground hover:bg-muted",
         // Semantic aliases
-        success: "border-transparent bg-success text-success-foreground hover:bg-success/80",
-        warning: "border-transparent bg-warning text-warning-foreground hover:bg-warning/80",
-        info: "border-transparent bg-info text-info-foreground hover:bg-info/80",
-        muted: "border-transparent bg-muted text-muted-foreground hover:bg-muted/80",
-        // Legacy color maps (mapped to semantic tokens where appropriate, or custom specific styles if needed)
-        red: "border-transparent bg-destructive/10 text-destructive hover:bg-destructive/20",
-        blue: "border-transparent bg-blue-500/10 text-blue-500 hover:bg-blue-500/20",
-        cyan: "border-transparent bg-primary/10 text-primary hover:bg-primary/20",
-        green: "border-transparent bg-green-500/10 text-success hover:bg-success/20",
-        yellow: "border-transparent bg-yellow-500/10 text-warning hover:bg-warning/20",
-        purple: "border-transparent bg-purple-500/10 text-purple-500 hover:bg-purple-500/20",
-        pink: "border-transparent bg-pink-500/10 text-pink-500 hover:bg-pink-500/20",
-        orange: "border-transparent bg-orange-500/10 text-orange-500 hover:bg-orange-500/20",
-        indigo: "border-transparent bg-indigo-500/10 text-indigo-500 hover:bg-indigo-500/20",
-        teal: "border-transparent bg-teal-500/10 text-teal-500 hover:bg-teal-500/20",
+        success: "border-transparent bg-success/10 text-success border border-success/20 hover:bg-success/20",
+        warning: "border-transparent bg-warning/10 text-warning border border-warning/20 hover:bg-warning/20",
+        info: "border-transparent bg-info/10 text-info border border-info/20 hover:bg-info/20",
+        muted: "border-transparent bg-muted/50 text-muted-foreground hover:bg-muted",
+        premium: "border-transparent bg-gradient-to-r from-primary to-info text-white shadow-neon animate-pulse",
+        // Legacy color maps
+        red: "border-transparent bg-destructive/10 text-destructive border border-destructive/20",
+        blue: "border-transparent bg-blue-500/10 text-blue-500 border border-blue-500/20",
+        cyan: "border-transparent bg-primary/10 text-primary border border-primary/20",
+        green: "border-transparent bg-success/10 text-success border border-success/20",
+        yellow: "border-transparent bg-warning/10 text-warning border border-warning/20",
+        purple: "border-transparent bg-purple-500/10 text-purple-500 border border-purple-500/20",
       },
     },
     defaultVariants: {
