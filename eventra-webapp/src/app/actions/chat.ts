@@ -26,6 +26,7 @@ const createRoomSchema = z.object({
 export async function getChatRooms() {
   const session = await auth();
   if (!session?.user?.id) return [];
+  const userId = session.user.id;
 
   try {
     const userRooms = await db
@@ -38,7 +39,7 @@ export async function getChatRooms() {
       })
       .from(chatRooms)
       .innerJoin(chatParticipants, eq(chatRooms.id, chatParticipants.roomId))
-      .where(eq(chatParticipants.userId, session.user.id))
+      .where(eq(chatParticipants.userId, userId))
       .orderBy(desc(chatRooms.createdAt));
     
     return userRooms;
@@ -54,13 +55,14 @@ export async function getChatRooms() {
 export async function getChatMessages(roomId: string, limit: number = 50) {
   const session = await auth();
   if (!session?.user?.id) return [];
+  const userId = session.user.id;
 
   try {
     // Security: Check if user is a participant
     const isParticipant = await db
       .select()
       .from(chatParticipants)
-      .where(and(eq(chatParticipants.roomId, roomId), eq(chatParticipants.userId, session.user.id)))
+      .where(and(eq(chatParticipants.roomId, roomId), eq(chatParticipants.userId, userId)))
       .limit(1);
 
     if (isParticipant.length === 0) throw new Error('Not a participant');
@@ -93,6 +95,7 @@ export async function getChatMessages(roomId: string, limit: number = 50) {
 export async function sendMessage(rawInput: any) {
   const session = await auth();
   if (!session?.user?.id) throw new Error('Authentication required');
+  const userId = session.user.id;
 
   const validated = sendMessageSchema.safeParse(rawInput);
   if (!validated.success) return { success: false, error: 'Invalid message' };
@@ -104,14 +107,14 @@ export async function sendMessage(rawInput: any) {
     const isParticipant = await db
       .select()
       .from(chatParticipants)
-      .where(and(eq(chatParticipants.roomId, roomId), eq(chatParticipants.userId, session.user.id)))
+      .where(and(eq(chatParticipants.roomId, roomId), eq(chatParticipants.userId, userId)))
       .limit(1);
 
     if (isParticipant.length === 0) throw new Error('Not a participant');
 
     const newMessage = await db.insert(chatMessages).values({
       roomId,
-      senderId: session.user.id,
+      senderId: userId,
       content,
       imageUrl,
     }).returning();
@@ -129,6 +132,7 @@ export async function sendMessage(rawInput: any) {
 export async function createChatRoom(rawInput: any) {
   const session = await auth();
   if (!session?.user?.id) throw new Error('Authentication required');
+  const userId = session.user.id;
 
   const validated = createRoomSchema.safeParse(rawInput);
   if (!validated.success) throw new Error('Invalid room data');
@@ -149,13 +153,13 @@ export async function createChatRoom(rawInput: any) {
       // 2. Add Creator
       await tx.insert(chatParticipants).values({
         roomId,
-        userId: session.user.id,
+        userId: userId,
       });
 
       // 3. Add other participants if provided
       if (participantIds && participantIds.length > 0) {
         const participants = participantIds
-          .filter(id => id !== session.user.id)
+          .filter(id => id !== userId)
           .map(id => ({ roomId, userId: id }));
         
         if (participants.length > 0) {
