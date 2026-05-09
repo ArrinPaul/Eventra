@@ -80,11 +80,12 @@ export async function getActivityFeed(options?: { userId?: string, limit?: numbe
 export async function getPersonalizedFeed() {
   const session = await auth();
   if (!session?.user?.id) return getActivityFeed();
+  const userId = session.user.id;
 
   try {
     // 1. Get user follows
     const userFollows = await db.execute(sql`
-      SELECT following_id FROM follows WHERE follower_id = ${session.user.id}
+      SELECT following_id FROM follows WHERE follower_id = ${userId}
     `);
     
     const followingIds = (userFollows as any).map((f: any) => f.following_id);
@@ -94,7 +95,7 @@ export async function getPersonalizedFeed() {
     }
 
     // 2. Add self to the list
-    followingIds.push(session.user.id);
+    followingIds.push(userId);
 
     // 3. Get activities from followed users
     const results = await db
