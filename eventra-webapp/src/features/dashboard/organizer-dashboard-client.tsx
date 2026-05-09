@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/use-auth';
+import { cn } from '@/core/utils/utils';
 import {
   Plus, Calendar, Users, Ticket, ArrowUpRight, Search,
   Loader2, Trash2, Edit, Copy, BrainCircuit, ChevronRight,
@@ -56,6 +57,37 @@ export default function OrganizerDashboard() {
   const filteredEvents = managedEvents.filter((e: EventraEvent) =>
     e.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this event?')) return;
+    try {
+      const result = await deleteEvent(id);
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to delete event.');
+      }
+      toast({ title: 'Event deleted' });
+      loadData();
+    } catch (e) {
+      toast({ title: 'Failed to delete', variant: 'destructive' });
+    }
+  };
+
+  const handleClone = async (id: string) => {
+    setIsCloning(id);
+    try {
+      const result = await cloneEvent(id);
+      if (result.success) {
+        toast({ title: 'Event cloned', description: 'A draft clone has been created.' });
+        loadData();
+      } else {
+        toast({ title: 'Clone failed', variant: 'destructive' });
+      }
+    } catch (e) {
+      toast({ title: 'Failed to clone event', variant: 'destructive' });
+    } finally {
+      setIsCloning(null);
+    }
+  };
 
   const totalRegistrations = managedEvents.reduce((sum: number, e: EventraEvent) => sum + (e.registeredCount || 0), 0);
   const activeEvents = managedEvents.filter((e: EventraEvent) => e.status === 'published').length;

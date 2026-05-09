@@ -13,8 +13,14 @@ export default function GlobalError({
         <div className="flex min-h-screen flex-col items-center justify-center text-center px-4 bg-background text-foreground">
           <h2 className="text-2xl font-bold mb-4">Something went wrong!</h2>
           <button
-            onClick={() => reset()}
-            className="px-4 py-2 bg-purple-600 rounded-md hover:bg-purple-500 transition-colors"
+            onClick={() => {
+              if (typeof reset === 'function') {
+                reset();
+              } else {
+                window.location.reload();
+              }
+            }}
+            className="px-6 py-3 bg-primary text-primary-foreground font-bold rounded-2xl hover:opacity-90 shadow-glow transition-all active:scale-95"
           >
             Try again
           </button>

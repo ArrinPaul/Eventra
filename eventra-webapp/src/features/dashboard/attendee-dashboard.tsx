@@ -2,23 +2,24 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/use-auth';
+import { cn } from '@/core/utils/utils';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import {
-  Calendar,
-  MapPin,
-  Clock,
-  ArrowRight,
-  Trophy,
-  Users,
-  Ticket,
-  Activity,
-  QrCode,
-  Loader2,
-  Zap,
-  Star
+import { 
+  Calendar, 
+  MapPin, 
+  Clock, 
+  ArrowRight, 
+  Trophy, 
+  Users, 
+  Ticket, 
+  Activity, 
+  QrCode, 
+  Loader2, 
+  Zap, 
+  Star 
 } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
