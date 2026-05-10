@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/core/utils/utils';
 import { motion } from 'framer-motion';
+import { Logo } from '@/components/brand/logo';
 import {
   LayoutDashboard,
   Calendar,
@@ -64,10 +65,8 @@ export function OrganizerSidebar() {
       {/* Header */}
       <div className="flex h-16 items-center justify-between border-b border-border px-4 shrink-0">
         {!collapsed && (
-          <div className="flex items-center gap-2 overflow-hidden">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-info flex items-center justify-center shrink-0">
-              <span className="text-white font-bold text-sm">O</span>
-            </div>
+          <div className="flex items-center gap-3 overflow-hidden">
+            <Logo iconClassName="w-8 h-8 rounded-lg shadow-none" />
             <div className="flex flex-col min-w-0">
               <span className="text-sm font-bold truncate text-foreground">Organizer</span>
               <span className="text-[10px] text-muted-foreground uppercase tracking-wider truncate">Workspace</span>

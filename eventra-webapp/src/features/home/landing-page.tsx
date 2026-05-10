@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { EventCard } from '@/features/events/event-card';
 import { EventraEvent } from '@/types';
+import { Logo } from '@/components/brand/logo';
+import { cn } from '@/core/utils/utils';
 import {
   Zap,
   ArrowRight,
@@ -24,7 +26,8 @@ import {
   Bot,
   ZapOff,
   Clock,
-  CheckCircle2
+  CheckCircle2,
+  ShieldCheck
 } from 'lucide-react';
 
 const FADE_UP: Variants = {
@@ -51,20 +54,23 @@ const MODULES = [
     icon: MessageSquare,
     description: 'High-performance real-time networking for attendees and organizers.',
     preview: (
-      <div className="w-full h-full bg-muted/30 rounded-2xl border border-border p-6 flex flex-col gap-4">
+      <div className="w-full bg-muted/30 rounded-2xl border border-border p-6 flex flex-col gap-4 overflow-hidden">
         <div className="flex items-center gap-3 border-b border-border/50 pb-4">
-           <div className="w-8 h-8 rounded-full bg-primary/20" />
-           <div className="h-3 w-24 bg-muted rounded-full" />
+           <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-[10px]">JD</div>
+           <div className="flex flex-col">
+              <span className="text-[10px] font-bold text-foreground leading-none">John Doe</span>
+              <span className="text-[8px] text-emerald-500 font-medium">Online</span>
+           </div>
         </div>
         <div className="flex flex-col gap-3">
-           <div className="self-start bg-muted/50 p-3 rounded-2xl rounded-tl-none max-w-[70%]">
-              <div className="h-2 w-32 bg-foreground/10 rounded-full" />
+           <div className="self-start bg-muted/50 p-2.5 rounded-2xl rounded-tl-none max-w-[85%]">
+              <p className="text-[10px] text-foreground/80 leading-tight font-medium">Where is Workshop A happening?</p>
            </div>
-           <div className="self-end bg-primary/20 p-3 rounded-2xl rounded-tr-none max-w-[70%] border border-primary/20 text-primary">
-              <div className="h-2 w-24 bg-primary/30 rounded-full" />
+           <div className="self-end bg-primary/20 p-2.5 rounded-2xl rounded-tr-none max-w-[85%] border border-primary/20">
+              <p className="text-[10px] text-primary font-bold leading-tight">2nd floor, next to cafeteria! ☕</p>
            </div>
-           <div className="self-start bg-muted/50 p-3 rounded-2xl rounded-tl-none max-w-[70%]">
-              <div className="h-2 w-40 bg-foreground/10 rounded-full" />
+           <div className="self-start bg-muted/50 p-2.5 rounded-2xl rounded-tl-none max-w-[85%]">
+              <p className="text-[10px] text-foreground/80 leading-tight font-medium">Awesome, thanks! 🙏</p>
            </div>
         </div>
       </div>
@@ -76,12 +82,22 @@ const MODULES = [
     icon: CheckCircle2,
     description: 'Streamlined registry and task management for complex event workflows.',
     preview: (
-      <div className="w-full h-full bg-muted/30 rounded-2xl border border-border p-6 flex flex-col gap-3">
-        {[1, 2, 3, 4].map(i => (
-          <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-background border border-border">
-             <div className="w-4 h-4 rounded border border-border" />
-             <div className={`h-2 rounded-full bg-muted ${i === 1 ? 'w-1/2' : i === 2 ? 'w-1/3' : 'w-2/3'}`} />
-             <div className="ml-auto w-8 h-4 rounded bg-muted/50" />
+      <div className="w-full bg-muted/30 rounded-2xl border border-border p-6 flex flex-col gap-2.5 overflow-hidden">
+        <div className="flex items-center justify-between mb-1">
+           <span className="text-[10px] font-black text-foreground uppercase tracking-widest">Active Sprint</span>
+           <Badge variant="secondary" className="text-[8px] font-black uppercase py-0 px-1.5">75%</Badge>
+        </div>
+        {[
+          { t: "Volunteer orientation", c: true },
+          { t: "Verify AV setup", c: false },
+          { t: "Catering (200 pax)", c: false },
+          { t: "Print 500 badges", c: true }
+        ].map((item, i) => (
+          <div key={i} className="flex items-center gap-3 p-2.5 rounded-xl bg-background border border-border shadow-sm">
+             <div className={cn("w-3.5 h-3.5 rounded border flex items-center justify-center transition-colors", item.c ? "bg-primary border-primary" : "border-muted-foreground/30")}>
+                {item.c && <CheckCircle2 className="w-2.5 h-2.5 text-white" />}
+             </div>
+             <span className={cn("text-[10px] font-bold flex-1", item.c ? "text-muted-foreground line-through" : "text-foreground")}>{item.t}</span>
           </div>
         ))}
       </div>
@@ -93,13 +109,33 @@ const MODULES = [
     icon: Calendar,
     description: 'Dynamic session tracks and personalized schedules for every attendee.',
     preview: (
-      <div className="w-full h-full bg-muted/30 rounded-2xl border border-border p-6">
-        <div className="grid grid-cols-7 gap-2 h-full">
-           {Array.from({ length: 28 }).map((_, i) => (
-             <div key={i} className={`rounded-md border border-border ${i === 12 ? 'bg-primary/20 border-primary/40' : 'bg-background'}`}>
-                {i === 12 && <div className="w-full h-full flex items-center justify-center"><div className="w-1.5 h-1.5 rounded-full bg-primary shadow-glow" /></div>}
-             </div>
-           ))}
+      <div className="w-full bg-muted/30 rounded-2xl border border-border p-6 flex flex-col overflow-hidden">
+        <div className="flex items-center justify-between mb-4">
+           <span className="text-[10px] font-black text-foreground uppercase">May 2026</span>
+           <div className="flex gap-1.5">
+              <div className="w-5 h-5 rounded-md border border-border flex items-center justify-center text-[8px] bg-background">‹</div>
+              <div className="w-5 h-5 rounded-md border border-border flex items-center justify-center text-[8px] bg-background">›</div>
+           </div>
+        </div>
+        <div className="grid grid-cols-7 gap-1.5">
+           {Array.from({ length: 14 }).map((_, i) => {
+             const isEvent = i === 5 || i === 8 || i === 12;
+             return (
+               <div key={i} className={cn(
+                 "aspect-square rounded-lg border p-1 transition-all flex flex-col gap-0.5",
+                 isEvent ? "bg-primary/20 border-primary/40 shadow-glow shadow-primary/10" : "bg-background border-border/50"
+               )}>
+                  <span className="text-[7px] font-mono text-muted-foreground">{i + 1}</span>
+                  {isEvent && (
+                    <div className="h-1 w-full bg-primary rounded-full" />
+                  )}
+               </div>
+             );
+           })}
+        </div>
+        <div className="mt-4 p-2 rounded-lg bg-primary/5 border border-primary/10 flex items-center gap-2">
+           <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+           <span className="text-[9px] font-bold text-foreground">Next: Keynote Session @ 10 AM</span>
         </div>
       </div>
     )
@@ -110,16 +146,22 @@ const MODULES = [
     icon: Layers,
     description: 'Visualize your event pipeline with intuitive drag-and-drop boards.',
     preview: (
-      <div className="w-full h-full bg-muted/30 rounded-2xl border border-border p-4 flex gap-4">
-        {[1, 2, 3].map(col => (
-          <div key={col} className="flex-1 flex flex-col gap-3">
-             <div className="h-2 w-12 bg-muted rounded-full mb-2" />
-             {[1, 2].map(card => (
-               <div key={card} className="h-16 bg-background rounded-xl border border-border p-3">
-                  <div className="h-1.5 w-full bg-muted rounded-full mb-2" />
-                  <div className="h-1.5 w-2/3 bg-muted/50 rounded-full" />
+      <div className="w-full bg-muted/30 rounded-2xl border border-border p-6 flex gap-3 overflow-hidden">
+        {[
+          { label: "Pipeline", cards: ["Sponsors", "Artist"] },
+          { label: "Approved", cards: ["Venue"] }
+        ].map((col, idx) => (
+          <div key={idx} className="flex-1 flex flex-col gap-2.5">
+             <span className="text-[8px] font-black uppercase text-muted-foreground px-1">{col.label}</span>
+             {col.cards.map((card, cIdx) => (
+               <div key={cIdx} className="bg-background rounded-xl border border-border p-2.5 shadow-sm">
+                  <p className="text-[9px] font-bold text-foreground">{card}</p>
+                  <div className="h-1 w-2/3 bg-muted rounded-full mt-2" />
                </div>
              ))}
+             <div className="border-2 border-dashed border-border rounded-xl h-8 flex items-center justify-center text-[8px] text-muted-foreground font-black uppercase bg-muted/10">
+                + Add
+             </div>
           </div>
         ))}
       </div>
@@ -131,17 +173,37 @@ const MODULES = [
     icon: BarChart3,
     description: 'Deep analytics and real-time telemetry on attendee behavior.',
     preview: (
-      <div className="w-full h-full bg-muted/30 rounded-2xl border border-border p-6 flex flex-col justify-end">
-        <div className="flex items-end gap-1 h-32">
-          {[40, 70, 45, 90, 65, 80, 50, 85, 60, 95].map((h, i) => (
+      <div className="w-full bg-muted/30 rounded-2xl border border-border p-6 flex flex-col overflow-hidden">
+        <div className="flex items-center justify-between mb-6">
+           <div className="space-y-0.5">
+              <span className="text-[10px] font-black text-foreground uppercase">Engagement</span>
+              <p className="text-[8px] text-muted-foreground font-medium">Live Node Telemetry</p>
+           </div>
+           <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+              <div className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="text-[8px] font-black text-emerald-500 uppercase">Live</span>
+           </div>
+        </div>
+        <div className="h-24 flex items-end gap-1 px-1">
+          {[40, 70, 45, 90, 65, 80, 50, 85, 60, 95, 75, 80, 55, 90, 100].map((h, i) => (
             <motion.div 
               key={i}
               initial={{ height: 0 }}
               animate={{ height: `${h}%` }}
-              transition={{ delay: i * 0.05, duration: 0.5 }}
-              className="flex-1 bg-gradient-to-t from-primary to-accent rounded-t-sm"
+              transition={{ delay: i * 0.03, duration: 0.5 }}
+              className="flex-1 bg-gradient-to-t from-primary to-accent rounded-t-[1px]"
             />
           ))}
+        </div>
+        <div className="grid grid-cols-2 gap-4 mt-6 pt-4 border-t border-border/50">
+           <div className="space-y-0.5">
+              <span className="text-[7px] font-bold text-muted-foreground uppercase">Avg Latency</span>
+              <p className="text-[10px] font-mono font-black text-foreground tracking-tighter">0.32ms</p>
+           </div>
+           <div className="space-y-0.5 text-right">
+              <span className="text-[7px] font-bold text-muted-foreground uppercase">Stability</span>
+              <p className="text-[10px] font-mono font-black text-emerald-500 tracking-tighter">99.98%</p>
+           </div>
         </div>
       </div>
     )
@@ -152,18 +214,30 @@ const MODULES = [
     icon: Cpu,
     description: 'The mission control for your entire event ecosystem.',
     preview: (
-      <div className="w-full h-full bg-muted/30 rounded-2xl border border-border p-6 grid grid-cols-2 gap-4">
-         <div className="rounded-xl bg-primary/10 border border-primary/20 flex flex-col justify-center items-center gap-2">
-            <div className="text-xl font-bold text-primary">98%</div>
-            <div className="text-[8px] uppercase tracking-widest text-primary/70">Uptime</div>
+      <div className="w-full bg-muted/30 rounded-2xl border border-border p-6 flex flex-col gap-4 overflow-hidden">
+         <div className="grid grid-cols-2 gap-3">
+            <div className="rounded-xl bg-primary/10 border border-primary/20 p-3 flex flex-col justify-center gap-0.5 shadow-sm">
+               <span className="text-[7px] uppercase font-black text-primary/70 tracking-widest">Uptime</span>
+               <div className="text-sm font-black text-primary italic leading-none">99.9%</div>
+            </div>
+            <div className="rounded-xl bg-background border border-border p-3 flex flex-col justify-center gap-0.5 shadow-sm">
+               <span className="text-[7px] uppercase font-black text-muted-foreground tracking-widest">Users</span>
+               <div className="text-sm font-black text-foreground italic leading-none">14.2k</div>
+            </div>
          </div>
-         <div className="rounded-xl bg-background border border-border flex flex-col justify-center items-center gap-2">
-            <div className="text-xl font-bold">12.4k</div>
-            <div className="text-[8px] uppercase tracking-widest text-muted-foreground">Check-ins</div>
-         </div>
-         <div className="col-span-2 rounded-xl bg-background border border-border p-4 flex flex-col gap-2">
-            <div className="h-1.5 w-full bg-muted rounded-full" />
-            <div className="h-1.5 w-3/4 bg-muted/50 rounded-full" />
+         <div className="flex-1 rounded-xl bg-background border border-border p-3 flex flex-col gap-2.5 shadow-sm">
+            <span className="text-[9px] font-black text-foreground uppercase tracking-wider">Cluster Pulse</span>
+            <div className="space-y-1.5">
+               {[
+                 { t: "Node_London Sync", s: "Success", c: "text-emerald-500" },
+                 { t: "Backup sequence", s: "Ongoing", c: "text-amber-500" }
+               ].map((act, i) => (
+                 <div key={i} className="flex items-center justify-between py-1.5 border-b border-border/50 last:border-0">
+                    <span className="text-[9px] font-bold text-foreground/80">{act.t}</span>
+                    <span className={cn("text-[8px] font-mono font-black uppercase", act.c)}>{act.s}</span>
+                 </div>
+               ))}
+            </div>
          </div>
       </div>
     )
@@ -226,9 +300,7 @@ export default function LandingPage({ featuredEvents = [] }: { featuredEvents?: 
       <nav className="fixed top-0 w-full z-50 border-b border-border bg-background/60 backdrop-blur-md">
         <div className="container mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-glow shadow-primary/20">
-              <Zap className="w-4 h-4 text-white fill-white" />
-            </div>
+            <Logo />
             <span className="font-display font-medium tracking-tight text-lg text-foreground">Eventra</span>
           </div>
           <div className="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground">
@@ -254,14 +326,6 @@ export default function LandingPage({ featuredEvents = [] }: { featuredEvents?: 
           variants={STAGGER} 
           className="relative z-10 max-w-4xl space-y-8"
         >
-          <motion.div variants={FADE_UP} className="flex justify-center">
-            <Link href="/updates" className="group relative flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/20 bg-primary/5 backdrop-blur-sm hover:bg-primary/10 transition-all">
-              <Sparkles className="w-3.5 h-3.5 text-primary" />
-              <span className="text-[11px] font-bold tracking-wide text-primary/80 uppercase">Announcing Eventra 2.0</span>
-              <ArrowRight className="w-3 h-3 text-primary/60 group-hover:translate-x-0.5 transition-transform" />
-            </Link>
-          </motion.div>
-
           <motion.h1 variants={FADE_UP} className="text-5xl md:text-8xl font-display font-medium tracking-tight leading-[1.05] text-foreground">
             Discussion to <br />
             <span className="text-primary italic">Execution.</span>
@@ -290,36 +354,95 @@ export default function LandingPage({ featuredEvents = [] }: { featuredEvents?: 
         >
            <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent z-10" />
            <div className="absolute top-0 left-0 right-0 h-12 border-b border-border bg-muted/30 flex items-center px-4 gap-2 z-20">
-              <div className="flex gap-1.5">
-                <div className="w-2.5 h-2.5 rounded-full bg-foreground/20" />
-                <div className="w-2.5 h-2.5 rounded-full bg-foreground/20" />
-                <div className="w-2.5 h-2.5 rounded-full bg-foreground/20" />
+              <div className="flex gap-2 mr-4">
+                <div className="w-3 h-3 rounded-full bg-red-500/80 border border-red-600/20 shadow-sm" />
+                <div className="w-3 h-3 rounded-full bg-amber-500/80 border border-amber-600/20 shadow-sm" />
+                <div className="w-3 h-3 rounded-full bg-emerald-500/80 border border-emerald-600/20 shadow-sm" />
               </div>
-              <div className="mx-auto text-[10px] font-mono text-muted-foreground uppercase tracking-widest">eventra.cloud/dashboard</div>
+              <div className="mx-auto text-[10px] font-mono text-muted-foreground uppercase tracking-widest pl-12">eventra.cloud/dashboard</div>
            </div>
            
-           <div className="p-12 pt-20 grid grid-cols-12 gap-6 opacity-40">
+           <div className="p-8 pt-20 grid grid-cols-12 gap-6">
+              {/* Main Content Area */}
               <div className="col-span-8 space-y-6">
-                 <div className="h-48 rounded-2xl bg-muted/50 border border-border" />
-                 <div className="grid grid-cols-2 gap-6">
-                    <div className="h-32 rounded-2xl bg-muted/50 border border-border" />
-                    <div className="h-32 rounded-2xl bg-muted/50 border border-border" />
+                 {/* Live Analytics Chart Area */}
+                 <div className="h-56 rounded-2xl bg-background/40 border border-border/50 p-6 flex flex-col gap-4">
+                    <div className="flex items-center justify-between">
+                       <div className="flex flex-col gap-1">
+                          <span className="text-[10px] font-black uppercase text-primary tracking-widest">Analytics Pulse</span>
+                          <span className="text-xs font-bold text-foreground">Real-time Registration Flow</span>
+                       </div>
+                       <div className="flex items-center gap-2 px-2 py-1 rounded bg-primary/10 border border-primary/20 text-[8px] font-black text-primary uppercase">
+                          Live
+                       </div>
+                    </div>
+                    <div className="flex-1 flex items-end gap-2 px-2">
+                       {[40, 70, 45, 90, 65, 80, 50, 85, 60, 95, 75, 85, 60, 40, 55].map((h, i) => (
+                         <div key={i} className="flex-1 bg-primary/40 rounded-t-sm" style={{ height: `${h}%` }} />
+                       ))}
+                    </div>
+                 </div>
+                 
+                 {/* Bottom Stats Cards */}
+                 <div className="grid grid-cols-3 gap-6">
+                    {[
+                      { l: "Attendees", v: "1,240" },
+                      { l: "Session Cap", v: "92%" },
+                      { l: "Global Latency", v: "0.4ms" }
+                    ].map((stat, i) => (
+                      <div key={i} className="h-28 rounded-2xl bg-background/40 border border-border/50 p-5 flex flex-col justify-between shadow-sm">
+                         <span className="text-[8px] font-black uppercase text-muted-foreground tracking-widest">{stat.l}</span>
+                         <span className="text-lg font-black text-foreground italic">{stat.v}</span>
+                      </div>
+                    ))}
                  </div>
               </div>
-              <div className="col-span-4 h-full rounded-2xl bg-muted/50 border border-border" />
+              
+              {/* Sidebar Info Area */}
+              <div className="col-span-4 space-y-6">
+                 <div className="h-full rounded-2xl bg-muted/40 border border-border/50 p-6 space-y-6">
+                    <span className="text-[10px] font-black uppercase text-foreground tracking-widest block mb-4">Cluster Activity</span>
+                    {[
+                      { t: "Node_London Syncing", s: "4m ago" },
+                      { t: "API Mesh Optimized", s: "12m ago" },
+                      { t: "Security Audit Pass", s: "1h ago" },
+                      { t: "New Peer Connected", s: "2h ago" },
+                      { t: "DB Mirror Success", s: "4h ago" }
+                    ].map((item, i) => (
+                      <div key={i} className="flex items-center gap-3">
+                         <div className="w-2 h-2 rounded-full bg-primary/40 shadow-[0_0_8px_var(--primary)]" />
+                         <div className="flex flex-col gap-0.5 flex-1 min-w-0">
+                            <span className="text-[10px] font-bold text-foreground truncate">{item.t}</span>
+                            <span className="text-[8px] font-medium text-muted-foreground uppercase">{item.s}</span>
+                         </div>
+                      </div>
+                    ))}
+                 </div>
+              </div>
            </div>
         </motion.div>
       </section>
 
-      {/* TRUST BANNER */}
+      {/* TECHNICAL EXCELLENCE BANNER */}
       <section className="py-12 border-y border-border bg-muted/20">
-        <div className="container mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-8">
-           <span className="text-xs font-bold text-muted-foreground uppercase tracking-[0.2em]">Trusted by teams worldwide</span>
-           <div className="flex flex-wrap justify-center gap-12 opacity-40 grayscale contrast-125">
-              <div className="text-xl font-bold tracking-tighter text-foreground uppercase">Vercel</div>
-              <div className="text-xl font-bold tracking-tighter text-foreground uppercase">Linear</div>
-              <div className="text-xl font-bold tracking-tighter text-foreground uppercase">Stripe</div>
-              <div className="text-xl font-bold tracking-tighter text-foreground uppercase">Github</div>
+        <div className="container mx-auto px-6">
+           <div className="flex flex-col md:flex-row items-center justify-around gap-8 md:gap-16">
+              <div className="flex flex-col items-center md:items-start">
+                 <span className="text-[10px] font-black uppercase tracking-widest text-primary mb-1">Latency</span>
+                 <span className="text-xl font-display font-bold text-foreground tracking-tighter">0.4ms Global Avg.</span>
+              </div>
+              <div className="flex flex-col items-center md:items-start md:border-l border-border md:pl-16 hidden md:flex">
+                 <span className="text-[10px] font-black uppercase tracking-widest text-primary mb-1">Reliability</span>
+                 <span className="text-xl font-display font-bold text-foreground tracking-tighter">99.99% Uptime</span>
+              </div>
+              <div className="flex flex-col items-center md:items-start md:border-l border-border md:pl-16 hidden lg:flex">
+                 <span className="text-[10px] font-black uppercase tracking-widest text-primary mb-1">Security</span>
+                 <span className="text-xl font-display font-bold text-foreground tracking-tighter">AES-256 E2E</span>
+              </div>
+              <div className="flex flex-col items-center md:items-start md:border-l border-border md:pl-16">
+                 <span className="text-[10px] font-black uppercase tracking-widest text-primary mb-1">Architecture</span>
+                 <span className="text-xl font-display font-bold text-foreground tracking-tighter">Edge-First Core</span>
+              </div>
            </div>
         </div>
       </section>
@@ -369,19 +492,19 @@ export default function LandingPage({ featuredEvents = [] }: { featuredEvents?: 
             </div>
 
             {/* Module Preview */}
-            <div className="lg:col-span-7 aspect-video relative rounded-3xl border border-border bg-muted/20 backdrop-blur-sm overflow-hidden flex flex-col p-0">
-               <div className="h-12 border-b border-border bg-muted/30 flex items-center px-4 gap-2">
-                  <div className="flex gap-1.5">
-                    <div className="w-2 h-2 rounded-full bg-foreground/10" />
-                    <div className="w-2 h-2 rounded-full bg-foreground/10" />
-                    <div className="w-2 h-2 rounded-full bg-foreground/10" />
+            <div className="lg:col-span-7 relative rounded-3xl border border-border bg-muted/20 backdrop-blur-sm overflow-hidden flex flex-col p-0 min-h-[500px]">
+               <div className="h-12 border-b border-border bg-muted/30 flex items-center px-4 gap-2 shrink-0">
+                  <div className="flex gap-2">
+                    <div className="w-2.5 h-2.5 rounded-full bg-red-500/80 border border-red-600/20 shadow-sm" />
+                    <div className="w-2.5 h-2.5 rounded-full bg-amber-500/80 border border-amber-600/20 shadow-sm" />
+                    <div className="w-2.5 h-2.5 rounded-full bg-emerald-500/80 border border-emerald-600/20 shadow-sm" />
                   </div>
                   <div className="ml-4 text-[10px] font-mono text-muted-foreground uppercase tracking-widest text-foreground/50">
                     {MODULES.find(m => m.id === activeModule)?.title} Module Preview
                   </div>
                </div>
                
-               <div className="flex-1 p-8">
+               <div className="flex-1 p-6 md:p-8 flex flex-col min-h-0">
                   <AnimatePresence mode="wait">
                     <motion.div
                       key={activeModule}
@@ -389,19 +512,24 @@ export default function LandingPage({ featuredEvents = [] }: { featuredEvents?: 
                       animate={{ opacity: 1, scale: 1, x: 0 }}
                       exit={{ opacity: 0, scale: 1.02, x: -20 }}
                       transition={{ duration: 0.3, ease: "easeOut" }}
-                      className="w-full h-full"
+                      className="flex-1 flex flex-col min-h-0"
                     >
-                      {MODULES.find(m => m.id === activeModule)?.preview}
-                      <div className="mt-8">
-                         <h4 className="text-xl font-bold text-foreground mb-2">Key Features</h4>
-                         <p className="text-muted-foreground text-sm font-medium">{MODULES.find(m => m.id === activeModule)?.description}</p>
+                      <div className="flex-1 min-h-0">
+                        {MODULES.find(m => m.id === activeModule)?.preview}
+                      </div>
+                      
+                      <div className="mt-6 md:mt-8 pt-6 border-t border-border/50 shrink-0">
+                         <h4 className="text-lg md:text-xl font-bold text-foreground mb-2">Key Features</h4>
+                         <p className="text-muted-foreground text-xs md:text-sm font-medium leading-relaxed">
+                            {MODULES.find(m => m.id === activeModule)?.description}
+                         </p>
                       </div>
                     </motion.div>
                   </AnimatePresence>
                </div>
                
                {/* Decorative background for preview */}
-               <div className="absolute inset-0 -z-10 opacity-30">
+               <div className="absolute inset-0 -z-10 opacity-30 pointer-events-none">
                   <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[radial-gradient(circle_at_center,var(--primary)_0%,transparent_70%)] blur-3xl" />
                </div>
             </div>
@@ -470,112 +598,132 @@ export default function LandingPage({ featuredEvents = [] }: { featuredEvents?: 
       </section>
 
       {/* INTEGRATION VISUALIZATION */}
-      <section className="py-60 relative bg-background overflow-hidden">
+      <section className="py-60 relative bg-background/50 overflow-hidden">
         <div className="container mx-auto px-6 text-center">
-           <h2 className="text-5xl md:text-7xl font-display font-medium tracking-tight text-white mb-8">Unified Intelligence.</h2>
-           <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-32">
+           <h2 className="text-5xl md:text-7xl font-display font-medium tracking-tight text-foreground mb-8">
+              Replace Multiple Tools with <span className="text-primary italic font-black">Eventra</span>
+           </h2>
+           <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-32 font-medium">
               Eventra integrates your favorite tools into one high-performance ecosystem, flowing real-time data into your mission control.
            </p>
            
-           <div className="relative max-w-5xl mx-auto h-[600px]">
-              {/* Central Eventra Hub */}
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20">
-                 <motion.div 
-                   animate={{ scale: [1, 1.05, 1] }}
-                   transition={{ duration: 4, repeat: Infinity }}
-                   className="w-32 h-32 md:w-40 md:h-40 rounded-[2.5rem] bg-primary flex items-center justify-center shadow-glow shadow-primary/40 relative"
-                 >
-                    <Zap className="w-16 h-16 md:w-20 md:h-20 text-white fill-white" />
-                    <div className="absolute inset-0 rounded-[2.5rem] border border-white/20 animate-pulse" />
-                 </motion.div>
+           <div className="relative max-w-6xl mx-auto min-h-[600px] flex items-center justify-between gap-12 px-4 md:px-20">
+              {/* Left Side: Tool Cards */}
+              <div className="flex flex-col gap-6 relative z-10 w-full md:w-auto">
+                 {[
+                   { label: "Confluence", icon: Layers, color: "text-blue-500" },
+                   { label: "Notion", icon: Search, color: "text-foreground" },
+                   { label: "Slack", icon: MessageSquare, color: "text-purple-500" },
+                   { label: "Todoist", icon: CheckCircle2, color: "text-red-500" },
+                   { label: "Miro Board", icon: Globe, color: "text-yellow-500" }
+                 ].map((tool, i) => (
+                   <motion.div
+                     key={i}
+                     initial={{ opacity: 0, x: -20 }}
+                     whileInView={{ opacity: 1, x: 0 }}
+                     transition={{ delay: i * 0.1 }}
+                     className="flex items-center gap-4 bg-background border border-border px-6 py-4 rounded-2xl shadow-xl shadow-foreground/[0.02] w-full md:w-64 group hover:border-primary/30 transition-all cursor-default"
+                     id={`tool-card-${i}`}
+                   >
+                      <div className={cn("w-10 h-10 rounded-xl bg-muted/50 flex items-center justify-center transition-transform group-hover:scale-110", tool.color)}>
+                         <tool.icon className="w-5 h-5" />
+                      </div>
+                      <span className="font-bold text-foreground text-sm tracking-tight">{tool.label}</span>
+                   </motion.div>
+                 ))}
               </div>
 
-              {/* Connecting Apps */}
-              {[
-                { label: "Slack", icon: MessageSquare, angle: 0 },
-                { label: "Notion", icon: Layers, angle: 60 },
-                { label: "Figma", icon: Globe, angle: 120 },
-                { label: "Zoom", icon: Users, angle: 180 },
-                { label: "Airtable", icon: Search, angle: 240 },
-                { label: "Auth0", icon: ShieldCheck, angle: 300 }
-              ].map((app, i) => {
-                const radius = 320;
-                const x = Math.cos((app.angle * Math.PI) / 180) * radius;
-                const y = Math.sin((app.angle * Math.PI) / 180) * radius;
-                
-                return (
-                  <div key={i} className="absolute top-1/2 left-1/2" style={{ transform: `translate(${x}px, ${y}px)` }}>
-                     <motion.div 
-                       initial={{ opacity: 0, scale: 0.8 }}
-                       whileInView={{ opacity: 1, scale: 1 }}
-                       className="relative z-10 -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-2xl bg-muted border border-border flex items-center justify-center shadow-xl group"
-                     >
-                        <app.icon className="w-7 h-7 text-muted-foreground group-hover:text-primary transition-colors" />
-                        <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
-                           {app.label}
-                        </span>
-                     </motion.div>
+              {/* Center: SVG Connections */}
+              <svg className="absolute inset-0 w-full h-full pointer-events-none hidden md:block" style={{ zIndex: 0 }}>
+                 <defs>
+                    <linearGradient id="line-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                       <stop offset="0%" stopColor="currentColor" stopOpacity="0.1" />
+                       <stop offset="50%" stopColor="currentColor" stopOpacity="0.3" />
+                       <stop offset="100%" stopColor="currentColor" stopOpacity="0.1" />
+                    </linearGradient>
+                 </defs>
+                 {[0, 1, 2, 3, 4].map((i) => {
+                    // Coordinates for paths (approximated based on card positions)
+                    const startX = 350; // Approximated right edge of cards
+                    const startY = 110 + (i * 88); // Approximated center Y of each card
+                    const endX = 900; // Left edge of Eventra hub
+                    const endY = 300; // Center Y of Eventra hub
+                    
+                    const controlX = startX + (endX - startX) / 2;
+                    
+                    const path = `M ${startX} ${startY} C ${controlX} ${startY}, ${controlX} ${endY}, ${endX} ${endY}`;
+                    
+                    return (
+                      <g key={i} className="text-muted-foreground/20">
+                         <motion.path
+                           d={path}
+                           fill="none"
+                           stroke="currentColor"
+                           strokeWidth="1.5"
+                           initial={{ pathLength: 0 }}
+                           whileInView={{ pathLength: 1 }}
+                           transition={{ duration: 1.5, delay: i * 0.1 }}
+                         />
+                         {/* Flowing Dots */}
+                         {[0, 1, 2].map((dot) => (
+                           <motion.circle
+                             key={dot}
+                             r="2.5"
+                             fill="currentColor"
+                             className="text-foreground/40"
+                             animate={{ 
+                               offsetDistance: ["0%", "100%"]
+                             }}
+                             transition={{ 
+                               duration: 4, 
+                               repeat: Infinity, 
+                               delay: dot * 1.3 + (i * 0.4),
+                               ease: "linear"
+                             }}
+                             style={{ 
+                               offsetPath: `path('${path}')`
+                             }}
+                           />
+                         ))}
+                      </g>
+                    );
+                 })}
+              </svg>
 
-                     {/* SVG Connection Line */}
-                     <svg 
-                       className="absolute top-0 left-0 overflow-visible pointer-events-none"
-                       style={{ transform: 'translate(-50%, -50%)' }}
-                     >
-                        <motion.line
-                          x1={0}
-                          y1={0}
-                          x2={-x}
-                          y2={-y}
-                          stroke="currentColor"
-                          strokeWidth="1"
-                          className="text-border/40"
-                          initial={{ pathLength: 0 }}
-                          whileInView={{ pathLength: 1 }}
-                          transition={{ duration: 1.5, delay: i * 0.1 }}
-                        />
-                        {/* Flowing Dots */}
-                        {[0, 1, 2].map((dot) => (
-                          <motion.circle
-                            key={dot}
-                            r="2"
-                            fill="var(--primary)"
-                            animate={{ 
-                              offsetDistance: ["100%", "0%"]
-                            }}
-                            transition={{ 
-                              duration: 3, 
-                              repeat: Infinity, 
-                              delay: dot * 1 + (i * 0.2),
-                              ease: "linear"
-                            }}
-                            style={{ 
-                              offsetPath: `path('M 0 0 L ${-x} ${-y}')`,
-                              filter: 'drop-shadow(0 0 4px var(--primary))'
-                            }}
-                          />
-                        ))}
-                     </svg>
-                  </div>
-                );
-              })}
-
-              {/* Decorative Rings */}
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[640px] h-[640px] rounded-full border border-border/20 pointer-events-none" />
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] rounded-full border border-border/10 pointer-events-none" />
+              {/* Right Side: Central Eventra Hub */}
+              <div className="relative z-10 hidden md:block">
+                 <motion.div 
+                   animate={{ scale: [1, 1.02, 1] }}
+                   transition={{ duration: 4, repeat: Infinity }}
+                   className="relative group shadow-2xl shadow-primary/20 rounded-[3rem]"
+                 >
+                    <div className="w-48 h-48 rounded-[3rem] bg-primary flex items-center justify-center relative overflow-hidden border border-white/10">
+                       <Logo 
+                         iconClassName="w-32 h-32 bg-transparent shadow-none p-0" 
+                         className="gap-0" 
+                       />
+                       <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent pointer-events-none" />
+                    </div>
+                    {/* Animated outer ring */}
+                    <div className="absolute inset-0 -m-4 border border-primary/10 rounded-[3.5rem] animate-pulse" />
+                    <div className="absolute inset-0 -m-8 border border-primary/5 rounded-[4rem] animate-pulse delay-700" />
+                 </motion.div>
+              </div>
            </div>
         </div>
       </section>
 
-      {/* ACTIVE OPS */}
-      <section id="events" className="py-40">
+      {/* NETWORK ACTIVITY */}
+      <section id="events" className="py-40 bg-background/50">
         <div className="container mx-auto px-6">
            <div className="flex flex-col md:flex-row justify-between items-end mb-24 gap-6">
               <div className="max-w-xl">
-                 <Badge variant="outline" className="mb-4 border-primary/30 bg-primary/10 text-primary rounded-full px-3 py-0.5 text-[10px] uppercase font-bold tracking-widest">Explore Operations</Badge>
-                 <h2 className="text-4xl md:text-6xl font-display font-medium tracking-tight text-foreground">Latest Deployments.</h2>
+                 <Badge variant="outline" className="mb-4 border-primary/30 bg-primary/10 text-primary rounded-full px-3 py-0.5 text-[10px] uppercase font-bold tracking-widest">Global Network</Badge>
+                 <h2 className="text-4xl md:text-6xl font-display font-medium tracking-tight text-foreground">Live Operations.</h2>
+                 <p className="mt-4 text-muted-foreground font-medium">Real-time status of event clusters and nodes deployed across the Eventra mesh.</p>
               </div>
               <Button variant="outline" className="border-border hover:bg-muted rounded-full font-bold px-8 h-12 transition-all hover:scale-105" asChild>
-                 <Link href="/explore">View All Events</Link>
+                 <Link href="/explore">Scan Network</Link>
               </Button>
            </div>
 
@@ -584,11 +732,32 @@ export default function LandingPage({ featuredEvents = [] }: { featuredEvents?: 
                <EventCard key={event.id} event={event} />
              )) : (
                [1, 2, 3].map(i => (
-                 <div key={i} className="rounded-3xl border border-border bg-muted/20 h-[450px] flex flex-col justify-center items-center gap-6 opacity-60 group cursor-not-allowed">
-                    <div className="w-16 h-16 rounded-2xl bg-background flex items-center justify-center border border-border group-hover:border-primary/40 transition-all">
-                       <Layers className="w-8 h-8 text-muted-foreground group-hover:text-primary transition-colors" />
+                 <div key={i} className="rounded-3xl border border-border bg-muted/20 p-8 flex flex-col gap-6 group relative overflow-hidden">
+                    <div className="flex justify-between items-start">
+                       <div className="w-12 h-12 rounded-2xl bg-background border border-border flex items-center justify-center shadow-sm">
+                          <Activity className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
+                       </div>
+                       <div className="px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-[10px] font-black text-primary uppercase tracking-widest">
+                          Operational
+                       </div>
                     </div>
-                    <span className="text-[10px] font-mono font-bold text-muted-foreground uppercase tracking-widest">Entry_{i} Syncing</span>
+                    <div className="space-y-4">
+                       <div className="h-4 w-48 bg-muted rounded-full overflow-hidden relative">
+                          <motion.div 
+                            className="absolute inset-0 bg-primary/30 shadow-[0_0_10px_var(--primary)]"
+                            animate={{ x: ['-100%', '100%'] }}
+                            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                          />
+                       </div>
+                       <div className="h-3 w-32 bg-muted/50 rounded-full" />
+                    </div>
+                    <div className="pt-6 mt-auto border-t border-border flex justify-between items-center text-[10px] font-mono font-bold text-muted-foreground uppercase tracking-tighter">
+                       <span>Node_00{i}</span>
+                       <span>Region: US-East-1</span>
+                    </div>
+                    
+                    {/* Background Grid Pattern */}
+                    <div className="absolute inset-0 -z-10 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'radial-gradient(var(--border) 1px, transparent 0)', backgroundSize: '24px 24px' }} />
                  </div>
                ))
              )}
@@ -629,10 +798,7 @@ export default function LandingPage({ featuredEvents = [] }: { featuredEvents?: 
         <div className="container mx-auto px-6">
            <div className="grid grid-cols-2 md:grid-cols-4 gap-12 mb-20">
               <div className="col-span-2 md:col-span-1 space-y-4">
-                 <div className="flex items-center gap-2">
-                    <Zap className="w-5 h-5 text-primary fill-primary" />
-                    <span className="font-display font-medium tracking-tight text-xl text-foreground">Eventra</span>
-                 </div>
+                 <Logo showText />
                  <p className="text-sm text-muted-foreground leading-relaxed max-w-xs font-bold">
                     Building the infrastructure for the next generation of live experiences.
                  </p>

@@ -73,6 +73,16 @@ This document tracks the remaining work required to bring Eventra to a productio
 ---
 
 
+## 🌐 Phase 4: Landing Page Data Integration
+*Goal: Replace high-fidelity mockups with real application data.*
+
+### **4.1 Real-time Landing Page (P1)**
+- [ ] **Live Operations Integration**: Replace mock "Node" cards with real events from the database and actual telemetry data.
+- [ ] **Dashboard Module Data**: Connect the landing page dashboard preview to real system metrics (Active Users, Uptime, Recent Actions).
+- [ ] **Active Network Scan**: Implement the "Scan Network" button to perform a real health check of database/AI services.
+
+---
+
 ## 📈 Current Progress Tracker
 - **Phase 1**: [x] 100%
 - **Phase 2**: [ ] 0%

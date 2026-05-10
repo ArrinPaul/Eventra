@@ -3,7 +3,8 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
-import { Menu, LogOut, Moon, Sun, Search, Settings, Ticket, Calendar, X, Sparkles, Zap } from 'lucide-react';
+import { Menu, LogOut, Moon, Sun, Search, Settings, Ticket, Calendar, X, Sparkles } from 'lucide-react';
+import { Logo } from '@/components/brand/logo';
 import { cn } from '@/core/utils/utils';
 import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
@@ -100,13 +101,8 @@ export default function Header() {
         )}>
 
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-3 shrink-0 group" data-testid="header-logo">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shadow-glow group-hover:scale-105 transition-transform duration-300">
-              <Zap className="w-4 h-4 text-white" />
-            </div>
-            <span className="text-base font-display font-bold tracking-tighter text-white hidden sm:block">
-              Eventra
-            </span>
+          <Link href="/" className="shrink-0 transition-transform duration-300 active:scale-95" data-testid="header-logo">
+            <Logo showText />
           </Link>
 
           {/* Desktop Nav - Centered Pills */}
