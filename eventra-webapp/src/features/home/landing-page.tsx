@@ -1,8 +1,9 @@
 'use client';
 
-import { motion, useScroll, useTransform, Variants, AnimatePresence } from 'framer-motion';
+import { motion, useScroll, useTransform, Variants, AnimatePresence, useMotionValueEvent } from 'framer-motion';
 import Link from 'next/link';
 import { useRef, useState, useEffect } from 'react';
+import { useTheme } from 'next-themes';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { EventCard } from '@/features/events/event-card';
@@ -27,7 +28,10 @@ import {
   ZapOff,
   Clock,
   CheckCircle2,
-  ShieldCheck
+  ShieldCheck,
+  Moon,
+  Sun,
+  Trophy
 } from 'lucide-react';
 
 const FADE_UP: Variants = {
@@ -50,62 +54,72 @@ const STAGGER: Variants = {
 const MODULES = [
   {
     id: 'messaging',
-    title: 'Messaging',
+    title: 'Networking',
     icon: MessageSquare,
     description: 'High-performance real-time networking for attendees and organizers.',
     preview: (
       <div className="w-full bg-muted/30 rounded-2xl border border-border p-6 flex flex-col gap-4 overflow-hidden">
         <div className="flex items-center gap-3 border-b border-border/50 pb-4">
-           <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-[10px]">JD</div>
+           <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold text-[10px]">JD</div>
            <div className="flex flex-col">
               <span className="text-[10px] font-bold text-foreground leading-none">John Doe</span>
-              <span className="text-[8px] text-emerald-500 font-medium">Online</span>
+              <span className="text-[8px] text-emerald-500 font-medium italic">Authorized</span>
            </div>
         </div>
         <div className="flex flex-col gap-3">
            <div className="self-start bg-muted/50 p-2.5 rounded-2xl rounded-tl-none max-w-[85%]">
-              <p className="text-[10px] text-foreground/80 leading-tight font-medium">Where is Workshop A happening?</p>
+              <p className="text-[10px] text-foreground/80 leading-tight font-medium">Verified your session track for tomorrow?</p>
            </div>
-           <div className="self-end bg-primary/20 p-2.5 rounded-2xl rounded-tr-none max-w-[85%] border border-primary/20">
-              <p className="text-[10px] text-primary font-bold leading-tight">2nd floor, next to cafeteria! ☕</p>
-           </div>
-           <div className="self-start bg-muted/50 p-2.5 rounded-2xl rounded-tl-none max-w-[85%]">
-              <p className="text-[10px] text-foreground/80 leading-tight font-medium">Awesome, thanks! 🙏</p>
+           <div className="self-end bg-primary p-2.5 rounded-2xl rounded-tr-none max-w-[85%] border border-primary text-primary-foreground">
+              <p className="text-[10px] font-bold leading-tight">Yes! Registered for the AI Strategy workshop. 🚀</p>
            </div>
         </div>
       </div>
     )
   },
   {
-    id: 'tasks',
-    title: 'Tasks',
-    icon: CheckCircle2,
-    description: 'Streamlined registry and task management for complex event workflows.',
+    id: 'experience',
+    title: 'Experience',
+    icon: Sparkles,
+    description: 'Gamified attendee progression with experience points and levels.',
     preview: (
-      <div className="w-full bg-muted/30 rounded-2xl border border-border p-6 flex flex-col gap-2.5 overflow-hidden">
-        <div className="flex items-center justify-between mb-1">
-           <span className="text-[10px] font-black text-foreground uppercase tracking-widest">Active Sprint</span>
-           <Badge variant="secondary" className="text-[8px] font-black uppercase py-0 px-1.5">75%</Badge>
+      <div className="w-full bg-muted/30 rounded-2xl border border-border p-6 flex flex-col gap-4 overflow-hidden">
+        <div className="flex items-center justify-between mb-2">
+           <span className="text-[10px] font-black text-foreground uppercase tracking-widest">Growth progression</span>
+           <Badge variant="secondary" className="text-[8px] font-black uppercase py-0 px-1.5 bg-primary text-primary-foreground border-none">Level 12</Badge>
         </div>
-        {[
-          { t: "Volunteer orientation", c: true },
-          { t: "Verify AV setup", c: false },
-          { t: "Catering (200 pax)", c: false },
-          { t: "Print 500 badges", c: true }
-        ].map((item, i) => (
-          <div key={i} className="flex items-center gap-3 p-2.5 rounded-xl bg-background border border-border shadow-sm">
-             <div className={cn("w-3.5 h-3.5 rounded border flex items-center justify-center transition-colors", item.c ? "bg-primary border-primary" : "border-muted-foreground/30")}>
-                {item.c && <CheckCircle2 className="w-2.5 h-2.5 text-white" />}
-             </div>
-             <span className={cn("text-[10px] font-bold flex-1", item.c ? "text-muted-foreground line-through" : "text-foreground")}>{item.t}</span>
-          </div>
-        ))}
+        <div className="space-y-4">
+           <div className="p-4 rounded-xl bg-background border border-border shadow-sm flex items-center gap-4">
+              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                 <Trophy className="w-5 h-5 text-primary" />
+              </div>
+              <div className="flex-1">
+                 <div className="flex justify-between items-center mb-1.5">
+                    <span className="text-[10px] font-bold text-foreground uppercase">Next Milestone</span>
+                    <span className="text-[9px] font-mono text-muted-foreground">850 / 1200 XP</span>
+                 </div>
+                 <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
+                    <div className="h-full bg-primary w-[70%]" />
+                 </div>
+              </div>
+           </div>
+           <div className="grid grid-cols-2 gap-3">
+              <div className="p-3 rounded-xl bg-background border border-border shadow-sm flex flex-col gap-1">
+                 <span className="text-[8px] font-black text-muted-foreground uppercase">Badges</span>
+                 <span className="text-xs font-black text-foreground">8 / 15</span>
+              </div>
+              <div className="p-3 rounded-xl bg-background border border-border shadow-sm flex flex-col gap-1">
+                 <span className="text-[8px] font-black text-muted-foreground uppercase">Streak</span>
+                 <span className="text-xs font-black text-foreground">5 Days</span>
+              </div>
+           </div>
+        </div>
       </div>
     )
   },
   {
     id: 'calendar',
-    title: 'Calendar',
+    title: 'Schedule',
     icon: Calendar,
     description: 'Dynamic session tracks and personalized schedules for every attendee.',
     preview: (
@@ -142,7 +156,7 @@ const MODULES = [
   },
   {
     id: 'boards',
-    title: 'Boards',
+    title: 'Campaigns',
     icon: Layers,
     description: 'Visualize your event pipeline with intuitive drag-and-drop boards.',
     preview: (
@@ -169,19 +183,19 @@ const MODULES = [
   },
   {
     id: 'reports',
-    title: 'Reports',
+    title: 'Revenue',
     icon: BarChart3,
-    description: 'Deep analytics and real-time telemetry on attendee behavior.',
+    description: 'Deep analytics and real-time ticketing revenue tracking.',
     preview: (
       <div className="w-full bg-muted/30 rounded-2xl border border-border p-6 flex flex-col overflow-hidden">
         <div className="flex items-center justify-between mb-6">
            <div className="space-y-0.5">
-              <span className="text-[10px] font-black text-foreground uppercase">Engagement</span>
-              <p className="text-[8px] text-muted-foreground font-medium">Live Node Telemetry</p>
+              <span className="text-[10px] font-black text-foreground uppercase text-primary">Ticketing Flow</span>
+              <p className="text-[8px] text-muted-foreground font-medium uppercase tracking-tight italic">Live generated value</p>
            </div>
-           <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
-              <div className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-[8px] font-black text-emerald-500 uppercase">Live</span>
+           <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-primary/10 border border-primary/20">
+              <div className="w-1 h-1 rounded-full bg-primary animate-pulse" />
+              <span className="text-[8px] font-black text-primary uppercase">Active</span>
            </div>
         </div>
         <div className="h-24 flex items-end gap-1 px-1">
@@ -191,18 +205,18 @@ const MODULES = [
               initial={{ height: 0 }}
               animate={{ height: `${h}%` }}
               transition={{ delay: i * 0.03, duration: 0.5 }}
-              className="flex-1 bg-gradient-to-t from-primary to-accent rounded-t-[1px]"
+              className="flex-1 bg-gradient-to-t from-primary to-primary/40 rounded-t-[1px]"
             />
           ))}
         </div>
         <div className="grid grid-cols-2 gap-4 mt-6 pt-4 border-t border-border/50">
            <div className="space-y-0.5">
-              <span className="text-[7px] font-bold text-muted-foreground uppercase">Avg Latency</span>
-              <p className="text-[10px] font-mono font-black text-foreground tracking-tighter">0.32ms</p>
+              <span className="text-[7px] font-bold text-muted-foreground uppercase">Total Revenue</span>
+              <p className="text-[10px] font-mono font-black text-foreground tracking-tighter">$12,450.00</p>
            </div>
            <div className="space-y-0.5 text-right">
-              <span className="text-[7px] font-bold text-muted-foreground uppercase">Stability</span>
-              <p className="text-[10px] font-mono font-black text-emerald-500 tracking-tighter">99.98%</p>
+              <span className="text-[7px] font-bold text-muted-foreground uppercase">Avg Ticket</span>
+              <p className="text-[10px] font-mono font-black text-primary tracking-tighter">$45.00</p>
            </div>
         </div>
       </div>
@@ -210,27 +224,27 @@ const MODULES = [
   },
   {
     id: 'dashboard',
-    title: 'Dashboard',
+    title: 'Command',
     icon: Cpu,
-    description: 'The mission control for your entire event ecosystem.',
+    description: 'The mission control for your entire experience delivery.',
     preview: (
       <div className="w-full bg-muted/30 rounded-2xl border border-border p-6 flex flex-col gap-4 overflow-hidden">
          <div className="grid grid-cols-2 gap-3">
-            <div className="rounded-xl bg-primary/10 border border-primary/20 p-3 flex flex-col justify-center gap-0.5 shadow-sm">
-               <span className="text-[7px] uppercase font-black text-primary/70 tracking-widest">Uptime</span>
-               <div className="text-sm font-black text-primary italic leading-none">99.9%</div>
+            <div className="rounded-xl bg-primary border border-primary p-3 flex flex-col justify-center gap-0.5 shadow-sm">
+               <span className="text-[7px] uppercase font-black text-primary-foreground/70 tracking-widest">Active Events</span>
+               <div className="text-sm font-black text-primary-foreground italic leading-none">24</div>
             </div>
             <div className="rounded-xl bg-background border border-border p-3 flex flex-col justify-center gap-0.5 shadow-sm">
-               <span className="text-[7px] uppercase font-black text-muted-foreground tracking-widest">Users</span>
+               <span className="text-[7px] uppercase font-black text-muted-foreground tracking-widest">Reach</span>
                <div className="text-sm font-black text-foreground italic leading-none">14.2k</div>
             </div>
          </div>
          <div className="flex-1 rounded-xl bg-background border border-border p-3 flex flex-col gap-2.5 shadow-sm">
-            <span className="text-[9px] font-black text-foreground uppercase tracking-wider">Cluster Pulse</span>
+            <span className="text-[9px] font-black text-foreground uppercase tracking-wider">Campaign Velocity</span>
             <div className="space-y-1.5">
                {[
-                 { t: "Node_London Sync", s: "Success", c: "text-emerald-500" },
-                 { t: "Backup sequence", s: "Ongoing", c: "text-amber-500" }
+                 { t: "Winter Tech Summit", s: "92%", c: "text-primary" },
+                 { t: "Global Hackathon", s: "45%", c: "text-muted-foreground" }
                ].map((act, i) => (
                  <div key={i} className="flex items-center justify-between py-1.5 border-b border-border/50 last:border-0">
                     <span className="text-[9px] font-bold text-foreground/80">{act.t}</span>
@@ -270,14 +284,29 @@ const AI_FEATURES = [
 export default function LandingPage({ featuredEvents = [] }: { featuredEvents?: EventraEvent[] }) {
   const [activeModule, setActiveModule] = useState(MODULES[0].id);
   const [activeAIIndex, setActiveAIIndex] = useState(0);
+  const [hidden, setHidden] = useState(false);
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    setMounted(true);
     const interval = setInterval(() => {
       setActiveAIIndex((prev) => (prev + 1) % AI_FEATURES.length);
     }, 5000);
     return () => clearInterval(interval);
   }, []);
+
+  const { scrollY } = useScroll();
+
+  useMotionValueEvent(scrollY, "change", (latest) => {
+    const previous = scrollY.getPrevious() ?? 0;
+    if (latest > previous && latest > 150) {
+      setHidden(true);
+    } else {
+      setHidden(false);
+    }
+  });
 
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -290,18 +319,20 @@ export default function LandingPage({ featuredEvents = [] }: { featuredEvents?: 
   return (
     <div ref={containerRef} className="min-h-screen bg-background text-foreground selection:bg-primary/30 selection:text-primary font-sans overflow-x-hidden">
       
-      {/* BACKGROUND ELEMENTS */}
-      <div className="fixed inset-0 z-0 pointer-events-none">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-primary/10 blur-[120px] rounded-full opacity-40 animate-glow" />
-        <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-primary/5 blur-[100px] rounded-full" />
-      </div>
-
       {/* NAVIGATION */}
-      <nav className="fixed top-0 w-full z-50 border-b border-border bg-background/60 backdrop-blur-md">
+      <motion.nav 
+        variants={{
+          visible: { y: 0 },
+          hidden: { y: "-100%" },
+        }}
+        animate={hidden ? "hidden" : "visible"}
+        transition={{ duration: 0.35, ease: "easeInOut" }}
+        className="fixed top-0 w-full z-50 border-b border-border bg-background backdrop-blur-md"
+      >
         <div className="container mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Logo />
-            <span className="font-display font-medium tracking-tight text-lg text-foreground">Eventra</span>
+            <span className="font-display font-bold tracking-tight text-lg text-foreground">Eventra</span>
           </div>
           <div className="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground">
             <Link href="#features" className="hover:text-primary transition-colors">Features</Link>
@@ -309,13 +340,22 @@ export default function LandingPage({ featuredEvents = [] }: { featuredEvents?: 
             <Link href="#events" className="hover:text-primary transition-colors">Explore</Link>
           </div>
           <div className="flex items-center gap-4">
-             <Link href="/login" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Login</Link>
-             <Button size="sm" className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90 font-semibold px-5 border-none shadow-glow shadow-primary/20" asChild>
+             {mounted && (
+               <button 
+                 onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                 className="p-2 rounded-full hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+                 aria-label="Toggle Theme"
+               >
+                 {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+               </button>
+             )}
+             <Link href="/login" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors hidden sm:block">Login</Link>
+             <Button size="sm" className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90 font-semibold px-5 border-none" asChild>
                 <Link href="/register">Sign Up</Link>
              </Button>
           </div>
         </div>
-      </nav>
+      </motion.nav>
 
       {/* HERO SECTION */}
       <section className="relative pt-44 pb-32 px-4 flex flex-col items-center justify-center text-center overflow-hidden">
@@ -366,19 +406,19 @@ export default function LandingPage({ featuredEvents = [] }: { featuredEvents?: 
               {/* Main Content Area */}
               <div className="col-span-8 space-y-6">
                  {/* Live Analytics Chart Area */}
-                 <div className="h-56 rounded-2xl bg-background/40 border border-border/50 p-6 flex flex-col gap-4">
+                 <div className="h-56 rounded-2xl bg-background/40 border border-border/50 p-6 flex flex-col gap-4 shadow-xl">
                     <div className="flex items-center justify-between">
                        <div className="flex flex-col gap-1">
-                          <span className="text-[10px] font-black uppercase text-primary tracking-widest">Analytics Pulse</span>
-                          <span className="text-xs font-bold text-foreground">Real-time Registration Flow</span>
+                          <span className="text-[10px] font-black uppercase text-primary tracking-widest">Campaign Pulse</span>
+                          <span className="text-xs font-bold text-foreground italic">Live Revenue Visualization</span>
                        </div>
-                       <div className="flex items-center gap-2 px-2 py-1 rounded bg-primary/10 border border-primary/20 text-[8px] font-black text-primary uppercase">
-                          Live
+                       <div className="flex items-center gap-2 px-2 py-1 rounded bg-primary text-primary-foreground border border-primary text-[8px] font-black uppercase">
+                          Real-time
                        </div>
                     </div>
                     <div className="flex-1 flex items-end gap-2 px-2">
                        {[40, 70, 45, 90, 65, 80, 50, 85, 60, 95, 75, 85, 60, 40, 55].map((h, i) => (
-                         <div key={i} className="flex-1 bg-primary/40 rounded-t-sm" style={{ height: `${h}%` }} />
+                         <div key={i} className="flex-1 bg-primary/80 rounded-t-sm" style={{ height: `${h}%` }} />
                        ))}
                     </div>
                  </div>
@@ -386,11 +426,11 @@ export default function LandingPage({ featuredEvents = [] }: { featuredEvents?: 
                  {/* Bottom Stats Cards */}
                  <div className="grid grid-cols-3 gap-6">
                     {[
-                      { l: "Attendees", v: "1,240" },
-                      { l: "Session Cap", v: "92%" },
-                      { l: "Global Latency", v: "0.4ms" }
+                      { l: "Active Campaigns", v: "24" },
+                      { l: "Total Reach", v: "1.2M" },
+                      { l: "Generated Value", v: "$42.5k" }
                     ].map((stat, i) => (
-                      <div key={i} className="h-28 rounded-2xl bg-background/40 border border-border/50 p-5 flex flex-col justify-between shadow-sm">
+                      <div key={i} className="h-28 rounded-2xl bg-background/40 border border-border/50 p-5 flex flex-col justify-between shadow-lg">
                          <span className="text-[8px] font-black uppercase text-muted-foreground tracking-widest">{stat.l}</span>
                          <span className="text-lg font-black text-foreground italic">{stat.v}</span>
                       </div>
@@ -400,17 +440,17 @@ export default function LandingPage({ featuredEvents = [] }: { featuredEvents?: 
               
               {/* Sidebar Info Area */}
               <div className="col-span-4 space-y-6">
-                 <div className="h-full rounded-2xl bg-muted/40 border border-border/50 p-6 space-y-6">
-                    <span className="text-[10px] font-black uppercase text-foreground tracking-widest block mb-4">Cluster Activity</span>
+                 <div className="h-full rounded-2xl bg-muted/40 border border-border/50 p-6 space-y-6 shadow-xl">
+                    <span className="text-[10px] font-black uppercase text-foreground tracking-widest block mb-4">Activity Center</span>
                     {[
-                      { t: "Node_London Syncing", s: "4m ago" },
-                      { t: "API Mesh Optimized", s: "12m ago" },
-                      { t: "Security Audit Pass", s: "1h ago" },
-                      { t: "New Peer Connected", s: "2h ago" },
-                      { t: "DB Mirror Success", s: "4h ago" }
+                      { t: "New Ticket Registered", s: "4s ago" },
+                      { t: "Campaign Created", s: "12m ago" },
+                      { t: "Revenue Milestone", s: "1h ago" },
+                      { t: "Team Member Invited", s: "2h ago" },
+                      { t: "Feedback Batch Recv.", s: "4h ago" }
                     ].map((item, i) => (
                       <div key={i} className="flex items-center gap-3">
-                         <div className="w-2 h-2 rounded-full bg-primary/40 shadow-[0_0_8px_var(--primary)]" />
+                         <div className="w-2.5 h-2.5 rounded-full bg-primary shadow-glow shadow-primary/40" />
                          <div className="flex flex-col gap-0.5 flex-1 min-w-0">
                             <span className="text-[10px] font-bold text-foreground truncate">{item.t}</span>
                             <span className="text-[8px] font-medium text-muted-foreground uppercase">{item.s}</span>
@@ -584,7 +624,7 @@ export default function LandingPage({ featuredEvents = [] }: { featuredEvents?: 
                      onMouseEnter={() => setActiveAIIndex(i)}
                    >
                       <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-6 transition-colors ${
-                         activeAIIndex === i ? 'bg-primary text-white shadow-glow' : 'bg-muted text-muted-foreground'
+                         activeAIIndex === i ? 'bg-primary text-primary-foreground shadow-glow' : 'bg-muted text-muted-foreground'
                       }`}>
                          <feature.icon className="w-6 h-6" />
                       </div>

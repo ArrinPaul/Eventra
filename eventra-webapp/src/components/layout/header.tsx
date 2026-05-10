@@ -9,7 +9,7 @@ import { cn } from '@/core/utils/utils';
 import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
 import { NotificationBell } from '@/features/notifications/notification-center';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useScroll, useMotionValueEvent } from 'framer-motion';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -52,6 +52,17 @@ export default function Header() {
   const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [hidden, setHidden] = useState(false);
+  const { scrollY } = useScroll();
+
+  useMotionValueEvent(scrollY, "change", (latest) => {
+    const previous = scrollY.getPrevious() ?? 0;
+    if (latest > previous && latest > 150) {
+      setHidden(true);
+    } else {
+      setHidden(false);
+    }
+  });
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -81,7 +92,13 @@ export default function Header() {
   });
 
   return (
-    <header
+    <motion.header
+      variants={{
+        visible: { y: 0 },
+        hidden: { y: "-100%" },
+      }}
+      animate={hidden ? "hidden" : "visible"}
+      transition={{ duration: 0.35, ease: "easeInOut" }}
       className={cn(
         "fixed top-0 left-0 right-0 z-50 transition-all duration-500",
         scrolled
@@ -96,7 +113,7 @@ export default function Header() {
         <div className={cn(
           "flex items-center justify-between h-14 px-6 rounded-full transition-all duration-500",
           scrolled 
-            ? "bg-zinc-900/60 backdrop-blur-2xl border border-white/10 shadow-2xl" 
+            ? "bg-background/60 backdrop-blur-2xl border border-border shadow-2xl" 
             : "bg-transparent border-transparent"
         )}>
 
@@ -118,7 +135,7 @@ export default function Header() {
                       "relative px-4 py-1.5 text-[11px] font-bold uppercase tracking-widest transition-all duration-300",
                       isActive
                         ? "text-primary"
-                        : "text-zinc-400 hover:text-white"
+                        : "text-muted-foreground hover:text-foreground"
                     )}
                   >
                     {link.label}
@@ -133,7 +150,7 @@ export default function Header() {
             <Button
               variant="ghost"
               size="icon"
-              className="hidden sm:flex rounded-full w-8 h-8 text-zinc-400 hover:text-white transition-all"
+              className="hidden sm:flex rounded-full w-8 h-8 text-muted-foreground hover:text-foreground transition-all"
               asChild
               data-testid="header-search-btn"
             >
@@ -142,11 +159,11 @@ export default function Header() {
               </Link>
             </Button>
 
-            <div data-testid="theme-toggle" className="glass rounded-xl border border-white/5">
+            <div data-testid="theme-toggle" className="glass rounded-xl border border-border/50">
               <ThemeToggle />
             </div>
 
-            <div className="hidden lg:block glass rounded-xl border border-white/5">
+            <div className="hidden lg:block glass rounded-xl border border-border/50">
               <LanguageSwitcher />
             </div>
 
@@ -160,44 +177,44 @@ export default function Header() {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-11 w-11 rounded-none ml-1 p-0 group border border-transparent hover:border-border" data-testid="header-user-menu">
-                    <Avatar className="h-10 w-10 rounded-none border border-transparent group-hover:border-lavender transition-all">
+                    <Avatar className="h-10 w-10 rounded-none border border-transparent group-hover:border-primary transition-all">
                       <AvatarImage src={user.image || ''} alt={user.name || 'User'} className="rounded-none" />
-                      <AvatarFallback className="bg-lavender/10 text-lavender text-sm font-bold rounded-none">
+                      <AvatarFallback className="bg-primary/10 text-primary text-sm font-bold rounded-none">
                         {user.name?.charAt(0) || user.email?.charAt(0) || 'U'}
                       </AvatarFallback>
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-72 mt-4 p-0 rounded-none bg-zinc-950 border-border shadow-2xl animate-scale-in" align="end">
-                  <div className="flex items-center gap-4 p-4 bg-zinc-900 border-b border-border">
-                    <Avatar className="h-14 w-14 rounded-none border border-lavender/20">
+                <DropdownMenuContent className="w-72 mt-4 p-0 rounded-none bg-card border-border shadow-2xl animate-scale-in" align="end">
+                  <div className="flex items-center gap-4 p-4 bg-muted/20 border-b border-border">
+                    <Avatar className="h-14 w-14 rounded-none border border-primary/20">
                       <AvatarImage src={user.image || ''} className="rounded-none" />
-                      <AvatarFallback className="bg-lavender/20 text-lavender font-bold text-xl rounded-none">
+                      <AvatarFallback className="bg-primary/20 text-primary font-bold text-xl rounded-none">
                         {user.name?.charAt(0) || 'U'}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex flex-col min-w-0">
-                      <span className="text-base font-bold text-white truncate uppercase tracking-tight">{user.name || 'User'}</span>
-                      <span className="text-xs font-mono font-bold text-zinc-400 truncate uppercase tracking-widest">{user.email}</span>
+                      <span className="text-base font-bold text-foreground truncate uppercase tracking-tight">{user.name || 'User'}</span>
+                      <span className="text-xs font-mono font-bold text-muted-foreground truncate uppercase tracking-widest">{user.email}</span>
                       <Badge variant="secondary" className="mt-2 w-fit">
                         {user.role}
                       </Badge>
                     </div>
                   </div>
                   <div className="p-2 space-y-1">
-                    <DropdownMenuItem asChild className="cursor-pointer rounded-none p-3 font-bold uppercase tracking-widest text-[10px] hover:bg-lavender/10 hover:text-lavender transition-colors">
+                    <DropdownMenuItem asChild className="cursor-pointer rounded-none p-3 font-bold uppercase tracking-widest text-[10px] hover:bg-primary/10 hover:text-primary transition-colors">
                       <Link href="/profile">
                         <Calendar className="mr-3 h-4 w-4 opacity-70" />
                         My Profile
                       </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem asChild className="cursor-pointer rounded-none p-3 font-bold uppercase tracking-widest text-[10px] hover:bg-lavender/10 hover:text-lavender transition-colors">
+                    <DropdownMenuItem asChild className="cursor-pointer rounded-none p-3 font-bold uppercase tracking-widest text-[10px] hover:bg-primary/10 hover:text-primary transition-colors">
                       <Link href="/tickets">
                         <Ticket className="mr-3 h-4 w-4 opacity-70" />
                         Access Passes
                       </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem asChild className="cursor-pointer rounded-none p-3 font-bold uppercase tracking-widest text-[10px] hover:bg-lavender/10 hover:text-lavender transition-colors">
+                    <DropdownMenuItem asChild className="cursor-pointer rounded-none p-3 font-bold uppercase tracking-widest text-[10px] hover:bg-primary/10 hover:text-primary transition-colors">
                       <Link href="/preferences">
                         <Settings className="mr-3 h-4 w-4 opacity-70" />
                         Node Settings
@@ -218,10 +235,10 @@ export default function Header() {
               </DropdownMenu>
             ) : (
               <div className="hidden md:flex items-center gap-4 ml-2">
-                <Button asChild variant="ghost" className="font-bold text-zinc-400 hover:text-white" data-testid="header-signin">
+                <Button asChild variant="ghost" className="font-bold text-muted-foreground hover:text-foreground" data-testid="header-signin">
                   <Link href="/login">Auth_In</Link>
                 </Button>
-                <Button asChild className="px-8" data-testid="header-signup">
+                <Button asChild className="px-8 shadow-glow shadow-primary/20" data-testid="header-signup">
                   <Link href="/register">Initialize</Link>
                 </Button>
               </div>
@@ -229,7 +246,7 @@ export default function Header() {
 
             {/* Mobile Menu Button */}
             <button
-              className="md:hidden p-2.5 ml-1 rounded-xl text-foreground glass border border-white/5 hover:bg-white/10 transition-colors"
+              className="md:hidden p-2.5 ml-1 rounded-xl text-foreground glass border border-border hover:bg-muted transition-colors"
               onClick={() => setMobileMenuOpen(true)}
               data-testid="mobile-menu-toggle"
             >
@@ -333,6 +350,6 @@ export default function Header() {
           </>
         )}
       </AnimatePresence>
-    </header>
+    </motion.header>
   );
 }

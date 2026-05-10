@@ -48,13 +48,13 @@
     --popover: 215 24% 14%;
     --popover-foreground: 210 40% 98%;
     
-    /* Primary (Red Accent): #661b1c (HSL: 359, 58%, 25%) */
-    --primary: 359 58% 25%;
-    --primary-foreground: 210 40% 98%;
+    /* Primary (White Accent): Replacing red with white */
+    --primary: 0 0% 98%;
+    --primary-foreground: 222 47% 11%;
     
-    /* Accent (Lighter Red): #531516 (HSL: 359, 58%, 19%) */
-    --accent: 359 58% 19%;
-    --accent-foreground: 210 40% 98%;
+    /* Accent (Lighter Gray): Replacing light red with gray */
+    --accent: 0 0% 90%;
+    --accent-foreground: 222 47% 11%;
     
     --secondary: 222 18% 15%;
     --secondary-foreground: 210 40% 98%;
@@ -67,7 +67,7 @@
 
     --border: 222 18% 20%;
     --input: 222 18% 20%;
-    --ring: 359 58% 25%;
+    --ring: 0 0% 98%;
   }
 }
 
