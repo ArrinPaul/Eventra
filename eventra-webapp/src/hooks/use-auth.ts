@@ -18,16 +18,16 @@ const MOCK_NORMAL_USER: User = {
 };
 
 export function useAuth() {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(true);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Check if user has "logged out" in this session
     const status = sessionStorage.getItem('eventra_bypass_auth');
-    if (status === 'false') {
-      setIsAuthenticated(false);
-    } else {
+    if (status === 'true') {
       setIsAuthenticated(true);
+    } else {
+      setIsAuthenticated(false);
     }
     setLoading(false);
   }, []);
