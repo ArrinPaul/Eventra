@@ -1,4 +1,5 @@
 import { UserRole } from '@/types';
+import { enforceRateLimit } from '@/lib/rate-limit';
 
 /**
  * AUTH BYPASS MODE (Development)
@@ -12,17 +13,24 @@ const MOCK_USER = {
   onboardingCompleted: true,
 };
 
+async function applyRateLimit(userId: string) {
+  await enforceRateLimit({ userId, scope: 'server-action' });
+}
+
 export async function validateRole(requiredRoles: UserRole[]) {
+  await applyRateLimit(MOCK_USER.id);
   console.log(`Bypass mode: validateRole called for ${requiredRoles.join(', ')}`);
   return MOCK_USER;
 }
 
 export async function validateEventOwnership(eventId: string) {
+  await applyRateLimit(MOCK_USER.id);
   console.log(`Bypass mode: validateEventOwnership called for event ${eventId}`);
   return MOCK_USER;
 }
 
 export async function validateStaffPermission(eventId: string, permission: string) {
+  await applyRateLimit(MOCK_USER.id);
   console.log(`Bypass mode: validateStaffPermission called for ${permission} on ${eventId}`);
   return MOCK_USER;
 }

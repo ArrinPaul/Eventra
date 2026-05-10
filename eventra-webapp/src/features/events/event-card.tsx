@@ -21,11 +21,14 @@ import { format } from 'date-fns';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import type { EventraEvent } from '@/types';
+import { useTranslations } from 'next-intl';
 
 export function EventCard({ event, variant = 'default' }: { event: EventraEvent, variant?: 'default' | 'compact' | 'featured' }) {
   const router = useRouter();
   const { user } = useAuth();
   const { toast } = useToast();
+  const t = useTranslations('Events');
+  const commonT = useTranslations('Common');
   const [isRegistering, setIsRegistering] = useState(false);
 
   const displayDate = new Date(event.startDate || event.date || Date.now());
@@ -40,9 +43,9 @@ export function EventCard({ event, variant = 'default' }: { event: EventraEvent,
     try {
       // Mock registration for development
       await new Promise(resolve => setTimeout(resolve, 800));
-      toast({ title: 'Success!', description: `Registered for ${event.title}` });
+      toast({ title: commonT('success'), description: t('registeredToast', { title: event.title }) });
     } catch (error) {
-      toast({ title: 'Failed', variant: 'destructive' });
+      toast({ title: commonT('failed'), variant: 'destructive' });
     } finally { setIsRegistering(false); }
   };
 
@@ -52,7 +55,7 @@ export function EventCard({ event, variant = 'default' }: { event: EventraEvent,
         <div className="aspect-[16/10] bg-zinc-900 relative overflow-hidden">
             <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
             <Badge variant="glass" className="absolute top-4 left-4 z-10 backdrop-blur-md border-white/5 text-[9px] font-bold">
-              {event.category || 'General'}
+              {event.category || t('generalCategory')}
             </Badge>
             {/* Visual pattern for placeholder */}
             <div className="absolute inset-0 flex items-center justify-center opacity-10 group-hover:scale-105 transition-transform duration-500">
@@ -66,14 +69,14 @@ export function EventCard({ event, variant = 'default' }: { event: EventraEvent,
             </h3>
             <div className="flex items-center gap-4 text-[10px] font-medium text-zinc-300 uppercase tracking-widest">
               <span className="flex items-center gap-1.5 font-bold"><Calendar size={12} className="text-primary" /> {format(displayDate, 'MMM d, yyyy')}</span>
-              <span className="flex items-center gap-1.5 font-bold"><MapPin size={12} className="text-primary" /> {typeof event.location === 'string' ? event.location : (event.location as any)?.venue || 'Virtual'}</span>
+              <span className="flex items-center gap-1.5 font-bold"><MapPin size={12} className="text-primary" /> {typeof event.location === 'string' ? event.location : (event.location as any)?.venue || t('virtual')}</span>
             </div>
           </div>
 
           <div className="flex justify-between items-center pt-2 border-t border-white/5">
             <div className="flex flex-col">
-              <span className="text-[9px] font-medium uppercase tracking-widest text-zinc-300 font-bold">Registration</span>
-              <span className="text-sm font-semibold text-white">{event.isPaid ? `$${event.price}` : 'Free Access'}</span>
+              <span className="text-[9px] font-medium uppercase tracking-widest text-zinc-300 font-bold">{t('registrationLabel')}</span>
+              <span className="text-sm font-semibold text-white">{event.isPaid ? `$${event.price}` : t('freeAccess')}</span>
             </div>
             <Button 
               size="sm" 
@@ -81,7 +84,7 @@ export function EventCard({ event, variant = 'default' }: { event: EventraEvent,
               disabled={isRegistering} 
               className="rounded-full font-bold px-6 bg-white text-black hover:bg-zinc-200 transition-all shadow-xl"
             >
-              {isRegistering ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Register'}
+              {isRegistering ? <Loader2 className="w-3 h-3 animate-spin" /> : commonT('register')}
             </Button>
           </div>
         </CardContent>

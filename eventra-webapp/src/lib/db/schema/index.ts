@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, integer, boolean, uuid, jsonb, decimal, primaryKey, customType, index } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, integer, boolean, uuid, jsonb, decimal, primaryKey, customType, index, uniqueIndex } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
 // Custom type for pgvector
@@ -323,6 +323,35 @@ export const aiChatMessages = pgTable('ai_chat_messages', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
 }, (table) => ({
   sessionIdx: index('ai_chat_messages_session_idx').on(table.sessionId),
+}));
+
+export const aiRecommendationCache = pgTable('ai_recommendation_cache', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: text('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  cacheKey: text('cache_key').notNull(),
+  payload: jsonb('payload').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => ({
+  userIdx: index('ai_recommendation_cache_user_idx').on(table.userId),
+  cacheKeyIdx: index('ai_recommendation_cache_key_idx').on(table.cacheKey),
+  userCacheUnique: uniqueIndex('ai_recommendation_cache_user_key').on(table.userId, table.cacheKey),
+}));
+
+export const rateLimits = pgTable('rate_limits', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  identifier: text('identifier').notNull(),
+  scope: text('scope').notNull(),
+  windowStart: timestamp('window_start').notNull(),
+  count: integer('count').default(0).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => ({
+  identifierIdx: index('rate_limits_identifier_idx').on(table.identifier),
+  scopeIdx: index('rate_limits_scope_idx').on(table.scope),
+  windowIdx: index('rate_limits_window_idx').on(table.windowStart),
+  identifierScopeWindowUnique: uniqueIndex('rate_limits_identifier_scope_window_idx')
+    .on(table.identifier, table.scope, table.windowStart),
 }));
 
 export const feedbackTemplates = pgTable('feedback_templates', {

@@ -11,9 +11,13 @@ import { EventForm } from './event-form';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import Link from 'next/link';
 import { getEvents, createEvent, updateEvent, deleteEvent } from '@/app/actions/events';
+import { useTranslations } from 'next-intl';
 
 function EventCard({ event, isOrganizer, onEdit, onDelete }: { event: EventraEvent; isOrganizer: boolean; onEdit: (event: EventraEvent) => void; onDelete: (eventId: string) => void; }) {
+  const t = useTranslations('Events');
+  const commonT = useTranslations('Common');
   const displayDate = event.startDate ? new Date(event.startDate) : (event.date ? new Date(event.date) : new Date());
+  const audienceLabel = event.targetAudience || commonT('all');
   
   return (
     <Card className="flex flex-col glass-effect">
@@ -27,10 +31,10 @@ function EventCard({ event, isOrganizer, onEdit, onDelete }: { event: EventraEve
             <Calendar className="mr-2 h-4 w-4"/>
             <span>{displayDate.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
           </div>
-          <div className="flex items-center text-muted-foreground"><Clock className="mr-2 h-4 w-4"/><span>{event.time || (event.startDate && new Date(event.startDate).toLocaleTimeString()) || 'TBA'}</span></div>
-          <div className="flex items-center text-muted-foreground"><MapPin className="mr-2 h-4 w-4"/><span>{typeof event.location?.venue === 'string' ? event.location.venue : (event.location?.venue?.name || (typeof event.location === 'string' ? event.location : 'Online'))}</span></div>
+          <div className="flex items-center text-muted-foreground"><Clock className="mr-2 h-4 w-4"/><span>{event.time || (event.startDate && new Date(event.startDate).toLocaleTimeString()) || commonT('tba')}</span></div>
+          <div className="flex items-center text-muted-foreground"><MapPin className="mr-2 h-4 w-4"/><span>{typeof event.location?.venue === 'string' ? event.location.venue : (event.location?.venue?.name || (typeof event.location === 'string' ? event.location : commonT('online')))}</span></div>
           <div className="flex items-center text-muted-foreground"><Tag className="mr-2 h-4 w-4"/><span>{event.category}</span></div>
-          <div className="flex items-center text-muted-foreground"><Users className="mr-2 h-4 w-4"/><span>For: {event.targetAudience || 'All'}</span></div>
+          <div className="flex items-center text-muted-foreground"><Users className="mr-2 h-4 w-4"/><span>{t('audienceLabel', { audience: audienceLabel })}</span></div>
         </CardContent>
       </Link>
       {isOrganizer && (
@@ -42,14 +46,14 @@ function EventCard({ event, isOrganizer, onEdit, onDelete }: { event: EventraEve
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                        <AlertDialogDescription>This action cannot be undone. This will permanently delete the event.</AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => onDelete(event.id)}>Delete</AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
+                    <AlertDialogTitle>{t('deleteConfirmTitle')}</AlertDialogTitle>
+                    <AlertDialogDescription>{t('deleteConfirmDescription')}</AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogCancel>{commonT('cancel')}</AlertDialogCancel>
+                    <AlertDialogAction onClick={() => onDelete(event.id)}>{commonT('delete')}</AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
             </AlertDialog>
         </CardFooter>
       )}
@@ -60,6 +64,8 @@ function EventCard({ event, isOrganizer, onEdit, onDelete }: { event: EventraEve
 export default function EventsClient() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const t = useTranslations('Events');
+  const commonT = useTranslations('Common');
 
   const [events, setEvents] = useState<EventraEvent[]>([]);
   const [loading, setLoading] = useState(true);
@@ -74,7 +80,7 @@ export default function EventsClient() {
       const data = await getEvents();
       setEvents(data as any);
     } catch (error) {
-      toast({ title: 'Error', description: 'Failed to load events.', variant: 'destructive' });
+      toast({ title: commonT('error'), description: t('loadError'), variant: 'destructive' });
     } finally {
       setLoading(false);
     }
@@ -88,17 +94,17 @@ export default function EventsClient() {
     try {
       if (editingEvent) {
         await updateEvent(editingEvent.id, eventData);
-        toast({ title: 'Event Updated', description: `"${eventData.title}" has been updated.` });
+        toast({ title: t('eventUpdated'), description: t('eventUpdatedDescription', { title: eventData.title }) });
       } else {
         await createEvent(eventData);
-        toast({ title: 'Event Created', description: `"${eventData.title}" has been added.` });
+        toast({ title: t('eventCreated'), description: t('eventCreatedDescription', { title: eventData.title }) });
       }
       setEditingEvent(null);
       setIsDialogOpen(false);
       loadEvents(); // Refresh list
     } catch (error) {
       console.error('Error saving event:', error);
-      toast({ title: 'Error', description: 'Failed to save event.', variant: 'destructive' });
+      toast({ title: commonT('error'), description: t('saveError'), variant: 'destructive' });
     }
   };
   
@@ -111,13 +117,13 @@ export default function EventsClient() {
     try {
       const result = await deleteEvent(eventId);
       if (!result.success) {
-        throw new Error(result.error || 'Failed to delete event.');
+        throw new Error(result.error || t('deleteError'));
       }
-      toast({ title: 'Event Deleted', variant: 'destructive' });
+      toast({ title: t('eventDeleted'), variant: 'destructive' });
       loadEvents(); // Refresh list
     } catch (error) {
       console.error('Error deleting event:', error);
-      toast({ title: 'Error', description: 'Failed to delete event.', variant: 'destructive' });
+      toast({ title: commonT('error'), description: t('deleteError'), variant: 'destructive' });
     }
   };
   
@@ -132,8 +138,8 @@ export default function EventsClient() {
     <div className="container py-8">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <div>
-          <h1 className="text-4xl font-bold font-headline">Events</h1>
-          <p className="text-muted-foreground mt-2">Special workshops, talks, and networking opportunities.</p>
+          <h1 className="text-4xl font-bold font-headline">{commonT('events')}</h1>
+          <p className="text-muted-foreground mt-2">{t('subtitle')}</p>
         </div>
         {isOrganizer && (
           <Dialog open={isDialogOpen} onOpenChange={(isOpen) => {
@@ -144,12 +150,12 @@ export default function EventsClient() {
           }}>
             <DialogTrigger asChild>
               <Button onClick={() => setEditingEvent(null)}>
-                <Plus className="mr-2 h-4 w-4" /> Create Event
+                <Plus className="mr-2 h-4 w-4" /> {t('createTitle')}
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[625px]">
               <DialogHeader>
-                <DialogTitle className="font-headline">{editingEvent ? 'Edit Event' : 'Create Event'}</DialogTitle>
+                <DialogTitle className="font-headline">{editingEvent ? t('editTitle') : t('createTitle')}</DialogTitle>
               </DialogHeader>
               <EventForm onSave={handleSave} event={editingEvent} />
             </DialogContent>
@@ -165,7 +171,7 @@ export default function EventsClient() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {visibleEvents.length === 0 ? (
             <div className="col-span-full text-center py-12 text-muted-foreground">
-              No events found.
+              {t('noEvents')}
             </div>
           ) : (
             visibleEvents.map(event => (

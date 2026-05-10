@@ -51,11 +51,13 @@ await loadEnv();
 
 const requiredSchema = z.object({
   DATABASE_URL: z.string().min(1),
+  DATABASE_POOLER_URL: z.string().min(1).optional(),
   NEXT_PUBLIC_SUPABASE_URL: z.string().url(),
   NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1),
 });
 
 const stagingRequiredSchema = requiredSchema.extend({
+  DATABASE_POOLER_URL: z.string().min(1),
   RESEND_API_KEY: z.string().min(1),
   TWILIO_ACCOUNT_SID: z.string().min(1),
   TWILIO_AUTH_TOKEN: z.string().min(1),
@@ -99,8 +101,13 @@ if (optionalMissing.length > 0) {
 console.log(`Environment validation passed for required variables (mode=${args.mode}).`);
 
 async function checkDatabase() {
-  const db = postgres(process.env.DATABASE_URL, {
-    ssl: !/localhost|127\.0\.0\.1/i.test(process.env.DATABASE_URL) ? 'require' : false,
+  const databaseUrl = process.env.DATABASE_POOLER_URL || process.env.DATABASE_URL;
+  if (!databaseUrl) {
+    throw new Error('DATABASE_URL is missing; cannot run database connectivity check.');
+  }
+
+  const db = postgres(databaseUrl, {
+    ssl: !/localhost|127\.0\.0\.1/i.test(databaseUrl) ? 'require' : false,
     connect_timeout: 10,
     max: 1,
     prepare: false,

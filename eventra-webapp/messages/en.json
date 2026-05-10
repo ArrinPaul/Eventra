@@ -44,7 +44,13 @@
     "learnMore": "Learn more",
     "seeAll": "See all",
     "showMore": "Show more",
-    "showLess": "Show less"
+    "showLess": "Show less",
+    "tbd": "TBD",
+    "tba": "TBA",
+    "online": "Online",
+    "error": "Error",
+    "success": "Success",
+    "failed": "Failed"
   },
   "Auth": {
     "signIn": "Sign In",
@@ -116,7 +122,37 @@
     "exploreEvents": "Explore events",
     "filterBy": "Filter by",
     "sortBy": "Sort by",
-    "searchEvents": "Search events..."
+    "searchEvents": "Search events...",
+    "exploreSubtitle": "Discover events that match your interests",
+    "adjustFilters": "Try adjusting your search or filters",
+    "subtitle": "Special workshops, talks, and networking opportunities.",
+    "audienceLabel": "For: {audience}",
+    "deleteConfirmTitle": "Are you sure?",
+    "deleteConfirmDescription": "This action cannot be undone. This will permanently delete the event.",
+    "loadError": "Failed to load events.",
+    "saveError": "Failed to save event.",
+    "deleteError": "Failed to delete event.",
+    "eventUpdated": "Event Updated",
+    "eventUpdatedDescription": "\"{title}\" has been updated.",
+    "eventCreated": "Event Created",
+    "eventCreatedDescription": "\"{title}\" has been added.",
+    "eventDeleted": "Event Deleted",
+    "generalCategory": "General",
+    "registrationLabel": "Registration",
+    "freeAccess": "Free Access",
+    "registeredToast": "Registered for {title}",
+    "categories": {
+      "all": "All",
+      "technology": "Technology",
+      "business": "Business",
+      "design": "Design",
+      "science": "Science",
+      "arts": "Arts",
+      "health": "Health",
+      "sports": "Sports",
+      "music": "Music",
+      "education": "Education"
+    }
   },
   "Tickets": {
     "myTickets": "My Tickets",

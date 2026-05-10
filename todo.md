@@ -48,16 +48,16 @@ This document tracks the remaining work required to bring Eventra to a productio
 *Goal: Finalize i18n, optimize for mass traffic, and verify end-to-end resilience.*
 
 ### **3.1 Scalability & Performance (P1)**
-- [ ] **Database Connection Pooling**:
+- [x] **Database Connection Pooling**: (DONE)
   - *Task*: Configure Drizzle to use the Supabase `transaction` mode port (6543) with PgBouncer to prevent "Too many connections" errors during mass traffic.
-- [ ] **AI Response Caching (Vector Cache)**:
+- [x] **AI Response Caching (Vector Cache)**: (DONE)
   - *Task*: Implement a database-backed cache for `ai-recommendations.ts` so common queries don't hit Gemini API rate limits.
-- [ ] **Image Optimization**: Audit all `<img>` tags and replace them with `next/image` to reduce bandwidth during high crowds.
+- [x] **Image Optimization**: Audit all `<img>` tags and replace them with `next/image` to reduce bandwidth during high crowds. (DONE)
 
 ### **3.2 Production Resilience & Security (P1)**
-- [ ] **Rate Limiting**:
+- [x] **Rate Limiting**: (DONE)
   - *Task*: Implement `upstash/ratelimit` or a similar middleware to prevent API abuse and "crowd-spamming" of server actions.
-- [ ] **Environment Parity**: Complete the "Staging Parity" check mentioned in PROJECT-STATUS.md for DB, Supabase, and email integrations.
+- [x] **Environment Parity**: Complete the "Staging Parity" check mentioned in PROJECT-STATUS.md for DB, Supabase, and email integrations. (DONE)
 
 ### **3.3 Internationalization (i18n) Completion (P2)**
 - [ ] **Module Audit**: Scan for hardcoded English strings in `src/features/`.

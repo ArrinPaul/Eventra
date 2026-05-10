@@ -8,6 +8,7 @@ const publicEnvSchema = z.object({
 
 const serverEnvSchema = publicEnvSchema.extend({
   DATABASE_URL: z.string().min(1),
+  DATABASE_POOLER_URL: z.string().min(1).optional(),
   RESEND_API_KEY: z.string().min(1).optional(),
   TWILIO_ACCOUNT_SID: z.string().min(1).optional(),
   TWILIO_AUTH_TOKEN: z.string().min(1).optional(),

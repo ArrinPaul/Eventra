@@ -6,10 +6,16 @@ import * as schema from './schema';
  * Database connection for Server Components and Server Actions
  * Configured specifically for Supabase Transaction Pooler compatibility
  */
-const connectionString = process.env.DATABASE_URL ?? 'postgresql://invalid:invalid@localhost:5432/eventra';
+const poolerUrl = process.env.DATABASE_POOLER_URL;
+const databaseUrl = process.env.DATABASE_URL;
+const connectionString = poolerUrl ?? databaseUrl ?? 'postgresql://invalid:invalid@localhost:5432/eventra';
 
-if (!process.env.DATABASE_URL) {
+if (!databaseUrl && !poolerUrl) {
   console.warn('DATABASE_URL is not set. DB-backed routes may be unavailable.');
+}
+
+if (poolerUrl && !poolerUrl.includes(':6543')) {
+  console.warn('DATABASE_POOLER_URL should use Supabase transaction pooler port 6543.');
 }
 
 // Use a singleton to prevent multiple connections in development (Next.js Hot Reloading)

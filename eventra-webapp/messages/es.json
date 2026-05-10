@@ -44,7 +44,13 @@
     "learnMore": "Saber más",
     "seeAll": "Ver todo",
     "showMore": "Mostrar más",
-    "showLess": "Mostrar menos"
+    "showLess": "Mostrar menos",
+    "tbd": "Por confirmar",
+    "tba": "Por anunciar",
+    "online": "En línea",
+    "error": "Error",
+    "success": "Éxito",
+    "failed": "Fallido"
   },
   "Auth": {
     "signIn": "Iniciar sesión",
@@ -116,7 +122,37 @@
     "exploreEvents": "Explorar eventos",
     "filterBy": "Filtrar por",
     "sortBy": "Ordenar por",
-    "searchEvents": "Buscar eventos..."
+    "searchEvents": "Buscar eventos...",
+    "exploreSubtitle": "Descubre eventos que coincidan con tus intereses",
+    "adjustFilters": "Intenta ajustar tu búsqueda o filtros",
+    "subtitle": "Talleres especiales, charlas y oportunidades de networking.",
+    "audienceLabel": "Para: {audience}",
+    "deleteConfirmTitle": "¿Estás seguro?",
+    "deleteConfirmDescription": "Esta acción no se puede deshacer. Esto eliminará el evento de forma permanente.",
+    "loadError": "No se pudieron cargar los eventos.",
+    "saveError": "No se pudo guardar el evento.",
+    "deleteError": "No se pudo eliminar el evento.",
+    "eventUpdated": "Evento actualizado",
+    "eventUpdatedDescription": "\"{title}\" ha sido actualizado.",
+    "eventCreated": "Evento creado",
+    "eventCreatedDescription": "\"{title}\" ha sido agregado.",
+    "eventDeleted": "Evento eliminado",
+    "generalCategory": "General",
+    "registrationLabel": "Registro",
+    "freeAccess": "Acceso gratuito",
+    "registeredToast": "Registrado para {title}",
+    "categories": {
+      "all": "Todos",
+      "technology": "Tecnología",
+      "business": "Negocios",
+      "design": "Diseño",
+      "science": "Ciencia",
+      "arts": "Artes",
+      "health": "Salud",
+      "sports": "Deportes",
+      "music": "Música",
+      "education": "Educación"
+    }
   },
   "Tickets": {
     "myTickets": "Mis Entradas",

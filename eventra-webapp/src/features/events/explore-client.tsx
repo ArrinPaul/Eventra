@@ -8,8 +8,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { getEvents } from '@/app/actions/events';
 import Link from 'next/link';
-
-const categories = ['All', 'Technology', 'Business', 'Design', 'Science', 'Arts', 'Health', 'Sports', 'Music', 'Education'];
+import Image from 'next/image';
+import { useTranslations } from 'next-intl';
 
 interface EventItem {
   id: string;
@@ -29,10 +29,24 @@ interface EventItem {
 }
 
 export default function ExploreClient() {
+  const t = useTranslations('Events');
+  const commonT = useTranslations('Common');
   const [events, setEvents] = useState<EventItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const categories = [
+    { value: 'All', label: t('categories.all') },
+    { value: 'Technology', label: t('categories.technology') },
+    { value: 'Business', label: t('categories.business') },
+    { value: 'Design', label: t('categories.design') },
+    { value: 'Science', label: t('categories.science') },
+    { value: 'Arts', label: t('categories.arts') },
+    { value: 'Health', label: t('categories.health') },
+    { value: 'Sports', label: t('categories.sports') },
+    { value: 'Music', label: t('categories.music') },
+    { value: 'Education', label: t('categories.education') },
+  ];
 
   const fetchEvents = useCallback(async () => {
     setLoading(true);
@@ -79,17 +93,17 @@ export default function ExploreClient() {
   };
 
   const getLocationText = (location: any) => {
-    if (!location) return 'TBD';
+    if (!location) return commonT('tbd');
     if (typeof location === 'string') return location;
-    return location.venue || location.address || 'TBD';
+    return location.venue || location.address || commonT('tbd');
   };
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
       {/* Page Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-foreground mb-2">Explore Events</h1>
-        <p className="text-muted-foreground">Discover events that match your interests</p>
+        <h1 className="text-3xl font-bold text-foreground mb-2">{t('exploreEvents')}</h1>
+        <p className="text-muted-foreground">{t('exploreSubtitle')}</p>
       </div>
 
       {/* Search & Filters */}
@@ -97,7 +111,7 @@ export default function ExploreClient() {
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
-            placeholder="Search events..."
+            placeholder={t('searchEvents')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-10 h-11 rounded-xl bg-card border-border"
@@ -116,15 +130,15 @@ export default function ExploreClient() {
         <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
           {categories.map((cat) => (
             <button
-              key={cat}
-              onClick={() => setSelectedCategory(cat)}
+              key={cat.value}
+              onClick={() => setSelectedCategory(cat.value)}
               className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-200 ${
-                selectedCategory === cat
+                selectedCategory === cat.value
                   ? 'bg-foreground text-background'
                   : 'bg-card border border-border text-muted-foreground hover:text-foreground hover:border-foreground/20'
               }`}
             >
-              {cat}
+              {cat.label}
             </button>
           ))}
         </div>
@@ -151,8 +165,8 @@ export default function ExploreClient() {
           animate={{ opacity: 1 }}
         >
           <Calendar className="w-12 h-12 text-muted-foreground/40 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-foreground mb-1">No events found</h3>
-          <p className="text-muted-foreground text-sm">Try adjusting your search or filters</p>
+          <h3 className="text-lg font-medium text-foreground mb-1">{t('noEvents')}</h3>
+          <p className="text-muted-foreground text-sm">{t('adjustFilters')}</p>
         </motion.div>
       ) : (
         <motion.div
@@ -175,10 +189,12 @@ export default function ExploreClient() {
                   {/* Image */}
                   <div className="relative h-48 bg-muted overflow-hidden">
                     {event.imageUrl ? (
-                      <img
+                      <Image
                         src={event.imageUrl}
                         alt={event.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        fill
+                        sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
+                        className="object-cover group-hover:scale-105 transition-transform duration-300"
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/5 to-primary/10">
@@ -198,7 +214,7 @@ export default function ExploreClient() {
                           ? 'bg-foreground text-background'
                           : 'bg-green-500/90 text-foreground'
                       }`}>
-                        {event.isPaid ? `$${event.price}` : 'Free'}
+                        {event.isPaid ? `$${event.price}` : t('free')}
                       </Badge>
                     </div>
                   </div>
@@ -232,11 +248,17 @@ export default function ExploreClient() {
                           event.type === 'virtual' ? 'border-blue-200 text-blue-600 dark:border-blue-800 dark:text-blue-400' :
                           event.type === 'hybrid' ? 'border-purple-200 text-purple-600 dark:border-purple-800 dark:text-purple-400' :
                           'border-green-200 text-green-600 dark:border-green-800 dark:text-success'
-                        }`}
-                      >
-                        {event.type === 'physical' ? 'In Person' : event.type}
-                      </Badge>
-                    </div>
+                      }`}
+                    >
+                      {event.type === 'physical'
+                        ? t('physical')
+                        : event.type === 'virtual'
+                          ? t('virtual')
+                          : event.type === 'hybrid'
+                            ? t('hybrid')
+                            : event.type}
+                    </Badge>
+                  </div>
                   </div>
                 </div>
               </Link>

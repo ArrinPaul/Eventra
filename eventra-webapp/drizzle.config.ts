@@ -51,6 +51,8 @@ export default defineConfig({
     'chat_messages',
     'ai_chat_sessions',
     'ai_chat_messages',
+    'ai_recommendation_cache',
+    'rate_limits',
     'feedback_templates',
     'certificate_templates',
     'event_feedback',

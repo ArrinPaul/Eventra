@@ -1,9 +1,10 @@
 'use server';
 
+import { createHash } from 'node:crypto';
 import { validateRole } from '@/lib/auth-utils';
 import { db } from '@/lib/db';
-import { events, users } from '@/lib/db/schema';
-import { eq, ne } from 'drizzle-orm';
+import { aiRecommendationCache, events, users } from '@/lib/db/schema';
+import { and, eq, ne } from 'drizzle-orm';
 import { recommendationFlow, contentRecommendationFlow, connectionRecommendationFlow } from '@/lib/ai';
 import { auth } from '@/auth';
 
@@ -30,6 +31,28 @@ export type AIConnectionRecommendation = {
   strength: number;
   conversationStarter: string;
 };
+
+const RECOMMENDATION_CACHE_TTL_MS = 1000 * 60 * 15;
+
+function buildRecommendationCacheKey(payload: {
+  userId: string;
+  userRole: string | null;
+  interests: string[];
+  eventIds: string[];
+}) {
+  const normalized = {
+    userId: payload.userId,
+    userRole: payload.userRole ?? 'unknown',
+    interests: payload.interests.map((interest) => interest.toLowerCase()).sort(),
+    eventIds: payload.eventIds.sort(),
+  };
+
+  return createHash('sha256').update(JSON.stringify(normalized)).digest('hex');
+}
+
+function isCacheFresh(updatedAt: Date) {
+  return Date.now() - updatedAt.getTime() < RECOMMENDATION_CACHE_TTL_MS;
+}
 
 /**
  * Get personalized recommendations using Genkit
@@ -58,15 +81,55 @@ export async function getAIRecommendations(userId: string): Promise<AIEventRecom
       .limit(20);
 
     // 3. Run AI Recommendation Flow
-    const interests = user.interests ? user.interests.split(',').map((i: string) => i.trim()) : [];
+    const interests = user.interests
+      ? user.interests.split(',').map((i: string) => i.trim()).filter(Boolean)
+      : [];
     
+    const eventIds = availableEvents.map((event) => event.id);
+    const cacheKey = buildRecommendationCacheKey({
+      userId,
+      userRole: user.role,
+      interests,
+      eventIds,
+    });
+
+    const cached = await db.query.aiRecommendationCache.findFirst({
+      where: and(
+        eq(aiRecommendationCache.userId, userId),
+        eq(aiRecommendationCache.cacheKey, cacheKey),
+      ),
+    });
+
+    if (cached && isCacheFresh(cached.updatedAt)) {
+      return cached.payload as AIEventRecommendation[];
+    }
+
     const { recommendations } = await recommendationFlow({
       userInterests: interests,
       userRole: user.role,
       availableEvents: availableEvents as any,
     });
 
-    return (recommendations || []) as AIEventRecommendation[];
+    const resolvedRecommendations = (recommendations || []) as AIEventRecommendation[];
+    const now = new Date();
+
+    await db.insert(aiRecommendationCache)
+      .values({
+        userId,
+        cacheKey,
+        payload: resolvedRecommendations,
+        createdAt: now,
+        updatedAt: now,
+      })
+      .onConflictDoUpdate({
+        target: [aiRecommendationCache.userId, aiRecommendationCache.cacheKey],
+        set: {
+          payload: resolvedRecommendations,
+          updatedAt: now,
+        },
+      });
+
+    return resolvedRecommendations;
   } catch (error) {
     console.error('Recommendation Error:', error);
     return [];
