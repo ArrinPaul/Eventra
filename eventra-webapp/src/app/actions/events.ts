@@ -12,6 +12,12 @@ import { z } from 'zod';
 import { logActivity } from './feed';
 import { awardXP } from './gamification';
 
+export type ActionResponse<T> = {
+  success: boolean;
+  data?: T;
+  error?: string | any;
+};
+
 // --- SCHEMAS ---
 
 const eventSchema = z.object({
@@ -30,6 +36,7 @@ const eventSchema = z.object({
   waitlistEnabled: z.boolean().default(false),
   visibility: z.enum(['public', 'private', 'unlisted']).default('public'),
   imageUrl: z.string().url().optional().or(z.literal('')),
+  coOrganizerIds: z.array(z.string()).optional(),
 });
 
 // --- ACTIONS ---
@@ -103,7 +110,7 @@ export async function getEventById(id: string) {
 /**
  * Create a new event
  */
-export async function createEvent(rawInput: any) {
+export async function createEvent(rawInput: any): Promise<ActionResponse<any>> {
   const user = await validateRole(['organizer', 'admin']);
   
   const validated = eventSchema.safeParse(rawInput);
@@ -144,7 +151,7 @@ export async function createEvent(rawInput: any) {
     revalidatePath('/explore');
     revalidatePath('/organizer');
     
-    return { success: true, event: parentEvent };
+    return { success: true, data: parentEvent };
   } catch (error) {
     console.error('createEvent Error:', error);
     return { success: false, error: 'Database operation failed' };
@@ -190,7 +197,7 @@ export async function generateRecurringInstances(parentId: string, ruleString: s
 /**
  * Update event
  */
-export async function updateEvent(id: string, rawInput: any) {
+export async function updateEvent(id: string, rawInput: any): Promise<ActionResponse<any>> {
   await validateEventOwnership(id);
 
   const validated = eventSchema.partial().safeParse(rawInput);
@@ -220,7 +227,7 @@ export async function updateEvent(id: string, rawInput: any) {
     revalidatePath(`/events/${id}`);
     revalidatePath('/organizer');
     
-    return { success: true, event: result[0] };
+    return { success: true, data: result[0] };
   } catch (error) {
     console.error('updateEvent Error:', error);
     return { success: false, error: 'Database operation failed' };

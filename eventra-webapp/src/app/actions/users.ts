@@ -2,7 +2,7 @@
 
 import { db } from '@/lib/db';
 import { users } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, desc, not, inArray } from 'drizzle-orm';
 
 export async function getUserById(id: string) {
   try {
@@ -39,5 +39,19 @@ export async function updateUserDetails(id: string, data: any) {
   } catch (error) {
     console.error('updateUserDetails Error:', error);
     return { success: false, user: null };
+  }
+}
+
+export async function getLeaderboard(limit = 50) {
+  try {
+    const results = await db.query.users.findMany({
+      where: (users, { and }) => not(inArray(users.role, ['admin', 'organizer'])),
+      orderBy: [desc(users.points)],
+      limit,
+    });
+    return results;
+  } catch (error) {
+    console.error('getLeaderboard Error:', error);
+    return [];
   }
 }

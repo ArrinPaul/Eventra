@@ -2,8 +2,14 @@
 
 import { db } from '@/lib/db';
 import { users, events, activityFeed } from '@/lib/db/schema';
-import { and, desc, eq, ilike, or } from 'drizzle-orm';
+import { and, desc, eq, ilike, or, inArray } from 'drizzle-orm';
 import { validateRole } from '@/lib/auth-utils';
+
+export type ActionResponse<T> = {
+  success: boolean;
+  data?: T;
+  error?: string;
+};
 
 export type AdminUserRow = {
   id: string;
@@ -12,6 +18,7 @@ export type AdminUserRow = {
   role: string;
   points: number;
   level: number;
+  image?: string | null;
   createdAt: Date;
 };
 
@@ -39,6 +46,7 @@ export async function listAdminUsers(filters?: {
         role: users.role,
         points: users.points,
         level: users.level,
+        image: users.image,
         createdAt: users.createdAt,
       })
       .from(users)
@@ -50,6 +58,52 @@ export async function listAdminUsers(filters?: {
   } catch (error) {
     console.error('listAdminUsers Error:', error);
     return [];
+  }
+}
+
+export async function getUsersByEmails(emails: string[]): Promise<AdminUserRow[]> {
+  if (!emails.length) return [];
+  try {
+    return await db
+      .select({
+        id: users.id,
+        name: users.name,
+        email: users.email,
+        role: users.role,
+        points: users.points,
+        level: users.level,
+        image: users.image,
+        createdAt: users.createdAt,
+      })
+      .from(users)
+      .where(inArray(users.email, emails));
+  } catch (error) {
+    console.error('getUsersByEmails Error:', error);
+    return [];
+  }
+}
+
+export async function getUserByEmail(email: string): Promise<AdminUserRow | null> {
+  try {
+    const results = await db
+      .select({
+        id: users.id,
+        name: users.name,
+        email: users.email,
+        role: users.role,
+        points: users.points,
+        level: users.level,
+        image: users.image,
+        createdAt: users.createdAt,
+      })
+      .from(users)
+      .where(eq(users.email, email))
+      .limit(1);
+
+    return results[0] || null;
+  } catch (error) {
+    console.error('getUserByEmail Error:', error);
+    return null;
   }
 }
 
