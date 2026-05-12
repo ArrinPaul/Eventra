@@ -2,7 +2,7 @@
 
 import { db } from '@/lib/db';
 import { chatRooms, chatMessages, users, chatParticipants } from '@/lib/db/schema';
-import { auth } from '@/auth';
+import { auth } from '@clerk/nextjs/server';
 import { eq, and, desc, sql, inArray } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
@@ -24,9 +24,8 @@ const createRoomSchema = z.object({
  * Get all chat rooms the current user is a participant in
  */
 export async function getChatRooms() {
-  const session = await auth();
-  if (!session?.user?.id) return [];
-  const userId = session.user.id as string;
+  const { userId } = await auth();
+  if (!userId) return [];
 
   try {
     const userRooms = await db
@@ -53,9 +52,8 @@ export async function getChatRooms() {
  * Get messages for a specific room with security check
  */
 export async function getChatMessages(roomId: string, limit: number = 50) {
-  const session = await auth();
-  if (!session?.user?.id) return [];
-  const userId = session.user.id as string;
+  const { userId } = await auth();
+  if (!userId) return [];
 
   try {
     // Security: Check if user is a participant
@@ -93,9 +91,8 @@ export async function getChatMessages(roomId: string, limit: number = 50) {
  * Send a message with validation and security check
  */
 export async function sendMessage(rawInput: any) {
-  const session = await auth();
-  if (!session?.user?.id) throw new Error('Authentication required');
-  const userId = session.user.id as string;
+  const { userId } = await auth();
+  if (!userId) throw new Error('Authentication required');
 
   const validated = sendMessageSchema.safeParse(rawInput);
   if (!validated.success) return { success: false, error: 'Invalid message' };
@@ -130,9 +127,8 @@ export async function sendMessage(rawInput: any) {
  * Create a new chat room and add participants
  */
 export async function createChatRoom(rawInput: any) {
-  const session = await auth();
-  if (!session?.user?.id) throw new Error('Authentication required');
-  const userId = session.user.id as string;
+  const { userId } = await auth();
+  if (!userId) throw new Error('Authentication required');
 
   const validated = createRoomSchema.safeParse(rawInput);
   if (!validated.success) throw new Error('Invalid room data');

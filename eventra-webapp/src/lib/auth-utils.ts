@@ -1,7 +1,7 @@
 import { UserRole } from '@/types';
-import { auth } from '@/auth';
+import { auth } from '@clerk/nextjs/server';
 import { db } from '@/lib/db';
-import { events, eventStaff } from '@/lib/db/schema';
+import { events, eventStaff, users } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
 
 /**
@@ -9,10 +9,17 @@ import { eq, and } from 'drizzle-orm';
  * Throws an error if unauthorized.
  */
 export async function validateRole(requiredRoles: UserRole[]) {
-  const session = await auth();
-  const user = session?.user;
+  const { userId } = await auth();
 
-  if (!user || !user.id || !requiredRoles.includes((user as any).role as UserRole)) {
+  if (!userId) {
+    throw new Error('Unauthorized: Authentication required');
+  }
+
+  const user = await db.query.users.findFirst({
+    where: eq(users.id, userId),
+  });
+
+  if (!user || !requiredRoles.includes(user.role as UserRole)) {
     throw new Error('Unauthorized: Insufficient permissions');
   }
 
@@ -23,11 +30,18 @@ export async function validateRole(requiredRoles: UserRole[]) {
  * Validates if the current user is the owner of an event, a co-organizer, staff member, or an admin.
  */
 export async function validateEventOwnership(eventId: string) {
-  const session = await auth();
-  const user = session?.user;
+  const { userId } = await auth();
+
+  if (!userId) {
+    throw new Error('Unauthorized: Authentication required');
+  }
+
+  const user = await db.query.users.findFirst({
+    where: eq(users.id, userId),
+  });
 
   if (!user) {
-    throw new Error('Unauthorized: Authentication required');
+    throw new Error('Unauthorized: User not found in database');
   }
 
   // Admins have override access
@@ -70,11 +84,18 @@ export async function validateEventOwnership(eventId: string) {
  * Useful for staff roles that aren't full owners.
  */
 export async function validateStaffPermission(eventId: string, permission: string) {
-  const session = await auth();
-  const user = session?.user;
+  const { userId } = await auth();
+
+  if (!userId) {
+    throw new Error('Unauthorized: Authentication required');
+  }
+
+  const user = await db.query.users.findFirst({
+    where: eq(users.id, userId),
+  });
 
   if (!user) {
-    throw new Error('Unauthorized: Authentication required');
+    throw new Error('Unauthorized: User not found in database');
   }
 
   // Admins have override access

@@ -2,14 +2,14 @@ import { getEventById } from '@/app/actions/events';
 import { processWaitlistReservations } from '@/app/actions/registrations';
 import { WaitlistClaimClient } from '@/features/events/waitlist-claim-client';
 import { notFound } from 'next/navigation';
-import { auth } from '@/auth';
+import { auth } from '@clerk/nextjs/server';
 import { db } from '@/lib/db';
 import { waitlist } from '@/lib/db/schema';
 import { and, eq } from 'drizzle-orm';
 
 export default async function ClaimWaitlistSpotPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const session = await auth();
+  const { userId } = await auth();
 
   // 1. Run cleanup for the event before checking
   await processWaitlistReservations(id);
@@ -21,7 +21,7 @@ export default async function ClaimWaitlistSpotPage({ params }: { params: Promis
   const reservation = await db.query.waitlist.findFirst({
     where: and(
       eq(waitlist.eventId, id),
-      eq(waitlist.userId, session?.user?.id ?? 'guest-user'),
+      eq(waitlist.userId, userId ?? 'guest-user'),
       eq(waitlist.status, 'reserved')
     )
   });

@@ -5,7 +5,7 @@ import { eventMedia, events, users } from '@/lib/db/schema';
 import { eq, and, desc, sql } from 'drizzle-orm';
 import { validateRole, validateEventOwnership, validateStaffPermission } from '@/lib/auth-utils';
 import { revalidatePath } from 'next/cache';
-import { auth } from '@/auth';
+import { auth } from '@clerk/nextjs/server';
 
 /**
  * Upload event media (Attendee or Organizer)
@@ -17,9 +17,8 @@ export async function uploadEventMedia(data: {
   caption?: string;
   metadata?: any;
 }) {
-  const session = await auth();
-  if (!session?.user?.id) throw new Error('Authentication required');
-  const userId = session.user.id as string;
+  const { userId } = await auth();
+  if (!userId) throw new Error('Authentication required');
 
   try {
     // 1. Check if user is organizer/staff (Auto-approve) or attendee

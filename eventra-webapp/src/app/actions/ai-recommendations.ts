@@ -6,7 +6,6 @@ import { db } from '@/lib/db';
 import { aiRecommendationCache, events, users } from '@/lib/db/schema';
 import { and, eq, ne } from 'drizzle-orm';
 import { recommendationFlow, contentRecommendationFlow, connectionRecommendationFlow } from '@/lib/ai';
-import { auth } from '@/auth';
 
 export interface RecommendationBundle {
 	events: Array<{ id: string; title: string; category?: string; score?: number }>;

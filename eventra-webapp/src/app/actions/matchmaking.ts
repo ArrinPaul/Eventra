@@ -5,16 +5,15 @@ import { db } from '@/lib/db';
 import { users } from '@/lib/db/schema';
 import { ne, eq, and } from 'drizzle-orm';
 import { matchmakingFlow, generateEmbedding } from '@/lib/ai';
-import { auth } from '@/auth';
+import { auth } from '@clerk/nextjs/server';
 import { sql } from 'drizzle-orm';
 
 /**
  * Find AI-powered connection matches for the user
  */
 export async function getMatches() {
-  const session = await auth();
-  if (!session?.user?.id) throw new Error('Auth required');
-  const userId = session.user.id as string;
+  const { userId } = await auth();
+  if (!userId) throw new Error('Auth required');
 
   try {
     // 1. Get current user

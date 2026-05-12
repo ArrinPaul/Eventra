@@ -6,7 +6,7 @@ import { eq, and, desc, sql } from 'drizzle-orm';
 import { validateRole, validateEventOwnership } from '@/lib/auth-utils';
 import { certificatePersonalizedMessageFlow } from '@/lib/ai';
 import { revalidatePath } from 'next/cache';
-import { auth } from '@/auth';
+import { auth } from '@clerk/nextjs/server';
 
 /**
  * Create or update a certificate template
@@ -258,8 +258,8 @@ export async function bulkIssueCertificates(eventId: string) {
  * Fetch all certificates for the current user
  */
 export async function getUserCertificates() {
-  const session = await auth();
-  if (!session?.user?.id) return [];
+  const { userId } = await auth();
+  if (!userId) return [];
 
   try {
     const result = await db
@@ -276,7 +276,7 @@ export async function getUserCertificates() {
       .from(tickets)
       .innerJoin(events, eq(tickets.eventId, events.id))
       .where(and(
-        eq(tickets.userId, session.user.id),
+        eq(tickets.userId, userId),
         sql`${tickets.personalizedMessage} IS NOT NULL`
       ))
       .orderBy(desc(tickets.updatedAt));

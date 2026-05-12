@@ -2,7 +2,7 @@
 
 import { db } from '@/lib/db';
 import { activityFeed, users, events, posts } from '@/lib/db/schema';
-import { auth } from '@/auth';
+import { auth } from '@clerk/nextjs/server';
 import { eq, desc, and, or, sql, inArray } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 
@@ -78,9 +78,8 @@ export async function getActivityFeed(options?: { userId?: string, limit?: numbe
  * Get personalized feed (from connections)
  */
 export async function getPersonalizedFeed() {
-  const session = await auth();
-  if (!session?.user?.id) return getActivityFeed();
-  const userId = session.user.id as string;
+  const { userId } = await auth();
+  if (!userId) return getActivityFeed();
 
   try {
     // 1. Get user follows

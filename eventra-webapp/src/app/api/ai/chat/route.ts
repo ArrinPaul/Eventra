@@ -3,11 +3,10 @@ import { db } from '@/lib/db';
 import { aiChatSessions, aiChatMessages } from '@/lib/db/schema';
 import { eq, asc } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
-import { auth } from '@/auth';
+import { auth } from '@clerk/nextjs/server';
 
 export async function POST(req: Request) {
-  const session = await auth();
-  const userId = session?.user?.id;
+  const { userId } = await auth();
 
   const { question, eventContext, eventId } = await req.json();
 

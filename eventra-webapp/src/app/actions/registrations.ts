@@ -2,7 +2,7 @@
 
 import { db } from '@/lib/db';
 import { tickets, events, waitlist, ticketTiers, notifications, users } from '@/lib/db/schema';
-import { auth } from '@/auth';
+import { auth } from '@clerk/nextjs/server';
 import { eq, and, desc, sql } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { validateRole } from '@/lib/auth-utils';
@@ -290,9 +290,8 @@ export async function processWaitlistReservations(eventId: string) {
  * Claim a reserved spot from the waitlist
  */
 export async function claimWaitlistSpot(eventId: string) {
-  const session = await auth();
-  if (!session?.user?.id) return { success: false, error: 'Auth required' };
-  const userId = session.user.id;
+  const { userId } = await auth();
+  if (!userId) return { success: false, error: 'Auth required' };
 
   try {
     const result = await db.transaction(async (tx) => {
@@ -391,9 +390,8 @@ export async function cancelRegistration(ticketId: string) {
  * Check if a user is registered for an event
  */
 export async function getRegistrationStatus(eventId: string) {
-  const session = await auth();
-  if (!session?.user?.id) return null;
-  const userId = session.user.id;
+  const { userId } = await auth();
+  if (!userId) return null;
 
   try {
     const result = await db
@@ -417,9 +415,8 @@ export async function getRegistrationStatus(eventId: string) {
  * Get all registrations for the current user
  */
 export async function getUserRegistrations() {
-  const session = await auth();
-  if (!session?.user?.id) return [];
-  const userId = session.user.id;
+  const { userId } = await auth();
+  if (!userId) return [];
 
   try {
     const result = await db
@@ -508,4 +505,3 @@ export async function importAttendees(eventId: string, guestList: { email: strin
     throw new Error('Failed to process guest list');
   }
 }
-

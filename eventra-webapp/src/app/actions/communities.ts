@@ -2,7 +2,7 @@
 
 import { db } from '@/lib/db';
 import { communities, communityMembers, posts, comments, users } from '@/lib/db/schema';
-import { auth } from '@/auth';
+import { auth } from '@clerk/nextjs/server';
 import { eq, and, desc, sql } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { validateRole } from '@/lib/auth-utils';
@@ -381,9 +381,8 @@ export async function getCommunityMembers(communityId: string): Promise<Communit
 }
 
 export async function getMyCommunityMembership(communityId: string): Promise<boolean> {
-  const session = await auth();
-  if (!session?.user?.id) return false;
-  const userId = session.user.id as string;
+  const { userId } = await auth();
+  if (!userId) return false;
 
   try {
     const row = await db.query.communityMembers.findFirst({

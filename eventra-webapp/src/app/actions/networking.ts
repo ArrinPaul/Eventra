@@ -3,7 +3,7 @@
 import { db } from '@/lib/db';
 import { follows, users } from '@/lib/db/schema';
 import { and, eq, ne, or } from 'drizzle-orm';
-import { auth } from '@/auth';
+import { auth } from '@clerk/nextjs/server';
 
 export type NetworkUser = {
   id: string;
@@ -21,9 +21,9 @@ export type NetworkConnection = {
 };
 
 async function requireUserId(): Promise<string> {
-  const session = await auth();
-  if (!session?.user?.id) throw new Error('Authentication required');
-  return session.user.id;
+  const { userId } = await auth();
+  if (!userId) throw new Error('Authentication required');
+  return userId;
 }
 
 export async function getNetworkingSnapshot(): Promise<{

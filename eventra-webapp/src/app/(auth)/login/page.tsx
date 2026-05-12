@@ -1,87 +1,88 @@
 'use client';
 
-import { signIn } from "next-auth/react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { Chrome, Mail, ArrowRight, Sparkles, ShieldCheck } from "lucide-react";
+import { SignIn } from "@clerk/nextjs";
+import { MoveLeft } from "lucide-react";
 import Link from "next/link";
-import { useTranslations } from "next-intl";
+import { Logo } from "@/components/brand/logo";
 
 export default function LoginPage() {
-  const t = useTranslations('Auth');
-  const tc = useTranslations('Common');
-
-  const handleGoogleLogin = () => {
-    signIn("google", { callbackUrl: "/" });
-  };
-
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-background px-4 py-12">
-        <div className="absolute top-0 left-0 w-full h-full overflow-hidden -z-10 opacity-40">
-            <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/10 blur-[120px] rounded-full" />
-            <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-primary/5 blur-[120px] rounded-full" />
+    <div className="min-h-screen flex bg-background selection:bg-primary selection:text-primary-foreground">
+      {/* Visual Side */}
+      <div className="hidden lg:flex lg:w-1/2 relative bg-zinc-950 overflow-hidden border-r border-border">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(124,58,237,0.1),transparent_70%)]" />
+        <div className="absolute inset-0 opacity-[0.03] bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
+        
+        <div className="relative z-10 p-20 flex flex-col justify-between h-full">
+          <Link href="/" className="transition-transform duration-300 active:scale-95">
+            <Logo showText className="text-white" />
+          </Link>
+
+          <div className="space-y-6">
+            <div className="h-1 w-20 bg-primary shadow-glow" />
+            <h1 className="text-6xl font-display font-black text-white leading-[0.9] tracking-tighter uppercase">
+              Access the <br />
+              <span className="text-primary italic">Ecosystem</span>
+            </h1>
+          </div>
+
+          <div className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-600">
+            © 2026 EVENTRA — ALL RIGHTS RESERVED
+          </div>
         </div>
 
-      <Card className="w-full max-w-md bg-card border-border/50 rounded-[2.5rem] shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-500">
-        <CardHeader className="pt-12 pb-8 px-8 text-center space-y-4">
-          <div className="bg-primary/10 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-2 shadow-glow">
-            <ShieldCheck className="h-8 w-8 text-primary" />
-          </div>
-          <div className="space-y-1">
-            <CardTitle className="text-4xl font-black font-headline tracking-tighter">{t('signIn')}</CardTitle>
-            <CardDescription className="text-base font-medium text-muted-foreground">
-              {t('welcomeBack')}
-            </CardDescription>
-          </div>
-        </CardHeader>
-        <CardContent className="px-8 pb-8 space-y-6">
-          <Button
-            onClick={handleGoogleLogin}
-            variant="outline"
-            size="lg"
-            className="w-full h-14 rounded-2xl border-2 font-black text-base flex items-center justify-center gap-3 hover:bg-muted/50 transition-all group"
-          >
-            <Chrome className="h-5 w-5" />
-            {t('continueWith')} Google
-            <ArrowRight className="h-4 w-4 ml-auto opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
-          </Button>
+        {/* Abstract Background Element */}
+        <div className="absolute -right-20 bottom-20 w-80 h-80 border-t border-l border-zinc-800 -rotate-12" />
+      </div>
 
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t border-border/50" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-card px-4 text-muted-foreground font-black tracking-widest">{t('orContinueWith')}</span>
-            </div>
-          </div>
-
-          <Button
-            disabled
-            variant="ghost"
-            size="lg"
-            className="w-full h-14 rounded-2xl font-bold text-muted-foreground flex items-center justify-center gap-3"
-          >
-            <Mail className="h-5 w-5" />
-            {t('emailLabel')} (Coming Soon)
-          </Button>
-        </CardContent>
-        <CardFooter className="px-8 pb-12 pt-0 flex flex-col gap-6">
-          <p className="text-[10px] text-center text-muted-foreground font-medium max-w-[280px] mx-auto leading-relaxed">
-            {t('termsAgree')}
-          </p>
-          <div className="pt-6 border-t border-border/30 w-full text-center">
-            <Link href="/" className="text-sm font-bold text-muted-foreground hover:text-primary transition-colors inline-flex items-center gap-2">
-                <ArrowRight className="h-4 w-4 rotate-180" />
-                Back to home
+      {/* Form Side */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 md:p-16 relative overflow-hidden">
+        <div className="w-full max-w-sm space-y-12 relative z-10">
+          <div className="lg:hidden">
+            <Link href="/" className="transition-transform duration-300 active:scale-95">
+              <Logo />
             </Link>
           </div>
-        </CardFooter>
-      </Card>
 
-      <div className="mt-8 flex items-center gap-2 text-muted-foreground/40 font-black text-[10px] uppercase tracking-[0.3em]">
-        <Sparkles className="h-3 w-3" />
-        Secure Infrastructure
+          <SignIn 
+            appearance={{
+              elements: {
+                rootBox: "w-full",
+                card: "bg-transparent border-none shadow-none p-0",
+                headerTitle: "text-4xl font-display font-black tracking-tighter uppercase text-foreground",
+                headerSubtitle: "text-muted-foreground font-medium text-lg leading-relaxed",
+                socialButtonsBlockButton: "h-16 rounded-none border border-border bg-background shadow-solid hover:translate-y-[-2px] hover:shadow-solid-hover transition-all text-foreground font-bold uppercase tracking-widest text-xs",
+                socialButtonsBlockButtonText: "font-bold",
+                dividerRow: "py-8",
+                dividerLine: "bg-border",
+                dividerText: "text-[10px] uppercase font-black tracking-[0.2em] text-muted-foreground px-4 bg-background",
+                formFieldLabel: "text-[10px] uppercase font-black tracking-widest text-muted-foreground mb-2",
+                formFieldInput: "h-12 rounded-none border-border bg-background focus:ring-primary focus:border-primary transition-all",
+                formButtonPrimary: "h-16 rounded-none bg-primary text-primary-foreground shadow-solid hover:translate-y-[-2px] hover:shadow-solid-hover transition-all font-bold uppercase tracking-widest text-xs",
+                footerActionText: "text-muted-foreground font-medium",
+                footerActionLink: "text-primary font-black hover:underline underline-offset-4 uppercase tracking-widest text-xs",
+                identityPreviewText: "text-foreground font-bold",
+                identityPreviewEditButton: "text-primary",
+              }
+            }}
+          />
+
+          <div className="pt-8 border-t border-border">
+             <Link 
+              href="/" 
+              className="group inline-flex items-center gap-3 text-xs font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-all"
+            >
+              <MoveLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" />
+              Back to gateway
+            </Link>
+          </div>
+        </div>
+
+        {/* Decorative background element for mobile */}
+        <div className="lg:hidden absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-primary/5 blur-[120px] rounded-full -z-10" />
       </div>
     </div>
   );
 }
+
+

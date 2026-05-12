@@ -2,7 +2,7 @@
 
 import { db } from '@/lib/db';
 import { notifications } from '@/lib/db/schema';
-import { auth } from '@/auth';
+import { auth } from '@clerk/nextjs/server';
 import { eq, and, desc, sql } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 
@@ -10,9 +10,8 @@ import { revalidatePath } from 'next/cache';
  * Get notifications for the current user
  */
 export async function getNotifications(limit = 20) {
-  const session = await auth();
-  if (!session?.user?.id) return [];
-  const userId = session.user.id;
+  const { userId } = await auth();
+  if (!userId) return [];
 
   try {
     const results = await db
@@ -33,9 +32,8 @@ export async function getNotifications(limit = 20) {
  * Mark a notification as read
  */
 export async function markNotificationRead(id: string) {
-  const session = await auth();
-  if (!session?.user?.id) throw new Error('Auth required');
-  const userId = session.user.id;
+  const { userId } = await auth();
+  if (!userId) throw new Error('Auth required');
 
   try {
     await db
@@ -54,9 +52,8 @@ export async function markNotificationRead(id: string) {
  * Mark all notifications as read for current user
  */
 export async function markAllNotificationsRead() {
-  const session = await auth();
-  if (!session?.user?.id) throw new Error('Auth required');
-  const userId = session.user.id;
+  const { userId } = await auth();
+  if (!userId) throw new Error('Auth required');
 
   try {
     await db
@@ -75,9 +72,8 @@ export async function markAllNotificationsRead() {
  * Delete a notification
  */
 export async function deleteNotification(id: string) {
-  const session = await auth();
-  if (!session?.user?.id) throw new Error('Auth required');
-  const userId = session.user.id;
+  const { userId } = await auth();
+  if (!userId) throw new Error('Auth required');
 
   try {
     await db

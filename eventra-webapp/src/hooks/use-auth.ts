@@ -1,67 +1,47 @@
-'use client';
-
-import { useSession, signIn as nextAuthSignIn, signOut as nextAuthSignOut } from "next-auth/react";
+import { useUser, useAuth as useClerkAuth, useSession } from "@clerk/nextjs";
 import { User } from '@/types';
 import { updateUserDetails } from "@/app/actions/users";
 import { awardXP as awardXPServer } from "@/app/actions/gamification";
 
 export function useAuth() {
-  const { data: session, status, update } = useSession();
-  const loading = status === "loading";
-  const isAuthenticated = status === "authenticated";
+  const { user: clerkUser, isLoaded: isUserLoaded } = useUser();
+  const { signOut, userId, isLoaded: isAuthLoaded } = useClerkAuth();
+  const { session } = useSession();
+
+  const loading = !isUserLoaded || !isAuthLoaded;
+  const isAuthenticated = !!userId;
   
-  const user = session?.user ? {
-    id: session.user.id,
-    name: session.user.name,
-    email: session.user.email,
-    image: session.user.image,
-    // @ts-ignore
-    role: session.user.role || "attendee",
-    // @ts-ignore
-    onboardingCompleted: session.user.onboardingCompleted,
-    // These might be missing from the basic session user but can be added if needed
-    points: (session.user as any).points || 0,
-    level: (session.user as any).level || 1,
-    xp: (session.user as any).xp || 0,
+  const user = clerkUser ? {
+    id: clerkUser.id,
+    name: clerkUser.fullName,
+    email: clerkUser.primaryEmailAddress?.emailAddress,
+    image: clerkUser.imageUrl,
+    role: (clerkUser.publicMetadata?.role as string) || "attendee",
+    onboardingCompleted: !!clerkUser.publicMetadata?.onboardingCompleted,
+    points: (clerkUser.publicMetadata?.points as number) || 0,
+    level: (clerkUser.publicMetadata?.level as number) || 1,
+    xp: (clerkUser.publicMetadata?.xp as number) || 0,
   } as User : null;
 
-  const signIn = async () => {
-    try {
-      await nextAuthSignIn("google");
-      return { ok: true };
-    } catch (error) {
-      return { ok: false, error: String(error) };
-    }
-  };
-
   const logout = async () => {
-    await nextAuthSignOut({ callbackUrl: "/" });
+    await signOut({ redirectUrl: "/" });
   };
 
   const updateUser = async (data: Partial<User>) => {
     if (!user?.id) return null;
     const result = await updateUserDetails(user.id, data);
-    if (result.success) {
-      await update(); // Refresh session
-    }
+    // Note: Clerk metadata update should ideally happen via webhook or direct API
+    // but for now we rely on our database as the source for extended fields.
     return result.user;
   };
 
-  /**
-   * Award points to the current user and persist to DB
-   */
   const awardPoints = async (points: number, reason: string = "Platform Activity") => {
     if (!user?.id) return;
-    const result = await awardXPServer(user.id, points, reason);
-    if (result?.success) {
-      await update(); // Refresh session
-    }
+    await awardXPServer(user.id, points, reason);
   };
 
   const checkInUser = async (eventId: string) => {
     if (!user?.id) return;
-    // This should ideally be handled by a check-in specific action, 
-    // but for the hook consistency:
     await updateUser({ checkedIn: true } as any);
   };
 
@@ -73,7 +53,6 @@ export function useAuth() {
     updateUser,
     awardPoints,
     checkInUser,
-    signIn,
     authErrorMessage: (error: unknown) => String(error),
   };
 }

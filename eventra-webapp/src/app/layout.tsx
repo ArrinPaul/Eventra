@@ -45,6 +45,8 @@ const messagesByLocale: Record<string, Record<string, unknown>> = {
   es: esMessages as Record<string, unknown>,
 };
 
+import { ClerkProvider } from '@clerk/nextjs';
+
 export default async function RootLayout({
   children,
 }: Readonly<{
@@ -56,22 +58,24 @@ export default async function RootLayout({
   const organizationSchema = generateOrganizationSchema();
   
   return (
-    <html lang={safeLocale} suppressHydrationWarning className={`${fontInter.variable} ${fontSpaceGrotesk.variable} ${fontJetbrainsMono.variable}`}>
-      <head>
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
-        />
-      </head>
-      <body className="font-sans antialiased bg-background text-foreground">
-        <NextIntlClientProvider locale={safeLocale} messages={messages}>
-          <Providers>
-            {children}
-            <NotificationWatcher />
-            <Toaster />
-          </Providers>
-        </NextIntlClientProvider>
-      </body>
-    </html>
+    <ClerkProvider>
+      <html lang={safeLocale} suppressHydrationWarning className={`${fontInter.variable} ${fontSpaceGrotesk.variable} ${fontJetbrainsMono.variable}`}>
+        <head>
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+          />
+        </head>
+        <body className="font-sans antialiased bg-background text-foreground">
+          <NextIntlClientProvider locale={safeLocale} messages={messages}>
+            <Providers>
+              {children}
+              <NotificationWatcher />
+              <Toaster />
+            </Providers>
+          </NextIntlClientProvider>
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }

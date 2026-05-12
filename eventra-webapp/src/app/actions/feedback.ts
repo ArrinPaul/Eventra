@@ -5,7 +5,7 @@ import { feedbackTemplates, eventFeedback, events, notifications, tickets } from
 import { eq, and, desc, sql, avg } from 'drizzle-orm';
 import { validateRole, validateEventOwnership } from '@/lib/auth-utils';
 import { revalidatePath } from 'next/cache';
-import { auth } from '@/auth';
+import { auth } from '@clerk/nextjs/server';
 
 /**
  * Upsert a feedback template
@@ -98,9 +98,8 @@ export async function submitEventFeedback(data: {
   comment?: string;
   responses?: any;
 }) {
-  const session = await auth();
-  if (!session?.user?.id) throw new Error('Authentication required');
-  const userId = session.user.id as string;
+  const { userId } = await auth();
+  if (!userId) throw new Error('Authentication required');
 
   // Verify the user actually attended/checked-in
   const ticket = await db.query.tickets.findFirst({

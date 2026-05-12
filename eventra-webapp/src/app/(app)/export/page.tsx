@@ -1,15 +1,15 @@
 import ExportFunctionality from '@/features/export/export-functionality';
 import { getEvents } from '@/app/actions/events';
 import { getUserRegistrations } from '@/app/actions/registrations';
-import { auth } from '@/auth';
+import { auth } from '@clerk/nextjs/server';
 import { redirect } from 'next/navigation';
 
 export default async function ExportPage() {
-  const session = await auth();
-  if (!session?.user?.id) redirect('/login');
+  const { userId } = await auth();
+  if (!userId) redirect('/login');
 
   const [events, registrations] = await Promise.all([
-    getEvents({ organizerId: session.user.id, limit: 1000 }),
+    getEvents({ organizerId: userId, limit: 1000 }),
     getUserRegistrations()
   ]);
 

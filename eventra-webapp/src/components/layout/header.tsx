@@ -3,22 +3,14 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
-import { Menu, LogOut, Moon, Sun, Search, Settings, Ticket, Calendar, X, Sparkles } from 'lucide-react';
+import { Menu, Moon, Sun, Search, Settings, Ticket, Calendar, X, Sparkles } from 'lucide-react';
 import { Logo } from '@/components/brand/logo';
 import { cn } from '@/core/utils/utils';
 import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
 import { NotificationBell } from '@/features/notifications/notification-center';
 import { motion, AnimatePresence, useScroll, useMotionValueEvent } from 'framer-motion';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
+import { UserButton } from "@clerk/nextjs";
 import { LanguageSwitcher } from '@/components/shared/language-switcher';
 import { useTranslations } from 'next-intl';
 
@@ -47,7 +39,7 @@ function ThemeToggle() {
 }
 
 export default function Header() {
-  const { user, logout } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const t = useTranslations('Common');
   const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
@@ -87,7 +79,7 @@ export default function Header() {
     { href: '/admin', label: t('dashboard'), roles: ['organizer', 'admin'] },
   ].filter(link => {
     if (link.href === '/' || link.href === '/explore') return true;
-    if (link.requireAuth && !user) return false;
+    if (link.requireAuth && !isAuthenticated) return false;
     return !link.roles || (user && link.roles.includes(user.role));
   });
 
@@ -167,72 +159,26 @@ export default function Header() {
               <LanguageSwitcher />
             </div>
 
-            {user && (
+            {isAuthenticated && (
               <div className="hidden sm:block">
                 <NotificationBell />
               </div>
             )}
 
-            {user ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-11 w-11 rounded-none ml-1 p-0 group border border-transparent hover:border-border" data-testid="header-user-menu">
-                    <Avatar className="h-10 w-10 rounded-none border border-transparent group-hover:border-primary transition-all">
-                      <AvatarImage src={user.image || ''} alt={user.name || 'User'} className="rounded-none" />
-                      <AvatarFallback className="bg-primary/10 text-primary text-sm font-bold rounded-none">
-                        {user.name?.charAt(0) || user.email?.charAt(0) || 'U'}
-                      </AvatarFallback>
-                    </Avatar>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-72 mt-4 p-0 rounded-none bg-card border-border shadow-2xl animate-scale-in" align="end">
-                  <div className="flex items-center gap-4 p-4 bg-muted/20 border-b border-border">
-                    <Avatar className="h-14 w-14 rounded-none border border-primary/20">
-                      <AvatarImage src={user.image || ''} className="rounded-none" />
-                      <AvatarFallback className="bg-primary/20 text-primary font-bold text-xl rounded-none">
-                        {user.name?.charAt(0) || 'U'}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex flex-col min-w-0">
-                      <span className="text-base font-bold text-foreground truncate uppercase tracking-tight">{user.name || 'User'}</span>
-                      <span className="text-xs font-mono font-bold text-muted-foreground truncate uppercase tracking-widest">{user.email}</span>
-                      <Badge variant="secondary" className="mt-2 w-fit">
-                        {user.role}
-                      </Badge>
-                    </div>
-                  </div>
-                  <div className="p-2 space-y-1">
-                    <DropdownMenuItem asChild className="cursor-pointer rounded-none p-3 font-bold uppercase tracking-widest text-[10px] hover:bg-primary/10 hover:text-primary transition-colors">
-                      <Link href="/profile">
-                        <Calendar className="mr-3 h-4 w-4 opacity-70" />
-                        My Profile
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild className="cursor-pointer rounded-none p-3 font-bold uppercase tracking-widest text-[10px] hover:bg-primary/10 hover:text-primary transition-colors">
-                      <Link href="/tickets">
-                        <Ticket className="mr-3 h-4 w-4 opacity-70" />
-                        Access Passes
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild className="cursor-pointer rounded-none p-3 font-bold uppercase tracking-widest text-[10px] hover:bg-primary/10 hover:text-primary transition-colors">
-                      <Link href="/preferences">
-                        <Settings className="mr-3 h-4 w-4 opacity-70" />
-                        Node Settings
-                      </Link>
-                    </DropdownMenuItem>
-                  </div>
-                  <DropdownMenuSeparator className="bg-border opacity-50" />
-                  <div className="p-2">
-                    <DropdownMenuItem
-                      onClick={logout}
-                      className="text-destructive focus:text-destructive cursor-pointer rounded-none p-3 font-bold uppercase tracking-widest text-[10px] hover:bg-destructive/10 transition-colors"
-                    >
-                      <LogOut className="mr-3 h-4 w-4 opacity-70" />
-                      De-authenticate
-                    </DropdownMenuItem>
-                  </div>
-                </DropdownMenuContent>
-              </DropdownMenu>
+            {isAuthenticated ? (
+              <div className="ml-2 flex items-center">
+                <UserButton 
+                  appearance={{
+                    elements: {
+                      userButtonAvatarBox: "h-10 w-10 rounded-none border border-border hover:border-primary transition-all",
+                      userButtonTrigger: "focus:shadow-none focus:ring-0",
+                      userButtonPopoverCard: "rounded-none border-border shadow-solid",
+                      userButtonPopoverActionButton: "rounded-none hover:bg-primary/10 transition-colors",
+                      userButtonPopoverActionButtonText: "font-bold uppercase tracking-widest text-[10px]",
+                    }
+                  }}
+                />
+              </div>
             ) : (
               <div className="hidden md:flex items-center gap-4 ml-2">
                 <Button asChild variant="ghost" className="font-bold text-muted-foreground hover:text-foreground" data-testid="header-signin">
@@ -314,26 +260,18 @@ export default function Header() {
                 </nav>
 
                 <div className="border-t border-border pt-6 space-y-4">
-                  {user ? (
-                    <>
-                      <div className="flex items-center gap-3 px-3 mb-6">
-                        <Avatar className="h-12 w-12">
-                          <AvatarImage src={user.image || ''} />
-                          <AvatarFallback className="bg-primary/20 text-primary font-bold">{user.name?.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <p className="font-bold text-sm">{user.name}</p>
-                          <p className="text-xs text-muted-foreground">{user.email}</p>
-                        </div>
-                      </div>
-                      <Button
-                        onClick={() => { logout(); setMobileMenuOpen(false); }}
-                        variant="destructive"
-                        className="w-full rounded-xl"
-                      >
-                        <LogOut className="mr-2 h-4 w-4" /> Log Out
-                      </Button>
-                    </>
+                  {isAuthenticated ? (
+                    <div className="flex justify-center">
+                      <UserButton 
+                        appearance={{
+                          elements: {
+                            userButtonAvatarBox: "h-14 w-14 rounded-none",
+                            userButtonTrigger: "w-full flex justify-center",
+                            rootBox: "w-full"
+                          }
+                        }}
+                      />
+                    </div>
                   ) : (
                     <div className="space-y-3">
                       <Button asChild className="w-full rounded-xl" onClick={() => setMobileMenuOpen(false)}>
