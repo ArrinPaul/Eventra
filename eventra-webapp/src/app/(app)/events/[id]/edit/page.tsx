@@ -7,7 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { use } from 'react';
+import { use, useState, useEffect } from 'react';
 import { CoOrganizerManager } from '@/features/organizer/co-organizer-manager';
 import { AnnouncementManager } from '@/features/organizer/announcement-manager';
 import { WebhookManager } from '@/features/organizer/webhook-manager';
@@ -15,6 +15,7 @@ import { SocialPostGenerator } from '@/features/organizer/social-post-generator'
 import { AttendancePredictor } from '@/features/organizer/attendance-predictor';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { getEventById, updateEvent } from '@/app/actions/events';
 
 export default function EventEditPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -22,13 +23,19 @@ export default function EventEditPage({ params }: { params: Promise<{ id: string
   const router = useRouter();
   const { toast } = useToast();
   
-  // Backlog(P3.1): fetch event details by id from server action and enforce organizer ownership server-side.
-  const event: any = null;
-  const updateEvent = async (data: any) => {
-    toast({ description: 'Update not yet implemented' });
-  };
+  const [event, setEvent] = useState<any>(undefined);
+  const [loading, setLoading] = useState(true);
 
-  if (event === undefined) {
+  useEffect(() => {
+    async function loadEvent() {
+      const data = await getEventById(id);
+      setEvent(data);
+      setLoading(false);
+    }
+    loadEvent();
+  }, [id]);
+
+  if (loading) {
     return (
       <div className="container py-16 flex justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -39,9 +46,9 @@ export default function EventEditPage({ params }: { params: Promise<{ id: string
   if (!event) {
     return (
       <div className="container py-16 text-center text-foreground">
-        <h1 className="text-2xl font-bold">Event not found</h1>
-        <Button asChild variant="outline" className="mt-4">
-          <Link href="/events">Back to Events</Link>
+        <h1 className="text-4xl font-black font-headline">Event not found</h1>
+        <Button asChild variant="outline" className="mt-8 rounded-2xl border-2 px-8 font-bold">
+          <Link href="/explore">Back to Explore</Link>
         </Button>
       </div>
     );
@@ -53,9 +60,9 @@ export default function EventEditPage({ params }: { params: Promise<{ id: string
   if (!isMainOrganizer && !isCoOrganizer) {
     return (
       <div className="container py-16 text-center text-foreground">
-        <h1 className="text-2xl font-bold">Unauthorized</h1>
-        <p className="text-muted-foreground mt-2">You can only edit events you organize.</p>
-        <Button asChild variant="outline" className="mt-4">
+        <h1 className="text-4xl font-black font-headline">Unauthorized</h1>
+        <p className="text-muted-foreground mt-4 font-medium">You can only edit events you organize.</p>
+        <Button asChild variant="outline" className="mt-8 rounded-2xl border-2 px-8 font-bold">
           <Link href={`/events/${id}`}>Back to Event</Link>
         </Button>
       </div>
@@ -64,64 +71,53 @@ export default function EventEditPage({ params }: { params: Promise<{ id: string
 
   const handleSave = async (eventData: any) => {
     try {
-      await updateEvent({
-        id: event.id,
-        updates: {
-          title: eventData.title,
-          description: eventData.description,
-          startDate: typeof eventData.startDate === 'number' ? eventData.startDate : new Date(eventData.startDate).getTime(),
-          endDate: typeof eventData.endDate === 'number' ? eventData.endDate : new Date(eventData.endDate).getTime(),
-          location: eventData.location,
-          type: eventData.type,
-          category: eventData.category,
-          capacity: eventData.capacity,
-          status: eventData.status,
-          targetAudience: eventData.targetAudience,
-        },
-      });
-      toast({ title: 'Event updated successfully!' });
-      router.push(`/events/${id}`);
+      const result = await updateEvent(id, eventData);
+      if (result.success) {
+        toast({ title: 'Event updated successfully!' });
+        router.push(`/events/${id}`);
+      } else {
+        toast({ title: 'Error', description: String(result.error), variant: 'destructive' });
+      }
     } catch (error: any) {
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
     }
   };
 
   return (
-    <div className="container py-8 max-w-4xl mx-auto text-foreground">
-      <div className="flex items-center gap-4 mb-8">
-        <Button asChild variant="ghost" size="icon">
+    <div className="container py-12 max-w-7xl mx-auto text-foreground">
+      <div className="flex items-center gap-6 mb-12">
+        <Button asChild variant="outline" size="icon" className="h-12 w-12 rounded-xl border-2">
           <Link href={`/events/${id}`}>
-            <ArrowLeft className="h-5 w-5" />
+            <ArrowLeft className="h-6 w-6" />
           </Link>
         </Button>
         <div>
-          <h1 className="text-3xl font-extrabold tracking-tight">Manage Event</h1>
-          <p className="text-muted-foreground mt-1">Configure event details and team members</p>
+          <h1 className="text-4xl font-black font-headline tracking-tighter">Manage Event</h1>
+          <p className="text-muted-foreground font-medium mt-1">Configure event details and collaboration</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-8">
-          <div className="bg-card border border-border rounded-2xl p-6">
-            <h2 className="text-xl font-bold mb-6">Event Details</h2>
-            <EventForm
-              onSave={handleSave}
-              event={{
-                ...event,
-                id: event.id,
-              } as any}
-            />
-          </div>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+        <div className="lg:col-span-8 space-y-12">
+          <Card className="bg-card border-border/50 rounded-[2.5rem] shadow-xl overflow-hidden">
+            <CardHeader className="bg-primary/[0.02] border-b border-border/50 p-8">
+              <h2 className="text-2xl font-black font-headline">Event Configuration</h2>
+            </CardHeader>
+            <CardContent className="p-8">
+              <EventForm
+                onSave={handleSave}
+                event={event}
+              />
+            </CardContent>
+          </Card>
         </div>
 
-        <div className="space-y-8">
+        <div className="lg:col-span-4 space-y-8">
           <AnnouncementManager eventId={event.id} />
           
           <AttendancePredictor eventId={event.id} />
 
           <SocialPostGenerator eventId={event.id} />
-
-          <WebhookManager eventId={event.id} />
 
           {isMainOrganizer && (
             <CoOrganizerManager 
@@ -131,19 +127,19 @@ export default function EventEditPage({ params }: { params: Promise<{ id: string
             />
           )}
           
-          <Card className="bg-card border-border text-foreground">
-            <CardHeader>
-              <CardTitle className="text-lg">Event Status</CardTitle>
+          <Card className="bg-card border-border/50 text-foreground rounded-[2rem] shadow-xl overflow-hidden">
+            <CardHeader className="bg-primary/[0.02] border-b border-border/50 p-6">
+              <CardTitle className="text-lg font-black font-headline">Visibility & Status</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="p-6 space-y-6">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Current Status</span>
-                <Badge variant="outline" className="capitalize border-primary/30 text-primary">
+                <span className="text-sm font-bold text-muted-foreground uppercase tracking-widest text-[10px]">Current Status</span>
+                <Badge variant="outline" className="capitalize border-primary/40 text-primary font-black px-3 py-1">
                   {event.status}
                 </Badge>
               </div>
-              <p className="text-xs text-muted-foreground">
-                You can change the event status in the main form. Published events are visible to all users.
+              <p className="text-xs font-medium text-muted-foreground leading-relaxed">
+                Published events are visible to all users. Drafts are only visible to the organizer team.
               </p>
             </CardContent>
           </Card>

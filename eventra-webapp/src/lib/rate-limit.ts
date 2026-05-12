@@ -6,8 +6,8 @@ import { sql } from 'drizzle-orm';
 const DEFAULT_LIMIT = 120;
 const DEFAULT_WINDOW_MS = 60_000;
 
-function getClientIdentifier(userId?: string) {
-  const headerStore = headers();
+async function getClientIdentifier(userId?: string) {
+  const headerStore = await headers();
   const forwardedFor = headerStore.get('x-forwarded-for');
   const ip = forwardedFor?.split(',')[0]?.trim()
     ?? headerStore.get('x-real-ip')
@@ -33,7 +33,7 @@ export async function enforceRateLimit(options?: {
     windowMs = DEFAULT_WINDOW_MS,
   } = options ?? {};
 
-  const identifier = getClientIdentifier(userId);
+  const identifier = await getClientIdentifier(userId);
   const now = new Date();
   const windowStart = new Date(Math.floor(now.getTime() / windowMs) * windowMs);
 

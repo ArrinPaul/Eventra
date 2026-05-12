@@ -1,79 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { User } from '@/types';
-
-/**
- * AUTH BYPASS MODE (Development)
- */
-const MOCK_NORMAL_USER: User = {
-  id: 'dev-user-id',
-  name: 'Alex Explorer',
-  email: 'alex@example.com',
-  role: 'attendee',
-  points: 150,
-  level: 2,
-  xp: 450,
-  onboardingCompleted: true,
-};
-
-export function useAuth() {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    // Check if user has "logged out" in this session
-    const status = sessionStorage.getItem('eventra_bypass_auth');
-    if (status === 'true') {
-      setIsAuthenticated(true);
-    } else {
-      setIsAuthenticated(false);
-    }
-    setLoading(false);
-  }, []);
-
-  const signIn = async () => {
-    sessionStorage.setItem('eventra_bypass_auth', 'true');
-    setIsAuthenticated(true);
-    return { ok: true };
-  };
-
-  const logout = async () => { 
-    sessionStorage.setItem('eventra_bypass_auth', 'false');
-    setIsAuthenticated(false);
-    window.location.href = '/'; 
-  };
-
-  const user = isAuthenticated ? MOCK_NORMAL_USER : null;
-
-  const updateUser = async (data: Partial<User>) => {
-    console.log('Bypass mode: updateUser called with', data);
-    return { ...user, ...data };
-  };
-
-  const awardPoints = async (points: number, reason: string = "Platform Activity") => {
-    console.log(`Bypass mode: awardPoints ${points} for ${reason}`);
-  };
-
-  const checkInUser = async (eventId: string) => {
-    console.log(`Bypass mode: checkInUser for ${eventId}`);
-  };
-
-  return {
-    user,
-    loading,
-    isAuthenticated,
-    logout,
-    updateUser,
-    awardPoints,
-    checkInUser,
-    signIn,
-    authErrorMessage: (error: unknown) => String(error),
-  };
-}
-
-/* --- ORIGINAL USE-AUTH (COMMENTED OUT FOR DEVELOPMENT) ---
 import { useSession, signIn as nextAuthSignIn, signOut as nextAuthSignOut } from "next-auth/react";
+import { User } from '@/types';
 import { updateUserDetails } from "@/app/actions/users";
 import { awardXP as awardXPServer } from "@/app/actions/gamification";
 
@@ -121,7 +49,7 @@ export function useAuth() {
 
   /**
    * Award points to the current user and persist to DB
-   *\/
+   */
   const awardPoints = async (points: number, reason: string = "Platform Activity") => {
     if (!user?.id) return;
     const result = await awardXPServer(user.id, points, reason);
@@ -149,4 +77,3 @@ export function useAuth() {
     authErrorMessage: (error: unknown) => String(error),
   };
 }
-*/

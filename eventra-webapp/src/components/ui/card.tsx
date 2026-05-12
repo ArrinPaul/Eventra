@@ -10,7 +10,7 @@ const cardVariants = cva(
         default: "bg-card border-border shadow-solid hover:shadow-solid-hover",
         glass: "bg-card/80 backdrop-blur-3xl border-border shadow-solid",
         elevated: "bg-card border-border shadow-solid hover:translate-y-[-4px]",
-        outline: "bg-transparent border-border hover:border-[#7C4DFF]",
+        outline: "bg-transparent border-border hover:border-primary",
       },
     },
     defaultVariants: {

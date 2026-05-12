@@ -99,43 +99,43 @@ export default function ExploreClient() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
       {/* Page Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-foreground mb-2">{t('exploreEvents')}</h1>
-        <p className="text-muted-foreground">{t('exploreSubtitle')}</p>
+      <div className="mb-12">
+        <h1 className="text-4xl font-black font-headline text-foreground mb-3 tracking-tighter">{t('exploreEvents')}</h1>
+        <p className="text-xl text-muted-foreground font-medium">{t('exploreSubtitle')}</p>
       </div>
 
       {/* Search & Filters */}
-      <div className="mb-8 space-y-4">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+      <div className="mb-12 space-y-6">
+        <div className="relative group">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
           <Input
             placeholder={t('searchEvents')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-10 h-11 rounded-xl bg-card border-border"
+            className="pl-12 h-14 rounded-2xl bg-card border-border/50 text-lg focus-visible:ring-primary shadow-sm"
           />
           {search && (
             <button
               onClick={() => setSearch('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
             >
-              <X className="w-4 h-4" />
+              <X className="w-5 h-5" />
             </button>
           )}
         </div>
 
         {/* Category Pills */}
-        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+        <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide">
           {categories.map((cat) => (
             <button
               key={cat.value}
               onClick={() => setSelectedCategory(cat.value)}
-              className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-200 ${
+              className={`px-6 py-2.5 rounded-xl text-sm font-black whitespace-nowrap transition-all duration-300 border-2 ${
                 selectedCategory === cat.value
-                  ? 'bg-foreground text-background'
-                  : 'bg-card border border-border text-muted-foreground hover:text-foreground hover:border-foreground/20'
+                  ? 'bg-primary text-primary-foreground border-primary shadow-glow'
+                  : 'bg-card border-border/50 text-muted-foreground hover:text-foreground hover:border-primary/30'
               }`}
             >
               {cat.label}
@@ -146,73 +146,68 @@ export default function ExploreClient() {
 
       {/* Results */}
       {loading ? (
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="rounded-2xl border border-border bg-card overflow-hidden animate-pulse">
-              <div className="h-48 bg-muted" />
-              <div className="p-5 space-y-3">
-                <div className="h-4 bg-muted rounded w-3/4" />
-                <div className="h-3 bg-muted rounded w-1/2" />
-                <div className="h-3 bg-muted rounded w-2/3" />
-              </div>
-            </div>
+            <div key={i} className="rounded-[2rem] border border-border/50 bg-card overflow-hidden animate-pulse aspect-[4/5]" />
           ))}
         </div>
       ) : events.length === 0 ? (
         <motion.div
-          className="text-center py-20"
+          className="text-center py-32 bg-card rounded-[3rem] border border-dashed border-border"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
         >
-          <Calendar className="w-12 h-12 text-muted-foreground/40 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-foreground mb-1">{t('noEvents')}</h3>
-          <p className="text-muted-foreground text-sm">{t('adjustFilters')}</p>
+          <div className="w-20 h-20 bg-muted/30 rounded-full flex items-center justify-center mx-auto mb-6">
+            <Calendar className="w-10 h-10 text-muted-foreground/30" />
+          </div>
+          <h3 className="text-2xl font-black text-foreground mb-2">{t('noEvents')}</h3>
+          <p className="text-muted-foreground font-medium">{t('adjustFilters')}</p>
         </motion.div>
       ) : (
         <motion.div
-          className="grid md:grid-cols-2 lg:grid-cols-3 gap-5"
+          className="grid md:grid-cols-2 lg:grid-cols-3 gap-8"
           initial="initial"
           animate="animate"
-          variants={{ animate: { transition: { staggerChildren: 0.06 } } }}
+          variants={{ animate: { transition: { staggerChildren: 0.1 } } }}
         >
           {events.map((event) => (
             <motion.div
               key={event.id}
               variants={{
-                initial: { opacity: 0, y: 12 },
+                initial: { opacity: 0, y: 30 },
                 animate: { opacity: 1, y: 0 },
               }}
-              transition={{ duration: 0.3 }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
             >
-              <Link href={`/events/${event.id}`} className="group block">
-                <div className="rounded-2xl border border-border bg-card overflow-hidden hover:shadow-card-hover hover:border-primary/20 transition-all duration-200">
+              <Link href={`/events/${event.id}`} className="group block h-full">
+                <div className="rounded-[2rem] border border-border/50 bg-card overflow-hidden hover:shadow-elevated hover:border-primary/40 transition-all duration-500 h-full flex flex-col group">
                   {/* Image */}
-                  <div className="relative h-48 bg-muted overflow-hidden">
+                  <div className="relative h-60 bg-muted overflow-hidden">
                     {event.imageUrl ? (
                       <Image
                         src={event.imageUrl}
                         alt={event.title}
                         fill
                         sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
-                        className="object-cover group-hover:scale-105 transition-transform duration-300"
+                        className="object-cover group-hover:scale-110 transition-transform duration-700"
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/5 to-primary/10">
-                        <Calendar className="w-10 h-10 text-primary/30" />
+                        <Calendar className="w-12 h-12 text-primary/10" />
                       </div>
                     )}
                     {/* Category Badge */}
-                    <div className="absolute top-3 left-3">
-                      <Badge variant="secondary" className="bg-background/80 backdrop-blur-sm text-xs font-medium">
+                    <div className="absolute top-4 left-4 z-10">
+                      <Badge variant="glass" className="backdrop-blur-md border-white/20 text-[10px] font-black uppercase tracking-widest px-3 py-1">
                         {event.category}
                       </Badge>
                     </div>
                     {/* Price Badge */}
-                    <div className="absolute top-3 right-3">
-                      <Badge className={`text-xs font-medium ${
+                    <div className="absolute bottom-4 right-4 z-10">
+                      <Badge className={`text-xs font-black px-4 py-1.5 rounded-xl shadow-lg ${
                         event.isPaid
-                          ? 'bg-foreground text-background'
-                          : 'bg-green-500/90 text-foreground'
+                          ? 'bg-primary text-primary-foreground'
+                          : 'bg-emerald-500 text-white'
                       }`}>
                         {event.isPaid ? `$${event.price}` : t('free')}
                       </Badge>
@@ -220,36 +215,44 @@ export default function ExploreClient() {
                   </div>
 
                   {/* Content */}
-                  <div className="p-5">
-                    <h3 className="font-semibold text-foreground mb-2 line-clamp-1 group-hover:text-primary transition-colors">
+                  <div className="p-8 flex-1 flex flex-col">
+                    <h3 className="text-2xl font-black text-foreground mb-4 line-clamp-2 group-hover:text-primary transition-colors tracking-tight leading-tight">
                       {event.title}
                     </h3>
 
-                    <div className="space-y-1.5 text-sm text-muted-foreground mb-4">
-                      <div className="flex items-center gap-2">
-                        <Clock className="w-3.5 h-3.5 flex-shrink-0" />
+                    <div className="space-y-3 text-sm font-bold text-muted-foreground mb-8">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-primary/5 flex items-center justify-center">
+                            <Calendar className="w-4 h-4 text-primary" />
+                        </div>
                         <span>{formatDate(event.startDate)} · {formatTime(event.startDate)}</span>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-primary/5 flex items-center justify-center">
+                            <MapPin className="w-4 h-4 text-primary" />
+                        </div>
                         <span className="truncate">{getLocationText(event.location)}</span>
                       </div>
                     </div>
 
                     {/* Footer */}
-                    <div className="flex items-center justify-between pt-3 border-t border-border">
-                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                        <Users className="w-3.5 h-3.5" />
-                        <span>{event.registeredCount}/{event.capacity}</span>
+                    <div className="mt-auto pt-6 border-t border-border/50 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="flex -space-x-2">
+                            {[1, 2, 3].map(i => (
+                                <div key={i} className="w-6 h-6 rounded-full border-2 border-card bg-muted flex items-center justify-center text-[8px] font-black">
+                                    {String.fromCharCode(64 + i)}
+                                </div>
+                            ))}
+                        </div>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                          {event.registeredCount} / {event.capacity}
+                        </span>
                       </div>
                       <Badge
                         variant="outline"
-                        className={`text-xs capitalize ${
-                          event.type === 'virtual' ? 'border-blue-200 text-blue-600 dark:border-blue-800 dark:text-blue-400' :
-                          event.type === 'hybrid' ? 'border-purple-200 text-purple-600 dark:border-purple-800 dark:text-purple-400' :
-                          'border-green-200 text-green-600 dark:border-green-800 dark:text-success'
-                      }`}
-                    >
+                        className="text-[10px] font-black uppercase tracking-tighter border-border/50 px-3 py-1"
+                      >
                       {event.type === 'physical'
                         ? t('physical')
                         : event.type === 'virtual'

@@ -158,21 +158,23 @@ function SessionCard({ session, allSessions }: { session: Session, allSessions: 
   );
 }
 
-export default function AgendaClient() {
+interface AgendaClientProps {
+  initialEvents?: any[];
+}
+
+export default function AgendaClient({ initialEvents = [] }: AgendaClientProps) {
   const { user } = useAuth();
   const { toast } = useToast();
   
-  // Backlog(P3.1): replace local agenda stub with server-backed events query.
-  const allEventsRaw: any[] = [];
   const AGENDA_STRING = 'Agenda';
   
   const [loadingRecommendations, setLoadingRecommendations] = useState(false);
   const [recommendations, setRecommendations] = useState<string[]>([]);
   const [isAlertOpen, setIsAlertOpen] = useState(false);
 
-  const loading = allEventsRaw === undefined;
+  const loading = initialEvents === undefined;
   
-  const sessions: Session[] = (allEventsRaw || []).flatMap((event: any) => 
+  const sessions: Session[] = (initialEvents || []).flatMap((event: any) =>
     (event.agenda || []).map((session: any, index: number) => ({
        ...session,
         id: session.id || `${event.id}-session-${index}`,
@@ -260,4 +262,3 @@ export default function AgendaClient() {
     </div>
   );
 }
-

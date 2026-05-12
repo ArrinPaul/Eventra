@@ -30,6 +30,7 @@ import { ReferralSystem } from './referral-system';
 import { useTranslations } from 'next-intl';
 import { getUserRegistrations } from '@/app/actions/registrations';
 import { getEvents } from '@/app/actions/events';
+import { getActivityFeed } from '@/app/actions/feed';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 
@@ -40,18 +41,21 @@ export default function AttendeeDashboard() {
 
   const [registrations, setRegistrations] = useState<any[]>([]);
   const [featuredEvents, setFeaturedEvents] = useState<any[]>([]);
+  const [activities, setActivities] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function loadData() {
       if (!user) return;
       try {
-        const [regData, eventData] = await Promise.all([
+        const [regData, eventData, activityData] = await Promise.all([
           getUserRegistrations(),
-          getEvents({ limit: 6 })
+          getEvents({ limit: 6 }),
+          getActivityFeed({ userId: user.id, limit: 10 })
         ]);
         setRegistrations(regData);
         setFeaturedEvents(eventData);
+        setActivities(activityData);
       } catch (error) {
         console.error("Dashboard load error:", error);
       } finally {
@@ -312,17 +316,9 @@ export default function AttendeeDashboard() {
           </Card>
 
           {/* Activity Feed */}
-          <Card className="border-border/50 rounded-[2rem] shadow-xl overflow-hidden">
-            <div className="bg-primary/5 p-6 border-b border-border/50">
-              <h3 className="text-lg font-black text-foreground flex items-center gap-2">
-                <Activity className="h-5 w-5 text-primary" />
-                Live Network Feed
-              </h3>
-            </div>
-            <CardContent className="p-0">
-              <ActivityFeed userId={user.id} />
-            </CardContent>
-          </Card>
+          <div className="space-y-4">
+            <ActivityFeed initialActivities={activities} userId={user.id} />
+          </div>
         </div>
       </div>
     </div>
