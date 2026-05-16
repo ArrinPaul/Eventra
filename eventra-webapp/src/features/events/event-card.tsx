@@ -76,7 +76,7 @@ export function EventCard({ event, variant = 'default' }: { event: EventraEvent,
           <div className="flex justify-between items-center pt-2 border-t border-white/5">
             <div className="flex flex-col">
               <span className="text-[9px] font-medium uppercase tracking-widest text-zinc-300 font-bold">{t('registrationLabel')}</span>
-              <span className="text-sm font-semibold text-white">{event.isPaid ? `$${event.price}` : t('freeAccess')}</span>
+              <span className="text-sm font-semibold text-white">{t('freeAccess')}</span>
             </div>
             <Button 
               size="sm" 

@@ -123,6 +123,8 @@ export async function createEvent(rawInput: any): Promise<ActionResponse<any>> {
   try {
     const newEvent = await db.insert(events).values({
       ...data,
+      isPaid: false, // Force free
+      price: '0',    // Force free
       location: data.location || { venue: 'TBD' },
       startDate: new Date(data.startDate),
       endDate: new Date(data.endDate),
@@ -209,6 +211,8 @@ export async function updateEvent(id: string, rawInput: any): Promise<ActionResp
 
   try {
     const updateData: any = { ...data };
+    updateData.isPaid = false; // Force free
+    updateData.price = '0';    // Force free
     if (data.startDate) updateData.startDate = new Date(data.startDate);
     if (data.endDate) updateData.endDate = new Date(data.endDate);
     updateData.updatedAt = new Date();

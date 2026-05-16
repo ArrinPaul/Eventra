@@ -202,14 +202,10 @@ export default function ExploreClient() {
                         {event.category}
                       </Badge>
                     </div>
-                    {/* Price Badge */}
+                    {/* Free Badge */}
                     <div className="absolute bottom-4 right-4 z-10">
-                      <Badge className={`text-xs font-black px-4 py-1.5 rounded-xl shadow-lg ${
-                        event.isPaid
-                          ? 'bg-primary text-primary-foreground'
-                          : 'bg-emerald-500 text-white'
-                      }`}>
-                        {event.isPaid ? `$${event.price}` : t('free')}
+                      <Badge className="text-xs font-black px-4 py-1.5 rounded-xl shadow-lg bg-emerald-500 text-white">
+                        {t('free')}
                       </Badge>
                     </div>
                   </div>

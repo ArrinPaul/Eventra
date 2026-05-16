@@ -91,7 +91,6 @@ export default function OrganizerDashboard() {
 
   const totalRegistrations = managedEvents.reduce((sum: number, e: EventraEvent) => sum + (e.registeredCount || 0), 0);
   const activeEvents = managedEvents.filter((e: EventraEvent) => e.status === 'published').length;
-  const totalRevenue = managedEvents.reduce((sum: number, e: EventraEvent) => sum + (e.isPaid ? Number(e.price || 0) * (e.registeredCount || 0) : 0), 0);
 
   if (loading) {
     return (
@@ -123,11 +122,10 @@ export default function OrganizerDashboard() {
       </motion.div>
 
       {/* KPI Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {[
           { label: 'Active Campaigns', value: managedEvents.length, sub: `${activeEvents} currently live`, icon: Calendar, color: 'text-primary', bg: 'bg-primary/10' },
           { label: 'Total Reach', value: totalRegistrations.toLocaleString(), sub: 'Attendees across all events', icon: Users, color: 'text-success', bg: 'bg-success/10' },
-          { label: 'Generated Value', value: `$${totalRevenue.toLocaleString()}`, sub: 'Verified ticketing revenue', icon: DollarSign, color: 'text-purple-500', bg: 'bg-purple-500/10' },
         ].map((stat, i) => (
           <Card key={i} variant="elevated" className="border-border/50 overflow-hidden group">
             <CardContent className="p-8 relative">
@@ -152,7 +150,7 @@ export default function OrganizerDashboard() {
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-10">
         <div className="glass p-1.5 rounded-2xl border border-white/10 w-fit">
           <TabsList className="bg-transparent gap-1">
-            {['events', 'revenue', 'insights', 'feedback', 'team'].map(tab => (
+            {['events', 'insights', 'feedback', 'team'].map(tab => (
               <TabsTrigger 
                 key={tab} 
                 value={tab} 
@@ -233,8 +231,6 @@ export default function OrganizerDashboard() {
             </CardContent>
           </Card>
         </TabsContent>
-
-        <TabsContent value="revenue" className="animate-in fade-in slide-in-from-bottom-4 duration-500"><RevenueDashboard /></TabsContent>
 
         <TabsContent value="insights" className="animate-in fade-in slide-in-from-bottom-4 duration-500">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
