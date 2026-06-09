@@ -138,14 +138,24 @@ export async function registerForEvent(eventId: string, data?: { tierId?: string
           .where(eq(ticketTiers.id, data.tierId));
       }
 
-      // Create notification to trigger email
+      // Create notification
       await tx.insert(notifications).values({
         userId: user.id,
         title: 'Registration Confirmed',
-        message: `EMAIL_TRIGGER:confirmation|${ticketNumber}|${event.title}`,
-        type: 'email',
+        message: `Your registration for ${event.title} is confirmed. Ticket: ${ticketNumber}`,
+        type: 'success',
       });
     });
+
+    // Send confirmation email asynchronously (don't block the response)
+    if (user.email) {
+      const emailContent = constructConfirmationEmail(user.name || 'Attendee', event.title, ticketNumber);
+      sendEmail({
+        to: user.email,
+        subject: emailContent.subject,
+        html: emailContent.html,
+      }).catch(err => logger.error('Failed to send confirmation email', err));
+    }
 
     // Log Activity
     await logActivity({

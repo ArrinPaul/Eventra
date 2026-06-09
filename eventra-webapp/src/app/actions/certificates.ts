@@ -7,6 +7,7 @@ import { validateRole, validateEventOwnership } from '@/lib/auth-utils';
 import { certificatePersonalizedMessageFlow } from '@/lib/ai';
 import { revalidatePath } from 'next/cache';
 import { auth } from '@clerk/nextjs/server';
+import { sendEmail, constructCertificateEmail } from '@/core/services/email';
 
 /**
  * Create or update a certificate template
@@ -205,12 +206,22 @@ export async function sendCertificateEmail(ticketId: string) {
   }
 
   try {
-    // Simulate email trigger
+    // Send certificate email
+    if (user.email) {
+      const emailContent = constructCertificateEmail(user.name || 'Attendee', event.title);
+      await sendEmail({
+        to: user.email,
+        subject: emailContent.subject,
+        html: emailContent.html,
+      });
+    }
+
+    // Create notification
     await db.insert(notifications).values({
       userId: user.id,
-      title: 'Your Certificate is here!',
-      message: `EMAIL_TRIGGER:certificate|${ticket.ticketNumber}|${event.title}|${ticket.personalizedMessage}`,
-      type: 'email',
+      title: 'Certificate Email Sent',
+      message: `Your certificate for ${event.title} has been sent to your email.`,
+      type: 'success',
     });
 
     return { success: true };

@@ -7,8 +7,8 @@ import { Inter, Space_Grotesk, JetBrains_Mono } from 'next/font/google';
 import { baseMetadata, viewport as seoViewport, generateOrganizationSchema } from '@/core/services/seo';
 import { NextIntlClientProvider } from 'next-intl';
 import { getUserLocale } from '@/core/services/locale-service';
-import enMessages from '../../messages/en.json';
-import esMessages from '../../messages/es.json';
+import { getMessages } from 'next-intl/server';
+import { ClerkProvider } from '@clerk/nextjs';
 
 // Export SEO metadata
 export const metadata: Metadata = {
@@ -40,26 +40,18 @@ const fontJetbrainsMono = JetBrains_Mono({
   display: 'swap',
 });
 
-const messagesByLocale: Record<string, Record<string, unknown>> = {
-  en: enMessages as Record<string, unknown>,
-  es: esMessages as Record<string, unknown>,
-};
-
-import { ClerkProvider } from '@clerk/nextjs';
-
 export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   const locale = await getUserLocale();
-  const safeLocale = locale in messagesByLocale ? locale : 'en';
-  const messages = messagesByLocale[safeLocale];
+  const messages = await getMessages();
   const organizationSchema = generateOrganizationSchema();
   
   return (
-    <ClerkProvider>
-      <html lang={safeLocale} suppressHydrationWarning className={`${fontInter.variable} ${fontSpaceGrotesk.variable} ${fontJetbrainsMono.variable}`}>
+    <ClerkProvider publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}>
+      <html lang={locale} suppressHydrationWarning className={`${fontInter.variable} ${fontSpaceGrotesk.variable} ${fontJetbrainsMono.variable}`}>
         <head>
           <script
             type="application/ld+json"
@@ -67,7 +59,7 @@ export default async function RootLayout({
           />
         </head>
         <body className="font-sans antialiased bg-background text-foreground">
-          <NextIntlClientProvider locale={safeLocale} messages={messages}>
+          <NextIntlClientProvider locale={locale} messages={messages}>
             <Providers>
               {children}
               <NotificationWatcher />
