@@ -5,6 +5,7 @@ import { tickets, events, activityFeed, eventStaff, notifications, users } from 
 import { eq, and, sql } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { validateRole, validateEventOwnership, validateStaffPermission } from '@/lib/auth-utils';
+import { enforceRateLimit } from '@/lib/rate-limit';
 import { awardXP } from './gamification';
 import { logActivity } from './feed';
 import { parseQrPayload } from '@/core/utils/crypto';
@@ -86,7 +87,7 @@ export async function getScannerEvents() {
  */
 export async function checkInTicket(payload: string, eventId: string) {
   // 1. Security check: Ensure the user has granular permission to scan
-  await validateStaffPermission(eventId, 'scan_tickets');
+  const staffUser = await validateStaffPermission(eventId, 'scan_tickets');
 
   const { ticketNumber, isValid } = parseQrPayload(payload);
   
@@ -103,6 +104,13 @@ export async function checkInTicket(payload: string, eventId: string) {
   }
 
   try {
+    // Rate limit check-in scans: 60 scans per minute per staff member
+    await enforceRateLimit({
+      userId: staffUser.id,
+      scope: 'ticket-checkin',
+      limit: 60,
+      windowMs: 60_000,
+    });
     // 2. Find the ticket and event details
     const ticket = await db.query.tickets.findFirst({
       where: and(
@@ -147,7 +155,7 @@ export async function checkInTicket(payload: string, eventId: string) {
       throw new Error('Invalid Ticket: This ticket has expired');
     }
 
-    // 5. Perform Check-in
+    // 5. Perform Check-in (with race-condition protection)
     const updatedTicket = await db.transaction(async (tx) => {
       const [result] = await tx
         .update(tickets)
@@ -155,11 +163,24 @@ export async function checkInTicket(payload: string, eventId: string) {
           status: 'checked-in',
           updatedAt: new Date()
         })
-        .where(eq(tickets.id, ticket.id))
+        .where(and(
+          eq(tickets.id, ticket.id),
+          eq(tickets.status, 'confirmed')
+        ))
         .returning();
       
       return result;
     });
+
+    if (!updatedTicket) {
+      const currentTicket = await db.query.tickets.findFirst({
+        where: eq(tickets.id, ticket.id)
+      });
+      if (currentTicket && currentTicket.status === 'checked-in') {
+        throw new Error(`Already Scanned: This ticket was checked in at ${currentTicket.updatedAt?.toLocaleString() || 'an earlier time'}`);
+      }
+      throw new Error('Check-in failed: Ticket status was modified concurrently by another scan.');
+    }
 
     // 6. Post-Check-in Actions (Background)
     

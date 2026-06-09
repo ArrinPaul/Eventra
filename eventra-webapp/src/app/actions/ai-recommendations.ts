@@ -56,13 +56,18 @@ function isCacheFresh(updatedAt: Date) {
 /**
  * Get personalized recommendations using Genkit
  */
-export async function getAIRecommendations(userId: string): Promise<AIEventRecommendation[]> {
-	await validateRole(['attendee', 'organizer', 'admin', 'professional']);
+export async function getAIRecommendations(userId?: string): Promise<AIEventRecommendation[]> {
+  const caller = await validateRole(['attendee', 'organizer', 'admin', 'professional']);
+  const targetUserId = userId || caller.id;
+
+  if (targetUserId !== caller.id && caller.role !== 'admin') {
+    throw new Error('Unauthorized');
+  }
 
   try {
     // 1. Get User Profile
     const user = await db.query.users.findFirst({
-      where: eq(users.id, userId)
+      where: eq(users.id, targetUserId)
     });
 
     if (!user) throw new Error('User not found');
@@ -86,7 +91,7 @@ export async function getAIRecommendations(userId: string): Promise<AIEventRecom
     
     const eventIds = availableEvents.map((event) => event.id);
     const cacheKey = buildRecommendationCacheKey({
-      userId,
+      userId: targetUserId,
       userRole: user.role,
       interests,
       eventIds,
@@ -94,7 +99,7 @@ export async function getAIRecommendations(userId: string): Promise<AIEventRecom
 
     const cached = await db.query.aiRecommendationCache.findFirst({
       where: and(
-        eq(aiRecommendationCache.userId, userId),
+        eq(aiRecommendationCache.userId, targetUserId),
         eq(aiRecommendationCache.cacheKey, cacheKey),
       ),
     });
@@ -114,7 +119,7 @@ export async function getAIRecommendations(userId: string): Promise<AIEventRecom
 
     await db.insert(aiRecommendationCache)
       .values({
-        userId,
+        userId: targetUserId,
         cacheKey,
         payload: resolvedRecommendations,
         createdAt: now,
@@ -137,20 +142,31 @@ export async function getAIRecommendations(userId: string): Promise<AIEventRecom
 
 // Keep other mock functions for now as they are not primary Phase 3 goals
 export async function getPersonalizedRecommendations(userId?: string): Promise<RecommendationBundle> {
-	await validateRole(['attendee', 'organizer', 'admin', 'professional']);
-	return {
-		events: [],
-		sessions: [],
-		people: [],
-	};
+  const caller = await validateRole(['attendee', 'organizer', 'admin', 'professional']);
+  const targetUserId = userId || caller.id;
+
+  if (targetUserId !== caller.id && caller.role !== 'admin') {
+    throw new Error('Unauthorized');
+  }
+
+  return {
+    events: [],
+    sessions: [],
+    people: [],
+  };
 }
 
-export async function getAIContentRecommendations(userId: string): Promise<AIContentRecommendation[]> {
-	await validateRole(['attendee', 'organizer', 'admin', 'professional']);
+export async function getAIContentRecommendations(userId?: string): Promise<AIContentRecommendation[]> {
+  const caller = await validateRole(['attendee', 'organizer', 'admin', 'professional']);
+  const targetUserId = userId || caller.id;
+
+  if (targetUserId !== caller.id && caller.role !== 'admin') {
+    throw new Error('Unauthorized');
+  }
 	
   try {
     const user = await db.query.users.findFirst({
-      where: eq(users.id, userId)
+      where: eq(users.id, targetUserId)
     });
 
     if (!user) throw new Error('User not found');
@@ -176,12 +192,17 @@ export async function getAIContentRecommendations(userId: string): Promise<AICon
   }
 }
 
-export async function getAIConnectionRecommendations(userId: string): Promise<AIConnectionRecommendation[]> {
-	await validateRole(['attendee', 'organizer', 'admin', 'professional']);
+export async function getAIConnectionRecommendations(userId?: string): Promise<AIConnectionRecommendation[]> {
+  const caller = await validateRole(['attendee', 'organizer', 'admin', 'professional']);
+  const targetUserId = userId || caller.id;
+
+  if (targetUserId !== caller.id && caller.role !== 'admin') {
+    throw new Error('Unauthorized');
+  }
 	
   try {
     const user = await db.query.users.findFirst({
-      where: eq(users.id, userId)
+      where: eq(users.id, targetUserId)
     });
 
     if (!user) throw new Error('User not found');
@@ -194,7 +215,7 @@ export async function getAIConnectionRecommendations(userId: string): Promise<AI
         interests: users.interests,
       })
       .from(users)
-      .where(ne(users.id, userId))
+      .where(ne(users.id, targetUserId))
       .limit(10);
 
     const { connections } = await connectionRecommendationFlow({

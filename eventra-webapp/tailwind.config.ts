@@ -97,6 +97,8 @@ export default {
         'bento-hover': '0 0 0 1px hsla(250, 84%, 67%, 0.3), 0 30px 60px -12px rgba(99, 102, 241, 0.1)',
         'glow': '0 0 20px -5px hsl(var(--primary) / 0.3)',
         'premium': '0 0 0 1px rgba(255, 255, 255, 0.05), 0 10px 30px -10px rgba(0, 0, 0, 0.5)',
+        'solid': '4px 4px 0px 0px hsl(var(--border))',
+        'solid-hover': '2px 2px 0px 0px hsl(var(--border))',
       },
       borderRadius: {
         lg: 'var(--radius)',

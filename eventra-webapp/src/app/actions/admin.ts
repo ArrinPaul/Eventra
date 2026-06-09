@@ -62,6 +62,7 @@ export async function listAdminUsers(filters?: {
 }
 
 export async function getUsersByEmails(emails: string[]): Promise<AdminUserRow[]> {
+  await validateRole(['organizer', 'admin']);
   if (!emails.length) return [];
   try {
     return await db
@@ -84,6 +85,7 @@ export async function getUsersByEmails(emails: string[]): Promise<AdminUserRow[]
 }
 
 export async function getUserByEmail(email: string): Promise<AdminUserRow | null> {
+  await validateRole(['organizer', 'admin']);
   try {
     const results = await db
       .select({

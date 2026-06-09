@@ -5,7 +5,8 @@ import { tickets, events, waitlist, ticketTiers, notifications, users } from '@/
 import { auth } from '@clerk/nextjs/server';
 import { eq, and, desc, sql } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
-import { validateRole } from '@/lib/auth-utils';
+import { validateRole, validateEventOwnership } from '@/lib/auth-utils';
+import { enforceRateLimit } from '@/lib/rate-limit';
 
 import { logActivity } from './feed';
 import { awardXP } from './gamification';
@@ -25,6 +26,14 @@ export async function registerForEvent(eventId: string, data?: { tierId?: string
   const user = await validateRole(['attendee', 'organizer', 'admin', 'professional']);
 
   try {
+    // Rate limit: 5 registrations per minute per user
+    await enforceRateLimit({
+      userId: user.id,
+      scope: 'register-event',
+      limit: 5,
+      windowMs: 60_000,
+    });
+
     // 1. Check if already registered
     const existing = await db
       .select()
@@ -190,6 +199,11 @@ async function joinWaitlist(eventId: string, userId: string) {
  * Grants the user a 24-hour window to claim their spot.
  */
 export async function autoPromoteFromWaitlist(eventId: string, tx?: any) {
+  const { userId } = await auth();
+  if (!userId) {
+    throw new Error('Authentication required');
+  }
+
   const executePromotion = async (transaction: any) => {
     // 1. Find next in line
     const nextInLine = await transaction
@@ -243,6 +257,11 @@ export async function autoPromoteFromWaitlist(eventId: string, tx?: any) {
  * Cleanup expired waitlist reservations and promote the next person
  */
 export async function processWaitlistReservations(eventId: string) {
+  const { userId } = await auth();
+  if (!userId) {
+    throw new Error('Authentication required');
+  }
+
   try {
     const now = new Date();
     
@@ -294,6 +313,14 @@ export async function claimWaitlistSpot(eventId: string) {
   if (!userId) return { success: false, error: 'Auth required' };
 
   try {
+    // Rate limit waitlist spot claim: 5 attempts per minute per user
+    await enforceRateLimit({
+      userId,
+      scope: 'claim-waitlist',
+      limit: 5,
+      windowMs: 60_000,
+    });
+
     const result = await db.transaction(async (tx) => {
       // 1. Verify reservation
       const entry = await tx.query.waitlist.findFirst({
@@ -441,8 +468,7 @@ export async function getUserRegistrations() {
  */
 export async function importAttendees(eventId: string, guestList: { email: string, name?: string, tierId?: string }[]) {
   const user = await validateRole(['organizer', 'admin']);
-  // validateEventOwnership is technically from lib/auth-utils but used in collab.ts
-  // Here we can use a direct check or import it.
+  await validateEventOwnership(eventId);
   
   try {
     const results = { success: 0, failed: 0, errors: [] as string[] };

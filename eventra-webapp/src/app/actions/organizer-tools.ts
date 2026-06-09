@@ -139,13 +139,26 @@ function randomSecret(): string {
 }
 
 export async function listWebhooks(eventId?: string): Promise<WebhookItem[]> {
-  await validateRole(['organizer', 'admin']);
+  const user = await validateRole(['organizer', 'admin']);
 
   try {
+    const conditions = [eq(activityFeed.type, 'organizer_webhook')];
+
+    if (user.role !== 'admin') {
+      if (eventId) {
+        await validateEventOwnership(eventId);
+        conditions.push(eq(activityFeed.targetId, eventId));
+      } else {
+        conditions.push(eq(activityFeed.userId, user.id));
+      }
+    } else if (eventId) {
+      conditions.push(eq(activityFeed.targetId, eventId));
+    }
+
     const rows = await db
       .select()
       .from(activityFeed)
-      .where(eventId ? and(eq(activityFeed.type, 'organizer_webhook'), eq(activityFeed.targetId, eventId)) : eq(activityFeed.type, 'organizer_webhook'))
+      .where(and(...conditions))
       .orderBy(desc(activityFeed.createdAt));
 
     return rows.map((row) => {
@@ -189,12 +202,25 @@ export async function createWebhook(input: { eventId?: string; url: string; even
 }
 
 export async function deleteWebhook(id: string) {
-  await validateRole(['organizer', 'admin']);
+  const user = await validateRole(['organizer', 'admin']);
 
   try {
     const existing = await db.query.activityFeed.findFirst({ where: eq(activityFeed.id, id) });
     if (!existing || existing.type !== 'organizer_webhook') return { success: false };
-    if (existing.targetId) await validateEventOwnership(existing.targetId);
+
+    let isAuthorized = user.role === 'admin';
+    if (!isAuthorized) {
+      if (existing.targetId) {
+        await validateEventOwnership(existing.targetId);
+        isAuthorized = true;
+      } else {
+        isAuthorized = existing.userId === user.id;
+      }
+    }
+
+    if (!isAuthorized) {
+      return { success: false, error: 'Unauthorized' };
+    }
 
     await db.delete(activityFeed).where(eq(activityFeed.id, id));
     return { success: true };

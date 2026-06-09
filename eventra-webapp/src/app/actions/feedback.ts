@@ -114,6 +114,18 @@ export async function submitEventFeedback(data: {
     throw new Error('You can only leave feedback for events you have attended.');
   }
 
+  // Verify the user hasn't already submitted feedback
+  const existingFeedback = await db.query.eventFeedback.findFirst({
+    where: and(
+      eq(eventFeedback.eventId, data.eventId),
+      eq(eventFeedback.userId, userId)
+    )
+  });
+
+  if (existingFeedback) {
+    throw new Error('You have already submitted feedback for this event.');
+  }
+
   try {
     const [feedback] = await db
       .insert(eventFeedback)

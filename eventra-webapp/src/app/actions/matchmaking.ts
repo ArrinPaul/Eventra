@@ -39,39 +39,16 @@ export async function getMatches() {
     let potentialMatches: any[] = [];
     
     if (user.embedding) {
-      const userVector = user.embedding as number[];
-      const others = await db
-        .select({
-          id: users.id,
-          name: users.name,
-          role: users.role,
-          interests: users.interests,
-          bio: users.bio,
-          embedding: users.embedding,
-        })
-        .from(users)
-        .where(and(ne(users.id, user.id), sql`embedding IS NOT NULL`))
-        .limit(50);
-
-      // Manual similarity for candidate selection
-      potentialMatches = others.map(other => {
-        const otherVector = other.embedding as number[];
-        if (!otherVector) return { ...other, similarity: 0 };
-        
-        let dotProduct = 0;
-        let magA = 0;
-        let magB = 0;
-        const len = Math.min(userVector.length, otherVector.length);
-        for (let i = 0; i < len; i++) {
-          dotProduct += userVector[i] * otherVector[i];
-          magA += userVector[i] * userVector[i];
-          magB += otherVector[i] * otherVector[i];
-        }
-        const similarity = dotProduct / (Math.sqrt(magA) * Math.sqrt(magB));
-        return { ...other, similarity };
-      })
-      .sort((a, b) => b.similarity - a.similarity)
-      .slice(0, 10);
+      const userVectorStr = JSON.stringify(user.embedding);
+      const results = await db.execute(sql`
+        SELECT id, name, role, interests, bio,
+               (1 - (embedding <=> ${userVectorStr}::vector)) as similarity
+        FROM users
+        WHERE id != ${user.id} AND embedding IS NOT NULL
+        ORDER BY embedding <=> ${userVectorStr}::vector
+        LIMIT 10
+      `);
+      potentialMatches = results as any;
     } else {
       // Fallback to random
       potentialMatches = await db

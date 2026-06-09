@@ -393,6 +393,7 @@ export const eventFeedback = pgTable('event_feedback', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
 }, (table) => ({
   eventIdx: index('event_feedback_event_idx').on(table.eventId),
+  feedbackUserEventUnique: uniqueIndex('event_feedback_user_event_idx').on(table.userId, table.eventId),
 }));
 
 export const eventStaff = pgTable('event_staff', {

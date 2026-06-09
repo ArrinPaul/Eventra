@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@/hooks/use-auth';
+import { useRouter } from 'next/navigation';
 import { 
   Building2, 
   CheckCircle, 
@@ -36,13 +36,14 @@ const ROLES = [
 ] as const;
 
 export function RegisterWizard() {
-  const { signIn } = useAuth();
+  const router = useRouter();
   const [selectedRole, setSelectedRole] = useState<'student' | 'professional' | 'organizer'>('student');
 
   const handleSignIn = () => {
     sessionStorage.setItem('preferred_role', selectedRole);
-    signIn();
+    router.push('/register');
   };
+
 
   return (
     <div className="w-full max-w-lg mx-auto text-foreground">

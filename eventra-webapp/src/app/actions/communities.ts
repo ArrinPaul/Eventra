@@ -138,6 +138,32 @@ export async function createPost(rawInput: any) {
 
   const data = validated.data;
 
+  // Security check: Verify if community is private and user is a member
+  if (data.communityId) {
+    try {
+      const community = await db.query.communities.findFirst({
+        where: eq(communities.id, data.communityId),
+      });
+
+      if (!community) return { success: false, error: 'Community not found' };
+
+      if (community.isPrivate && user.role !== 'admin') {
+        const membership = await db.query.communityMembers.findFirst({
+          where: and(
+            eq(communityMembers.communityId, data.communityId),
+            eq(communityMembers.userId, user.id)
+          ),
+        });
+
+        if (!membership) {
+          return { success: false, error: 'Access denied: You are not a member of this private community' };
+        }
+      }
+    } catch (err) {
+      return { success: false, error: 'Failed to verify community status' };
+    }
+  }
+
   try {
     const newPost = await db.insert(posts).values({
       content: data.content,
@@ -232,7 +258,34 @@ export async function createComment(rawInput: any) {
  * Get community posts
  */
 export async function getCommunityPosts(communityId: string) {
+  const { userId } = await auth();
+
   try {
+    const community = await db.query.communities.findFirst({
+      where: eq(communities.id, communityId)
+    });
+
+    if (!community) return [];
+
+    if (community.isPrivate) {
+      if (!userId) return [];
+
+      const user = await db.query.users.findFirst({
+        where: eq(users.id, userId)
+      });
+      if (!user) return [];
+
+      if (user.role !== 'admin') {
+        const membership = await db.query.communityMembers.findFirst({
+          where: and(
+            eq(communityMembers.communityId, communityId),
+            eq(communityMembers.userId, userId)
+          )
+        });
+        if (!membership) return []; // Access denied
+      }
+    }
+
     const result = await db
       .select({
         post: posts,
@@ -360,7 +413,34 @@ export type CommunityMemberItem = {
 };
 
 export async function getCommunityMembers(communityId: string): Promise<CommunityMemberItem[]> {
+  const { userId } = await auth();
+
   try {
+    const community = await db.query.communities.findFirst({
+      where: eq(communities.id, communityId)
+    });
+
+    if (!community) return [];
+
+    if (community.isPrivate) {
+      if (!userId) return [];
+
+      const user = await db.query.users.findFirst({
+        where: eq(users.id, userId)
+      });
+      if (!user) return [];
+
+      if (user.role !== 'admin') {
+        const membership = await db.query.communityMembers.findFirst({
+          where: and(
+            eq(communityMembers.communityId, communityId),
+            eq(communityMembers.userId, userId)
+          )
+        });
+        if (!membership) return []; // Access denied
+      }
+    }
+
     const rows = await db
       .select({
         id: users.id,
