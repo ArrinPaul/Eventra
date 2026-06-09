@@ -22,7 +22,7 @@ export async function generateAIExtensions(data: { title: string, category: stri
     };
   } catch (error: any) {
     console.error('Event Planner AI Error:', error);
-    return { success: false, error: error.message };
+    return { success: false, error: 'Failed to generate AI extensions' };
   }
 }
 

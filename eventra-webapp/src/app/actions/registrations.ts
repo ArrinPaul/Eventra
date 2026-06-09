@@ -11,10 +11,27 @@ import { enforceRateLimit } from '@/lib/rate-limit';
 import { logActivity } from './feed';
 import { awardXP } from './gamification';
 import { generateQrPayload } from '@/core/utils/crypto';
+import { logger } from '@/lib/logger';
 
 function getErrorText(error: unknown, fallback: string) {
   if (error instanceof Error && error.message) {
-    return error.message;
+    const message = error.message;
+    const isBusinessError =
+      message.includes('Already registered') ||
+      message.includes('Event not found') ||
+      message.includes('Ticket tier not found') ||
+      message.includes('This ticket tier is sold out') ||
+      message.includes('Event is full') ||
+      message.includes('Already on waitlist') ||
+      message.includes('No active reservation found') ||
+      message.includes('Your reservation has expired') ||
+      message.includes('Ticket not found') ||
+      message.includes('Unauthorized') ||
+      message.includes('Rate limit exceeded');
+
+    if (isBusinessError) {
+      return message;
+    }
   }
   return fallback;
 }
@@ -149,7 +166,7 @@ export async function registerForEvent(eventId: string, data?: { tierId?: string
     
     return { success: true, ticketNumber };
   } catch (error: any) {
-    console.error('Registration failed:', error);
+    logger.error('Registration failed', error);
     return { success: false, error: getErrorText(error, 'Registration failed') };
   }
 }
@@ -189,7 +206,7 @@ async function joinWaitlist(eventId: string, userId: string) {
     revalidatePath(`/events/${eventId}`);
     return { success: true, message: 'Added to waitlist', position };
   } catch (error) {
-    console.error('Waitlist join failed:', error);
+    logger.error('Waitlist join failed', error);
     return { success: false, error: 'Could not join waitlist' };
   }
 }
@@ -300,7 +317,7 @@ export async function processWaitlistReservations(eventId: string) {
 
     return { processed: expiredEntries.length };
   } catch (error) {
-    console.error('processWaitlistReservations Error:', error);
+    logger.error('processWaitlistReservations Error', error);
     return { processed: 0 };
   }
 }
@@ -408,7 +425,7 @@ export async function cancelRegistration(ticketId: string) {
     revalidatePath(`/events/${ticket.eventId}`);
     return { success: true };
   } catch (error: any) {
-    console.error('Cancellation failed:', error);
+    logger.error('Cancellation failed', error);
     return { success: false, error: getErrorText(error, 'Cancellation failed') };
   }
 }
@@ -458,7 +475,7 @@ export async function getUserRegistrations() {
     
     return result;
   } catch (error) {
-    console.error('Failed to fetch user registrations:', error);
+    logger.error('Failed to fetch user registrations', error);
     return [];
   }
 }
@@ -527,7 +544,7 @@ export async function importAttendees(eventId: string, guestList: { email: strin
     revalidatePath(`/organizer/events/${eventId}`);
     return results;
   } catch (error: any) {
-    console.error('importAttendees Error:', error);
+    logger.error('importAttendees Error', error);
     throw new Error('Failed to process guest list');
   }
 }

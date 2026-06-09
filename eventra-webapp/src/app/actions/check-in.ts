@@ -9,6 +9,7 @@ import { enforceRateLimit } from '@/lib/rate-limit';
 import { awardXP } from './gamification';
 import { logActivity } from './feed';
 import { parseQrPayload } from '@/core/utils/crypto';
+import { logger } from '@/lib/logger';
 
 /**
  * Fetch events that the user is authorized to scan for.
@@ -77,7 +78,7 @@ export async function getScannerEvents() {
 
     return eventsWithStats;
   } catch (error) {
-    console.error('getScannerEvents Error:', error);
+    logger.error('getScannerEvents Error', error);
     return [];
   }
 }
@@ -185,7 +186,7 @@ export async function checkInTicket(payload: string, eventId: string) {
     // 6. Post-Check-in Actions (Background)
     
     // Award XP to the attendee for showing up
-    awardXP(ticket.userId, 50, `Attending ${ticket.event.title}`).catch(console.error);
+    awardXP(ticket.userId, 50, `Attending ${ticket.event.title}`).catch((err) => logger.error('Award XP failed', err));
     
     // Log Activity for the attendee
     logActivity({
@@ -194,7 +195,7 @@ export async function checkInTicket(payload: string, eventId: string) {
       targetId: eventId,
       content: `Checked into ${ticket.event.title}`,
       metadata: { ticketNumber }
-    }).catch(console.error);
+    }).catch((err) => logger.error('Log check-in activity failed', err));
 
     // Schedule Feedback Notification
     db.insert(notifications).values({
@@ -203,7 +204,7 @@ export async function checkInTicket(payload: string, eventId: string) {
       message: `We hope you're enjoying ${ticket.event.title}! Don't forget to share your feedback.`,
       type: 'info',
       link: `/events/${eventId}/feedback`
-    }).catch(console.error);
+    }).catch((err) => logger.error('Insert check-in notification failed', err));
 
     revalidatePath(`/events/${eventId}`);
     revalidatePath('/check-in-scanner');
@@ -217,8 +218,23 @@ export async function checkInTicket(payload: string, eventId: string) {
       } 
     };
   } catch (error: any) {
-    console.error('Check-in processing error:', error);
-    throw new Error(error.message || 'Check-in failed');
+    logger.error('Check-in processing error', error, { scope: 'ticket-checkin' });
+    const message = error?.message || '';
+    const isBusinessError =
+      message.includes('Invalid QR Code') ||
+      message.includes('Rate limit exceeded') ||
+      message.includes('Invalid Ticket') ||
+      message.includes('Too Early') ||
+      message.includes('Event Finished') ||
+      message.includes('Already Scanned') ||
+      message.includes('Check-in failed: Ticket status') ||
+      message.includes('Unauthorized') ||
+      message.includes('Event not found');
+
+    if (isBusinessError) {
+      throw error;
+    }
+    throw new Error('Check-in failed due to an internal error');
   }
 }
 
@@ -243,7 +259,7 @@ export async function finalizeEvent(eventId: string) {
 
     return { success: true, expiredCount: result.length };
   } catch (error: any) {
-    console.error('Finalize Event Error:', error);
+    logger.error('Finalize Event Error', error);
     throw new Error('Failed to finalize event');
   }
 }
@@ -269,7 +285,7 @@ export async function getAttendeeList(eventId: string) {
 
     return result;
   } catch (error) {
-    console.error('getAttendeeList Error:', error);
+    logger.error('getAttendeeList Error', error);
     return [];
   }
 }

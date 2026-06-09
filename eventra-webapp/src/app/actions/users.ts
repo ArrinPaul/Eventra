@@ -5,6 +5,7 @@ import { users } from '@/lib/db/schema';
 import { eq, desc, not, inArray } from 'drizzle-orm';
 import { auth } from '@clerk/nextjs/server';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
 
 
 export async function getUserById(id: string) {
@@ -14,7 +15,7 @@ export async function getUserById(id: string) {
     });
     return user || null;
   } catch (error) {
-    console.error('getUserById Error:', error);
+    logger.error('getUserById Error', error);
     return null;
   }
 }
@@ -30,7 +31,7 @@ export async function searchUsers(query: string) {
     });
     return results;
   } catch (error) {
-    console.error('searchUsers Error:', error);
+    logger.error('searchUsers Error', error);
     return [];
   }
 }
@@ -94,7 +95,7 @@ export async function updateUserDetails(id: string, data: any) {
 
     return { success: true, user: updated };
   } catch (error) {
-    console.error('updateUserDetails Error:', error);
+    logger.error('updateUserDetails Error', error);
     return { success: false, error: 'Database update failed', user: null };
   }
 }
@@ -108,7 +109,7 @@ export async function getLeaderboard(limit = 50) {
     });
     return results;
   } catch (error) {
-    console.error('getLeaderboard Error:', error);
+    logger.error('getLeaderboard Error', error);
     return [];
   }
 }

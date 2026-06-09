@@ -7,6 +7,20 @@ import { validateRole, validateEventOwnership, validateStaffPermission } from '@
 import { revalidatePath } from 'next/cache';
 import { auth } from '@clerk/nextjs/server';
 
+function sanitizeMediaError(error: any, fallback: string): never {
+  const message = error?.message || '';
+  const isBusinessError =
+    message.includes('Media not found') ||
+    message.includes('Unauthorized') ||
+    message.includes('permission') ||
+    message.includes('Event not found');
+
+  if (isBusinessError) {
+    throw error;
+  }
+  throw new Error(fallback);
+}
+
 /**
  * Upload event media (Attendee or Organizer)
  */
@@ -147,7 +161,7 @@ export async function moderateMedia(mediaId: string, action: 'approve' | 'reject
     revalidatePath(`/organizer/media/${media.eventId}`);
     return { success: true };
   } catch (error: any) {
-    throw new Error(error.message || 'Moderation failed');
+    sanitizeMediaError(error, 'Moderation failed');
   }
 }
 
@@ -171,7 +185,7 @@ export async function toggleMediaVisibility(mediaId: string, visibility: 'public
     revalidatePath(`/events/${media.eventId}`);
     return { success: true };
   } catch (error: any) {
-    throw new Error(error.message || 'Visibility toggle failed');
+    sanitizeMediaError(error, 'Visibility toggle failed');
   }
 }
 

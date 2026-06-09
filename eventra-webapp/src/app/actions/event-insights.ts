@@ -12,6 +12,15 @@ import {
   organizerTaskListFlow
 } from '@/lib/ai';
 
+function sanitizeInsightsError(error: any, fallback: string): string {
+  const message = error?.message || '';
+  const isBusinessError =
+    message.includes('Event not found') ||
+    message.includes('Unauthorized');
+
+  return isBusinessError ? message : fallback;
+}
+
 type SocialPlatform = 'twitter' | 'linkedin' | 'instagram';
 
 export type PredictiveAttendanceResult = {
@@ -130,7 +139,7 @@ export async function generateOrganizerTasks(eventId: string): Promise<Organizer
     return { success: true, tasks: result.tasks || [] };
   } catch (error: any) {
     console.error('Task Generation Error:', error);
-    return { success: false, error: error?.message || 'Failed to generate organizer tasks' };
+    return { success: false, error: sanitizeInsightsError(error, 'Failed to generate organizer tasks') };
   }
 }
 
@@ -201,7 +210,7 @@ export async function generateFullEventReport(eventId: string) {
     return { success: true, report };
   } catch (error: any) {
     console.error('Report Generation Error:', error);
-    return { success: false, error: error.message };
+    return { success: false, error: sanitizeInsightsError(error, 'Failed to generate event report') };
   }
 }
 
@@ -244,7 +253,7 @@ export async function generateEventSummary(eventId: string) {
     } as EventSummaryResult;
   } catch (error: any) {
     console.error('Failed to generate summary:', error);
-    return { success: false, error: error?.message || 'Failed to generate summary' } as EventSummaryResult;
+    return { success: false, error: sanitizeInsightsError(error, 'Failed to generate summary') } as EventSummaryResult;
   }
 }
 

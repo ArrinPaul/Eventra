@@ -6,6 +6,21 @@ import { eq, and, desc } from 'drizzle-orm';
 import { validateEventOwnership } from '@/lib/auth-utils';
 import { revalidatePath } from 'next/cache';
 
+function sanitizeCollabError(error: any, fallback: string): never {
+  const message = error?.message || '';
+  const isBusinessError =
+    message.includes('User not found') ||
+    message.includes('already part of the staff') ||
+    message.includes('Staff record not found') ||
+    message.includes('Unauthorized') ||
+    message.includes('Event not found');
+
+  if (isBusinessError) {
+    throw error;
+  }
+  throw new Error(fallback);
+}
+
 /**
  * Add a user to event staff
  */
@@ -48,7 +63,7 @@ export async function addEventStaff(eventId: string, email: string, role: string
     return newStaff;
   } catch (error: any) {
     console.error('addEventStaff Error:', error);
-    throw new Error(error.message || 'Failed to add staff');
+    sanitizeCollabError(error, 'Failed to add staff');
   }
 }
 
@@ -77,7 +92,7 @@ export async function updateEventStaff(staffId: string, data: { role?: string, p
     return updated;
   } catch (error: any) {
     console.error('updateEventStaff Error:', error);
-    throw new Error(error.message || 'Failed to update staff');
+    sanitizeCollabError(error, 'Failed to update staff');
   }
 }
 
@@ -102,7 +117,7 @@ export async function removeEventStaff(staffId: string) {
     return { success: true };
   } catch (error: any) {
     console.error('removeEventStaff Error:', error);
-    throw new Error(error.message || 'Failed to remove staff');
+    sanitizeCollabError(error, 'Failed to remove staff');
   }
 }
 
