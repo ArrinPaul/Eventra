@@ -26,6 +26,9 @@ const globalForDb = globalThis as unknown as {
 const conn = globalForDb.conn ?? postgres(connectionString, { 
   prepare: false, // REQUIRED for Supabase Transaction Pooler
   ssl: 'require',
+  connect_timeout: 30, // Increase to 30 seconds
+  idle_timeout: 20,
+  max_lifetime: 60 * 30,
 });
 
 if (process.env.NODE_ENV !== 'production') globalForDb.conn = conn;
