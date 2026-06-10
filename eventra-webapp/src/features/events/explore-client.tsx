@@ -99,27 +99,36 @@ export default function ExploreClient() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
+    <div className="max-w-7xl mx-auto space-y-16 pb-20">
       {/* Page Header */}
-      <div className="mb-12">
-        <h1 className="text-4xl font-black font-headline text-foreground mb-3 tracking-tighter">{t('exploreEvents')}</h1>
-        <p className="text-xl text-muted-foreground font-medium">{t('exploreSubtitle')}</p>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-8">
+        <div className="space-y-4">
+           <Badge variant="outline" className="border-primary/30 bg-primary/10 text-primary rounded-full px-4 py-1 text-[10px] font-black uppercase tracking-[0.3em]">
+             Global Mesh
+           </Badge>
+           <h1 className="text-4xl md:text-6xl font-display font-bold tracking-tighter leading-none">
+             Explore <span className="text-primary italic">Events.</span>
+           </h1>
+           <p className="text-lg text-muted-foreground font-medium max-w-xl">
+             Discover amazing experiences across the network. Unified, intelligent, and real-time.
+           </p>
+        </div>
       </div>
 
       {/* Search & Filters */}
-      <div className="mb-12 space-y-6">
-        <div className="relative group">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
+      <div className="space-y-10">
+        <div className="relative group max-w-2xl">
+          <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
           <Input
             placeholder={t('searchEvents')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-12 h-14 rounded-2xl bg-card border-border/50 text-lg focus-visible:ring-primary shadow-sm"
+            className="pl-16 h-16 rounded-[1.5rem] bg-background border-border/80 text-lg font-medium focus-visible:ring-primary shadow-xl"
           />
           {search && (
             <button
               onClick={() => setSearch('')}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+              className="absolute right-6 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
@@ -127,15 +136,15 @@ export default function ExploreClient() {
         </div>
 
         {/* Category Pills */}
-        <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide">
+        <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
           {categories.map((cat) => (
             <button
               key={cat.value}
               onClick={() => setSelectedCategory(cat.value)}
-              className={`px-6 py-2.5 rounded-xl text-sm font-black whitespace-nowrap transition-all duration-300 border-2 ${
+              className={`px-8 py-3 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] whitespace-nowrap transition-all duration-300 border-2 ${
                 selectedCategory === cat.value
-                  ? 'bg-primary text-primary-foreground border-primary shadow-glow'
-                  : 'bg-card border-border/50 text-muted-foreground hover:text-foreground hover:border-primary/30'
+                  ? 'bg-primary text-primary-foreground border-primary shadow-glow shadow-primary/20'
+                  : 'bg-background border-border/80 text-muted-foreground hover:text-foreground hover:border-primary/30'
               }`}
             >
               {cat.label}
@@ -146,26 +155,26 @@ export default function ExploreClient() {
 
       {/* Results */}
       {loading ? (
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-10">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="rounded-[2rem] border border-border/50 bg-card overflow-hidden animate-pulse aspect-[4/5]" />
+            <div key={i} className="rounded-[3rem] border border-border/60 bg-muted/20 overflow-hidden animate-pulse aspect-[4/5]" />
           ))}
         </div>
       ) : events.length === 0 ? (
         <motion.div
-          className="text-center py-32 bg-card rounded-[3rem] border border-dashed border-border"
+          className="text-center py-40 bg-background rounded-[3rem] border-2 border-dashed border-border"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
         >
-          <div className="w-20 h-20 bg-muted/30 rounded-full flex items-center justify-center mx-auto mb-6">
-            <Calendar className="w-10 h-10 text-muted-foreground/30" />
+          <div className="w-20 h-20 bg-muted rounded-2xl flex items-center justify-center mx-auto mb-8">
+            <Calendar className="w-10 h-10 text-muted-foreground/40" />
           </div>
-          <h3 className="text-2xl font-black text-foreground mb-2">{t('noEvents')}</h3>
-          <p className="text-muted-foreground font-medium">{t('adjustFilters')}</p>
+          <h3 className="text-3xl font-display font-bold mb-4">{t('noEvents')}</h3>
+          <p className="text-muted-foreground font-medium max-w-sm mx-auto">{t('adjustFilters')}</p>
         </motion.div>
       ) : (
         <motion.div
-          className="grid md:grid-cols-2 lg:grid-cols-3 gap-8"
+          className="grid md:grid-cols-2 lg:grid-cols-3 gap-10"
           initial="initial"
           animate="animate"
           variants={{ animate: { transition: { staggerChildren: 0.1 } } }}
@@ -177,77 +186,77 @@ export default function ExploreClient() {
                 initial: { opacity: 0, y: 30 },
                 animate: { opacity: 1, y: 0 },
               }}
-              transition={{ duration: 0.5, ease: "easeOut" }}
+              transition={{ duration: 0.6, ease: "easeOut" }}
             >
               <Link href={`/events/${event.id}`} className="group block h-full">
-                <div className="rounded-[2rem] border border-border/50 bg-card overflow-hidden hover:shadow-elevated hover:border-primary/40 transition-all duration-500 h-full flex flex-col group">
-                  {/* Image */}
-                  <div className="relative h-60 bg-muted overflow-hidden">
+                <div className="h-full bg-background border border-border/80 rounded-[3rem] overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-500 flex flex-col group-hover:-translate-y-1">
+                  {/* Image Area */}
+                  <div className="relative aspect-[16/10] overflow-hidden bg-muted m-4 rounded-[2.2rem]">
                     {event.imageUrl ? (
                       <Image
                         src={event.imageUrl}
                         alt={event.title}
                         fill
                         sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
-                        className="object-cover group-hover:scale-110 transition-transform duration-700"
+                        className="object-cover group-hover:scale-105 transition-transform duration-1000"
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/5 to-primary/10">
-                        <Calendar className="w-12 h-12 text-primary/10" />
+                        <Zap className="w-14 h-14 text-primary/10" />
                       </div>
                     )}
                     {/* Category Badge */}
-                    <div className="absolute top-4 left-4 z-10">
-                      <Badge variant="glass" className="backdrop-blur-md border-white/20 text-[10px] font-black uppercase tracking-widest px-3 py-1">
+                    <div className="absolute top-5 left-5 z-10">
+                      <Badge className="bg-background/80 backdrop-blur-md text-foreground border-none font-black text-[9px] uppercase tracking-widest px-4 py-1.5 rounded-full">
                         {event.category}
                       </Badge>
                     </div>
                     {/* Free Badge */}
-                    <div className="absolute bottom-4 right-4 z-10">
-                      <Badge className="text-xs font-black px-4 py-1.5 rounded-xl shadow-lg bg-emerald-500 text-white">
+                    <div className="absolute bottom-5 right-5 z-10">
+                      <Badge className="text-[10px] font-black uppercase tracking-widest px-5 py-2 rounded-xl shadow-lg bg-emerald-500 text-white border-none">
                         {t('free')}
                       </Badge>
                     </div>
                   </div>
 
-                  {/* Content */}
-                  <div className="p-8 flex-1 flex flex-col">
-                    <h3 className="text-2xl font-black text-foreground mb-4 line-clamp-2 group-hover:text-primary transition-colors tracking-tight leading-tight">
-                      {event.title}
-                    </h3>
+                  {/* Content Area */}
+                  <div className="p-10 pt-4 flex-1 flex flex-col justify-between">
+                    <div>
+                      <h3 className="text-2xl md:text-3xl font-display font-bold text-foreground mb-6 line-clamp-2 group-hover:text-primary transition-colors tracking-tight leading-tight">
+                        {event.title}
+                      </h3>
 
-                    <div className="space-y-3 text-sm font-bold text-muted-foreground mb-8">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-primary/5 flex items-center justify-center">
-                            <Calendar className="w-4 h-4 text-primary" />
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-4 text-xs font-bold text-muted-foreground">
+                          <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
+                              <Calendar className="w-5 h-5 text-primary" />
+                          </div>
+                          <span className="leading-none">{formatDate(event.startDate)} · {formatTime(event.startDate)}</span>
                         </div>
-                        <span>{formatDate(event.startDate)} · {formatTime(event.startDate)}</span>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-primary/5 flex items-center justify-center">
-                            <MapPin className="w-4 h-4 text-primary" />
+                        <div className="flex items-center gap-4 text-xs font-bold text-muted-foreground">
+                          <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
+                              <MapPin className="w-5 h-5 text-primary" />
+                          </div>
+                          <span className="truncate leading-none">{getLocationText(event.location)}</span>
                         </div>
-                        <span className="truncate">{getLocationText(event.location)}</span>
                       </div>
                     </div>
 
                     {/* Footer */}
-                    <div className="mt-auto pt-6 border-t border-border/50 flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="flex -space-x-2">
+                    <div className="mt-12 pt-8 border-t border-border/60 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="flex -space-x-3">
                             {[1, 2, 3].map(i => (
-                                <div key={i} className="w-6 h-6 rounded-full border-2 border-card bg-muted flex items-center justify-center text-[8px] font-black">
-                                    {String.fromCharCode(64 + i)}
-                                </div>
+                                <div key={i} className="w-8 h-8 rounded-full border-4 border-background bg-muted shadow-sm" />
                             ))}
                         </div>
-                        <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-60">
                           {event.registeredCount} / {event.capacity}
                         </span>
                       </div>
                       <Badge
                         variant="outline"
-                        className="text-[10px] font-black uppercase tracking-tighter border-border/50 px-3 py-1"
+                        className="text-[10px] font-black uppercase tracking-widest border-border/60 px-4 py-1 rounded-full opacity-60"
                       >
                       {event.type === 'physical'
                         ? t('physical')

@@ -11,151 +11,83 @@ import { format } from 'date-fns';
 
 export default function SearchPage() {
   const [query, setQuery] = useState('');
-//   
-//   const hasResults = results.events.length > 0 || results.users.length > 0 || results.communities.length > 0;
-// 
-//   return (
-//     <div className="container mx-auto px-4 py-12 max-w-5xl text-foreground space-y-12">
-//       <div className="text-center space-y-4">
-//         <h1 className="text-5xl font-extrabold tracking-tight">Search Eventra</h1>
-//         <p className="text-muted-foreground text-lg max-w-2xl mx-auto">Find events, connect with people, and discover communities across the platform.</p>
-//         
-//         <div className="relative max-w-2xl mx-auto mt-8">
-//           <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-6 w-6 text-muted-foreground" />
-//           <Input 
-//             autoFocus
-//             placeholder="Search for anything..." 
-//             value={query}
-//             onChange={(e) => setQuery(e.target.value)}
-//             className="pl-14 h-16 text-xl bg-card border-border rounded-2xl focus-visible:ring-cyan-500 transition-all"
-//           />
-//         </div>
-//       </div>
-// 
-//       {!query.trim() ? (
-//         <div className="py-20 text-center space-y-6">
-//           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-3xl mx-auto">
-//             <div className="p-6 bg-card border border-border rounded-2xl text-center space-y-3">
-//               <Calendar className="h-8 w-8 mx-auto text-primary" />
-//               <h3 className="font-bold">Events</h3>
-//               <p className="text-xs text-muted-foreground">Workshops, conferences, and meetups</p>
-//             </div>
-//             <div className="p-6 bg-card border border-border rounded-2xl text-center space-y-3">
-//               <Users className="h-8 w-8 mx-auto text-purple-400" />
-//               <h3 className="font-bold">People</h3>
-//               <p className="text-xs text-muted-foreground">Network with professionals and students</p>
-//             </div>
-//             <div className="p-6 bg-card border border-border rounded-2xl text-center space-y-3">
-//               <MessageSquare className="h-8 w-8 mx-auto text-pink-400" />
-//               <h3 className="font-bold">Communities</h3>
-//               <p className="text-xs text-muted-foreground">Join interest-based groups</p>
-//             </div>
-//           </div>
-//         </div>
-//       ) : query.length < 2 ? (
-//         <div className="py-20 text-center text-muted-foreground">
-//           Keep typing to see results...
-//         </div>
-//       ) : !hasResults ? (
-//         <div className="py-20 text-center space-y-4">
-//           <div className="w-20 h-20 bg-card rounded-full flex items-center justify-center mx-auto">
-//             <Search className="h-10 w-10 text-gray-600" />
-//           </div>
-//           <p className="text-xl font-medium">No results found for &quot;{query}&quot;</p>
-//           <p className="text-muted-foreground">Try adjusting your search or check for typos.</p>
-//         </div>
-//       ) : (
-//         <div className="space-y-12">
-//           {results.events.length > 0 && (
-//             <section className="space-y-6">
-//               <div className="flex items-center justify-between border-b border-border pb-4">
-//                 <h2 className="text-2xl font-bold flex items-center gap-2">
-//                   <Calendar className="text-primary h-6 w-6" /> Events
-//                 </h2>
-//                 <Badge variant="secondary" className="bg-primary/10 text-primary border-0">{results.events.length} found</Badge>
-//               </div>
-//               <div className="grid gap-4">
-//                 {results.events.map((e: any) => (
-//                   <Link key={e.id} href={`/events/${e.id}`}>
-//                     <Card className="bg-card border-border hover:bg-muted transition-all group overflow-hidden">
-//                       <CardContent className="p-6 flex items-center justify-between">
-//                         <div className="space-y-1">
-//                           <h3 className="text-xl font-bold group-hover:text-primary transition-colors">{e.title}</h3>
-//                           <div className="flex items-center gap-4 text-sm text-muted-foreground">
-//                             <span>{e.category}</span>
-//                             <span>•</span>
-//                             <span>{format(new Date(e.startDate), 'PPP')}</span>
-//                           </div>
-//                         </div>
-//                         <ArrowRight className="h-5 w-5 text-gray-600 group-hover:text-foreground transition-all transform group-hover:translate-x-1" />
-//                       </CardContent>
-//                     </Card>
-//                   </Link>
-//                 ))}
-//               </div>
-//             </section>
-//           )}
-// 
-//           {results.users.length > 0 && (
-//             <section className="space-y-6">
-//               <div className="flex items-center justify-between border-b border-border pb-4">
-//                 <h2 className="text-2xl font-bold flex items-center gap-2">
-//                   <Users className="text-purple-400 h-6 w-6" /> People
-//                 </h2>
-//                 <Badge variant="secondary" className="bg-purple-500/10 text-purple-400 border-0">{results.users.length} found</Badge>
-//               </div>
-//               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-//                 {results.users.map((u: any) => (
-//                   <Link key={u.id} href={`/profile/${u.id}`}>
-//                     <Card className="bg-card border-border hover:border-purple-500/30 transition-all group h-full">
-//                       <CardContent className="p-6 flex items-center gap-4">
-//                         <Avatar className="h-14 w-14 border border-border group-hover:border-purple-500/50 transition-all">
-//                           <AvatarImage src={u.image} />
-//                           <AvatarFallback className="bg-purple-500/10 text-purple-400">{u.name?.charAt(0)}</AvatarFallback>
-//                         </Avatar>
-//                         <div className="overflow-hidden">
-//                           <h3 className="font-bold text-lg truncate group-hover:text-purple-400 transition-colors">{u.name}</h3>
-//                           <p className="text-xs text-muted-foreground capitalize">{u.role}</p>
-//                         </div>
-//                       </CardContent>
-//                     </Card>
-//                   </Link>
-//                 ))}
-//               </div>
-//             </section>
-//           )}
-// 
-//           {results.communities.length > 0 && (
-//             <section className="space-y-6">
-//               <div className="flex items-center justify-between border-b border-border pb-4">
-//                 <h2 className="text-2xl font-bold flex items-center gap-2">
-//                   <MessageSquare className="text-pink-400 h-6 w-6" /> Communities
-//                 </h2>
-//                 <Badge variant="secondary" className="bg-pink-500/10 text-pink-400 border-0">{results.communities.length} found</Badge>
-//               </div>
-//               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-//                 {results.communities.map((c: any) => (
-//                   <Link key={c.id} href={`/community/${c.id}`}>
-//                     <Card className="bg-card border-border hover:border-pink-500/30 transition-all group overflow-hidden h-full">
-//                       <CardContent className="p-6 flex items-center justify-between">
-//                         <div className="space-y-1">
-//                           <h3 className="text-lg font-bold group-hover:text-pink-400 transition-colors">{c.name}</h3>
-//                           <p className="text-sm text-muted-foreground">{c.category}</p>
-//                         </div>
-//                         <div className="w-10 h-10 rounded-full bg-card flex items-center justify-center group-hover:bg-pink-500/20 transition-all">
-//                           <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-pink-400" />
-//                         </div>
-//                       </CardContent>
-//                     </Card>
-//                   </Link>
-//                 ))}
-//               </div>
-//             </section>
-//           )}
-//         </div>
-//       )}
-//     </div>
-//   );
+  
+  // Mock results for UI design
+  const results = {
+    events: [],
+    users: [],
+    communities: []
+  };
+  
+  const hasResults = results.events.length > 0 || results.users.length > 0 || results.communities.length > 0;
+
+  return (
+    <div className="max-w-5xl mx-auto space-y-16 pb-20">
+      {/* Search Header */}
+      <div className="text-center space-y-8">
+        <div className="space-y-4">
+           <Badge variant="outline" className="border-primary/30 bg-primary/10 text-primary rounded-full px-4 py-1 text-[10px] font-black uppercase tracking-[0.3em]">
+             Neural Search
+           </Badge>
+           <h1 className="text-4xl md:text-7xl font-display font-bold text-foreground tracking-tighter leading-none">
+             Discover <span className="text-primary italic">Everything.</span>
+           </h1>
+           <p className="text-lg text-muted-foreground font-medium max-w-2xl mx-auto leading-relaxed">
+             Find events, connect with experts, and discovery activity nodes across the Eventra mesh.
+           </p>
+        </div>
+        
+        <div className="relative max-w-3xl mx-auto group">
+          <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-6 h-6 text-muted-foreground group-focus-within:text-primary transition-colors" />
+          <Input 
+            autoFocus
+            placeholder="Search mission codes, nodes, or expertise..." 
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className="pl-16 h-20 text-xl font-medium bg-background border-border/80 rounded-[2rem] focus-visible:ring-primary shadow-2xl transition-all"
+          />
+        </div>
+      </div>
+
+      {!query.trim() ? (
+        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+            {[
+              { label: 'Events', desc: 'Workshops, conferences, and live ops', icon: Calendar, color: 'text-primary' },
+              { label: 'Experts', desc: 'Network with professionals and nodes', icon: Users, color: 'text-emerald-500' },
+              { label: 'Channels', desc: 'Join interest-based activity feeds', icon: MessageSquare, color: 'text-cyan-500' },
+            ].map((item, i) => (
+              <div key={i} className="p-10 bg-background border border-border/80 rounded-[2.5rem] text-center space-y-6 shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all group">
+                <div className="w-16 h-16 rounded-2xl bg-muted mx-auto flex items-center justify-center group-hover:scale-110 transition-transform">
+                   <item.icon className="w-8 h-8 text-primary" />
+                </div>
+                <div>
+                   <h3 className="text-xl font-display font-bold tracking-tight">{item.label}</h3>
+                   <p className="text-xs font-medium text-muted-foreground mt-2 leading-relaxed">{item.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : query.length < 2 ? (
+        <div className="py-20 text-center animate-pulse">
+          <p className="text-[10px] font-black uppercase tracking-[0.4em] text-muted-foreground">Streaming data from mesh...</p>
+        </div>
+      ) : !hasResults ? (
+        <div className="text-center py-40 bg-background rounded-[3rem] border-2 border-dashed border-border animate-in fade-in duration-500">
+          <div className="w-20 h-20 bg-muted rounded-2xl flex items-center justify-center mx-auto mb-8">
+            <Search className="w-10 h-10 text-muted-foreground/30" />
+          </div>
+          <h3 className="text-3xl font-display font-bold mb-4">No results found.</h3>
+          <p className="text-muted-foreground font-medium max-w-sm mx-auto">Neural filters returned zero matches for &quot;{query}&quot;.</p>
+        </div>
+      ) : (
+        <div className="space-y-16 animate-in fade-in slide-in-from-bottom-4 duration-500">
+           {/* Results would be mapped here */}
+        </div>
+      )}
+    </div>
+  );
 }
 
 

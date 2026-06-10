@@ -139,26 +139,8 @@ export default function EventDetailsClient({ eventId, initialEvent }: { eventId:
     }
   };
 
-  const handleApplyDiscount = async () => {
-    setIsValidatingDiscount(true);
-    try {
-      // Mock discount validation for now as per current Phase 1 status
-      if (discountCode.toLowerCase() === 'welcome10') {
-        setAppliedDiscount({ type: 'percentage', value: 10 });
-        toast({ title: 'Code applied!', description: '10% discount has been applied to your ticket.' });
-      } else {
-        toast({ title: 'Invalid code', description: 'This promo code is not valid or has expired.', variant: 'destructive' });
-      }
-    } catch (e: any) {
-      toast({ title: 'Error', description: 'Could not validate discount code.', variant: 'destructive' });
-    } finally {
-      setIsValidatingDiscount(false);
-    }
-  };
-
-
-  if (event === undefined) return <div className="flex items-center justify-center min-h-screen text-foreground">Loading...</div>;
-  if (event === null) return <div className="flex items-center justify-center min-h-screen text-foreground">Event Not Found</div>;
+  if (event === undefined) return <div className="flex items-center justify-center min-h-screen text-foreground font-black uppercase tracking-[0.3em]">Initializing Node...</div>;
+  if (event === null) return <div className="flex items-center justify-center min-h-screen text-foreground font-display font-bold text-2xl">Event Not Found</div>;
 
   const isRegistered = !!registration;
   const isOrganizer = user && (user.id === event.organizerId || user.role === 'admin');
@@ -172,228 +154,301 @@ export default function EventDetailsClient({ eventId, initialEvent }: { eventId:
       : '';
 
   return (
-    <div className="min-h-screen bg-background text-foreground pb-20">
-      <div className="h-[300px] bg-gradient-to-br from-cyan-900/50 to-purple-900/50 relative">
-        <div className="absolute top-4 left-4"><Button variant="ghost" onClick={() => router.back()}><ArrowLeft className="mr-2 h-4 w-4" /> Back</Button></div>
+    <div className="min-h-screen bg-background text-foreground pb-40">
+      {/* IMPACT HEADER */}
+      <div className="relative h-[450px] md:h-[600px] overflow-hidden">
+        {event.imageUrl ? (
+           <Image 
+             src={event.imageUrl} 
+             alt={event.title} 
+             fill 
+             className="object-cover"
+             priority
+           />
+        ) : (
+           <div className="w-full h-full bg-gradient-to-br from-zinc-900 to-zinc-950 flex items-center justify-center">
+              <Sparkles className="w-32 h-32 text-primary/5" />
+           </div>
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent" />
+        
+        <div className="absolute top-8 left-8 flex items-center gap-4">
+          <Button 
+            variant="outline" 
+            onClick={() => router.back()}
+            className="rounded-xl h-12 px-6 bg-background/50 backdrop-blur-md border-border/40 font-bold uppercase tracking-widest text-[10px] hover:bg-background transition-all"
+          >
+            <ArrowLeft className="mr-3 h-4 w-4" /> Back to Network
+          </Button>
+        </div>
+
         {isOrganizer && (
-          <div className="absolute top-4 right-4 flex items-center gap-2">
+          <div className="absolute top-8 right-8 flex items-center gap-3">
             <Button 
               variant="outline" 
-              className="border-border hover:bg-muted"
+              className="rounded-xl h-12 px-6 bg-background/50 backdrop-blur-md border-border/40 font-bold uppercase tracking-widest text-[10px] hover:bg-background transition-all"
               onClick={handleClone}
               disabled={cloning}
             >
-              {cloning ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Copy className="mr-2 h-4 w-4" />}
-              Clone
+              {cloning ? <Loader2 className="mr-3 h-4 w-4 animate-spin" /> : <Copy className="mr-3 h-4 w-4" />}
+              Clone Node
             </Button>
-            <Button variant="outline" asChild className="border-border hover:bg-muted">
-              <Link href={`/events/${eventId}/edit`}><Edit className="mr-2 h-4 w-4" /> Edit Event</Link>
+            <Button 
+              asChild 
+              className="rounded-xl h-12 px-6 bg-primary text-primary-foreground font-black uppercase tracking-widest text-[10px] shadow-glow shadow-primary/20 border-none transition-all"
+            >
+              <Link href={`/events/${eventId}/edit`}><Edit className="mr-3 h-4 w-4" /> Edit Mission</Link>
             </Button>
           </div>
         )}
-      </div>
-      <div className="container -mt-20 relative z-10">
-        <div className="grid lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-6">
-            <AnnouncementBanner eventId={event.id} />
-            <Card className="bg-card border-border text-foreground">
-              <CardContent className="p-8">
-                <div className="flex items-center gap-2 mb-4">
-                  <Badge className="bg-primary/20 text-primary-foreground border-primary/30">{event.category}</Badge>
-                  <Badge variant="outline" className="border-border text-foreground/80">{event.type}</Badge>
-                  {event.status === 'cancelled' && <Badge variant="destructive">Cancelled</Badge>}
-                </div>
-                <h1 className="text-4xl font-bold mb-6">{event.title}</h1>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="flex items-center gap-3"><Calendar className="text-primary" /> <div><p className="text-xs text-muted-foreground">Date</p><p className="font-medium">{new Date(event.startDate).toLocaleDateString()}</p></div></div>
-                  {locationDisplay && (
-                    <div className="flex items-center gap-3"><MapPin className="text-primary" /> <div><p className="text-xs text-muted-foreground">Location</p><p className="font-medium">{locationDisplay}</p></div></div>
-                  )}
-                  <div className="flex items-center gap-3"><Users className="text-primary" /> <div><p className="text-xs text-muted-foreground">Attendees</p><p className="font-medium">{event.registeredCount} / {event.capacity}</p></div></div>
-                </div>
 
-                {/* Capacity Progress */}
-                <div className="mt-6">
-                  <div className="flex items-center justify-between text-sm mb-2">
-                    <span className="text-muted-foreground">Capacity</span>
-                    <span className={cn("font-medium", isFull ? "text-destructive" : capacityPercent > 80 ? "text-amber-400" : "text-primary")}>
-                      {isFull ? 'Sold Out' : `${event.capacity - event.registeredCount} spots left`}
-                    </span>
-                  </div>
-                  <Progress value={capacityPercent} className="h-2" />
-                </div>
-
-                <EventReactions eventId={event.id} />
-
-                <div className="mt-6">
-                  <Tabs value={activeTab} onValueChange={setActiveTab}>
-                    <TabsList className="bg-card border-border text-foreground p-1 mb-6">
-                      <TabsTrigger value="about" className="data-[state=active]:bg-primary">About</TabsTrigger>
-                      <TabsTrigger value="agenda" className="data-[state=active]:bg-primary">Agenda</TabsTrigger>
-                      <TabsTrigger value="discussion" className="data-[state=active]:bg-primary flex items-center gap-2">
-                        Discussion
-                        <Badge variant="secondary" className="h-4 p-0 px-1 text-[8px] bg-muted text-muted-foreground">NEW</Badge>
-                      </TabsTrigger>
-                      <TabsTrigger value="photos" className="data-[state=active]:bg-primary">Photos</TabsTrigger>
-                      <TabsTrigger value="polls" className="data-[state=active]:bg-primary flex items-center gap-2">
-                        Polls
-                        <div className="h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse" />
-                      </TabsTrigger>
-                    </TabsList>
-
-                    <TabsContent value="about" className="space-y-6 animate-in fade-in slide-in-from-bottom-2">
-                      {event.summary && (
-                        <div className="p-6 bg-primary/10 border border-cyan-500/20 rounded-2xl space-y-4">
-                          <h3 className="text-lg font-bold flex items-center gap-2 text-primary">
-                            <Sparkles className="h-5 w-5" />
-                            Event Summary
-                          </h3>
-                          <div className="text-foreground/80 whitespace-pre-wrap leading-relaxed">
-                            {event.summary}
-                          </div>
-                        </div>
-                      )}
-                      
-                      <div className="flex justify-between items-center">
-                        <h3 className="font-bold">About the Event</h3>
-                        {isOrganizer && (new Date().getTime() > event.endDate) && !event.summary && (
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            className="border-primary/30 text-primary hover:bg-primary/10"
-                            onClick={handleGenerateSummary}
-                            disabled={generatingSummary}
-                          >
-                            {generatingSummary ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Sparkles className="h-4 w-4 mr-2" />}
-                            Generate AI Summary
-                          </Button>
-                        )}
-                      </div>
-                      <p className="text-foreground/80 whitespace-pre-wrap leading-relaxed">{event.description}</p>
-                    </TabsContent>
-
-                    <TabsContent value="agenda" className="space-y-6 animate-in fade-in slide-in-from-bottom-2">
-                      {event.agenda && Array.isArray(event.agenda) && event.agenda.length > 0 ? (
-                        <div className="space-y-3">
-                          {event.agenda.map((item: any, i: number) => (
-                            <div key={i} className="flex gap-4 p-4 rounded-xl bg-card border border-border hover:border-primary/30 transition-colors">
-                              {item.startTime && (
-                                <div className="flex items-center gap-1.5 text-sm text-primary font-mono shrink-0 pt-1">
-                                  <Clock className="h-3.5 w-3.5" />
-                                  {item.startTime}
-                                </div>
-                              )}
-                              <div>
-                                <p className="font-bold text-lg">{item.title}</p>
-                                {item.speaker && <p className="text-xs text-primary/70 mt-0.5">By {item.speaker}</p>}
-                                {item.description && <p className="text-sm text-muted-foreground mt-2">{item.description}</p>}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="text-center py-10 text-muted-foreground italic">No agenda items listed yet.</div>
-                      )}
-                    </TabsContent>
-
-                    <TabsContent value="discussion">
-                      <EventDiscussionBoard eventId={event.id} />
-                    </TabsContent>
-
-                    <TabsContent value="photos">
-                      <EventGallery eventId={event.id} isRegistered={isRegistered} isStaff={!!isOrganizer} />
-                    </TabsContent>
-
-                    <TabsContent value="polls">
-                      <EventPolls eventId={event.id} isOrganizer={!!isOrganizer} />
-                    </TabsContent>
-                  </Tabs>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-          <div className="space-y-6">
-            <Card className="bg-card border-border text-foreground">
-              <CardContent className="p-6">
-                <div className="text-center mb-4">
-                  <p className="text-3xl font-bold">
-                    Free
-                  </p>
-                </div>
-
-                {/* Capacity mini bar */}
-                <div className="mb-4">
-                  <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
-                    <span>{event.registeredCount} registered</span>
-                    <span>{event.capacity} max</span>
-                  </div>
-                  <Progress value={capacityPercent} className="h-1.5" />
-                </div>
-                <Button className="w-full" size="lg" onClick={() => handleRegister()} disabled={registering || isRegistered || isFull || event.status === 'cancelled'}>
-                  {registering ? <Loader2 className="animate-spin" /> : isRegistered ? <CheckCircle className="mr-2" /> : <Ticket className="mr-2" />}
-                  {isRegistered ? 'Registered' : isFull ? 'Sold Out' : 'Register Now'}
-                </Button>
-                {isRegistered && (new Date().getTime() > event.startDate) && (
-                  <Button variant="outline" className="w-full mt-3 border-primary/30 text-primary hover:bg-primary/10" asChild>
-                    <Link href={`/events/${eventId}/feedback`}>
-                      <MessageSquare className="mr-2 h-4 w-4" /> Give Feedback
-                    </Link>
-                  </Button>
+        <div className="absolute bottom-0 left-0 right-0 p-8 md:p-16">
+          <div className="max-w-7xl mx-auto space-y-6">
+             <div className="flex items-center gap-3">
+                <Badge className="bg-primary text-primary-foreground border-none rounded-full px-5 py-1.5 text-[10px] font-black uppercase tracking-[0.2em]">
+                   {event.category}
+                </Badge>
+                <Badge variant="outline" className="bg-background/40 backdrop-blur-md border-border/40 text-foreground rounded-full px-5 py-1.5 text-[10px] font-black uppercase tracking-[0.2em]">
+                   {event.type}
+                </Badge>
+                {event.status === 'cancelled' && (
+                  <Badge variant="destructive" className="rounded-full px-5 py-1.5 text-[10px] font-black uppercase tracking-[0.2em]">
+                    Terminated
+                  </Badge>
                 )}
-                {event.waitlistEnabled && isFull && !isRegistered && (
-                  <p className="text-xs text-center text-muted-foreground mt-2">You&apos;ll be added to the waitlist</p>
-                )}
-              </CardContent>
-            </Card>
+             </div>
+             <h1 className="text-5xl md:text-8xl font-display font-bold tracking-tighter leading-none text-foreground max-w-4xl">
+                {event.title}
+             </h1>
           </div>
         </div>
       </div>
 
-            {/* AI Chatbot */}
+      <div className="max-w-7xl mx-auto px-8 -mt-10 relative z-20">
+        <div className="grid lg:grid-cols-12 gap-16">
+          <div className="lg:col-span-8 space-y-16">
+            <AnnouncementBanner eventId={event.id} />
 
-            {showChatbot ? (
-
-              <div className="fixed bottom-6 right-6 z-50 w-80 md:w-96">
-
-                <EventChatbot 
-
-                  event={{
-
-                    id: event.id,
-
-                    title: event.title,
-
-                    description: event.description,
-
-                    date: new Date(event.startDate).toLocaleDateString(),
-
-                    location: typeof event.location === 'string' ? event.location : event.location?.venue?.name,
-
-                    category: event.category,
-
-                    agenda: event.agenda,
-
-                  } as any}
-
-                  onClose={() => setShowChatbot(false)}
-
-                />
-
+            {/* QUICK INFO BAR */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 p-10 rounded-[2.5rem] bg-background border border-border/80 shadow-2xl">
+              <div className="flex items-center gap-5">
+                <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center">
+                  <Calendar className="w-6 h-6 text-primary" />
+                </div>
+                <div>
+                   <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-60 mb-1">Timeline</p>
+                   <p className="text-lg font-bold">{new Date(event.startDate).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}</p>
+                </div>
               </div>
+              {locationDisplay && (
+                <div className="flex items-center gap-5">
+                  <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center">
+                    <MapPin className="w-6 h-6 text-primary" />
+                  </div>
+                  <div>
+                     <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-60 mb-1">Coordinate</p>
+                     <p className="text-lg font-bold truncate max-w-[200px]">{locationDisplay}</p>
+                  </div>
+                </div>
+              )}
+              <div className="flex items-center gap-5">
+                <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center">
+                  <Users className="w-6 h-6 text-primary" />
+                </div>
+                <div>
+                   <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-60 mb-1">Network Capacity</p>
+                   <p className="text-lg font-bold">{event.registeredCount} / {event.capacity}</p>
+                </div>
+              </div>
+            </div>
 
-            ) : (
+            {/* TABS INTERFACE */}
+            <div className="space-y-12">
+               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                  <TabsList className="bg-transparent border-b border-border w-full justify-start rounded-none h-auto p-0 gap-10 mb-12">
+                     {['about', 'agenda', 'discussion', 'photos', 'polls'].map((tab) => (
+                       <TabsTrigger 
+                         key={tab} 
+                         value={tab}
+                         className="bg-transparent border-none rounded-none data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary text-muted-foreground font-black uppercase tracking-[0.2em] text-[11px] pb-4 px-0 transition-all"
+                       >
+                         {tab}
+                         {tab === 'discussion' && <Badge className="ml-2 h-4 p-0 px-1.5 text-[8px] bg-primary text-primary-foreground rounded-full">LIVE</Badge>}
+                       </TabsTrigger>
+                     ))}
+                  </TabsList>
 
-              <ChatbotTrigger onClick={() => setShowChatbot(true)} />
+                  <TabsContent value="about" className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                     {event.summary && (
+                       <div className="p-10 bg-primary/[0.03] border border-primary/10 rounded-[2.5rem] space-y-6">
+                         <h3 className="text-xl font-display font-bold flex items-center gap-3 text-primary">
+                           <Sparkles className="h-6 w-6" />
+                           Neural Summary
+                         </h3>
+                         <div className="text-foreground/80 text-lg leading-relaxed font-medium">
+                           {event.summary}
+                         </div>
+                       </div>
+                     )}
+                     
+                     <div className="space-y-6">
+                        <div className="flex justify-between items-center">
+                           <h3 className="text-3xl font-display font-bold tracking-tight">Mission Briefing</h3>
+                           {isOrganizer && !event.summary && (
+                             <Button 
+                               variant="outline" 
+                               size="sm" 
+                               className="rounded-xl border-primary/20 text-primary font-black uppercase tracking-widest text-[9px] hover:bg-primary/5 transition-all"
+                               onClick={handleGenerateSummary}
+                               disabled={generatingSummary}
+                             >
+                               {generatingSummary ? <Loader2 className="h-3 w-3 animate-spin mr-2" /> : <Sparkles className="h-3 w-3 mr-2" />}
+                               Generate AI Intel
+                             </Button>
+                           )}
+                        </div>
+                        <p className="text-muted-foreground text-lg leading-loose font-medium whitespace-pre-wrap">{event.description}</p>
+                     </div>
+                     <EventReactions eventId={event.id} />
+                  </TabsContent>
 
-            )}
+                  <TabsContent value="agenda" className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                     {event.agenda && Array.isArray(event.agenda) && event.agenda.length > 0 ? (
+                       <div className="grid gap-6">
+                         {event.agenda.map((item: any, i: number) => (
+                           <div key={i} className="flex gap-8 p-8 rounded-[2rem] bg-background border border-border/80 hover:border-primary/30 transition-all group">
+                             {item.startTime && (
+                               <div className="flex flex-col items-center gap-2 shrink-0 pt-2">
+                                 <Clock className="h-5 w-5 text-primary" />
+                                 <span className="text-xs font-black tracking-widest text-muted-foreground">{item.startTime}</span>
+                               </div>
+                             )}
+                             <div className="space-y-3">
+                               <p className="text-2xl font-display font-bold tracking-tight group-hover:text-primary transition-colors">{item.title}</p>
+                               {item.speaker && (
+                                  <div className="flex items-center gap-2">
+                                     <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-[10px] font-black uppercase">
+                                        {item.speaker[0]}
+                                     </div>
+                                     <p className="text-sm font-bold text-muted-foreground">Expert: {item.speaker}</p>
+                                  </div>
+                               )}
+                               {item.description && <p className="text-muted-foreground font-medium leading-relaxed">{item.description}</p>}
+                             </div>
+                           </div>
+                         ))}
+                       </div>
+                     ) : (
+                       <div className="text-center py-20 bg-muted/10 rounded-[2.5rem] border-2 border-dashed border-border">
+                          <p className="text-muted-foreground font-medium italic">Mission timeline is currently being finalized.</p>
+                       </div>
+                     )}
+                  </TabsContent>
 
-      
+                  <TabsContent value="discussion">
+                    <EventDiscussionBoard eventId={event.id} />
+                  </TabsContent>
 
+                  <TabsContent value="photos">
+                    <EventGallery eventId={event.id} isRegistered={isRegistered} isStaff={!!isOrganizer} />
+                  </TabsContent>
+
+                  <TabsContent value="polls">
+                    <EventPolls eventId={event.id} isOrganizer={!!isOrganizer} />
+                  </TabsContent>
+               </Tabs>
+            </div>
           </div>
 
-        );
+          {/* SIDEBAR REGISTRATION CARD */}
+          <div className="lg:col-span-4">
+            <div className="sticky top-32 space-y-8">
+               <div className="rounded-[3rem] bg-background border border-border/80 shadow-2xl overflow-hidden">
+                  <div className="p-10 space-y-10">
+                     <div className="text-center space-y-2">
+                        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground opacity-60">Mission Access</p>
+                        <p className="text-5xl font-display font-bold tracking-tighter">Free</p>
+                     </div>
 
-      }
+                     <div className="space-y-4">
+                        <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-muted-foreground px-2">
+                          <span>{event.registeredCount} Syncs</span>
+                          <span>{event.capacity} Max Node</span>
+                        </div>
+                        <Progress value={capacityPercent} className="h-3 rounded-full bg-muted" />
+                        <p className={cn(
+                           "text-center text-xs font-bold",
+                           isFull ? "text-red-500" : capacityPercent > 80 ? "text-amber-500" : "text-emerald-500"
+                        )}>
+                           {isFull ? 'Critical Load: Full' : `${event.capacity - event.registeredCount} available slots`}
+                        </p>
+                     </div>
 
-      
+                     <Button 
+                        className="w-full h-16 rounded-[1.5rem] bg-primary text-primary-foreground font-black uppercase tracking-widest text-xs shadow-glow shadow-primary/20 border-none transition-all active:scale-95" 
+                        onClick={() => handleRegister()} 
+                        disabled={registering || isRegistered || isFull || event.status === 'cancelled'}
+                     >
+                        {registering ? <Loader2 className="animate-spin w-5 h-5" /> : isRegistered ? <CheckCircle className="mr-3 w-5 h-5" /> : <Ticket className="mr-3 w-5 h-5" />}
+                        {isRegistered ? 'Node Synchronized' : isFull ? 'Capacity Reached' : 'Initialize Sync'}
+                     </Button>
 
+                     {isRegistered && (new Date().getTime() > event.startDate) && (
+                       <Button 
+                         variant="outline" 
+                         className="w-full h-14 rounded-xl border-2 font-black uppercase tracking-widest text-[10px] hover:bg-muted" 
+                         asChild
+                       >
+                         <Link href={`/events/${eventId}/feedback`}>
+                           <MessageSquare className="mr-3 h-4 w-4 text-primary" /> Give Intel
+                         </Link>
+                       </Button>
+                     )}
+                     
+                     {event.waitlistEnabled && isFull && !isRegistered && (
+                       <p className="text-[10px] text-center text-muted-foreground uppercase tracking-widest font-black opacity-60">Joining Buffer Queue...</p>
+                     )}
+                  </div>
+                  <div className="bg-muted/30 p-6 text-center border-t border-border/40">
+                     <p className="text-[9px] font-black uppercase tracking-[0.4em] text-muted-foreground/60">
+                        Secure_Node_Auth v0.1
+                     </p>
+                  </div>
+               </div>
+
+               {/* Share / Actions */}
+               <div className="flex gap-4">
+                  <Button variant="outline" className="flex-1 rounded-2xl h-14 border-2 font-black uppercase tracking-widest text-[10px] hover:bg-muted">
+                     <Share2 className="mr-3 w-4 h-4 text-primary" /> Share
+                  </Button>
+                  <Button variant="outline" className="flex-1 rounded-2xl h-14 border-2 font-black uppercase tracking-widest text-[10px] hover:bg-muted">
+                     <Heart className="mr-3 w-4 h-4 text-primary" /> Save
+                  </Button>
+               </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* AI Chatbot */}
+      {showChatbot ? (
+        <div className="fixed bottom-10 right-10 z-50 w-80 md:w-[450px] shadow-3xl">
+          <EventChatbot 
+            event={{
+              id: event.id,
+              title: event.title,
+              description: event.description,
+              date: new Date(event.startDate).toLocaleDateString(),
+              location: locationDisplay,
+              category: event.category,
+              agenda: event.agenda,
+            } as any}
+            onClose={() => setShowChatbot(false)}
+          />
+        </div>
+      ) : (
+        <ChatbotTrigger onClick={() => setShowChatbot(true)} />
+      )}
+    </div>
+  );
+}

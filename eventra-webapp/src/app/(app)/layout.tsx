@@ -1,8 +1,7 @@
 'use client';
 import { useEffect } from 'react';
 import { useAuth } from '@/hooks/use-auth';
-import Header from '@/components/layout/header';
-import { ErrorBoundary } from '@/components/shared/error-boundary';
+import { Sidebar } from '@/components/layout/sidebar';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -19,12 +18,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex">
       <ErrorBoundary>
-        <Header />
+        <Sidebar />
       </ErrorBoundary>
-      <main className="pt-16">
-        <ErrorBoundary>{children}</ErrorBoundary>
+      <main className="flex-1 ml-[80px] md:ml-[280px] transition-[margin] duration-300">
+        <div className="p-4 md:p-8">
+          <ErrorBoundary>{children}</ErrorBoundary>
+        </div>
       </main>
     </div>
   );

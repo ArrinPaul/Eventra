@@ -40,76 +40,30 @@ export function MyEventCard({
   const parseDate = (dateVal: any): Date => {
     if (!dateVal) return new Date();
     if (dateVal instanceof Date) return dateVal;
-    if (typeof dateVal === 'number') return new Date(dateVal);
-    if (typeof dateVal === 'string') return new Date(dateVal);
-    // Legacy support for Firestore-like objects
-    if (typeof dateVal === 'object' && 'toDate' in dateVal && typeof dateVal.toDate === 'function') {
-      return dateVal.toDate();
-    }
     return new Date(dateVal);
   };
 
   const displayDate = parseDate(event.startDate);
-
-  const eventImage = event.imageUrl || event.image || `https://picsum.photos/seed/${event.id}/800/600`;
+  const eventImage = event.imageUrl || event.image;
   const venueName = typeof event.location?.venue === 'string'
     ? event.location?.venue
-    : event.location?.venue?.name;
+    : event.location?.venue?.name || event.location || 'Virtual Platform';
 
-  // Get live status
   const getLiveStatus = () => {
     const now = new Date();
     const eventDate = displayDate;
-    const endDate = event.endDate ? parseDate(event.endDate) : new Date(eventDate.getTime() + 3 * 60 * 60 * 1000); // Default 3 hours
+    const endDate = event.endDate ? parseDate(event.endDate) : new Date(eventDate.getTime() + 3 * 60 * 60 * 1000);
 
-    // Event is live now
     if (now >= eventDate && now <= endDate) {
-      return {
-        label: 'Live Now',
-        variant: 'default' as const,
-        className: 'bg-red-500 text-foreground animate-pulse',
-        icon: 'ðŸ”´'
-      };
+      return { label: 'Live Now', className: 'bg-red-500 text-white animate-pulse', icon: <div className="w-1.5 h-1.5 rounded-full bg-white mr-2" /> };
     }
-
-    // Event ended
     if (isPast(endDate)) {
-      return {
-        label: 'Ended',
-        variant: 'secondary' as const,
-        className: 'bg-muted',
-        icon: null
-      };
+      return { label: 'Ended', className: 'bg-muted text-muted-foreground', icon: null };
     }
-
-    // Event starts soon
     const hoursUntil = differenceInHours(eventDate, now);
-    const minutesUntil = differenceInMinutes(eventDate, now);
-
-    if (minutesUntil < 60) {
-      return {
-        label: `Starts in ${minutesUntil}m`,
-        variant: 'default' as const,
-        className: 'bg-orange-500 text-foreground',
-        icon: 'â°'
-      };
-    } else if (hoursUntil < 24) {
-      return {
-        label: `Starts in ${hoursUntil}h`,
-        variant: 'default' as const,
-        className: 'bg-[hsl(var(--primary))]',
-        icon: 'â°'
-      };
-    } else if (hoursUntil < 72) {
-      const days = Math.floor(hoursUntil / 24);
-      return {
-        label: `In ${days} day${days > 1 ? 's' : ''}`,
-        variant: 'outline' as const,
-        className: '',
-        icon: null
-      };
+    if (hoursUntil < 24 && hoursUntil >= 0) {
+      return { label: 'Incoming', className: 'bg-primary text-primary-foreground', icon: <Clock className="w-3 h-3 mr-2" /> };
     }
-
     return null;
   };
 
@@ -120,172 +74,146 @@ export function MyEventCard({
     onRate?.(event.id, stars);
   };
 
-  const getGoogleMapsUrl = () => {
-    if (venueName) {
-      const address = typeof event.location?.venue === 'string'
-        ? event.location.venue
-        : (event.location?.venue?.address || event.location?.venue?.name || '');
-      return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
-    }
-    return null;
-  };
-
   return (
-    <Card className="group overflow-hidden hover:shadow-lg transition-all duration-300">
-      <div className="relative">
-        {/* Event Image */}
-        <div className="aspect-video relative overflow-hidden bg-muted">
+    <div className="group h-full bg-background border border-border/80 rounded-[2.5rem] overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-500 flex flex-col hover:-translate-y-1">
+      {/* IMAGE AREA */}
+      <div className="relative aspect-[16/10] overflow-hidden bg-muted m-3 rounded-[2rem]">
+        {eventImage ? (
           <Image 
-            src={eventImage}
+            src={eventImage} 
             alt={event.title}
             fill
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-            className="object-cover group-hover:scale-105 transition-transform duration-300"
+            className="object-cover group-hover:scale-105 transition-transform duration-1000"
           />
-          {/* Live Status Badge */}
-          {liveStatus && (
-            <div className="absolute top-3 left-3">
-              <Badge className={cn('font-semibold', liveStatus.className)}>
-                {liveStatus.icon && <span className="mr-1">{liveStatus.icon}</span>}
-                {liveStatus.label}
-              </Badge>
-            </div>
-          )}
-          {/* Wishlist Remove Button */}
-          {variant === 'wishlist' && (
-            <Button
-              size="icon"
-              variant="secondary"
-              className="absolute top-3 right-3 h-8 w-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-              onClick={(e) => {
-                e.preventDefault();
-                onRemoveWishlist?.(event.id);
-              }}
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          )}
-          {/* Category Badge */}
-          {event.category && (
-            <div className="absolute bottom-3 left-3">
-              <Badge variant="secondary" className="backdrop-blur-sm bg-background/80">
-                {event.category}
-              </Badge>
-            </div>
-          )}
-        </div>
-      </div>
-
-      <CardContent className="p-4 space-y-3">
-        {/* Event Title */}
-        <Link href={`/events/${event.id}`} className="block group-hover:text-primary transition-colors">
-          <h3 className="font-semibold text-lg line-clamp-2 mb-1">
-            {event.title}
-          </h3>
-        </Link>
-
-        {/* Date & Time */}
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Calendar className="h-4 w-4 flex-shrink-0" />
-          <span>{format(displayDate, 'EEE, MMM d, yyyy Â· h:mm a')}</span>
-        </div>
-
-        {/* Location */}
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <MapPin className="h-4 w-4 flex-shrink-0" />
-          <span className="line-clamp-1">
-            {venueName || (event.location?.isVirtual ? 'Virtual Event' : 'Location TBD')}
-          </span>
-        </div>
-
-        {/* Rating (Past Events Only) */}
-        {variant === 'past' && (
-          <div className="flex items-center gap-2 pt-2">
-            <span className="text-sm text-muted-foreground">Rate:</span>
-            <div className="flex gap-1">
-              {[1, 2, 3, 4, 5].map((star) => (
-                <button
-                  key={star}
-                  onClick={() => handleRating(star)}
-                  onMouseEnter={() => setHoverRating(star)}
-                  onMouseLeave={() => setHoverRating(0)}
-                  className="transition-transform hover:scale-110"
-                >
-                  <Star 
-                    className={cn(
-                      "h-5 w-5",
-                      (hoverRating >= star || rating >= star)
-                        ? "fill-yellow-400 text-warning"
-                        : "text-muted-foreground"
-                    )}
-                  />
-                </button>
-              ))}
-            </div>
+        ) : (
+          <div className="w-full h-full bg-gradient-to-br from-primary/5 to-primary/10 flex items-center justify-center">
+             <Zap className="w-12 h-12 text-primary/10" />
+          </div>
+        )}
+        
+        {liveStatus && (
+          <div className="absolute top-4 left-4">
+            <Badge className={cn('font-black uppercase tracking-widest text-[9px] px-3 py-1 border-none shadow-lg', liveStatus.className)}>
+              {liveStatus.icon}
+              {liveStatus.label}
+            </Badge>
           </div>
         )}
 
-        {/* Quick Actions */}
-        <div className="flex gap-2 pt-2">
-          {variant === 'upcoming' && (
-            <>
-              <Button asChild size="sm" className="flex-1">
-                <Link href={`/tickets?event=${event.id}`}>
-                  <QrCode className="h-4 w-4 mr-1" />
-                  View Ticket
-                </Link>
-              </Button>
-              {getGoogleMapsUrl() && (
-                <Button 
-                  asChild
-                  size="sm" 
-                  variant="outline"
-                >
-                  <a 
-                    href={getGoogleMapsUrl()!} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                  >
-                    <Navigation className="h-4 w-4" />
-                  </a>
-                </Button>
-              )}
-            </>
-          )}
+        {variant === 'wishlist' && (
+          <Button
+            size="icon"
+            variant="secondary"
+            className="absolute top-4 right-4 h-10 w-10 rounded-2xl bg-background/80 backdrop-blur-md border-none opacity-0 group-hover:opacity-100 transition-all hover:bg-red-500 hover:text-white"
+            onClick={(e) => {
+              e.preventDefault();
+              onRemoveWishlist?.(event.id);
+            }}
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        )}
 
-          {variant === 'past' && (
-            <>
-              <Button asChild size="sm" variant="outline" className="flex-1">
-                <Link href={`/certificates/${event.id}`}>
-                  <Download className="h-4 w-4 mr-1" />
-                  Certificate
-                </Link>
-              </Button>
-              <Button asChild size="sm" variant="outline" className="flex-1">
-                <Link href={`/events/${event.id}#photos`}>
-                  View Photos
-                </Link>
-              </Button>
-            </>
-          )}
-
-          {variant === 'wishlist' && (
-            <>
-              <Button asChild size="sm" className="flex-1">
-                <Link href={`/events/${event.id}`}>
-                  Register Now
-                </Link>
-              </Button>
-              <Button asChild size="sm" variant="outline">
-                <Link href={`/events/${event.id}`}>
-                  <ExternalLink className="h-4 w-4" />
-                </Link>
-              </Button>
-            </>
-          )}
+        <div className="absolute bottom-4 left-4">
+          <Badge className="bg-background/80 backdrop-blur-md text-foreground border-none font-black text-[9px] uppercase tracking-widest px-3 py-1 rounded-full">
+            {event.category}
+          </Badge>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+
+      {/* CONTENT AREA */}
+      <div className="p-8 pt-4 flex-1 flex flex-col justify-between">
+        <div className="space-y-4">
+          <Link href={`/events/${event.id}`}>
+            <h3 className="text-2xl font-display font-bold tracking-tight text-foreground line-clamp-2 leading-tight group-hover:text-primary transition-colors">
+              {event.title}
+            </h3>
+          </Link>
+          <div className="space-y-3">
+            <div className="flex items-center gap-3 text-xs font-bold text-muted-foreground">
+              <Calendar className="w-4 h-4 text-primary" />
+              <span>{format(displayDate, 'MMM d, yyyy · h:mm a')}</span>
+            </div>
+            <div className="flex items-center gap-3 text-xs font-bold text-muted-foreground">
+              <MapPin className="w-4 h-4 text-primary" />
+              <span className="truncate">{venueName}</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-8 pt-6 border-t border-border/60 flex flex-col gap-4">
+          {variant === 'past' && (
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-60">Your Rating</span>
+              <div className="flex gap-1">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    onClick={() => handleRating(star)}
+                    onMouseEnter={() => setHoverRating(star)}
+                    onMouseLeave={() => setHoverRating(0)}
+                    className="transition-transform active:scale-90"
+                  >
+                    <Star 
+                      className={cn(
+                        "h-4 w-4",
+                        (hoverRating >= star || rating >= star)
+                          ? "fill-amber-400 text-amber-400"
+                          : "text-muted-foreground/30"
+                      )}
+                    />
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="flex gap-3">
+            {variant === 'upcoming' && (
+              <>
+                <Button asChild className="flex-1 h-12 rounded-xl bg-primary text-primary-foreground font-black uppercase tracking-widest text-[10px] shadow-glow shadow-primary/20 border-none transition-all active:scale-95">
+                  <Link href={`/tickets?event=${event.id}`}>
+                    <QrCode className="h-4 w-4 mr-2" />
+                    View Ticket
+                  </Link>
+                </Button>
+                <Button variant="outline" className="w-12 h-12 rounded-xl border-2 hover:bg-muted" asChild>
+                  <Link href={`/events/${event.id}`}>
+                    <ExternalLink className="h-4 w-4" />
+                  </Link>
+                </Button>
+              </>
+            )}
+
+            {variant === 'past' && (
+              <>
+                <Button asChild variant="outline" className="flex-1 h-12 rounded-xl border-2 font-black uppercase tracking-widest text-[10px] hover:bg-muted">
+                  <Link href={`/certificates/${event.id}`}>
+                    <Download className="h-4 w-4 mr-2" />
+                    Get Cert
+                  </Link>
+                </Button>
+                <Button asChild variant="outline" className="flex-1 h-12 rounded-xl border-2 font-black uppercase tracking-widest text-[10px] hover:bg-muted">
+                  <Link href={`/events/${event.id}#photos`}>
+                    Media
+                  </Link>
+                </Button>
+              </>
+            )}
+
+            {variant === 'wishlist' && (
+              <>
+                <Button asChild className="flex-1 h-12 rounded-xl bg-primary text-primary-foreground font-black uppercase tracking-widest text-[10px] shadow-glow shadow-primary/20 border-none transition-all active:scale-95">
+                  <Link href={`/events/${event.id}`}>
+                    Register Now
+                  </Link>
+                </Button>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 

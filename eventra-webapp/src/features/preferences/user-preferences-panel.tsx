@@ -80,99 +80,115 @@ export default function UserPreferencesPanel() {
   ];
 
   return (
-    <div className="space-y-6 text-foreground">
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-2xl font-bold">Preferences</h2>
-          <p className="text-muted-foreground">Manage your account settings</p>
+    <div className="max-w-5xl mx-auto space-y-16 pb-20">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-8">
+        <div className="space-y-4">
+           <Badge variant="outline" className="border-primary/30 bg-primary/10 text-primary rounded-full px-4 py-1 text-[10px] font-black uppercase tracking-[0.3em]">
+             System Configuration
+           </Badge>
+           <h1 className="text-4xl md:text-6xl font-display font-bold tracking-tighter leading-none">
+             Preferences <span className="text-primary italic">Panel.</span>
+           </h1>
+           <p className="text-lg text-muted-foreground font-medium max-w-xl">
+             Configure your experience nodes, notification streams, and privacy protocols.
+           </p>
         </div>
-        <Button onClick={handleSave} disabled={saving} className="bg-primary hover:bg-primary/90">
-          {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
-          Save
+        <Button onClick={handleSave} disabled={saving} size="lg" className="rounded-2xl h-14 px-10 bg-primary text-primary-foreground shadow-glow shadow-primary/20 font-black uppercase tracking-widest text-[11px] border-none">
+          {saving ? <Loader2 className="w-4 h-4 mr-3 animate-spin" /> : <Save className="w-4 h-4 mr-3" />}
+          Save Changes
         </Button>
       </div>
 
-      <div className="flex flex-col md:flex-row gap-6">
-        <Card className="md:w-64 h-fit bg-card border-border text-foreground">
-          <CardContent className="p-4 space-y-2">
-            <Button variant={activeTab === 'notifications' ? 'default' : 'ghost'} className="w-full justify-start" onClick={() => setActiveTab('notifications')}>
-              <Bell className="w-4 h-4 mr-2" /> Notifications
-            </Button>
-            <Button variant={activeTab === 'privacy' ? 'default' : 'ghost'} className="w-full justify-start" onClick={() => setActiveTab('privacy')}>
-              <Settings className="w-4 h-4 mr-2" /> Privacy
-            </Button>
-          </CardContent>
-        </Card>
+      <div className="grid md:grid-cols-12 gap-16">
+        {/* Sidebar Nav */}
+        <div className="md:col-span-3">
+           <div className="rounded-[2.5rem] bg-background border border-border/80 shadow-2xl p-4 space-y-2 sticky top-32">
+              <Button 
+                variant="ghost" 
+                className={cn(
+                  "w-full justify-start h-14 rounded-2xl font-black uppercase tracking-widest text-[10px] px-6 transition-all",
+                  activeTab === 'notifications' ? "bg-primary text-primary-foreground shadow-lg shadow-primary/10" : "text-muted-foreground hover:bg-muted"
+                )} 
+                onClick={() => setActiveTab('notifications')}
+              >
+                <Bell className="w-4 h-4 mr-4" /> Notifications
+              </Button>
+              <Button 
+                variant="ghost" 
+                className={cn(
+                  "w-full justify-start h-14 rounded-2xl font-black uppercase tracking-widest text-[10px] px-6 transition-all",
+                  activeTab === 'privacy' ? "bg-primary text-primary-foreground shadow-lg shadow-primary/10" : "text-muted-foreground hover:bg-muted"
+                )} 
+                onClick={() => setActiveTab('privacy')}
+              >
+                <Settings className="w-4 h-4 mr-4" /> Privacy Node
+              </Button>
+           </div>
+        </div>
 
-        <div className="flex-1 space-y-6">
-          {activeTab === 'notifications' && (
-            <Card className="bg-card border-border text-foreground">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Bell className="h-5 w-5 text-primary" />
-                  Notification Preferences
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-1">
-                {prefItems.map((item, i) => (
-                  <React.Fragment key={item.key}>
-                    <div className="flex items-center justify-between py-3">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 rounded-lg bg-card">
-                          <item.icon className="h-4 w-4 text-muted-foreground" />
+        {/* Content Area */}
+        <div className="md:col-span-9">
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+            {activeTab === 'notifications' && (
+              <div className="rounded-[3rem] bg-background border border-border/80 shadow-2xl overflow-hidden">
+                <div className="p-10 border-b border-border/60">
+                   <h3 className="text-3xl font-display font-bold flex items-center gap-4">
+                     <Bell className="w-8 h-8 text-primary" />
+                     Notification Streams
+                   </h3>
+                </div>
+                <div className="p-10 space-y-4">
+                  {prefItems.map((item, i) => (
+                    <div key={item.key} className="group">
+                      <div className="flex items-center justify-between p-6 rounded-3xl bg-muted/20 border border-transparent hover:border-border/60 hover:bg-background transition-all">
+                        <div className="flex items-center gap-6">
+                          <div className="w-12 h-12 rounded-2xl bg-background border border-border/60 flex items-center justify-center group-hover:scale-110 transition-transform">
+                            <item.icon className="h-5 w-5 text-primary" />
+                          </div>
+                          <div>
+                            <p className="font-bold text-foreground">{item.label}</p>
+                            <p className="text-xs font-medium text-muted-foreground">{item.description}</p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="text-sm font-medium">{item.label}</p>
-                          <p className="text-xs text-muted-foreground">{item.description}</p>
-                        </div>
+                        <Switch
+                          checked={prefs[item.key]}
+                          onCheckedChange={() => togglePref(item.key)}
+                          className="data-[state=checked]:bg-primary"
+                        />
                       </div>
-                      <Switch
-                        checked={prefs[item.key]}
-                        onCheckedChange={() => togglePref(item.key)}
-                      />
                     </div>
-                    {i < prefItems.length - 1 && <Separator className="bg-card" />}
-                  </React.Fragment>
-                ))}
-              </CardContent>
-            </Card>
-          )}
+                  ))}
+                </div>
+              </div>
+            )}
 
-          {activeTab === 'privacy' && (
-            <Card className="bg-card border-border text-foreground">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Globe className="h-5 w-5 text-primary" />
-                  Privacy Settings
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-1">
-                <div className="flex items-center justify-between py-3">
-                  <div>
-                    <p className="text-sm font-medium">Public Profile</p>
-                    <p className="text-xs text-muted-foreground">Allow others to view your profile and badges</p>
-                  </div>
-                  <Switch defaultChecked />
+            {activeTab === 'privacy' && (
+              <div className="rounded-[3rem] bg-background border border-border/80 shadow-2xl overflow-hidden">
+                <div className="p-10 border-b border-border/60">
+                   <h3 className="text-3xl font-display font-bold flex items-center gap-4">
+                     <Globe className="w-8 h-8 text-primary" />
+                     Privacy Protocols
+                   </h3>
                 </div>
-                <Separator className="bg-card" />
-                <div className="flex items-center justify-between py-3">
-                  <div>
-                    <p className="text-sm font-medium">Show Activity Status</p>
-                    <p className="text-xs text-muted-foreground">Let others see when you're active</p>
-                  </div>
-                  <Switch defaultChecked />
+                <div className="p-10 space-y-6">
+                  {[
+                    { label: 'Public Profile', desc: 'Allow others to view your profile and achievements.' },
+                    { label: 'Activity Status', desc: 'Broadcast your current online status to connections.' },
+                    { label: 'Neural Connection Requests', desc: 'Accept synchronization requests from other nodes.' },
+                  ].map((item, i) => (
+                    <div key={i} className="flex items-center justify-between p-8 rounded-[2rem] bg-muted/20 border border-transparent hover:border-border/60 hover:bg-background transition-all">
+                      <div className="space-y-1">
+                        <p className="font-bold text-foreground text-lg">{item.label}</p>
+                        <p className="text-sm font-medium text-muted-foreground">{item.desc}</p>
+                      </div>
+                      <Switch defaultChecked className="data-[state=checked]:bg-primary" />
+                    </div>
+                  ))}
                 </div>
-                <Separator className="bg-card" />
-                <div className="flex items-center justify-between py-3">
-                  <div>
-                    <p className="text-sm font-medium">Allow Connection Requests</p>
-                    <p className="text-xs text-muted-foreground">Let other users send you connection requests</p>
-                  </div>
-                  <Switch defaultChecked />
-                </div>
-              </CardContent>
-            </Card>
-          )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

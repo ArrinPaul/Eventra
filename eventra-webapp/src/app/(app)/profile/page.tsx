@@ -45,8 +45,11 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <div className="flex h-[calc(100vh-4rem)] items-center justify-center">
-        <div className="w-6 h-6 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+      <div className="flex h-full items-center justify-center py-40">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 rounded-2xl border-4 border-primary/10 border-t-primary animate-spin" />
+          <p className="text-xs font-black uppercase tracking-[0.3em] text-muted-foreground animate-pulse">Accessing Node...</p>
+        </div>
       </div>
     );
   }
@@ -54,135 +57,151 @@ export default function ProfilePage() {
   const eventsAttended = registrations.filter((r: any) => r.ticket.status === 'checked-in').length;
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
-      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
+    <div className="max-w-5xl mx-auto space-y-16 pb-20">
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
         {/* Profile Header */}
-        <Card className="border-border mb-8">
-          <CardContent className="p-6 md:p-8">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
-              <Avatar className="h-20 w-20">
-                <AvatarImage src={user.image || ''} alt={user.name || ''} />
-                <AvatarFallback className="bg-primary/10 text-primary text-2xl font-semibold">
-                  {user.name?.charAt(0) || 'U'}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <h1 className="text-2xl font-bold text-foreground">{user.name || 'User'}</h1>
-                  <Badge variant="secondary" className="capitalize text-xs">{user.role}</Badge>
+        <div className="rounded-[3rem] bg-background border border-border/80 shadow-2xl overflow-hidden mb-16">
+          <div className="relative h-48 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent">
+             <div className="absolute inset-0 bg-grid-white/[0.02]" />
+          </div>
+          <div className="p-10 md:p-16 -mt-24 relative z-10">
+            <div className="flex flex-col md:flex-row items-end gap-10">
+              <div className="relative group">
+                <Avatar className="h-40 w-40 rounded-[2.5rem] border-8 border-background shadow-2xl ring-1 ring-border/50">
+                  <AvatarImage src={user.image || ''} alt={user.name || ''} className="object-cover" />
+                  <AvatarFallback className="bg-muted text-primary text-4xl font-display font-bold">
+                    {user.name?.charAt(0) || 'U'}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="absolute inset-0 rounded-[2.5rem] bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
+                   <Edit className="w-8 h-8 text-white" />
                 </div>
-                <p className="text-muted-foreground text-sm flex items-center gap-1.5 mb-2">
-                  <Mail className="w-3.5 h-3.5" /> {user.email}
-                </p>
-                {user.bio && <p className="text-sm text-muted-foreground">{user.bio}</p>}
               </div>
-              <Button variant="outline" size="sm" asChild className="rounded-lg">
+              
+              <div className="flex-1 space-y-4">
+                <div className="flex flex-wrap items-center gap-4">
+                  <h1 className="text-4xl md:text-5xl font-display font-bold text-foreground tracking-tighter">{user.name || 'Anonymous Node'}</h1>
+                  <Badge className="bg-primary/10 text-primary border-none rounded-full px-4 py-1 text-[10px] font-black uppercase tracking-widest">{user.role}</Badge>
+                </div>
+                <div className="flex flex-wrap items-center gap-6">
+                   <p className="text-muted-foreground font-bold text-sm flex items-center gap-2">
+                     <Mail className="w-4 h-4 text-primary" /> {user.email}
+                   </p>
+                   <p className="text-muted-foreground font-bold text-sm flex items-center gap-2">
+                     <UserCircle className="w-4 h-4 text-primary" /> Node_ID: {user.id.slice(0, 8)}
+                   </p>
+                </div>
+                {user.bio && <p className="text-muted-foreground text-lg font-medium leading-relaxed max-w-2xl">{user.bio}</p>}
+              </div>
+
+              <Button variant="outline" size="lg" asChild className="rounded-2xl h-14 px-8 border-2 font-black uppercase tracking-widest text-[11px] hover:bg-muted transition-all">
                 <Link href="/preferences">
-                  <Settings className="w-4 h-4 mr-2" /> Edit Profile
+                  <Settings className="w-4 h-4 mr-3" /> Preferences
                 </Link>
               </Button>
             </div>
 
             {/* Stats Strip */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6 pt-6 border-t border-border">
-              <div className="text-center">
-                <p className="text-2xl font-bold text-foreground">{registrations.length}</p>
-                <p className="text-xs text-muted-foreground">Events Registered</p>
-              </div>
-              <div className="text-center">
-                <p className="text-2xl font-bold text-foreground">{eventsAttended}</p>
-                <p className="text-xs text-muted-foreground">Events Attended</p>
-              </div>
-              <div className="text-center">
-                <p className="text-2xl font-bold text-foreground">{user.xp || user.points || 0}</p>
-                <p className="text-xs text-muted-foreground">XP Points</p>
-              </div>
-              <div className="text-center">
-                <p className="text-2xl font-bold text-foreground">{certificates.length}</p>
-                <p className="text-xs text-muted-foreground">Certificates</p>
-              </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mt-16 pt-12 border-t border-border/60">
+              {[
+                { label: 'Registered', value: registrations.length, icon: Calendar },
+                { label: 'Attended', value: eventsAttended, icon: CheckCircle },
+                { label: 'Experience', value: user.xp || user.points || 0, icon: Zap },
+                { label: 'Certificates', value: certificates.length, icon: Award },
+              ].map((stat, i) => (
+                <div key={i} className="flex items-center gap-5">
+                   <div className="w-12 h-12 rounded-2xl bg-muted flex items-center justify-center">
+                      <stat.icon className="w-5 h-5 text-primary" />
+                   </div>
+                   <div>
+                      <p className="text-3xl font-display font-bold tracking-tighter leading-none">{stat.value}</p>
+                      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-60 mt-1">{stat.label}</p>
+                   </div>
+                </div>
+              ))}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Tabs */}
-        <Tabs defaultValue="events" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-6">
-            <TabsTrigger value="events">Events</TabsTrigger>
-            <TabsTrigger value="certificates">Certificates</TabsTrigger>
-            <TabsTrigger value="badges">Badges</TabsTrigger>
+        <Tabs defaultValue="events" className="w-full space-y-12">
+          <TabsList className="bg-transparent border-b border-border w-full justify-start rounded-none h-auto p-0 gap-10">
+            <TabsTrigger value="events" className="bg-transparent border-none rounded-none data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary text-muted-foreground font-black uppercase tracking-[0.2em] text-[11px] pb-4 px-0 transition-all">Missions</TabsTrigger>
+            <TabsTrigger value="certificates" className="bg-transparent border-none rounded-none data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary text-muted-foreground font-black uppercase tracking-[0.2em] text-[11px] pb-4 px-0 transition-all">Intel_Certs</TabsTrigger>
+            <TabsTrigger value="badges" className="bg-transparent border-none rounded-none data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary text-muted-foreground font-black uppercase tracking-[0.2em] text-[11px] pb-4 px-0 transition-all">Node_Ranks</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="events">
+          <TabsContent value="events" className="animate-in fade-in slide-in-from-bottom-4 duration-500 m-0">
             {registrations.length > 0 ? (
-              <div className="space-y-3">
+              <div className="grid gap-6">
                 {registrations.map((reg: any) => (
-                  <Card key={reg.ticket.id} className="border-border">
-                    <CardContent className="p-4 flex items-center gap-4">
-                      <div className="w-12 text-center bg-primary/5 rounded-xl p-2 flex-shrink-0">
-                        <span className="block text-xs font-medium text-primary uppercase">
+                  <Link key={reg.ticket.id} href={`/events/${reg.event?.id}`} className="group block">
+                    <div className="p-8 rounded-[2rem] bg-background border border-border/80 shadow-xl hover:shadow-2xl transition-all flex items-center gap-8 group-hover:-translate-x-1">
+                      <div className="w-20 h-20 rounded-[1.5rem] bg-muted flex flex-col items-center justify-center flex-shrink-0 group-hover:bg-primary/5 transition-colors border border-transparent group-hover:border-primary/20">
+                        <span className="block text-[10px] font-black uppercase tracking-[0.2em] text-primary mb-1">
                           {format(new Date(reg.event?.startDate || 0), 'MMM')}
                         </span>
-                        <span className="block text-lg font-bold text-foreground">
+                        <span className="block text-3xl font-display font-bold text-foreground leading-none">
                           {format(new Date(reg.event?.startDate || 0), 'd')}
                         </span>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-medium text-foreground truncate">{reg.event?.title}</h3>
-                        <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
-                          <MapPin className="w-3 h-3" />
-                          {typeof reg.event?.location === 'string' ? reg.event.location : reg.event?.location?.venue || 'TBD'}
-                        </p>
+                        <h3 className="text-2xl font-display font-bold text-foreground truncate group-hover:text-primary transition-colors tracking-tight">{reg.event?.title}</h3>
+                        <div className="flex flex-wrap items-center gap-6 text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 mt-2">
+                          <span className="flex items-center gap-2"><MapPin size={14} className="text-primary" /> {typeof reg.event?.location === 'string' ? reg.event.location : reg.event?.location?.venue || 'TBD'}</span>
+                          <span className="flex items-center gap-2 text-primary">{reg.ticket.ticketNumber}</span>
+                        </div>
                       </div>
-                      <Badge variant={reg.ticket.status === 'checked-in' ? 'default' : 'secondary'} className="capitalize text-xs">
+                      <Badge className={cn(
+                         "capitalize text-[10px] font-black tracking-widest px-4 py-1.5 rounded-full border-none",
+                         reg.ticket.status === 'checked-in' ? "bg-emerald-500/10 text-emerald-500" : "bg-muted text-muted-foreground"
+                      )}>
                         {reg.ticket.status}
                       </Badge>
-                    </CardContent>
-                  </Card>
+                    </div>
+                  </Link>
                 ))}
               </div>
             ) : (
-              <div className="text-center py-12">
-                <Calendar className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
-                <p className="text-muted-foreground">No events yet</p>
+              <div className="text-center py-32 bg-muted/10 rounded-[3rem] border-2 border-dashed border-border">
+                <Calendar className="w-12 h-12 text-muted-foreground/30 mx-auto mb-6" />
+                <p className="text-lg font-bold text-muted-foreground">No active nodes registered.</p>
               </div>
             )}
           </TabsContent>
 
-          <TabsContent value="certificates">
+          <TabsContent value="certificates" className="animate-in fade-in slide-in-from-bottom-4 duration-500 m-0">
             {certificates.length > 0 ? (
-              <div className="grid gap-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {certificates.map((cert: any) => (
-                  <Card key={cert.id} className="border-border">
-                    <CardContent className="p-4 flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center flex-shrink-0">
-                        <Award className="w-5 h-5 text-amber-500" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-medium text-foreground">{cert.event?.title}</h3>
-                        <p className="text-xs text-muted-foreground">
-                          Issued {cert.issueDate ? format(new Date(cert.issueDate), 'MMM d, yyyy') : 'N/A'}
-                        </p>
-                      </div>
-                      <Button variant="outline" size="sm" className="rounded-lg" asChild>
-                        <Link href="/certificates">View</Link>
-                      </Button>
-                    </CardContent>
-                  </Card>
+                  <div key={cert.id} className="p-8 rounded-[2.5rem] bg-background border border-border/80 shadow-xl hover:shadow-2xl transition-all flex items-center gap-8 group">
+                    <div className="w-16 h-16 rounded-2xl bg-primary/5 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                      <Award className="w-8 h-8 text-primary" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-xl font-display font-bold text-foreground group-hover:text-primary transition-colors tracking-tight">{cert.event?.title}</h3>
+                      <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 mt-1">
+                        Node Synchronized: {cert.issueDate ? format(new Date(cert.issueDate), 'MMM d, yyyy') : 'N/A'}
+                      </p>
+                    </div>
+                    <Button variant="outline" size="sm" className="rounded-xl border-2 font-black uppercase tracking-widest text-[9px] hover:bg-muted" asChild>
+                      <Link href="/certificates">View Intel</Link>
+                    </Button>
+                  </div>
                 ))}
               </div>
             ) : (
-              <div className="text-center py-12">
-                <Award className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
-                <p className="text-muted-foreground">No certificates yet</p>
+              <div className="text-center py-32 bg-muted/10 rounded-[3rem] border-2 border-dashed border-border">
+                <Award className="w-12 h-12 text-muted-foreground/30 mx-auto mb-6" />
+                <p className="text-lg font-bold text-muted-foreground">No certifications issued yet.</p>
               </div>
             )}
           </TabsContent>
 
-          <TabsContent value="badges">
-            <div className="text-center py-12">
-              <Trophy className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
-              <p className="text-muted-foreground">Participate in events to earn badges</p>
+          <TabsContent value="badges" className="animate-in fade-in slide-in-from-bottom-4 duration-500 m-0">
+            <div className="text-center py-32 bg-muted/10 rounded-[3rem] border-2 border-dashed border-border opacity-60">
+              <Trophy className="w-16 h-16 text-muted-foreground/30 mx-auto mb-6" />
+              <p className="text-xl font-display font-bold">Node_Ranks: Initialize Active Syncs to earn badges.</p>
             </div>
           </TabsContent>
         </Tabs>

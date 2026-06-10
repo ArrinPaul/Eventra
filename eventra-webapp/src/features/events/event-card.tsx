@@ -41,7 +41,6 @@ export function EventCard({ event, variant = 'default' }: { event: EventraEvent,
     }
     setIsRegistering(true);
     try {
-      // Mock registration for development
       await new Promise(resolve => setTimeout(resolve, 800));
       toast({ title: commonT('success'), description: t('registeredToast', { title: event.title }) });
     } catch (error) {
@@ -50,45 +49,62 @@ export function EventCard({ event, variant = 'default' }: { event: EventraEvent,
   };
 
   return (
-    <Link href={`/events/${event.id}`}>
-      <Card variant="default" className="group h-full overflow-hidden border-white/5 hover:border-primary/50 transition-all duration-500 rounded-3xl bg-zinc-900/30 backdrop-blur-md">
-        <div className="aspect-[16/10] bg-zinc-900 relative overflow-hidden">
-            <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-            <Badge variant="glass" className="absolute top-4 left-4 z-10 backdrop-blur-md border-white/5 text-[9px] font-bold">
-              {event.category || t('generalCategory')}
-            </Badge>
-            {/* Visual pattern for placeholder */}
-            <div className="absolute inset-0 flex items-center justify-center opacity-10 group-hover:scale-105 transition-transform duration-500">
-               <Zap size={50} className="text-white/20" />
+    <Link href={`/events/${event.id}`} className="block h-full group">
+      <div className="h-full bg-background border border-border/80 rounded-[2.5rem] overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-500 flex flex-col group-hover:-translate-y-1">
+        {/* IMAGE AREA */}
+        <div className="relative aspect-[16/10] overflow-hidden bg-muted m-3 rounded-[2rem]">
+          {event.imageUrl ? (
+            <Image 
+              src={event.imageUrl} 
+              alt={event.title}
+              fill
+              className="object-cover group-hover:scale-105 transition-transform duration-700"
+            />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-primary/5 to-primary/10 flex items-center justify-center">
+               <Zap className="w-12 h-12 text-primary/10" />
             </div>
+          )}
+          <Badge className="absolute top-4 left-4 z-10 bg-background/80 backdrop-blur-md text-foreground border-none font-black text-[9px] uppercase tracking-widest px-3 py-1">
+            {event.category || t('generalCategory')}
+          </Badge>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
         </div>
-        <CardContent className="p-6 space-y-6">
-          <div className="space-y-1.5">
-            <h3 className="text-xl font-medium text-white group-hover:text-primary transition-colors line-clamp-1 leading-tight tracking-tight">
+
+        {/* CONTENT AREA */}
+        <div className="p-8 pt-4 flex-1 flex flex-col justify-between space-y-8">
+          <div className="space-y-4">
+            <h3 className="text-2xl font-display font-bold tracking-tight text-foreground line-clamp-2 leading-tight group-hover:text-primary transition-colors">
               {event.title}
             </h3>
-            <div className="flex items-center gap-4 text-[10px] font-medium text-zinc-300 uppercase tracking-widest">
-              <span className="flex items-center gap-1.5 font-bold"><Calendar size={12} className="text-primary" /> {format(displayDate, 'MMM d, yyyy')}</span>
-              <span className="flex items-center gap-1.5 font-bold"><MapPin size={12} className="text-primary" /> {typeof event.location === 'string' ? event.location : (event.location as any)?.venue || t('virtual')}</span>
+            <div className="space-y-3">
+              <div className="flex items-center gap-3 text-xs font-bold text-muted-foreground">
+                <Calendar className="w-4 h-4 text-primary" />
+                <span>{format(displayDate, 'MMM d, yyyy')}</span>
+              </div>
+              <div className="flex items-center gap-3 text-xs font-bold text-muted-foreground">
+                <MapPin className="w-4 h-4 text-primary" />
+                <span className="truncate">{typeof event.location === 'string' ? event.location : (event.location as any)?.venue || t('virtual')}</span>
+              </div>
             </div>
           </div>
 
-          <div className="flex justify-between items-center pt-2 border-t border-white/5">
-            <div className="flex flex-col">
-              <span className="text-[9px] font-medium uppercase tracking-widest text-zinc-300 font-bold">{t('registrationLabel')}</span>
-              <span className="text-sm font-semibold text-white">{t('freeAccess')}</span>
+          <div className="flex items-center justify-between pt-6 border-t border-border/60">
+            <div className="space-y-1">
+              <p className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-60">{t('registrationLabel')}</p>
+              <p className="text-sm font-bold text-foreground italic">{t('freeAccess')}</p>
             </div>
             <Button 
               size="sm" 
               onClick={handleQuickRegister} 
               disabled={isRegistering} 
-              className="rounded-full font-bold px-6 bg-white text-black hover:bg-zinc-200 transition-all shadow-xl"
+              className="rounded-xl h-10 px-6 bg-primary text-primary-foreground font-black uppercase tracking-widest text-[10px] shadow-glow shadow-primary/20 border-none transition-all active:scale-95"
             >
               {isRegistering ? <Loader2 className="w-3 h-3 animate-spin" /> : commonT('register')}
             </Button>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </Link>
   );
 }

@@ -69,256 +69,245 @@ export default function AttendeeDashboard() {
 
   if (loading) {
     return (
-      <div className="flex h-[calc(100vh-4rem)] items-center justify-center">
+      <div className="flex h-full items-center justify-center py-20">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-10 h-10 rounded-xl border-4 border-primary/20 border-t-primary animate-spin" />
-          <p className="text-sm font-bold text-muted-foreground animate-pulse">Synchronizing your experience...</p>
+          <div className="w-12 h-12 rounded-2xl border-4 border-primary/10 border-t-primary animate-spin" />
+          <p className="text-xs font-black uppercase tracking-[0.3em] text-muted-foreground animate-pulse">Syncing Network...</p>
         </div>
       </div>
     );
   }
 
+  const upcomingEvent = registrations.length > 0 ? registrations[0].event : null;
+
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12 space-y-12">
-      {/* Welcome Section */}
-      <motion.section
-        className="relative overflow-hidden rounded-[2.5rem] bg-card border border-border p-8 md:p-12 shadow-2xl"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-primary/5 blur-[100px] rounded-full -mr-20 -mt-20" />
-        
-        <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
-          <div className="space-y-2">
-            <h1 className="text-4xl md:text-5xl font-black text-foreground tracking-tighter">
-              {t('welcome', { name: user.name?.split(' ')[0] ?? 'Explorer' })}
-            </h1>
-            <p className="text-xl text-muted-foreground font-medium">
-              You're registered for <span className="text-primary font-bold">{registrations.length} upcoming</span> events.
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-3">
-            <Button size="lg" asChild className="rounded-2xl px-8 shadow-glow">
-              <Link href="/explore">
-                {tc('explore')} <ArrowRight className="ml-2 h-5 w-5" />
-              </Link>
-            </Button>
-            <Button size="lg" variant="outline" asChild className="rounded-2xl px-8 border-2">
-              <Link href="/my-events">Manage Tickets</Link>
-            </Button>
-          </div>
+    <div className="max-w-7xl mx-auto space-y-16 pb-20">
+      {/* HEADER SECTION */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+        <div className="space-y-2">
+          <Badge variant="outline" className="border-primary/30 bg-primary/10 text-primary rounded-full px-4 py-1 text-[10px] font-black uppercase tracking-[0.3em]">
+            Attendee Console
+          </Badge>
+          <h1 className="text-4xl md:text-6xl font-display font-bold tracking-tighter leading-none">
+            Welcome back, <br />
+            <span className="text-primary italic">{user.name?.split(' ')[0]}</span>
+          </h1>
         </div>
+        <div className="flex gap-4">
+          <Button variant="outline" size="lg" asChild className="rounded-2xl h-14 px-8 border-2 font-black uppercase tracking-widest text-[11px] hover:bg-muted transition-all">
+            <Link href="/my-events">Manage Tickets</Link>
+          </Button>
+          <Button size="lg" asChild className="rounded-2xl h-14 px-8 bg-primary text-primary-foreground shadow-glow shadow-primary/20 font-black uppercase tracking-widest text-[11px] border-none">
+            <Link href="/explore">
+              {tc('explore')} <ArrowRight className="ml-2 h-4 w-4" />
+            </Link>
+          </Button>
+        </div>
+      </div>
 
-        {/* Quick Stats Overlay */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-12">
-          {[
-            { label: 'Active Passes', value: registrations.length, icon: Ticket, color: 'text-primary', bg: 'bg-primary/10' },
-            { label: 'Experience Points', value: user.xp || user.points || 0, icon: Trophy, color: 'text-warning', bg: 'bg-warning/10' },
-            { label: 'Platform Level', value: user.level || 1, icon: Zap, color: 'text-success', bg: 'bg-success/10' },
-            { label: 'Total Check-ins', value: registrations.filter((r: any) => r.ticket.status === 'checked-in').length, icon: Star, color: 'text-info', bg: 'bg-info/10' },
-          ].map((stat, i) => (
-            <div key={i} className="flex flex-col gap-1 p-4 rounded-2xl bg-muted/30 border border-border/50">
-              <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center mb-2", stat.bg)}>
-                <stat.icon className={cn("w-5 h-5", stat.color)} />
-              </div>
-              <p className="text-3xl font-black text-foreground leading-none">{stat.value}</p>
-              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">{stat.label}</p>
+      {/* UP NEXT HERO */}
+      {upcomingEvent ? (
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="relative group cursor-pointer"
+        >
+          <Link href={`/events/${upcomingEvent.id}`}>
+            <div className="relative overflow-hidden rounded-[3rem] bg-background border border-border/80 shadow-2xl hover:border-primary/30 transition-all duration-500">
+               <div className="grid md:grid-cols-2">
+                  <div className="p-10 md:p-16 flex flex-col justify-between space-y-12">
+                     <div className="space-y-6">
+                        <Badge className="bg-emerald-500/10 text-emerald-500 border-none rounded-full px-4 py-1 text-[10px] font-black uppercase tracking-widest">
+                           Incoming Experience
+                        </Badge>
+                        <h2 className="text-3xl md:text-5xl font-display font-bold tracking-tighter leading-tight group-hover:text-primary transition-colors">
+                           {upcomingEvent.title}
+                        </h2>
+                        <div className="flex flex-col gap-4">
+                           <div className="flex items-center gap-4 text-muted-foreground font-bold">
+                              <Calendar className="w-5 h-5 text-primary" />
+                              <span>{format(new Date(upcomingEvent.startDate), 'MMMM do, yyyy')}</span>
+                           </div>
+                           <div className="flex items-center gap-4 text-muted-foreground font-bold">
+                              <Clock className="w-5 h-5 text-primary" />
+                              <span>{format(new Date(upcomingEvent.startDate), 'h:mm a')}</span>
+                           </div>
+                           <div className="flex items-center gap-4 text-muted-foreground font-bold">
+                              <MapPin className="w-5 h-5 text-primary" />
+                              <span className="truncate">{upcomingEvent.location?.venue || upcomingEvent.location || 'Virtual Platform'}</span>
+                           </div>
+                        </div>
+                     </div>
+                     <div className="flex items-center gap-6">
+                        <div className="flex -space-x-3">
+                           {[1, 2, 3, 4].map(i => (
+                             <div key={i} className="w-10 h-10 rounded-full border-4 border-background bg-muted shadow-sm" />
+                           ))}
+                        </div>
+                        <span className="text-xs font-black uppercase tracking-widest text-muted-foreground">
+                           +{upcomingEvent.registeredCount || 0} Attending
+                        </span>
+                     </div>
+                  </div>
+                  <div className="relative h-64 md:h-full min-h-[400px] overflow-hidden">
+                     {upcomingEvent.imageUrl ? (
+                        <Image 
+                           src={upcomingEvent.imageUrl} 
+                           alt={upcomingEvent.title}
+                           fill
+                           className="object-cover group-hover:scale-105 transition-transform duration-1000"
+                        />
+                     ) : (
+                        <div className="w-full h-full bg-muted flex items-center justify-center">
+                           <Sparkles className="w-20 h-20 text-muted-foreground/20" />
+                        </div>
+                     )}
+                     <div className="absolute inset-0 bg-gradient-to-l from-transparent via-transparent to-background hidden md:block" />
+                  </div>
+               </div>
             </div>
-          ))}
-        </div>
-      </motion.section>
+          </Link>
+        </motion.section>
+      ) : (
+        <section className="rounded-[3rem] border-2 border-dashed border-border bg-muted/20 p-20 text-center">
+           <div className="max-w-md mx-auto space-y-6">
+              <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mx-auto">
+                 <Calendar className="w-8 h-8 text-muted-foreground" />
+              </div>
+              <h3 className="text-2xl font-display font-bold">No upcoming missions.</h3>
+              <p className="text-muted-foreground font-medium">Your agenda is currently clear. Explore the network to find your next experience.</p>
+              <Button asChild size="lg" className="rounded-2xl px-10 shadow-glow font-black h-14">
+                <Link href="/explore">Start Exploring</Link>
+              </Button>
+           </div>
+        </section>
+      )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-        {/* Main Content */}
-        <div className="lg:col-span-2 space-y-12">
+      {/* QUICK STATS */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+        {[
+          { label: 'Active Passes', value: registrations.length, icon: Ticket, color: 'text-primary' },
+          { label: 'Network XP', value: user.xp || user.points || 0, icon: Trophy, color: 'text-amber-500' },
+          { label: 'Node Level', value: user.level || 1, icon: Zap, color: 'text-emerald-500' },
+          { label: 'Total Syncs', value: registrations.filter((r: any) => r.ticket.status === 'checked-in').length, icon: Activity, color: 'text-cyan-500' },
+        ].map((stat, i) => (
+          <div key={i} className="p-8 rounded-[2.5rem] bg-background border border-border/80 shadow-xl hover:shadow-2xl transition-all group">
+            <div className="w-12 h-12 rounded-2xl bg-muted flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+              <stat.icon className={cn("w-6 h-6", stat.color)} />
+            </div>
+            <div className="space-y-1">
+               <p className="text-4xl font-display font-bold tracking-tighter leading-none">{stat.value}</p>
+               <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-60">{stat.label}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-16">
+        <div className="lg:col-span-2 space-y-16">
           <EngagementMetrics userId={user.id} />
 
           {/* Recommended Events */}
-          <motion.section
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1, duration: 0.5 }}
-          >
-            <div className="flex items-center justify-between mb-8">
-              <div className="space-y-1">
-                <h2 className="text-2xl font-black text-foreground flex items-center gap-3">
-                  <Sparkles className="h-6 w-6 text-primary" />
-                  Recommended for You
+          <section className="space-y-10">
+            <div className="flex items-center justify-between">
+              <div className="space-y-2">
+                <h2 className="text-3xl font-display font-bold tracking-tighter flex items-center gap-4">
+                  <Sparkles className="h-8 w-8 text-primary" />
+                  Neural Recommendations
                 </h2>
-                <p className="text-sm font-medium text-muted-foreground">Based on your interests and past attendance</p>
+                <p className="text-sm font-medium text-muted-foreground">Based on your activity nodes and interests.</p>
               </div>
-              <Button variant="ghost" className="font-bold text-primary group" asChild>
+              <Button variant="ghost" className="font-black uppercase tracking-widest text-[10px] text-primary group" asChild>
                 <Link href="/explore">
-                  {t('viewAll')} <ArrowRight className="ml-1 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                  View Network <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
                 </Link>
               </Button>
             </div>
 
             <ScrollArea className="w-full whitespace-nowrap">
-              <div className="flex w-max space-x-6 pb-6 px-1">
+              <div className="flex w-max space-x-8 pb-8 px-1">
                 {featuredEvents.map((event: any) => (
-                  <Link key={event.id} href={`/events/${event.id}`} className="group block w-[320px]">
-                    <Card variant="default" className="overflow-hidden border-border/50 group-hover:border-primary/40 group-hover:shadow-elevated transition-all duration-500 rounded-[2rem]">
-                      <div className="aspect-[16/10] w-full relative overflow-hidden bg-muted">
+                  <Link key={event.id} href={`/events/${event.id}`} className="group block w-[360px]">
+                    <div className="overflow-hidden bg-background border border-border/80 shadow-xl hover:shadow-2xl transition-all duration-500 rounded-[2.5rem] p-4">
+                      <div className="aspect-[16/10] w-full relative overflow-hidden rounded-[2rem] bg-muted mb-6">
                         {event.imageUrl ? (
                           <Image
                             src={event.imageUrl}
                             alt={event.title}
                             fill
-                            sizes="320px"
+                            sizes="360px"
                             className="object-cover group-hover:scale-110 transition-transform duration-700"
                           />
                         ) : (
-                          <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-primary/5 to-info/10 group-hover:from-primary/10 transition-colors">
-                            <Calendar size={48} className="text-primary/10" />
+                          <div className="h-full w-full flex items-center justify-center">
+                            <Calendar size={48} className="text-muted-foreground/20" />
                           </div>
                         )}
-                        <Badge variant="glass" className="absolute top-4 left-4 z-10 backdrop-blur-md border-white/20">
+                        <Badge className="absolute top-4 left-4 z-10 bg-background/80 backdrop-blur-md text-foreground border-none font-black text-[9px] uppercase tracking-widest">
                           {event.category}
                         </Badge>
                       </div>
-                      <CardContent className="p-6">
-                        <h3 className="text-xl font-black text-foreground truncate group-hover:text-primary transition-colors mb-2">
+                      <div className="px-4 pb-4">
+                        <h3 className="text-2xl font-display font-bold tracking-tight text-foreground truncate group-hover:text-primary transition-colors mb-3">
                           {event.title}
                         </h3>
-                        <div className="flex items-center gap-2 text-sm font-bold text-muted-foreground">
+                        <div className="flex items-center gap-3 text-xs font-bold text-muted-foreground">
                           <Calendar className="h-4 w-4 text-primary" />
-                          {format(new Date(event.startDate), 'MMM d, yyyy')}
+                          <span>{format(new Date(event.startDate), 'MMM d, yyyy')}</span>
                         </div>
-                        <div className="flex items-center justify-between mt-6 pt-5 border-t border-border/50">
-                          <div className="flex items-center gap-1.5">
-                            <div className="flex -space-x-2">
-                              {[1, 2, 3].map(i => (
-                                <div key={i} className="w-6 h-6 rounded-full border-2 border-card bg-muted flex items-center justify-center text-[8px] font-bold">
-                                  {String.fromCharCode(64 + i)}
-                                </div>
-                              ))}
-                            </div>
-                            <span className="text-[10px] font-black uppercase tracking-tighter text-muted-foreground">
-                              +{event.registeredCount ?? 0}
-                            </span>
-                          </div>
-                          <Badge variant="outline" className="text-[9px] font-black border-border/50">
-                            {event.type === 'physical' ? 'Physical' : 'Digital'}
-                          </Badge>
-                        </div>
-                      </CardContent>
-                    </Card>
+                      </div>
+                    </div>
                   </Link>
                 ))}
               </div>
               <ScrollBar orientation="horizontal" className="h-2" />
             </ScrollArea>
-          </motion.section>
-
-          {/* Upcoming Schedule */}
-          <motion.section
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2, duration: 0.5 }}
-          >
-            <div className="flex items-center justify-between mb-8">
-              <h2 className="text-2xl font-black text-foreground">Your Event Schedule</h2>
-              <Button variant="ghost" size="sm" asChild className="font-bold text-muted-foreground hover:text-foreground">
-                <Link href="/agenda">View Full Agenda</Link>
-              </Button>
-            </div>
-
-            <Card className="overflow-hidden border-border/50 rounded-[2rem] shadow-xl">
-              <CardContent className="p-0">
-                {registrations.length > 0 ? (
-                  <div className="divide-y divide-border/30">
-                    {registrations.map((reg: any) => (
-                      <div key={reg.ticket.id} className="flex items-center gap-6 p-6 hover:bg-primary/[0.02] transition-colors group">
-                        <div className="flex-shrink-0 w-16 text-center bg-card border border-border rounded-2xl p-3 group-hover:border-primary/30 transition-colors">
-                          <span className="block text-[10px] font-black uppercase tracking-widest text-primary mb-1">
-                            {format(new Date(reg.event?.startDate || 0), 'MMM')}
-                          </span>
-                          <span className="block text-2xl font-black text-foreground leading-none">
-                            {format(new Date(reg.event?.startDate || 0), 'd')}
-                          </span>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <h3 className="text-lg font-bold text-foreground truncate group-hover:text-primary transition-colors">{reg.event?.title}</h3>
-                          <div className="flex flex-wrap items-center gap-4 text-sm font-bold text-muted-foreground mt-1.5">
-                            <span className="flex items-center gap-1.5">
-                              <Clock className="h-4 w-4 text-primary" />
-                              {format(new Date(reg.event?.startDate || 0), 'h:mm a')}
-                            </span>
-                            <span className="flex items-center gap-1.5">
-                              <MapPin className="h-4 w-4 text-primary" />
-                              {typeof reg.event?.location === 'string' ? reg.event.location : reg.event?.location?.venue || 'Virtual Event'}
-                            </span>
-                          </div>
-                        </div>
-                        <Button variant="outline" size="sm" asChild className="rounded-xl flex-shrink-0 border-2 font-bold px-6">
-                          <Link href={`/events/${reg.event.id}`}>{tc('view')}</Link>
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-20 px-6">
-                    <div className="w-16 h-16 rounded-[1.5rem] bg-muted/30 flex items-center justify-center mx-auto mb-6">
-                      <Calendar className="h-8 w-8 text-muted-foreground/40" />
-                    </div>
-                    <h3 className="text-xl font-black text-foreground mb-2">{t('noUpcoming')}</h3>
-                    <p className="text-muted-foreground font-medium mb-8 max-w-sm mx-auto">Build your dream schedule by exploring our curated selection of upcoming experiences.</p>
-                    <Button asChild size="lg" className="rounded-2xl px-10 shadow-glow font-black">
-                      <Link href="/explore">Start Exploring</Link>
-                    </Button>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </motion.section>
+          </section>
         </div>
 
         {/* Sidebar */}
-        <div className="space-y-8">
+        <div className="space-y-12">
           <ReferralSystem />
 
-          {/* Event Pass / QR */}
-          <Card className="border-border/50 rounded-[2rem] shadow-xl overflow-hidden group">
-            <div className="bg-primary/5 p-6 border-b border-border/50">
-              <h3 className="text-lg font-black text-foreground flex items-center gap-2">
-                <QrCode className="w-5 h-5 text-primary" />
-                Your Digital Pass
-              </h3>
-              <p className="text-xs font-bold text-muted-foreground mt-1">Ready for instant check-in</p>
-            </div>
-            <CardContent className="flex flex-col items-center p-8">
-              {registrations && registrations.length > 0 ? (
-                <>
-                  <div className="bg-white p-5 rounded-3xl mb-6 shadow-2xl group-hover:scale-105 transition-transform duration-500 border-8 border-primary/5">
-                    <QrCode className="w-32 h-32 text-slate-900" />
-                  </div>
-                  <div className="w-full space-y-4">
-                    <div className="text-center">
-                      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground mb-1">Verification Code</p>
-                      <p className="font-mono text-base font-black tracking-widest bg-muted/50 text-foreground px-4 py-2 rounded-xl">
-                        {registrations[0].ticket.ticketNumber || 'EV-000-000'}
-                      </p>
+          {/* Digital Pass */}
+          <div className="rounded-[3rem] bg-background border border-border/80 shadow-xl overflow-hidden group">
+            <div className="p-10 space-y-10">
+               <div className="space-y-2">
+                  <Badge className="bg-primary/10 text-primary border-none rounded-full px-4 py-1 text-[10px] font-black uppercase tracking-widest">
+                     Digital Pass
+                  </Badge>
+                  <h3 className="text-2xl font-display font-bold tracking-tight">Access Token</h3>
+               </div>
+               
+               <div className="flex flex-col items-center">
+                  {registrations && registrations.length > 0 ? (
+                    <>
+                      <div className="bg-foreground p-8 rounded-[2.5rem] mb-10 shadow-2xl group-hover:scale-105 transition-transform duration-500">
+                        <QrCode className="w-32 h-32 text-background" />
+                      </div>
+                      <div className="w-full space-y-6 text-center">
+                        <div className="space-y-2">
+                          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground opacity-60">Verification_Key</p>
+                          <p className="font-mono text-lg font-bold tracking-[0.2em] text-foreground">
+                            {registrations[0].ticket.ticketNumber || 'EV-000-000'}
+                          </p>
+                        </div>
+                        <Button variant="outline" className="w-full rounded-2xl h-14 border-2 font-black uppercase tracking-widest text-[11px] hover:bg-muted" asChild>
+                          <Link href="/tickets">All Access Points</Link>
+                        </Button>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="text-center py-10 opacity-30">
+                      <QrCode className="h-20 w-20 mx-auto mb-6 text-muted-foreground" />
+                      <p className="text-xs font-black uppercase tracking-widest">No Active tokens</p>
                     </div>
-                    <Button variant="outline" className="w-full rounded-xl border-2 font-bold" asChild>
-                      <Link href="/tickets">View All Passes</Link>
-                    </Button>
-                  </div>
-                </>
-              ) : (
-                <div className="text-center py-10 opacity-50">
-                  <QrCode className="h-16 w-16 mx-auto mb-4 text-muted-foreground/30" />
-                  <p className="text-sm font-bold text-muted-foreground">No active passes found</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Activity Feed */}
-          <div className="space-y-4">
-            <ActivityFeed initialActivities={activities} userId={user.id} />
+                  )}
+               </div>
+            </div>
           </div>
+
+          <ActivityFeed initialActivities={activities} userId={user.id} />
         </div>
       </div>
     </div>

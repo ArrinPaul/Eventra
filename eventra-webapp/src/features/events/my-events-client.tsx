@@ -34,7 +34,6 @@ const getEventDate = (event: EventraEvent): Date => {
 export default function MyEventsClient() {
   const { user, updateUser } = useAuth();
   const { toast } = useToast();
-  // Backlog(P3.1): move my-events and registrations sourcing to dedicated server actions.
   const allEventsRaw: any[] = [];
   const myRegistrations: any[] = [];
 
@@ -48,7 +47,6 @@ export default function MyEventsClient() {
     id: e.id,
   }));
 
-  // Get event IDs from real registrations
   const registeredEventIds = new Set(
     (myRegistrations || [])
       .filter((r: any) => r.status === 'confirmed' || r.status === 'registered')
@@ -112,95 +110,113 @@ export default function MyEventsClient() {
     .sort((a, b) => getEventDate(a).getTime() - getEventDate(b).getTime())[0];
 
   return (
-    <div className="container py-8">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-        <div>
-          <h1 className="text-3xl font-bold mb-2">My Events</h1>
-          <p className="text-muted-foreground">Manage your registered events and wishlist</p>
+    <div className="max-w-7xl mx-auto space-y-16 pb-20">
+      {/* Page Header */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-8">
+        <div className="space-y-4">
+           <Badge variant="outline" className="border-primary/30 bg-primary/10 text-primary rounded-full px-4 py-1 text-[10px] font-black uppercase tracking-[0.3em]">
+             Mission Log
+           </Badge>
+           <h1 className="text-4xl md:text-6xl font-display font-bold tracking-tighter leading-none">
+             My <span className="text-primary italic">Missions.</span>
+           </h1>
+           <p className="text-lg text-muted-foreground font-medium max-w-xl">
+             Manage your active synchronizations, past experiences, and node wishlist.
+           </p>
         </div>
-        <Button asChild>
-          <Link href="/explore"><Plus className="mr-2 h-4 w-4" />Find Events</Link>
+        <Button size="lg" asChild className="rounded-2xl h-14 px-8 bg-primary text-primary-foreground shadow-glow shadow-primary/20 font-black uppercase tracking-widest text-[11px] border-none">
+          <Link href="/explore"><Plus className="mr-3 h-4 w-4" />Find New Node</Link>
         </Button>
       </div>
 
-      {nextEvent && (
-        <div className="mb-8">
-          <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent rounded-xl p-6 border">
-            <div className="flex flex-col md:flex-row gap-6">
-              <div className="flex-1">
-                <p className="text-sm font-medium text-primary mb-2">YOUR NEXT EVENT</p>
-                <h2 className="text-2xl font-bold mb-2">{nextEvent.title}</h2>
-                <div className="flex flex-wrap gap-4 text-sm text-muted-foreground mb-4">
-                  <span className="flex items-center gap-1"><CalendarDays className="h-4 w-4" />{format(getEventDate(nextEvent), 'EEEE, MMMM d, yyyy')}</span>
-                </div>
-                <div className="flex gap-3">
-                  <Button asChild size="sm"><Link href={`/events/${nextEvent.id}`}>View Details</Link></Button>
-                </div>
-              </div>
+      {/* SEARCH & FILTERS */}
+      <div className="space-y-12">
+        <div className="relative group max-w-2xl">
+          <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
+          <Input 
+            placeholder="Filter your log..." 
+            value={searchQuery} 
+            onChange={(e) => setSearchQuery(e.target.value)} 
+            className="pl-16 h-16 rounded-[1.5rem] bg-background border-border/80 text-lg font-medium focus-visible:ring-primary shadow-xl" 
+          />
+        </div>
+
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="bg-transparent border-b border-border w-full justify-start rounded-none h-auto p-0 gap-10 mb-12">
+            <TabsTrigger value="registered" className="bg-transparent border-none rounded-none data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary text-muted-foreground font-black uppercase tracking-[0.2em] text-[11px] pb-4 px-0 transition-all flex items-center gap-3">
+              <Ticket className="w-4 h-4" /> 
+              Active Nodes
+              {registeredEvents.length > 0 && <span className="ml-1 text-primary opacity-60">[{registeredEvents.length}]</span>}
+            </TabsTrigger>
+            <TabsTrigger value="past" className="bg-transparent border-none rounded-none data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary text-muted-foreground font-black uppercase tracking-[0.2em] text-[11px] pb-4 px-0 transition-all flex items-center gap-3">
+              <History className="w-4 h-4" /> 
+              Archived
+              {pastEvents.length > 0 && <span className="ml-1 text-primary opacity-60">[{pastEvents.length}]</span>}
+            </TabsTrigger>
+            <TabsTrigger value="wishlist" className="bg-transparent border-none rounded-none data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary text-muted-foreground font-black uppercase tracking-[0.2em] text-[11px] pb-4 px-0 transition-all flex items-center gap-3">
+              <Heart className="w-4 h-4" /> 
+              Wishlist
+              {wishlistedEvents.length > 0 && <span className="ml-1 text-primary opacity-60">[{wishlistedEvents.length}]</span>}
+            </TabsTrigger>
+          </TabsList>
+
+          {loading ? (
+            <div className="flex items-center justify-center py-40">
+               <div className="flex flex-col items-center gap-4">
+                  <div className="w-12 h-12 rounded-2xl border-4 border-primary/10 border-t-primary animate-spin" />
+                  <p className="text-xs font-black uppercase tracking-[0.3em] text-muted-foreground animate-pulse">Syncing Log...</p>
+               </div>
             </div>
-          </div>
-        </div>
-      )}
+          ) : (
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <TabsContent value="registered" className="m-0">
+                {registeredEvents.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+                    {registeredEvents.map(event => <MyEventCard key={event.id} event={event} variant="upcoming" />)}
+                  </div>
+                ) : (
+                  <div className="text-center py-40 bg-background rounded-[3rem] border-2 border-dashed border-border">
+                     <div className="w-20 h-20 bg-muted rounded-2xl flex items-center justify-center mx-auto mb-8">
+                        <Ticket className="w-10 h-10 text-muted-foreground/40" />
+                     </div>
+                     <h3 className="text-3xl font-display font-bold mb-4">No active synchronizations.</h3>
+                     <p className="text-muted-foreground font-medium max-w-sm mx-auto mb-10">You haven't registered for any upcoming events yet.</p>
+                     <Button asChild size="lg" className="rounded-2xl px-10 shadow-glow font-black h-14">
+                        <Link href="/explore">Discover Events</Link>
+                     </Button>
+                  </div>
+                )}
+              </TabsContent>
 
-      <div className="mb-6">
-        <div className="relative max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Search your events..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-10" />
-        </div>
+              <TabsContent value="past" className="m-0">
+                {pastEvents.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+                    {pastEvents.map(event => <MyEventCard key={event.id} event={event} variant="past" onRate={handleRateEvent} />)}
+                  </div>
+                ) : (
+                  <div className="text-center py-40 bg-background rounded-[3rem] border-2 border-dashed border-border opacity-60">
+                     <History className="w-16 h-16 text-muted-foreground/30 mx-auto mb-6" />
+                     <p className="text-xl font-display font-bold">Log History Empty</p>
+                  </div>
+                )}
+              </TabsContent>
+
+              <TabsContent value="wishlist" className="m-0">
+                {wishlistedEvents.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+                    {wishlistedEvents.map(event => <MyEventCard key={event.id} event={event} variant="wishlist" onRemoveWishlist={handleRemoveWishlist} />)}
+                  </div>
+                ) : (
+                  <div className="text-center py-40 bg-background rounded-[3rem] border-2 border-dashed border-border opacity-60">
+                     <Heart className="w-16 h-16 text-muted-foreground/30 mx-auto mb-6" />
+                     <p className="text-xl font-display font-bold">Wishlist Clear</p>
+                  </div>
+                )}
+              </TabsContent>
+            </div>
+          )}
+        </Tabs>
       </div>
-
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="mb-6">
-          <TabsTrigger value="registered" className="gap-2">
-            <Ticket className="h-4 w-4" /> Registered
-            {registeredEvents.length > 0 && <Badge variant="secondary" className="ml-1">{registeredEvents.length}</Badge>}
-          </TabsTrigger>
-          <TabsTrigger value="past" className="gap-2">
-            <History className="h-4 w-4" /> Past Events
-            {pastEvents.length > 0 && <Badge variant="secondary" className="ml-1">{pastEvents.length}</Badge>}
-          </TabsTrigger>
-          <TabsTrigger value="wishlist" className="gap-2">
-            <Heart className="h-4 w-4" /> Wishlist
-            {wishlistedEvents.length > 0 && <Badge variant="secondary" className="ml-1">{wishlistedEvents.length}</Badge>}
-          </TabsTrigger>
-        </TabsList>
-
-        {loading ? (
-          <div className="flex items-center justify-center py-16"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>
-        ) : (
-          <>
-            <TabsContent value="registered">
-              {registeredEvents.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {registeredEvents.map(event => <MyEventCard key={event.id} event={event} variant="upcoming" />)}
-                </div>
-              ) : (
-                <div className="text-center py-16"><p className="text-muted-foreground">No upcoming events.</p></div>
-              )}
-            </TabsContent>
-
-            <TabsContent value="past">
-              {pastEvents.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {pastEvents.map(event => <MyEventCard key={event.id} event={event} variant="past" onRate={handleRateEvent} />)}
-                </div>
-              ) : (
-                <div className="text-center py-16"><p className="text-muted-foreground">No past events.</p></div>
-              )}
-            </TabsContent>
-
-            <TabsContent value="wishlist">
-              {wishlistedEvents.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {wishlistedEvents.map(event => <MyEventCard key={event.id} event={event} variant="wishlist" onRemoveWishlist={handleRemoveWishlist} />)}
-                </div>
-              ) : (
-                <div className="text-center py-16"><p className="text-muted-foreground">Your wishlist is empty.</p></div>
-              )}
-            </TabsContent>
-          </>
-        )}
-      </Tabs>
     </div>
   );
 }
