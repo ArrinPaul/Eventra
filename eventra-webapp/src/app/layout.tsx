@@ -40,6 +40,8 @@ const fontJetbrainsMono = JetBrains_Mono({
   display: 'swap',
 });
 
+import { ClerkDebug } from '@/components/clerk-debug';
+
 export default async function RootLayout({
   children,
 }: Readonly<{
@@ -48,9 +50,14 @@ export default async function RootLayout({
   const locale = await getUserLocale();
   const messages = await getMessages();
   const organizationSchema = generateOrganizationSchema();
+  const publishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+
+  if (!publishableKey) {
+    console.error('CRITICAL: NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY is missing from environment variables.');
+  }
   
   return (
-    <ClerkProvider publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}>
+    <ClerkProvider publishableKey={publishableKey} clerkJSVersion="6">
       <html lang={locale} suppressHydrationWarning className={`${fontInter.variable} ${fontSpaceGrotesk.variable} ${fontJetbrainsMono.variable}`}>
         <head>
           <script
@@ -59,6 +66,7 @@ export default async function RootLayout({
           />
         </head>
         <body className="font-sans antialiased bg-background text-foreground">
+          <ClerkDebug />
           <NextIntlClientProvider locale={locale} messages={messages}>
             <Providers>
               {children}
