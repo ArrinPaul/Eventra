@@ -11,6 +11,7 @@ import { enforceRateLimit } from '@/lib/rate-limit';
 import { logActivity } from './feed';
 import { awardXP } from './gamification';
 import { generateQrPayload } from '@/core/utils/crypto';
+import { sendEmail, constructConfirmationEmail } from '@/core/services/email';
 import { logger } from '@/lib/logger';
 
 function getErrorText(error: unknown, fallback: string) {
@@ -154,7 +155,7 @@ export async function registerForEvent(eventId: string, data?: { tierId?: string
         to: user.email,
         subject: emailContent.subject,
         html: emailContent.html,
-      }).catch(err => logger.error('Failed to send confirmation email', err));
+      }).catch((err: unknown) => logger.error('Failed to send confirmation email', err));
     }
 
     // Log Activity

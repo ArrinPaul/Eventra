@@ -1,8 +1,8 @@
 'use client';
 import { useAuth } from '@/hooks/use-auth';
-import DashboardClient from '@/features/dashboard/dashboard-client';
+import { Sidebar } from '@/components/layout/sidebar';
 import LandingPage from '@/features/home/landing-page';
-import Header from '@/components/layout/header';
+import DashboardClient from '@/features/dashboard/dashboard-client';
 
 export default function Home() {
   const { user, loading } = useAuth();
@@ -10,21 +10,26 @@ export default function Home() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen bg-background">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        <div className="flex flex-col items-center gap-4">
+           <div className="w-12 h-12 rounded-2xl border-4 border-primary/10 border-t-primary animate-spin" />
+           <p className="text-[10px] font-black uppercase tracking-[0.4em] text-muted-foreground animate-pulse">Mesh Initializing...</p>
+        </div>
       </div>
     );
   }
 
-  // Show landing page for guests, dashboard for logged-in users
+  // Show landing page for guests
   if (!user) {
     return <LandingPage />;
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-background">
-      <Header />
-      <main className="flex-1">
-        <DashboardClient />
+    <div className="min-h-screen bg-background flex">
+      <Sidebar />
+      <main className="flex-1 ml-[80px] md:ml-[280px] transition-[margin] duration-300">
+        <div className="p-4 md:p-10">
+          <DashboardClient />
+        </div>
       </main>
     </div>
   );

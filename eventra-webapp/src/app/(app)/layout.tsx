@@ -2,6 +2,7 @@
 import { useEffect } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { Sidebar } from '@/components/layout/sidebar';
+import { ErrorBoundary } from '@/components/shared/error-boundary';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -23,7 +24,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <Sidebar />
       </ErrorBoundary>
       <main className="flex-1 ml-[80px] md:ml-[280px] transition-[margin] duration-300">
-        <div className="p-4 md:p-8">
+        <div className="p-4 md:p-10">
           <ErrorBoundary>{children}</ErrorBoundary>
         </div>
       </main>

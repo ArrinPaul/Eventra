@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
-import { Users, MessageSquare, Heart, Share2, Shield, Image } from 'lucide-react';
+import { Users, MessageSquare, Heart, Share2, Shield, Image as ImageIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export function CommunityDetailClient({ communityId, community: initialCommunity, posts: initialPosts, members: initialMembers }: any) {
@@ -60,7 +60,7 @@ export function CommunityDetailClient({ communityId, community: initialCommunity
                 <div className="flex-1 space-y-3">
                   <Textarea placeholder="Share something with the community..." className="bg-card border-border resize-none min-h-[100px] text-foreground" />
                   <div className="flex justify-between items-center">
-                    <UIButton variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground"><Image size={18} className="mr-2" /> Media</UIButton>
+                    <UIButton variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground"><ImageIcon size={18} className="mr-2" /> Media</UIButton>
                     <UIButton size="sm" className="bg-primary hover:bg-primary/90 px-6">Post</UIButton>
                   </div>
                 </div>

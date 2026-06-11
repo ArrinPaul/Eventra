@@ -8,8 +8,9 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Calendar, Mail, User, Star, Trophy, Award, MapPin,
-  Settings, Edit, Loader2
+  Settings, Edit, Loader2, UserCircle, CheckCircle, Zap
 } from 'lucide-react';
+import { cn } from '@/core/utils/utils';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { getUserRegistrations } from '@/app/actions/registrations';

@@ -15,7 +15,8 @@ import {
   Star,
   X,
   Download,
-  ExternalLink
+  ExternalLink,
+  Zap
 } from 'lucide-react';
 import { cn } from '@/core/utils/utils';
 import type { EventraEvent } from '@/types';
@@ -47,7 +48,7 @@ export function MyEventCard({
   const eventImage = event.imageUrl || event.image;
   const venueName = typeof event.location?.venue === 'string'
     ? event.location?.venue
-    : event.location?.venue?.name || event.location || 'Virtual Platform';
+    : event.location?.venue?.name || (typeof event.location === 'string' ? event.location : '') || 'Virtual Platform';
 
   const getLiveStatus = () => {
     const now = new Date();

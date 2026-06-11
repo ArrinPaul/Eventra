@@ -57,7 +57,7 @@ export default async function RootLayout({
   }
   
   return (
-    <ClerkProvider publishableKey={publishableKey} clerkJSVersion="6">
+    <ClerkProvider publishableKey={publishableKey}>
       <html lang={locale} suppressHydrationWarning className={`${fontInter.variable} ${fontSpaceGrotesk.variable} ${fontJetbrainsMono.variable}`}>
         <head>
           <script

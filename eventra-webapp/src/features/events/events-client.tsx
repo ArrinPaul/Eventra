@@ -84,7 +84,7 @@ export default function EventsClient() {
     } finally {
       setLoading(false);
     }
-  }, [toast]);
+  }, [toast, commonT, t]);
 
   useEffect(() => {
     loadEvents();
