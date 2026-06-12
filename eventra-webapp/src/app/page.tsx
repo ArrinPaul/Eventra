@@ -18,10 +18,10 @@ export default function Page() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen bg-background">
+      <div className="flex items-center justify-center h-screen bg-notion-canvas-soft">
         <div className="flex flex-col items-center gap-4">
-           <div className="w-12 h-12 rounded-2xl border-4 border-primary/10 border-t-primary animate-spin" />
-           <p className="text-[10px] font-black uppercase tracking-[0.4em] text-muted-foreground animate-pulse">Mesh Initializing...</p>
+           <div className="w-10 h-10 rounded-full border-2 border-notion-hairline border-t-notion-primary animate-spin" />
+           <p className="text-body-sm text-notion-ink-muted">Syncing workspace...</p>
         </div>
       </div>
     );
@@ -33,10 +33,10 @@ export default function Page() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex premium-bg">
+    <div className="min-h-screen bg-notion-canvas-soft flex">
       <Sidebar />
-      <main className="flex-1 ml-[80px] md:ml-[280px] transition-[margin] duration-300 mesh-glow min-h-screen">
-        <div className="p-4 md:p-10 max-w-[1600px] mx-auto">
+      <main className="flex-1 ml-[64px] md:ml-[240px] transition-[margin] duration-300 min-h-screen">
+        <div className="p-4 md:p-8 max-w-[1400px] mx-auto">
           <DashboardClient />
         </div>
       </main>

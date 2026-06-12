@@ -36,8 +36,7 @@ interface SidebarProps {
 }
 
 export function Sidebar({ className }: SidebarProps) {
-  const { user, isAuthenticated } = useAuth();
-  const { signOut } = useClerk();
+  const { user, isAuthenticated, logout } = useAuth();
   const t = useTranslations('Common');
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
@@ -157,13 +156,18 @@ export function Sidebar({ className }: SidebarProps) {
           <Tooltip>
              <TooltipTrigger asChild>
                 <button
-                   onClick={() => signOut()}
+                   type="button"
+                   onClick={async (e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      await logout();
+                   }}
                    className={cn(
-                      "flex items-center h-8 gap-3 px-2.5 rounded-sm hover:bg-red-50 dark:hover:bg-red-950/20 text-notion-ink-muted hover:text-red-600 transition-colors w-full",
+                      "flex items-center h-8 gap-3 px-2.5 rounded-sm hover:bg-red-50 dark:hover:bg-red-950/20 text-notion-ink-muted hover:text-red-600 transition-colors w-full cursor-pointer",
                       isCollapsed && "justify-center"
                    )}
                 >
-                   <LogOut className="w-4.5 h-4.5 shrink-0" />
+                   <LogOut className="w-4 h-4 shrink-0" />
                    {!isCollapsed && <span className="text-[14px]">Sign out</span>}
                 </button>
              </TooltipTrigger>
