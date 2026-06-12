@@ -3,13 +3,13 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
-import { Menu, Moon, Sun, Search, Settings, Ticket, Calendar, X, Sparkles } from 'lucide-react';
+import { Menu, Moon, Sun, Search, X } from 'lucide-react';
 import { Logo } from '@/components/brand/logo';
 import { cn } from '@/core/utils/utils';
 import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
 import { NotificationBell } from '@/features/notifications/notification-center';
-import { motion, AnimatePresence, useScroll, useMotionValueEvent } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { UserButton } from "@clerk/nextjs";
 import { LanguageSwitcher } from '@/components/shared/language-switcher';
 import { useTranslations } from 'next-intl';
@@ -29,7 +29,7 @@ function ThemeToggle() {
       variant="ghost"
       size="icon"
       onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-      className="rounded-full w-9 h-9 text-muted-foreground hover:text-foreground hover:bg-muted/80"
+      className="rounded-md w-9 h-9 text-notion-ink-muted hover:bg-notion-canvas-soft"
     >
       <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
       <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
@@ -42,34 +42,7 @@ export default function Header() {
   const { user, isAuthenticated } = useAuth();
   const t = useTranslations('Common');
   const pathname = usePathname();
-  const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [hidden, setHidden] = useState(false);
-  const { scrollY } = useScroll();
-
-  useMotionValueEvent(scrollY, "change", (latest) => {
-    const previous = scrollY.getPrevious() ?? 0;
-    if (latest > previous && latest > 150) {
-      setHidden(true);
-    } else {
-      setHidden(false);
-    }
-  });
-
-  useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 20);
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  // Prevent scroll when mobile menu is open
-  useEffect(() => {
-    if (mobileMenuOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-  }, [mobileMenuOpen]);
 
   const navLinks = [
     { href: '/', label: 'Home' },
@@ -84,39 +57,16 @@ export default function Header() {
   });
 
   return (
-    <motion.header
-      variants={{
-        visible: { y: 0 },
-        hidden: { y: "-100%" },
-      }}
-      animate={hidden ? "hidden" : "visible"}
-      transition={{ duration: 0.35, ease: "easeInOut" }}
-      className={cn(
-        "fixed top-0 left-0 right-0 z-50 transition-all duration-500",
-        scrolled
-          ? "py-4 flex justify-center"
-          : "py-6"
-      )}
-    >
-      <div className={cn(
-        "container mx-auto px-4 transition-all duration-500",
-        scrolled ? "max-w-4xl" : "max-w-7xl"
-      )}>
-        <div className={cn(
-          "flex items-center justify-between h-14 px-6 rounded-full transition-all duration-500",
-          scrolled 
-            ? "bg-background/60 backdrop-blur-2xl border border-border shadow-2xl" 
-            : "bg-transparent border-transparent"
-        )}>
+    <header className="sticky top-0 left-0 right-0 z-50 bg-notion-surface/80 backdrop-blur-md border-b border-notion-hairline">
+      <div className="container max-w-7xl mx-auto px-4 sm:px-6">
+        <div className="flex items-center justify-between h-12">
+          {/* Logo & Desktop Nav */}
+          <div className="flex items-center gap-6">
+            <Link href="/" className="shrink-0 active:scale-95">
+              <Logo showText />
+            </Link>
 
-          {/* Logo */}
-          <Link href="/" className="shrink-0 transition-transform duration-300 active:scale-95" data-testid="header-logo">
-            <Logo showText />
-          </Link>
-
-          {/* Desktop Nav - Centered Pills */}
-          <nav className="hidden md:flex items-center justify-center flex-1 mx-8" data-testid="app-header">
-            <div className="flex items-center gap-1">
+            <nav className="hidden md:flex items-center gap-1">
               {navLinks.map((link) => {
                 const isActive = pathname === link.href;
                 return (
@@ -124,84 +74,68 @@ export default function Header() {
                     key={link.href}
                     href={link.href}
                     className={cn(
-                      "relative px-4 py-1.5 text-[11px] font-bold uppercase tracking-widest transition-all duration-300",
+                      "px-2.5 py-1 text-[14px] font-medium rounded-sm transition-colors",
                       isActive
-                        ? "text-primary"
-                        : "text-muted-foreground hover:text-foreground"
+                        ? "text-notion-ink bg-notion-canvas-soft font-semibold"
+                        : "text-notion-ink-secondary hover:bg-notion-canvas-soft hover:text-notion-ink"
                     )}
                   >
                     {link.label}
                   </Link>
                 );
               })}
-            </div>
-          </nav>
+            </nav>
+          </div>
 
           {/* Right Actions */}
-          <div className="flex items-center justify-end gap-3 shrink-0">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="hidden sm:flex rounded-full w-8 h-8 text-muted-foreground hover:text-foreground transition-all"
-              asChild
-              data-testid="header-search-btn"
-            >
-              <Link href="/search">
-                <Search className="w-4 h-4" />
-              </Link>
-            </Button>
-
-            <div data-testid="theme-toggle" className="glass rounded-xl border border-border/50">
+          <div className="flex items-center gap-1">
+            <div className="hidden sm:flex items-center gap-0.5 mr-1 pr-1 border-r border-notion-hairline">
+              <Button variant="ghost" size="icon" className="w-8 h-8 text-notion-ink-muted hover:bg-notion-canvas-soft" asChild>
+                <Link href="/search">
+                  <Search className="w-4 h-4" />
+                </Link>
+              </Button>
               <ThemeToggle />
             </div>
 
-            <div className="hidden lg:block glass rounded-xl border border-border/50">
-              <LanguageSwitcher />
-            </div>
-
             {isAuthenticated && (
-              <div className="hidden sm:block">
+              <div className="mr-1">
                 <NotificationBell />
               </div>
             )}
 
             {isAuthenticated ? (
-              <div className="ml-2 flex items-center">
-                <UserButton 
-                  appearance={{
-                    elements: {
-                      userButtonAvatarBox: "h-11 w-11 rounded-2xl border border-border/40 hover:border-primary/40 shadow-xl transition-all",
-                      userButtonTrigger: "focus:shadow-none focus:ring-0",
-                      userButtonPopoverCard: "rounded-[2rem] border-border/60 shadow-2xl backdrop-blur-xl bg-background/90",
-                      userButtonPopoverActionButton: "rounded-xl hover:bg-primary/10 transition-colors",
-                      userButtonPopoverActionButtonText: "font-black uppercase tracking-[0.2em] text-[10px]",
-                    }
-                  }}
-                />
-              </div>
+              <UserButton 
+                appearance={{
+                  elements: {
+                    userButtonAvatarBox: "h-7 w-7 rounded-sm border border-notion-hairline shadow-notion-soft",
+                    userButtonTrigger: "focus:shadow-none focus:ring-0",
+                  }
+                }}
+              />
             ) : (
-              <div className="hidden md:flex items-center gap-6 ml-4">
-                <Link href="/login" className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground hover:text-foreground transition-all">
-                  Auth_In
-                </Link>
-                <Button asChild size="sm" className="px-8 shadow-glow shadow-primary/20 rounded-full h-11">
-                  <Link href="/register">Initialize</Link>
+              <div className="flex items-center gap-2 ml-2">
+                <Button variant="ghost" size="sm" asChild className="h-8 text-[14px] text-notion-ink-secondary">
+                  <Link href="/login">Log in</Link>
+                </Button>
+                <Button size="sm" variant="utility" asChild className="h-8 text-[14px]">
+                  <Link href="/register">Get Eventra free</Link>
                 </Button>
               </div>
             )}
 
             {/* Mobile Menu Button */}
-            <button
-              className="md:hidden p-3 ml-2 rounded-2xl text-foreground bg-muted/40 backdrop-blur-md border border-border/40 hover:bg-muted transition-all active:scale-95 shadow-xl"
+            <Button
+              variant="ghost"
+              size="icon"
+              className="md:hidden w-9 h-9"
               onClick={() => setMobileMenuOpen(true)}
-              data-testid="mobile-menu-toggle"
             >
-              <Menu className="w-5 h-5" />
-            </button>
+              <Menu className="w-5 h-5 text-notion-ink" />
+            </Button>
           </div>
         </div>
       </div>
-
 
       {/* Mobile Drawer */}
       <AnimatePresence>
@@ -211,8 +145,7 @@ export default function Header() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.3 }}
-              className="fixed inset-0 bg-background/60 backdrop-blur-sm z-50 md:hidden"
+              className="fixed inset-0 bg-black/20 z-50 md:hidden"
               onClick={() => setMobileMenuOpen(false)}
             />
             <motion.div
@@ -220,81 +153,68 @@ export default function Header() {
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="fixed top-0 right-0 bottom-0 w-[320px] max-w-[85vw] bg-background/95 backdrop-blur-2xl shadow-2xl z-50 md:hidden flex flex-col border-l border-border/40 rounded-l-[3rem]"
+              className="fixed top-0 right-0 bottom-0 w-full max-w-sm bg-notion-surface shadow-notion-elevated z-50 md:hidden flex flex-col"
             >
-              <div className="p-10 flex items-center justify-between border-b border-border/40">
-                <div className="flex items-center gap-3">
-                  <Logo />
-                  <span className="font-display font-bold text-xl tracking-tighter">Menu.</span>
-                </div>
-                <button
+              <div className="p-4 flex items-center justify-between border-b border-notion-hairline">
+                <Logo showText />
+                <Button
+                  variant="ghost"
+                  size="icon"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="p-3 rounded-2xl bg-muted/40 text-muted-foreground hover:text-foreground transition-all active:scale-95"
                 >
-                  <X className="w-5 h-5" />
-                </button>
+                  <X className="w-5 h-5 text-notion-ink" />
+                </Button>
               </div>
               
-              <div className="flex-1 overflow-y-auto py-10 px-6 space-y-10">
-                <nav className="space-y-4">
-                  <p className="px-4 text-[10px] font-black uppercase tracking-[0.4em] text-muted-foreground/60 mb-6">Navigation_Map</p>
+              <div className="flex-1 overflow-y-auto p-4 space-y-6">
+                <nav className="flex flex-col gap-1">
                   {navLinks.map(link => (
                     <Link
                       key={link.href}
                       href={link.href}
                       onClick={() => setMobileMenuOpen(false)}
                       className={cn(
-                        "flex items-center gap-4 px-6 py-4 rounded-2xl font-bold transition-all duration-300",
+                        "px-4 py-3 rounded-md text-body-md font-medium transition-colors",
                         pathname === link.href
-                          ? "bg-primary text-primary-foreground shadow-glow shadow-primary/20"
-                          : "hover:bg-muted text-muted-foreground hover:text-foreground"
+                          ? "bg-notion-canvas-soft text-notion-ink"
+                          : "text-notion-ink-secondary hover:bg-notion-canvas-soft"
                       )}
                     >
-                      <span className="text-xs uppercase tracking-[0.2em]">{link.label}</span>
+                      {link.label}
                     </Link>
                   ))}
-                  <Link
-                    href="/search"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center gap-4 px-6 py-4 rounded-2xl font-bold text-muted-foreground hover:bg-muted hover:text-foreground transition-all duration-300"
-                  >
-                    <span className="text-xs uppercase tracking-[0.2em]">Scan Events</span>
-                  </Link>
                 </nav>
 
-                <div className="border-t border-border/40 pt-10 space-y-6">
+                <div className="pt-6 border-t border-notion-hairline space-y-4">
                   {isAuthenticated ? (
-                    <div className="flex items-center gap-4 px-6 py-4 rounded-[2rem] bg-muted/20 border border-border/40">
-                      <UserButton 
-                        appearance={{
-                          elements: {
-                            userButtonAvatarBox: "h-12 w-12 rounded-2xl shadow-xl",
-                            userButtonTrigger: "w-full flex justify-start",
-                            rootBox: "w-full"
-                          }
-                        }}
-                      />
-                      <div className="flex flex-col">
-                        <span className="text-sm font-bold truncate">{user?.name}</span>
-                        <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-60">{user?.role}</span>
-                      </div>
+                    <div className="px-4 py-3 rounded-md bg-notion-canvas-soft flex items-center gap-3">
+                       <UserButton />
+                       <div className="flex flex-col overflow-hidden">
+                          <span className="text-body-sm font-semibold truncate">{user?.name}</span>
+                          <span className="text-caption text-notion-ink-muted capitalize">{user?.role}</span>
+                       </div>
                     </div>
                   ) : (
-                    <div className="grid grid-cols-1 gap-4">
-                      <Button asChild size="xl" className="w-full rounded-2xl shadow-glow" onClick={() => setMobileMenuOpen(false)}>
-                        <Link href="/register">Initialize Node</Link>
+                    <div className="flex flex-col gap-2">
+                      <Button asChild variant="primary" className="w-full">
+                        <Link href="/register">Get Eventra free</Link>
                       </Button>
-                      <Button asChild variant="outline" size="xl" className="w-full rounded-2xl" onClick={() => setMobileMenuOpen(false)}>
-                        <Link href="/login">Auth_In</Link>
+                      <Button asChild variant="secondary" className="w-full">
+                        <Link href="/login">Log in</Link>
                       </Button>
                     </div>
                   )}
+                  
+                  <div className="flex items-center justify-between px-4">
+                    <span className="text-body-sm text-notion-ink-secondary">Theme</span>
+                    <ThemeToggle />
+                  </div>
                 </div>
               </div>
             </motion.div>
           </>
         )}
       </AnimatePresence>
-    </motion.header>
+    </header>
   );
 }

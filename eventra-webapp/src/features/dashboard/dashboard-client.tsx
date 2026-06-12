@@ -10,8 +10,11 @@ export default function DashboardClient() {
 
     if (loading) {
         return (
-            <div className="flex h-[calc(100vh-4rem)] items-center justify-center bg-background">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <div className="flex h-[calc(100vh-10rem)] items-center justify-center">
+                <div className="flex flex-col items-center gap-4">
+                    <div className="w-10 h-10 rounded-full border-2 border-notion-hairline border-t-notion-primary animate-spin" />
+                    <p className="text-body-sm text-notion-ink-muted">Loading your workspace...</p>
+                </div>
             </div>
         );
     }

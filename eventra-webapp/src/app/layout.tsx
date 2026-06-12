@@ -3,12 +3,18 @@ import './globals.css';
 import { Providers } from '@/components/providers';
 import { Toaster } from '@/components/ui/toaster';
 import { NotificationWatcher } from '@/features/notifications/notification-watcher';
-import { Inter, Space_Grotesk, JetBrains_Mono } from 'next/font/google';
+import { Inter } from 'next/font/google';
 import { baseMetadata, viewport as seoViewport, generateOrganizationSchema } from '@/core/services/seo';
 import { NextIntlClientProvider } from 'next-intl';
 import { getUserLocale } from '@/core/services/locale-service';
 import { getMessages } from 'next-intl/server';
 import { ClerkProvider } from '@clerk/nextjs';
+
+const fontInter = Inter({
+  subsets: ['latin'],
+  variable: '--font-inter',
+  display: 'swap',
+});
 
 // Export SEO metadata
 export const metadata: Metadata = {
@@ -19,26 +25,6 @@ export const metadata: Metadata = {
   },
   description: 'Intelligent Event Management Platform for universities and organizations. Create, manage, and discover events with powerful tools.',
 };
-
-export const viewport: Viewport = seoViewport;
-
-const fontInter = Inter({
-  subsets: ['latin'],
-  variable: '--font-inter',
-  display: 'swap',
-});
-
-const fontSpaceGrotesk = Space_Grotesk({
-  subsets: ['latin'],
-  variable: '--font-space-grotesk',
-  display: 'swap',
-});
-
-const fontJetbrainsMono = JetBrains_Mono({
-  subsets: ['latin'],
-  variable: '--font-jetbrains-mono',
-  display: 'swap',
-});
 
 import { ClerkDebug } from '@/components/clerk-debug';
 
@@ -55,10 +41,10 @@ export default async function RootLayout({
   if (!publishableKey) {
     console.error('CRITICAL: NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY is missing from environment variables.');
   }
-  
+
   return (
     <ClerkProvider publishableKey={publishableKey}>
-      <html lang={locale} suppressHydrationWarning className={`${fontInter.variable} ${fontSpaceGrotesk.variable} ${fontJetbrainsMono.variable}`}>
+      <html lang={locale} suppressHydrationWarning className={`${fontInter.variable}`}>
         <head>
           <script
             type="application/ld+json"

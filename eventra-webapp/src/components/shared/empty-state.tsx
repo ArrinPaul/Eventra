@@ -28,22 +28,22 @@ export function EmptyState({
   return (
     <div 
       className={cn(
-        "flex flex-col items-center justify-center py-20 px-4 text-center border border-dashed border-border rounded-2xl bg-card/30 animate-in fade-in zoom-in duration-500",
+        "flex flex-col items-center justify-center py-20 px-6 text-center border border-dashed border-notion-hairline rounded-lg bg-notion-canvas-soft/30",
         className
       )}
       data-testid="empty-state"
     >
-      <div className="p-5 bg-primary/10 rounded-[2rem] mb-6 shadow-glow">
-        <Icon className="h-10 w-10 text-primary" strokeWidth={1.5} />
+      <div className="p-4 bg-notion-canvas border border-notion-hairline rounded-md mb-6 shadow-notion-soft">
+        <Icon className="h-8 w-8 text-notion-primary" strokeWidth={1.5} />
       </div>
-      <h3 className="text-2xl font-display font-bold text-foreground mb-3">{title}</h3>
-      <p className="text-muted-foreground max-w-sm mb-8 text-sm leading-relaxed">{description}</p>
+      <h3 className="text-title font-bold text-notion-ink mb-2">{title}</h3>
+      <p className="text-body-sm text-notion-ink-muted max-w-xs mb-8">{description}</p>
       
       {actionLabel && (actionHref || actionOnClick) && (
         <Button 
           asChild={!!actionHref} 
-          variant="default"
-          size="lg"
+          variant="primary"
+          size="default"
           onClick={actionOnClick}
           data-testid="empty-state-action"
         >

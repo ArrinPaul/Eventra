@@ -1,30 +1,25 @@
 'use client';
-// 
+
 import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { 
   Calendar, 
   MapPin, 
-  Heart, 
-  Clock, 
-  ChevronRight,
-  Zap,
-  Loader2
+  Loader2,
+  Sparkles
 } from 'lucide-react';
 import { format } from 'date-fns';
-// import { cn } from '@/core/utils/utils';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import type { EventraEvent } from '@/types';
 import { useTranslations } from 'next-intl';
 
-export function EventCard({ event, variant = 'default' }: { event: EventraEvent, variant?: 'default' | 'compact' | 'featured' }) {
+export function EventCard({ event }: { event: EventraEvent }) {
   const router = useRouter();
   const { user } = useAuth();
   const { toast } = useToast();
@@ -51,59 +46,55 @@ export function EventCard({ event, variant = 'default' }: { event: EventraEvent,
 
   return (
     <Link href={`/events/${event.id}`} className="block h-full group">
-      <Card className="h-full border-none shadow-2xl overflow-hidden flex flex-col group-hover:shadow-glow group-hover:shadow-primary/5 group-hover:-translate-y-2 duration-700">
+      <Card className="h-full flex flex-col border-notion-hairline hover:shadow-notion-soft transition-all duration-300">
         {/* IMAGE AREA */}
-        <div className="relative aspect-[16/10] overflow-hidden bg-muted m-4 rounded-[2.5rem]">
+        <div className="relative aspect-video overflow-hidden bg-notion-canvas-soft border-b border-notion-hairline">
           {event.imageUrl ? (
             <Image 
               src={event.imageUrl} 
               alt={event.title}
               fill
-              className="object-cover group-hover:scale-110 transition-transform duration-1000"
+              className="object-cover group-hover:scale-105 transition-transform duration-700"
             />
           ) : (
-            <div className="w-full h-full bg-gradient-to-br from-primary/5 to-primary/10 flex items-center justify-center">
-               <Zap className="w-12 h-12 text-primary/10" />
+            <div className="w-full h-full flex items-center justify-center">
+               <Sparkles className="w-10 h-10 text-notion-ink-faint/20" />
             </div>
           )}
-          <Badge variant="glass" className="absolute top-5 left-5 z-10 rounded-full px-4 py-1">
+          <Badge variant="secondary" className="absolute top-3 left-3 z-10 bg-white/80 backdrop-blur-md text-notion-ink border-none">
             {event.category || t('generalCategory')}
           </Badge>
-          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
         </div>
 
         {/* CONTENT AREA */}
-        <div className="p-10 pt-4 flex-1 flex flex-col justify-between space-y-10">
-          <div className="space-y-6">
-            <h3 className="text-3xl font-display font-bold tracking-tight text-foreground line-clamp-2 leading-[1.1] group-hover:text-primary transition-colors">
+        <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
+          <div className="space-y-2">
+            <h3 className="text-h3 font-bold text-notion-ink line-clamp-2 leading-tight group-hover:text-notion-primary transition-colors">
               {event.title}
             </h3>
-            <div className="space-y-4">
-              <div className="flex items-center gap-4 text-xs font-bold text-muted-foreground/80">
-                <div className="w-8 h-8 rounded-xl bg-primary/5 flex items-center justify-center">
-                  <Calendar className="w-4 h-4 text-primary" />
-                </div>
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-2 text-body-sm text-notion-ink-secondary">
+                <Calendar className="w-3.5 h-3.5 text-notion-primary" />
                 <span>{format(displayDate, 'MMM d, yyyy')}</span>
               </div>
-              <div className="flex items-center gap-4 text-xs font-bold text-muted-foreground/80">
-                <div className="w-8 h-8 rounded-xl bg-primary/5 flex items-center justify-center">
-                  <MapPin className="w-4 h-4 text-primary" />
-                </div>
+              <div className="flex items-center gap-2 text-body-sm text-notion-ink-secondary">
+                <MapPin className="w-3.5 h-3.5 text-notion-primary" />
                 <span className="truncate">{typeof event.location === 'string' ? event.location : (event.location as any)?.venue || t('virtual')}</span>
               </div>
             </div>
           </div>
 
-          <div className="flex items-center justify-between pt-8 border-t border-border/40">
-            <div className="space-y-2">
-              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground opacity-60 leading-none">{t('registrationLabel')}</p>
-              <p className="text-base font-display font-bold text-foreground italic">{t('freeAccess')}</p>
+          <div className="flex items-center justify-between pt-4 border-t border-notion-hairline">
+            <div className="space-y-0.5">
+              <p className="text-eyebrow text-notion-ink-faint uppercase">{t('registrationLabel')}</p>
+              <p className="text-body-sm font-bold text-notion-ink">{t('freeAccess')}</p>
             </div>
             <Button 
               size="sm" 
+              variant="utility"
               onClick={handleQuickRegister} 
               disabled={isRegistering} 
-              className="rounded-full h-11 px-8 shadow-glow"
+              className="h-8 shadow-notion-soft"
             >
               {isRegistering ? <Loader2 className="w-3 h-3 animate-spin" /> : commonT('register')}
             </Button>
@@ -113,4 +104,3 @@ export function EventCard({ event, variant = 'default' }: { event: EventraEvent,
     </Link>
   );
 }
-

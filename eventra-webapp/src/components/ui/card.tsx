@@ -3,14 +3,15 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/core/utils/utils"
 
 const cardVariants = cva(
-  "rounded-[2.5rem] border border-border/80 text-card-foreground transition-all duration-500",
+  "rounded-lg border border-notion-hairline text-notion-ink transition-all duration-200",
   {
     variants: {
       variant: {
-        default: "bg-background shadow-xl hover:shadow-2xl hover:border-primary/20",
-        glass: "bg-background/40 backdrop-blur-md border-border/40 shadow-2xl",
-        elevated: "bg-background shadow-2xl hover:translate-y-[-4px] border-none",
-        outline: "bg-transparent border-border/60 hover:border-primary/40 hover:bg-muted/10",
+        default: "bg-notion-surface",
+        soft: "bg-notion-canvas-soft border-none",
+        elevated: "bg-notion-surface shadow-notion-soft border-none",
+        "elevated-hover": "bg-notion-surface shadow-notion-soft hover:shadow-notion-elevated border-none",
+        outline: "bg-transparent border-notion-hairline",
       },
     },
     defaultVariants: {
@@ -47,7 +48,7 @@ const CardTitle = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "font-display text-2xl font-bold leading-none tracking-tight",
+      "text-h3 font-bold leading-tight",
       className
     )}
     {...props}
@@ -61,7 +62,7 @@ const CardDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("text-sm text-muted-foreground", className)}
+    className={cn("text-body-sm text-notion-ink-muted", className)}
     {...props}
   />
 ))

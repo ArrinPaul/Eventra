@@ -5,30 +5,25 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/core/utils/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-2xl text-xs font-bold uppercase tracking-widest ring-offset-background transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 active:scale-[0.98]",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap text-body-md transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-notion-primary focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 active:scale-[0.95]",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground shadow-sm hover:shadow-glow hover:shadow-primary/20 border-none hover:bg-primary/90",
-        destructive:
-          "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90",
-        outline:
-          "border-2 border-border bg-background hover:bg-muted hover:border-primary/30 hover:text-foreground shadow-sm",
-        secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/80 shadow-sm",
-        ghost: "hover:bg-muted hover:text-foreground",
-        link: "text-primary underline-offset-4 hover:underline",
-        glass: "bg-background/40 backdrop-blur-md border border-border/40 text-foreground hover:bg-background/60 shadow-xl",
-        soft: "bg-primary/10 text-primary hover:bg-primary/20",
-        subtle: "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground",
+        default: "bg-notion-primary text-notion-on-primary rounded-full hover:bg-notion-primary-active",
+        primary: "bg-notion-primary text-notion-on-primary rounded-full hover:bg-notion-primary-active shadow-notion-soft",
+        secondary: "bg-notion-surface text-notion-ink border border-notion-hairline rounded-full hover:bg-notion-canvas-soft shadow-notion-soft",
+        utility: "bg-notion-surface text-notion-ink border border-notion-hairline rounded-md hover:bg-notion-canvas-soft px-3.5 py-1",
+        ghost: "text-notion-ink hover:bg-notion-canvas-soft rounded-md",
+        link: "text-notion-primary underline-offset-4 hover:underline",
+        outline: "bg-transparent border border-notion-hairline text-notion-ink rounded-full hover:bg-notion-canvas-soft",
+        destructive: "bg-red-600 text-white rounded-md hover:bg-red-700",
       },
       size: {
-        default: "h-12 px-8 py-2",
-        xs: "h-8 px-4 text-[10px]",
-        sm: "h-10 px-6 text-[10px]",
-        lg: "h-14 px-10 text-sm",
-        xl: "h-16 px-12 text-base",
-        icon: "h-12 w-12",
+        default: "h-11 px-6",
+        sm: "h-9 px-4 text-body-sm",
+        lg: "h-12 px-8 text-title",
+        icon: "h-10 w-10 rounded-full bg-black/5 hover:bg-black/10",
+        pill: "h-8 px-3 text-eyebrow rounded-full",
       },
     },
     defaultVariants: {
@@ -37,7 +32,6 @@ const buttonVariants = cva(
     },
   }
 )
-
 
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,

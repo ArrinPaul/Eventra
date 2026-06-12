@@ -11,57 +11,38 @@ interface LogoProps {
 
 export function Logo({ className, iconClassName, showText = false }: LogoProps) {
   return (
-    <div className={cn("flex items-center gap-3", className)}>
+    <div className={cn("flex items-center gap-2.5", className)}>
       <div className={cn(
-        "relative w-9 h-9 rounded-xl bg-primary flex items-center justify-center shadow-glow shadow-primary/20 overflow-hidden group",
+        "relative w-7 h-7 flex items-center justify-center shrink-0",
         iconClassName
       )}>
-        {/* Ultra-Minimal Geometric 'E' Logo */}
+        {/* Professional Minimalist Mark */}
         <svg 
           viewBox="0 0 24 24" 
           fill="none" 
-          className="w-full h-full text-primary-foreground p-1.5"
+          className="w-full h-full text-notion-primary"
         >
-          {/* Top Bar */}
-          <motion.rect 
-            x="4" y="5" width="16" height="3" rx="1" 
+          <motion.path
+            d="M4 4H20V8H8V12H18V16H8V20H20V24H4V4Z"
             fill="currentColor"
-            initial={{ scaleX: 0 }}
-            animate={{ scaleX: 1 }}
-            transition={{ duration: 0.8, ease: "circOut" }}
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+            style={{ transformOrigin: 'center' }}
           />
-          {/* Middle Bar (Shortened) */}
-          <motion.rect 
-            x="4" y="10.5" width="12" height="3" rx="1" 
-            fill="currentColor"
-            initial={{ scaleX: 0 }}
-            animate={{ scaleX: 1 }}
-            transition={{ duration: 0.8, delay: 0.2, ease: "circOut" }}
-          />
-          {/* Bottom Bar */}
-          <motion.rect 
-            x="4" y="16" width="16" height="3" rx="1" 
-            fill="currentColor"
-            initial={{ scaleX: 0 }}
-            animate={{ scaleX: 1 }}
-            transition={{ duration: 0.8, delay: 0.4, ease: "circOut" }}
-          />
-          {/* Vertical Spine */}
-          <motion.rect 
-            x="4" y="5" width="3" height="14" rx="1" 
-            fill="currentColor"
-            initial={{ scaleY: 0 }}
-            animate={{ scaleY: 1 }}
-            transition={{ duration: 0.8, delay: 0.1, ease: "circOut" }}
+          {/* Subtle Accent Dot */}
+          <motion.circle
+            cx="21" cy="4" r="2.5"
+            className="fill-notion-accent-sky"
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ delay: 0.4, type: "spring", stiffness: 200 }}
           />
         </svg>
-        
-        {/* Shine effect */}
-        <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity" />
       </div>
       
       {showText && (
-        <span className="font-display font-bold tracking-tight text-xl text-foreground">
+        <span className="font-sans font-bold tracking-tight text-[17px] text-notion-ink antialiased">
           Eventra
         </span>
       )}
