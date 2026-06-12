@@ -170,7 +170,7 @@ export function EventForm({ onSave, event }: EventFormProps) {
             <div className="space-y-8">
               <FormField control={form.control} name="title" render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground ml-1">Mission Title</干部FormLabel>
+                  <FormLabel className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground ml-1">Mission Title</FormLabel>
                   <FormControl><Input placeholder="Enter the name of your experience..." {...field} /></FormControl>
                   <FormMessage />
                 </FormItem>

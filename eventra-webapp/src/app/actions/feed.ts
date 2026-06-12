@@ -41,7 +41,7 @@ export async function logActivity(data: {
  */
 export async function getActivityFeed(options?: { userId?: string, limit?: number }) {
   try {
-    const query = db
+    let query = db
       .select({
         activity: activityFeed,
         user: {
@@ -50,23 +50,22 @@ export async function getActivityFeed(options?: { userId?: string, limit?: numbe
           image: users.image,
         },
         actor: {
-          id: users.id, // We'll need another join if actor is different, but for now we assume same or handle in UI
+          id: users.id,
           name: users.name,
           image: users.image,
         }
       })
       .from(activityFeed)
-      .innerJoin(users, eq(activityFeed.userId, users.id))
+      .innerJoin(users, eq(activityFeed.userId, users.id));
+
+    if (options?.userId) {
+      query = query.where(eq(activityFeed.userId, options.userId)) as any;
+    }
+
+    const results = await query
       .orderBy(desc(activityFeed.createdAt))
       .limit(options?.limit || 50);
 
-    if (options?.userId) {
-      // In a real social app, this would be "feed from people I follow"
-      // For now, it's just filtered by the user.
-      query.where(eq(activityFeed.userId, options.userId));
-    }
-
-    const results = await query;
     return results;
   } catch (error) {
     console.error('Failed to fetch activity feed:', error);

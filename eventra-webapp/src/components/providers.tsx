@@ -2,8 +2,24 @@
 import { ThemeProvider } from 'next-themes';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useState, useEffect } from 'react';
+import { useToast } from '@/hooks/use-toast';
+
 export function Providers({ children }: { children: React.ReactNode }) {
+  const { toast } = useToast();
+
   useEffect(() => {
+    const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+      if (event.reason?.message === 'Failed to fetch' || event.reason === 'Failed to fetch') {
+        toast({
+          title: "System Synchronization Error",
+          description: "Neural link to the database failed. Please verify your connection protocols.",
+          variant: "destructive",
+        });
+      }
+    };
+
+    window.addEventListener('unhandledrejection', handleUnhandledRejection);
+    
     if ('serviceWorker' in navigator && window.location.hostname !== 'localhost') {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('/sw.js').then(
@@ -16,7 +32,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
         );
       });
     }
-  }, []);
+
+    return () => {
+      window.removeEventListener('unhandledrejection', handleUnhandledRejection);
+    };
+  }, [toast]);
 
   const [queryClient] = useState(
     () =>

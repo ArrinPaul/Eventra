@@ -236,7 +236,7 @@ export default function OrganizerDashboard() {
                 </div>
               )}
             </div>
-          </div>
+          </Card>
         </TabsContent>
 
         {/* insights, feedback, team content would follow same patterns ... */}

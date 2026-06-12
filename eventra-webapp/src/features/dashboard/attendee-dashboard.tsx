@@ -31,20 +31,20 @@ import { useTranslations } from 'next-intl';
 import { getUserRegistrations } from '@/app/actions/registrations';
 import { getEvents } from '@/app/actions/events';
 import { getActivityFeed } from '@/app/actions/feed';
-import Image from 'next/image';
-import { motion } from 'framer-motion';
-
+import React from 'react';
+import { useAuth } from '@/hooks/use-auth';
+...
 export default function AttendeeDashboard() {
   const { user } = useAuth();
   const t = useTranslations('Dashboard');
   const tc = useTranslations('Common');
 
-  const [registrations, setRegistrations] = useState<any[]>([]);
-  const [featuredEvents, setFeaturedEvents] = useState<any[]>([]);
-  const [activities, setActivities] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [registrations, setRegistrations] = React.useState<any[]>([]);
+  const [featuredEvents, setFeaturedEvents] = React.useState<any[]>([]);
+  const [activities, setActivities] = React.useState<any[]>([]);
+  const [loading, setLoading] = React.useState(true);
 
-  useEffect(() => {
+  React.useEffect(() => {
     async function loadData() {
       if (!user) return;
       try {
@@ -64,7 +64,6 @@ export default function AttendeeDashboard() {
     }
     loadData();
   }, [user]);
-
   if (!user) return null;
 
   if (loading) {

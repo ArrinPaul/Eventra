@@ -1,11 +1,20 @@
 'use client';
+
+import * as React from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { Sidebar } from '@/components/layout/sidebar';
 import LandingPage from '@/features/home/landing-page';
 import DashboardClient from '@/features/dashboard/dashboard-client';
+import { testDbConnection } from '@/lib/db/test-connection';
 
-export default function Home() {
+export default function Page() {
   const { user, loading } = useAuth();
+
+  React.useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      testDbConnection();
+    }
+  }, []);
 
   if (loading) {
     return (
@@ -34,4 +43,3 @@ export default function Home() {
     </div>
   );
 }
-
