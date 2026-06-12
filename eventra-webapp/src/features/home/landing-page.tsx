@@ -327,77 +327,84 @@ export default function LandingPage({ featuredEvents = [] }: { featuredEvents?: 
         }}
         animate={hidden ? "hidden" : "visible"}
         transition={{ duration: 0.35, ease: "easeInOut" }}
-        className="fixed top-0 w-full z-50 border-b border-border bg-background backdrop-blur-md"
+        className="fixed top-0 w-full z-50 border-b border-border/40 bg-background/60 backdrop-blur-xl"
       >
-        <div className="container mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Logo />
-            <span className="font-display font-bold tracking-tight text-lg text-foreground">Eventra</span>
+        <div className="container mx-auto px-10 h-20 flex items-center justify-between">
+          <div className="flex items-center gap-4 group cursor-pointer transition-transform active:scale-95">
+            <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shadow-glow shadow-primary/20 group-hover:rotate-6 transition-transform">
+               <Logo iconClassName="w-6 h-6 text-primary-foreground" />
+            </div>
+            <span className="font-display font-bold tracking-tighter text-2xl text-foreground">Eventra.</span>
           </div>
-          <div className="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground">
+          <div className="hidden md:flex items-center gap-12 text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/60">
             <Link href="#features" className="hover:text-primary transition-colors">Features</Link>
             <Link href="#ecosystem" className="hover:text-primary transition-colors">Ecosystem</Link>
             <Link href="#events" className="hover:text-primary transition-colors">Explore</Link>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-6">
              {mounted && (
                <button 
                  onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                 className="p-2 rounded-full hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+                 className="p-3 rounded-2xl bg-muted/40 border border-border/40 transition-all text-muted-foreground hover:text-foreground active:scale-90"
                  aria-label="Toggle Theme"
                >
                  {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
                </button>
              )}
-             <Link href="/login" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors hidden sm:block">Login</Link>
-             <Button size="sm" className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90 font-semibold px-5 border-none" asChild>
-                <Link href="/register">Sign Up</Link>
+             <Link href="/login" className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground hover:text-foreground transition-all hidden sm:block">Auth_In</Link>
+             <Button size="sm" className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90 font-black uppercase tracking-widest text-[10px] px-8 h-11 border-none shadow-glow shadow-primary/20 transition-all active:scale-95" asChild>
+                <Link href="/register">Initialize</Link>
              </Button>
           </div>
         </div>
       </motion.nav>
 
       {/* HERO SECTION */}
-      <section className="relative pt-60 pb-48 px-6 flex flex-col items-center justify-center text-center overflow-hidden">
+      <section className="relative pt-64 pb-48 px-6 flex flex-col items-center justify-center text-center overflow-hidden">
         <motion.div 
           style={{ opacity, scale }}
           initial="hidden" 
           animate="visible" 
           variants={STAGGER} 
-          className="relative z-10 max-w-5xl space-y-12"
+          className="relative z-10 max-w-6xl space-y-16"
         >
-          <motion.h1 variants={FADE_UP} className="text-6xl md:text-9xl font-display font-medium tracking-tighter leading-[0.95] text-foreground">
+          <motion.div variants={FADE_UP} className="inline-flex items-center gap-3 px-6 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary mb-6">
+             <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+             <span className="text-[10px] font-black uppercase tracking-[0.3em]">v0.1 Intelligence Mesh Live</span>
+          </motion.div>
+
+          <motion.h1 variants={FADE_UP} className="text-7xl md:text-[10rem] font-display font-medium tracking-[ -0.05em] leading-[0.85] text-foreground">
             Discussion to <br />
             <span className="text-primary italic">Execution.</span>
           </motion.h1>
 
-          <motion.p variants={FADE_UP} className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed font-medium opacity-80">
+          <motion.p variants={FADE_UP} className="text-xl md:text-3xl text-muted-foreground max-w-3xl mx-auto leading-relaxed font-medium opacity-70">
             Eventra is your intelligent workspace for live experiences. <br className="hidden md:block" />
             Unified, AI-driven, and engineered for high-performance delivery.
           </motion.p>
 
-          <motion.div variants={FADE_UP} className="flex flex-col sm:flex-row items-center justify-center gap-6 pt-8">
-            <Button size="xl" className="rounded-full px-10 h-14 bg-primary text-primary-foreground hover:bg-primary/90 font-black transition-all hover:scale-105 shadow-glow shadow-primary/20 border-none text-lg" asChild>
-              <Link href="/register">Get Started Free</Link>
+          <motion.div variants={FADE_UP} className="flex flex-col sm:flex-row items-center justify-center gap-8 pt-10">
+            <Button size="xl" className="rounded-full px-12 h-16 bg-primary text-primary-foreground hover:bg-primary/90 font-black uppercase tracking-widest text-sm shadow-glow shadow-primary/30 border-none transition-all hover:scale-105 active:scale-95" asChild>
+              <Link href="/register">Initialize Node</Link>
             </Button>
-            <Button size="xl" variant="outline" className="rounded-full px-10 h-14 border-border/60 bg-background/50 backdrop-blur-sm hover:bg-muted font-black transition-all hover:scale-105 text-lg" asChild>
-              <Link href="#ecosystem">Discover More</Link>
+            <Button size="xl" variant="outline" className="rounded-full px-12 h-16 border-border/60 bg-background/40 backdrop-blur-md hover:bg-muted font-black uppercase tracking-widest text-sm transition-all hover:scale-105 active:scale-95 shadow-xl" asChild>
+              <Link href="#ecosystem">Explore Mesh</Link>
             </Button>
           </motion.div>
         </motion.div>
 
         {/* Dashboard Preview */}
         <motion.div 
-          initial={{ opacity: 0, y: 60, scale: 0.95 }}
+          initial={{ opacity: 0, y: 100, scale: 0.95 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ delay: 0.6, duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
-          className="mt-32 relative w-full max-w-6xl aspect-[16/9] mx-auto rounded-[3rem] border border-border/60 bg-muted/20 backdrop-blur-md overflow-hidden shadow-2xl shadow-primary/5"
+          transition={{ delay: 0.6, duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
+          className="mt-40 relative w-full max-w-7xl aspect-[16/9] mx-auto rounded-[4rem] border border-border/60 bg-muted/20 backdrop-blur-xl overflow-hidden shadow-[0_50px_100px_-20px_rgba(var(--primary),0.1)] group"
         >
            <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent z-10" />
-           <div className="absolute top-0 left-0 right-0 h-14 border-b border-border/60 bg-muted/30 flex items-center px-6 gap-2 z-20">
-              <div className="flex gap-2.5 mr-6">
-                <div className="w-3.5 h-3.5 rounded-full bg-red-500/80 border border-red-600/20 shadow-sm" />
-                <div className="w-3.5 h-3.5 rounded-full bg-amber-500/80 border border-amber-600/20 shadow-sm" />
+           <div className="absolute top-0 left-0 right-0 h-16 border-b border-border/60 bg-muted/30 flex items-center px-10 gap-2 z-20">
+              <div className="flex gap-3 mr-10">
+                <div className="w-4 h-4 rounded-full bg-red-500/80 border border-red-600/20 shadow-sm" />
+                <div className="w-4 h-4 rounded-full bg-amber-500/80 border border-amber-600/20 shadow-sm" />
                 <div className="w-3.5 h-3.5 rounded-full bg-emerald-500/80 border border-emerald-600/20 shadow-sm" />
               </div>
               <div className="mx-auto text-[11px] font-mono text-muted-foreground/60 uppercase tracking-[0.4em] pl-16">eventra.cloud/mission-control</div>

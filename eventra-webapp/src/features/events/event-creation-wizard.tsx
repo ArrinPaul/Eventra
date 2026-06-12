@@ -119,118 +119,134 @@ export default function EventCreationWizard() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground p-4 md:p-8">
-      <div className="max-w-3xl mx-auto space-y-8">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Create New Event</h1>
-            <p className="text-muted-foreground mt-1">Fill in the details to launch your event.</p>
+    <div className="min-h-screen bg-background text-foreground p-6 md:p-20 premium-bg">
+      <div className="max-w-4xl mx-auto space-y-16 mesh-glow pt-10">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-10">
+          <div className="space-y-6">
+            <Badge variant="outline" className="border-primary/30 bg-primary/10 text-primary rounded-full px-5 py-1 text-[10px] font-black uppercase tracking-[0.3em]">
+              Mission_Initialization
+            </Badge>
+            <h1 className="text-4xl md:text-7xl font-display font-bold tracking-tighter leading-none">
+              Deploy <span className="text-primary italic">Node.</span>
+            </h1>
+            <p className="text-xl text-muted-foreground font-medium max-w-xl opacity-80">
+              Initialize a new experience node within the Eventra mesh. Unified deployment protocol active.
+            </p>
           </div>
-          <div className="flex items-center gap-2">
-            {[1, 2, 3].map(step => (
-              <div 
-                key={step} 
-                className={cn(
-                  "h-2 w-12 rounded-full transition-all duration-500",
-                  currentStep >= step ? "bg-cyan-500" : "bg-muted"
-                )} 
-              />
-            ))}
-            <Badge variant="outline" className="ml-2 border-primary/50 text-primary">Step {currentStep} of 3</Badge>
+          <div className="flex flex-col items-end gap-6">
+            <div className="flex items-center gap-3">
+              {[1, 2, 3].map(step => (
+                <div 
+                  key={step} 
+                  className={cn(
+                    "h-2 w-16 rounded-full transition-all duration-700",
+                    currentStep === step ? "bg-primary shadow-glow shadow-primary/40 w-24" : currentStep > step ? "bg-primary/40" : "bg-muted"
+                  )} 
+                />
+              ))}
+            </div>
+            <p className="text-[10px] font-black uppercase tracking-[0.4em] text-muted-foreground opacity-60">Sequence_Protocol_{currentStep}/03</p>
           </div>
         </div>
 
         <Form {...form}>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-            <div className="bg-card/60 backdrop-blur-md border border-border rounded-3xl p-6 md:p-8 shadow-2xl">
-              {currentStep === 1 && <Step1BasicInfo />}
-              {currentStep === 2 && <Step2DateLocation />}
-              {currentStep === 3 && (
-                <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
-                  <div className="space-y-2">
-                    <h2 className="text-2xl font-bold">Review & Finish</h2>
-                    <p className="text-muted-foreground">Review your event details before publishing.</p>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="p-4 rounded-2xl bg-card border border-border/50">
-                      <p className="text-xs text-muted-foreground uppercase font-bold tracking-wider mb-1">Title</p>
-                      <p className="font-medium">{formData.title}</p>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-16">
+            <Card className="border-none shadow-3xl overflow-hidden">
+              <div className="p-10 md:p-16">
+                {currentStep === 1 && <Step1BasicInfo />}
+                {currentStep === 2 && <Step2DateLocation />}
+                {currentStep === 3 && (
+                  <div className="space-y-12 animate-in fade-in slide-in-from-right-10 duration-700">
+                    <div className="space-y-4">
+                      <h2 className="text-4xl font-display font-bold tracking-tight">Final Verification.</h2>
+                      <p className="text-lg text-muted-foreground font-medium">Review your experience parameters before finalizing deployment.</p>
                     </div>
-                    <div className="p-4 rounded-2xl bg-card border border-border/50">
-                      <p className="text-xs text-muted-foreground uppercase font-bold tracking-wider mb-1">Category</p>
-                      <p className="font-medium">{formData.category}</p>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      <div className="p-8 rounded-[2rem] bg-muted/20 border border-border/40 shadow-inner group hover:bg-muted/30 transition-all duration-500">
+                        <p className="text-[10px] font-black text-primary uppercase tracking-[0.3em] mb-4">Mission Title</p>
+                        <p className="text-2xl font-display font-bold tracking-tight">{formData.title}</p>
+                      </div>
+                      <div className="p-8 rounded-[2rem] bg-muted/20 border border-border/40 shadow-inner group hover:bg-muted/30 transition-all duration-500">
+                        <p className="text-[10px] font-black text-primary uppercase tracking-[0.3em] mb-4">Node Category</p>
+                        <p className="text-2xl font-display font-bold tracking-tight">{formData.category}</p>
+                      </div>
+                      <div className="p-8 rounded-[2rem] bg-muted/20 border border-border/40 shadow-inner group hover:bg-muted/30 transition-all duration-500">
+                        <p className="text-[10px] font-black text-primary uppercase tracking-[0.3em] mb-4">Launch Timeline</p>
+                        <p className="text-2xl font-display font-bold tracking-tight">
+                          {formData.startDate ? format(formData.startDate, 'PPP') : 'Not set'} @ {formData.startTime}
+                        </p>
+                      </div>
+                      <div className="p-8 rounded-[2rem] bg-muted/20 border border-border/40 shadow-inner group hover:bg-muted/30 transition-all duration-500">
+                        <p className="text-[10px] font-black text-primary uppercase tracking-[0.3em] mb-4">Operational Coordinate</p>
+                        <p className="text-2xl font-display font-bold tracking-tight capitalize">{formData.locationType}: {formData.venue || formData.virtualLink || 'TBD'}</p>
+                      </div>
                     </div>
-                    <div className="p-4 rounded-2xl bg-card border border-border/50">
-                      <p className="text-xs text-muted-foreground uppercase font-bold tracking-wider mb-1">Date & Time</p>
-                      <p className="font-medium">
-                        {formData.startDate ? format(formData.startDate, 'PPP') : 'Not set'} @ {formData.startTime}
-                      </p>
-                    </div>
-                    <div className="p-4 rounded-2xl bg-card border border-border/50">
-                      <p className="text-xs text-muted-foreground uppercase font-bold tracking-wider mb-1">Location</p>
-                      <p className="font-medium capitalize">{formData.locationType}: {formData.venue || formData.virtualLink || 'TBD'}</p>
-                    </div>
-                  </div>
 
-                  <div className="p-4 rounded-2xl bg-card border border-border/50">
-                    <div className="flex items-center justify-between mb-2">
-                        <p className="text-xs text-muted-foreground uppercase font-bold tracking-wider">AI Generated Agenda</p>
-                        {formData.agenda && <Badge variant="outline" className="text-[10px] text-primary border-primary/30">Ready</Badge>}
+                    <div className="p-10 rounded-[2.5rem] bg-background border border-border/60 shadow-xl space-y-8">
+                      <div className="flex items-center justify-between">
+                          <p className="text-[10px] font-black text-foreground uppercase tracking-[0.4em]">Integrated Agenda Intel</p>
+                          {formData.agenda && <Badge variant="outline" className="px-4 py-1 rounded-full text-[9px] font-black text-emerald-500 border-emerald-500/20 bg-emerald-500/5 uppercase tracking-widest animate-pulse">Sync Ready</Badge>}
+                      </div>
+                      {formData.agenda ? (
+                          <div className="space-y-6">
+                              {formData.agenda.slice(0, 3).map((item: any, i: number) => (
+                                  <div key={i} className="flex gap-6 items-center">
+                                      <div className="w-16 h-10 rounded-xl bg-muted flex items-center justify-center text-[10px] font-black font-mono text-primary border border-border/40">{item.time}</div>
+                                      <span className="text-lg font-bold text-foreground/80 tracking-tight">{item.title}</span>
+                                  </div>
+                              ))}
+                              {formData.agenda.length > 3 && <p className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground opacity-60 ml-2">+ {formData.agenda.length - 3} Additional Sync Nodes</p>}
+                          </div>
+                      ) : (
+                          <p className="text-sm text-muted-foreground font-medium italic opacity-60">Agenda stream not yet initialized.</p>
+                      )}
                     </div>
-                    {formData.agenda ? (
-                        <div className="space-y-2">
-                            {formData.agenda.slice(0, 3).map((item: any, i: number) => (
-                                <div key={i} className="flex gap-3 text-sm">
-                                    <span className="text-primary font-mono">{item.time}</span>
-                                    <span className="text-foreground/80">{item.title}</span>
-                                </div>
-                            ))}
-                            {formData.agenda.length > 3 && <p className="text-xs text-muted-foreground italic">+ {formData.agenda.length - 3} more items</p>}
-                        </div>
-                    ) : (
-                        <p className="text-sm text-muted-foreground italic">No agenda generated yet.</p>
-                    )}
                   </div>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
+              <div className="bg-muted/30 p-8 border-t border-border/40 text-center">
+                 <p className="text-[9px] font-black uppercase tracking-[0.5em] text-muted-foreground/30">Deployment_Module v0.1 • Authorized_Session_{user?.id?.slice(0, 8)}</p>
+              </div>
+            </Card>
 
-            <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center justify-between gap-10">
               {currentStep > 1 ? (
                 <Button 
                   type="button" 
-                  variant="ghost" 
+                  variant="outline" 
+                  size="xl"
                   onClick={() => setCurrentStep(prev => prev - 1)}
                   disabled={isSaving}
-                  className="hover:bg-card"
+                  className="rounded-2xl px-12 border-2 hover:bg-muted font-black uppercase tracking-widest text-[11px]"
                 >
-                  <ChevronLeft className="mr-2 h-4 w-4" /> Back
+                  <ChevronLeft className="mr-3 h-5 w-5 text-primary" /> Previous_Step
                 </Button>
               ) : <div />}
 
-              <div className="flex gap-3">
+              <div className="flex gap-6">
                 {currentStep === 1 && (
                     <Button 
                         type="button" 
-                        variant="outline" 
+                        variant="soft" 
+                        size="xl"
                         onClick={handleAIAssist}
                         disabled={isGenerating || !formData.title}
-                        className="border-primary/30 text-primary hover:bg-primary/10"
+                        className="rounded-2xl px-12 font-black uppercase tracking-widest text-[11px]"
                     >
-                        {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
-                        AI Assist
+                        {isGenerating ? <Loader2 className="mr-3 h-5 w-5 animate-spin" /> : <Wand2 className="mr-3 h-5 w-5" />}
+                        Neural_Assist
                     </Button>
                 )}
                 
                 {currentStep < 3 ? (
-                  <Button type="button" onClick={handleNext} className="bg-white text-black hover:bg-gray-200 min-w-[120px]">
-                    Next <ChevronRight className="ml-2 h-4 w-4" />
+                  <Button type="button" size="xl" onClick={handleNext} className="rounded-2xl px-16 shadow-glow font-black uppercase tracking-widest text-[11px]">
+                    Proceed <ChevronRight className="ml-3 h-5 w-5" />
                   </Button>
                 ) : (
-                  <Button type="submit" className="bg-primary hover:bg-primary/90 text-foreground min-w-[150px]" disabled={isSaving}>
-                    {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle className="mr-2 h-4 w-4" />}
-                    Publish Event
+                  <Button type="submit" size="xl" className="rounded-2xl px-20 shadow-glow bg-primary text-primary-foreground font-black uppercase tracking-widest text-[11px] border-none" disabled={isSaving}>
+                    {isSaving ? <Loader2 className="mr-3 h-5 w-5 animate-spin" /> : <CheckCircle className="mr-3 h-5 w-5" />}
+                    Initialize Deployment
                   </Button>
                 )}
               </div>
@@ -241,5 +257,3 @@ export default function EventCreationWizard() {
     </div>
   );
 }
-
-

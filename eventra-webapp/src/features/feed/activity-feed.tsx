@@ -48,57 +48,65 @@ interface ActivityFeedProps {
 export function ActivityFeed({ initialActivities = [], userId, global }: ActivityFeedProps) {
   if (initialActivities.length === 0) {
     return (
-      <Card className="bg-card border-border text-foreground">
-        <CardContent className="py-12 text-center">
-          <Activity className="h-12 w-12 mx-auto mb-3 text-gray-600" />
-          <p className="text-muted-foreground">No activity yet</p>
-          <p className="text-sm text-gray-600 mt-1">Activities will appear here as you use the platform</p>
+      <Card className="border-none shadow-2xl">
+        <CardContent className="py-20 text-center space-y-6">
+          <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mx-auto shadow-inner">
+             <Activity className="h-8 w-8 text-muted-foreground/30" />
+          </div>
+          <div className="space-y-1">
+             <p className="font-display font-bold text-xl">System Quiet.</p>
+             <p className="text-xs font-black uppercase tracking-widest text-muted-foreground opacity-60">Waiting for synchronization...</p>
+          </div>
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <Card className="bg-card border-border text-foreground">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-lg font-headline">
-          <Activity className="h-5 w-5 text-primary" />
-          {global ? 'Global Activity' : 'Recent Activity'}
+    <Card className="border-none shadow-2xl overflow-hidden">
+      <CardHeader className="p-8 pb-4 border-b border-border/40 bg-muted/5">
+        <CardTitle className="flex items-center gap-3 text-lg font-display font-bold tracking-tight">
+          <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center">
+             <Activity className="h-4 w-4 text-primary" />
+          </div>
+          {global ? 'Mesh Activity' : 'Recent Syncs'}
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-0">
-        {initialActivities.map((item: any) => {
-          const activity = item.activity;
-          const user = item.user;
-          const config = typeConfig[activity.type] || typeConfig.registration;
-          const Icon = config.icon;
+      <CardContent className="p-0">
+        <div className="divide-y divide-border/40">
+          {initialActivities.map((item: any) => {
+            const activity = item.activity;
+            const user = item.user;
+            const config = typeConfig[activity.type] || typeConfig.registration;
+            const Icon = config.icon;
 
-          return (
-            <div key={activity.id} className="flex items-start gap-3 py-4 border-b border-border/50 last:border-0">
-              <div className={`p-2 rounded-lg shrink-0 ${config.bg}`}>
-                <Icon className={`h-4 w-4 ${config.color}`} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    {global && user?.name && (
-                      <span className="text-xs text-muted-foreground block mb-1">{user.name}</span>
-                    )}
-                    <p className="text-sm font-medium">
-                        {activity.content}
-                    </p>
-                    {activity.metadata?.description && (
-                      <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{activity.metadata.description}</p>
-                    )}
+            return (
+              <div key={activity.id} className="flex items-start gap-5 p-8 hover:bg-muted/10 transition-colors group">
+                <div className={`w-11 h-11 rounded-2xl shrink-0 flex items-center justify-center transition-transform group-hover:scale-110 shadow-sm ${config.bg}`}>
+                  <Icon className={`h-5 w-5 ${config.color}`} />
+                </div>
+                <div className="flex-1 min-w-0 pt-0.5">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="space-y-1">
+                      {global && user?.name && (
+                        <span className="text-[9px] font-black uppercase tracking-[0.2em] text-primary mb-1 block">{user.name}</span>
+                      )}
+                      <p className="text-sm font-bold text-foreground leading-snug">
+                          {activity.content}
+                      </p>
+                      {activity.metadata?.description && (
+                        <p className="text-xs font-medium text-muted-foreground line-clamp-1 opacity-70 italic">{activity.metadata.description}</p>
+                      )}
+                    </div>
+                    <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/40 shrink-0">
+                      {timeAgo(new Date(activity.createdAt))}
+                    </span>
                   </div>
-                  <span className="text-[10px] text-muted-foreground whitespace-nowrap shrink-0">
-                    {timeAgo(new Date(activity.createdAt))}
-                  </span>
                 </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </CardContent>
     </Card>
   );

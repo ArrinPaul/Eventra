@@ -56,105 +56,120 @@ export function OrganizerSidebar() {
   const pathname = usePathname();
 
   return (
-    <div
+    <motion.aside
+      initial={false}
+      animate={{ width: collapsed ? '80px' : '280px' }}
       className={cn(
-        'relative flex h-full flex-col border-r border-border bg-card transition-all duration-300 shadow-sm z-10',
-        collapsed ? 'w-[68px]' : 'w-64'
+        "fixed left-0 top-0 bottom-0 z-50 bg-background/80 backdrop-blur-xl border-r border-border/40 transition-all duration-300 flex flex-col shadow-2xl",
       )}
     >
       {/* Header */}
-      <div className="flex h-16 items-center justify-between border-b border-border px-4 shrink-0">
-        {!collapsed && (
-          <div className="flex items-center gap-3 overflow-hidden">
-            <Logo iconClassName="w-8 h-8 rounded-lg shadow-none" />
+      <div className="h-24 flex items-center px-6 mb-4">
+        {!collapsed ? (
+          <div className="flex items-center gap-4 transition-transform active:scale-95 group overflow-hidden">
+            <div className="w-12 h-12 rounded-2xl bg-primary flex items-center justify-center shadow-glow shadow-primary/20 group-hover:rotate-12 transition-transform duration-500">
+               <Logo iconClassName="w-8 h-8 text-primary-foreground" className="gap-0" />
+            </div>
             <div className="flex flex-col min-w-0">
-              <span className="text-sm font-bold truncate text-foreground">Organizer</span>
-              <span className="text-[10px] text-muted-foreground uppercase tracking-wider truncate">Workspace</span>
+              <span className="font-display font-bold text-xl tracking-tighter text-foreground truncate">Organizer.</span>
+              <span className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.3em] truncate opacity-60">Command_Hub</span>
             </div>
           </div>
+        ) : (
+          <div className="mx-auto w-12 h-12 rounded-2xl bg-primary flex items-center justify-center shadow-glow shadow-primary/20">
+             <Logo iconClassName="w-8 h-8 text-primary-foreground" className="gap-0" />
+          </div>
         )}
+      </div>
+
+      {/* Action Toggle */}
+      <div className="px-4 mb-6">
         <Button
           variant="ghost"
           size="icon"
-          className={cn("h-8 w-8 rounded-full text-muted-foreground hover:bg-muted/80 hover:text-foreground shrink-0", collapsed && "mx-auto")}
+          className="w-full h-10 rounded-xl hover:bg-muted/50 border border-border/20 shadow-sm"
           onClick={() => setCollapsed(!collapsed)}
         >
-          {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+          {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
         </Button>
       </div>
 
       {/* Create Event Action */}
-      <div className="p-4 shrink-0 border-b border-border/50">
-        <Button asChild size={collapsed ? "icon" : "default"} className={cn("rounded-xl shadow-glow bg-primary hover:bg-primary/90 text-primary-foreground transition-all", collapsed ? "w-9 h-9" : "w-full")}>
+      <div className="px-4 mb-8">
+        <Button asChild size={collapsed ? "icon" : "lg"} className={cn("rounded-2xl shadow-glow bg-primary text-primary-foreground font-black uppercase tracking-widest text-[10px] border-none transition-all active:scale-95", collapsed ? "w-12 h-12" : "w-full h-14")}>
           <Link href="/events/create">
-            <Plus className={cn("h-4 w-4", !collapsed && "mr-2")} />
-            {!collapsed && <span>New Event</span>}
+            <Plus className={cn("w-5 h-5", !collapsed && "mr-3")} />
+            {!collapsed && <span>New Mission</span>}
           </Link>
         </Button>
       </div>
 
       {/* Navigation */}
-      <ScrollArea className="flex-1 py-4 custom-scrollbar">
-        <nav className="flex flex-col gap-6 px-3">
+      <ScrollArea className="flex-1 px-4 custom-scrollbar">
+        <nav className="flex flex-col gap-10 pb-10">
           {sidebarGroups.map((group, idx) => (
-            <div key={idx} className="flex flex-col gap-1">
+            <div key={idx} className="flex flex-col gap-2">
               {!collapsed && (
-                <p className="px-3 mb-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70">
+                <p className="px-4 mb-2 text-[10px] font-black uppercase tracking-[0.4em] text-muted-foreground/50">
                   {group.label}
                 </p>
               )}
-              {group.items.map((item) => {
-                const isActive = pathname === item.href || (item.href !== '/organizer' && pathname?.startsWith(item.href));
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={cn(
-                      'relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 group',
-                      isActive
-                        ? 'text-foreground bg-muted/50'
-                        : 'text-muted-foreground hover:bg-muted/30 hover:text-foreground',
-                      collapsed && 'justify-center px-0'
-                    )}
-                    title={collapsed ? item.title : undefined}
-                  >
-                    {isActive && (
-                      <motion.div
-                        layoutId="sidebar-active-indicator"
-                        className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-primary rounded-r-full"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                      />
-                    )}
-                    <item.icon className={cn("h-4 w-4 flex-shrink-0 transition-colors", isActive ? "text-primary" : "group-hover:text-foreground")} />
-                    {!collapsed && <span>{item.title}</span>}
-                  </Link>
-                );
-              })}
+              <div className="space-y-1.5">
+                {group.items.map((item) => {
+                  const isActive = pathname === item.href || (item.href !== '/organizer' && pathname?.startsWith(item.href));
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={cn(
+                        'relative flex items-center gap-4 rounded-2xl px-4 py-3.5 text-sm font-bold transition-all duration-300 group overflow-hidden',
+                        isActive
+                          ? 'text-primary bg-primary/5'
+                          : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground',
+                        collapsed && 'justify-center px-0'
+                      )}
+                    >
+                      {isActive && (
+                        <motion.div
+                          layoutId="org-sidebar-active-pill"
+                          className="absolute inset-0 bg-primary/5 border-l-4 border-primary -z-10"
+                          transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                        />
+                      )}
+                      <item.icon className={cn("w-5 h-5 flex-shrink-0 transition-transform group-hover:scale-110", isActive ? "text-primary" : "group-hover:text-primary")} />
+                      {!collapsed && <span className="text-[11px] uppercase tracking-[0.2em] truncate">{item.title}</span>}
+                      {collapsed && (
+                        <div className="absolute left-full ml-6 px-4 py-2 bg-foreground text-background text-[10px] font-black uppercase tracking-[0.3em] rounded-xl opacity-0 group-hover:opacity-100 transition-all pointer-events-none whitespace-nowrap z-50 shadow-2xl translate-x-[-10px] group-hover:translate-x-0">
+                          {item.title}
+                        </div>
+                      )}
+                    </Link>
+                  );
+                })}
+              </div>
             </div>
           ))}
         </nav>
       </ScrollArea>
 
       {/* Footer */}
-      <div className="p-4 border-t border-border shrink-0">
+      <div className="p-4 border-t border-border/40 bg-muted/10">
         {collapsed ? (
-          <Link href="/support" className="flex justify-center text-muted-foreground hover:text-primary transition-colors">
-            <HelpCircle className="h-5 w-5" />
+          <Link href="/support" className="flex h-12 w-12 items-center justify-center rounded-2xl bg-background/60 border border-border/40 text-muted-foreground hover:text-primary transition-all shadow-lg hover:scale-110">
+            <HelpCircle className="w-5 h-5" />
           </Link>
         ) : (
-          <Link href="/support" className="flex items-center gap-3 p-3 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors group">
-            <div className="p-2 rounded-lg bg-background shadow-sm group-hover:text-primary transition-colors">
-              <HelpCircle className="h-4 w-4" />
+          <Link href="/support" className="flex items-center gap-4 p-3.5 rounded-3xl bg-background/60 border border-border/40 shadow-xl transition-all hover:bg-background/80 group">
+            <div className="w-10 h-10 rounded-2xl bg-muted flex items-center justify-center group-hover:scale-110 transition-transform shadow-sm">
+              <HelpCircle className="w-5 h-5 text-muted-foreground group-hover:text-primary" />
             </div>
-            <div>
-              <p className="text-sm font-bold text-foreground">Need help?</p>
-              <p className="text-xs text-muted-foreground">Contact Support</p>
+            <div className="min-w-0">
+              <p className="text-xs font-bold text-foreground">Need help?</p>
+              <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest opacity-60">Ops_Support</p>
             </div>
           </Link>
         )}
       </div>
-    </div>
+    </motion.aside>
   );
 }

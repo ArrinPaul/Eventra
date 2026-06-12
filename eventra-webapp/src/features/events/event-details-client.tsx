@@ -363,67 +363,78 @@ export default function EventDetailsClient({ eventId, initialEvent }: { eventId:
 
           {/* SIDEBAR REGISTRATION CARD */}
           <div className="lg:col-span-4">
-            <div className="sticky top-32 space-y-8">
-               <div className="rounded-[3rem] bg-background border border-border/80 shadow-2xl overflow-hidden">
-                  <div className="p-10 space-y-10">
-                     <div className="text-center space-y-2">
-                        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground opacity-60">Mission Access</p>
-                        <p className="text-5xl font-display font-bold tracking-tighter">Free</p>
+            <div className="sticky top-32 space-y-10">
+               <Card className="p-10 space-y-10 border-none shadow-2xl overflow-hidden relative group">
+                  <div className="absolute top-0 right-0 w-48 h-48 bg-primary/5 blur-[80px] rounded-full -mr-24 -mt-24 group-hover:bg-primary/10 transition-colors duration-700" />
+                  <div className="relative z-10 space-y-10">
+                     <div className="text-center space-y-3">
+                        <Badge variant="outline" className="rounded-full px-5 py-1 text-[10px] font-black uppercase tracking-[0.3em] text-primary/60 border-primary/20">Mission Access</Badge>
+                        <p className="text-6xl font-display font-bold tracking-tighter italic">Free.</p>
                      </div>
 
-                     <div className="space-y-4">
+                     <div className="space-y-6 bg-muted/20 p-6 rounded-[2rem] border border-border/40 shadow-inner">
                         <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-muted-foreground px-2">
-                          <span>{event.registeredCount} Syncs</span>
+                          <span className="flex items-center gap-2"><Users size={12} className="text-primary" /> {event.registeredCount} Syncs</span>
                           <span>{event.capacity} Max Node</span>
                         </div>
-                        <Progress value={capacityPercent} className="h-3 rounded-full bg-muted" />
+                        <Progress value={capacityPercent} className="h-4 rounded-full bg-background border border-border/20" />
                         <p className={cn(
-                           "text-center text-xs font-bold",
+                           "text-center text-xs font-black uppercase tracking-widest",
                            isFull ? "text-red-500" : capacityPercent > 80 ? "text-amber-500" : "text-emerald-500"
                         )}>
-                           {isFull ? 'Critical Load: Full' : `${event.capacity - event.registeredCount} available slots`}
+                           {isFull ? 'Critical Load: Full' : `Protocol: ${event.capacity - event.registeredCount} Slots Available`}
                         </p>
                      </div>
 
                      <Button 
-                        className="w-full h-16 rounded-[1.5rem] bg-primary text-primary-foreground font-black uppercase tracking-widest text-xs shadow-glow shadow-primary/20 border-none transition-all active:scale-95" 
+                        size="xl"
+                        className="w-full h-20 rounded-[2rem] bg-primary text-primary-foreground font-black uppercase tracking-widest text-sm shadow-glow shadow-primary/20 border-none transition-all active:scale-95 group/btn" 
                         onClick={() => handleRegister()} 
                         disabled={registering || isRegistered || isFull || event.status === 'cancelled'}
                      >
-                        {registering ? <Loader2 className="animate-spin w-5 h-5" /> : isRegistered ? <CheckCircle className="mr-3 w-5 h-5" /> : <Ticket className="mr-3 w-5 h-5" />}
-                        {isRegistered ? 'Node Synchronized' : isFull ? 'Capacity Reached' : 'Initialize Sync'}
+                        {registering ? (
+                          <Loader2 className="animate-spin w-6 h-6" />
+                        ) : isRegistered ? (
+                          <div className="flex items-center gap-3">
+                             <CheckCircle className="w-6 h-6" />
+                             <span>Node Synchronized</span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-3">
+                             <Ticket className="w-6 h-6 group-hover/btn:rotate-12 transition-transform" />
+                             <span>Initialize Sync</span>
+                          </div>
+                        )}
                      </Button>
 
                      {isRegistered && (new Date().getTime() > event.startDate) && (
                        <Button 
                          variant="outline" 
-                         className="w-full h-14 rounded-xl border-2 font-black uppercase tracking-widest text-[10px] hover:bg-muted" 
+                         size="lg"
+                         className="w-full h-16 rounded-2xl border-2 font-black uppercase tracking-widest text-[10px] hover:bg-muted" 
                          asChild
                        >
                          <Link href={`/events/${eventId}/feedback`}>
-                           <MessageSquare className="mr-3 h-4 w-4 text-primary" /> Give Intel
+                           <MessageSquare className="mr-3 h-4 w-4 text-primary" /> Transmit Experience Intel
                          </Link>
                        </Button>
                      )}
-                     
-                     {event.waitlistEnabled && isFull && !isRegistered && (
-                       <p className="text-[10px] text-center text-muted-foreground uppercase tracking-widest font-black opacity-60">Joining Buffer Queue...</p>
-                     )}
                   </div>
-                  <div className="bg-muted/30 p-6 text-center border-t border-border/40">
-                     <p className="text-[9px] font-black uppercase tracking-[0.4em] text-muted-foreground/60">
-                        Secure_Node_Auth v0.1
+                  
+                  <div className="bg-muted/30 p-6 text-center border-t border-border/40 -mx-10 -mb-10 mt-10">
+                     <p className="text-[9px] font-black uppercase tracking-[0.4em] text-muted-foreground/40">
+                        Secure_Node_Auth_Protocol v0.1
                      </p>
                   </div>
-               </div>
+               </Card>
 
                {/* Share / Actions */}
-               <div className="flex gap-4">
-                  <Button variant="outline" className="flex-1 rounded-2xl h-14 border-2 font-black uppercase tracking-widest text-[10px] hover:bg-muted">
-                     <Share2 className="mr-3 w-4 h-4 text-primary" /> Share
+               <div className="grid grid-cols-2 gap-4">
+                  <Button variant="outline" size="lg" className="rounded-2xl h-16 border-2 font-black uppercase tracking-widest text-[10px] hover:bg-muted hover:border-primary/30 transition-all group">
+                     <Share2 className="mr-3 h-4 w-4 text-primary group-hover:scale-110 transition-transform" /> Broadcast
                   </Button>
-                  <Button variant="outline" className="flex-1 rounded-2xl h-14 border-2 font-black uppercase tracking-widest text-[10px] hover:bg-muted">
-                     <Heart className="mr-3 w-4 h-4 text-primary" /> Save
+                  <Button variant="outline" size="lg" className="rounded-2xl h-16 border-2 font-black uppercase tracking-widest text-[10px] hover:bg-muted hover:border-primary/30 transition-all group">
+                     <Heart className="mr-3 h-4 w-4 text-primary group-hover:scale-110 transition-transform" /> Archive
                   </Button>
                </div>
             </div>

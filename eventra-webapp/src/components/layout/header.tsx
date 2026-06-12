@@ -170,21 +170,21 @@ export default function Header() {
                 <UserButton 
                   appearance={{
                     elements: {
-                      userButtonAvatarBox: "h-10 w-10 rounded-none border border-border hover:border-primary transition-all",
+                      userButtonAvatarBox: "h-11 w-11 rounded-2xl border border-border/40 hover:border-primary/40 shadow-xl transition-all",
                       userButtonTrigger: "focus:shadow-none focus:ring-0",
-                      userButtonPopoverCard: "rounded-none border-border shadow-solid",
-                      userButtonPopoverActionButton: "rounded-none hover:bg-primary/10 transition-colors",
-                      userButtonPopoverActionButtonText: "font-bold uppercase tracking-widest text-[10px]",
+                      userButtonPopoverCard: "rounded-[2rem] border-border/60 shadow-2xl backdrop-blur-xl bg-background/90",
+                      userButtonPopoverActionButton: "rounded-xl hover:bg-primary/10 transition-colors",
+                      userButtonPopoverActionButtonText: "font-black uppercase tracking-[0.2em] text-[10px]",
                     }
                   }}
                 />
               </div>
             ) : (
-              <div className="hidden md:flex items-center gap-4 ml-2">
-                <Button asChild variant="ghost" className="font-bold text-muted-foreground hover:text-foreground" data-testid="header-signin">
-                  <Link href="/login">Auth_In</Link>
-                </Button>
-                <Button asChild className="px-8 shadow-glow shadow-primary/20" data-testid="header-signup">
+              <div className="hidden md:flex items-center gap-6 ml-4">
+                <Link href="/login" className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground hover:text-foreground transition-all">
+                  Auth_In
+                </Link>
+                <Button asChild size="sm" className="px-8 shadow-glow shadow-primary/20 rounded-full h-11">
                   <Link href="/register">Initialize</Link>
                 </Button>
               </div>
@@ -192,11 +192,11 @@ export default function Header() {
 
             {/* Mobile Menu Button */}
             <button
-              className="md:hidden p-2.5 ml-1 rounded-xl text-foreground glass border border-border hover:bg-muted transition-colors"
+              className="md:hidden p-3 ml-2 rounded-2xl text-foreground bg-muted/40 backdrop-blur-md border border-border/40 hover:bg-muted transition-all active:scale-95 shadow-xl"
               onClick={() => setMobileMenuOpen(true)}
               data-testid="mobile-menu-toggle"
             >
-              <Menu className="w-6 h-6" />
+              <Menu className="w-5 h-5" />
             </button>
           </div>
         </div>
@@ -211,8 +211,8 @@ export default function Header() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 md:hidden"
+              transition={{ duration: 0.3 }}
+              className="fixed inset-0 bg-background/60 backdrop-blur-sm z-50 md:hidden"
               onClick={() => setMobileMenuOpen(false)}
             />
             <motion.div
@@ -220,65 +220,72 @@ export default function Header() {
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="fixed top-0 right-0 bottom-0 w-[300px] max-w-[80vw] bg-card shadow-2xl z-50 md:hidden flex flex-col border-l border-border"
+              className="fixed top-0 right-0 bottom-0 w-[320px] max-w-[85vw] bg-background/95 backdrop-blur-2xl shadow-2xl z-50 md:hidden flex flex-col border-l border-border/40 rounded-l-[3rem]"
             >
-              <div className="p-4 flex items-center justify-between border-b border-border">
-                <span className="font-display font-bold text-lg">Menu</span>
+              <div className="p-10 flex items-center justify-between border-b border-border/40">
+                <div className="flex items-center gap-3">
+                  <Logo />
+                  <span className="font-display font-bold text-xl tracking-tighter">Menu.</span>
+                </div>
                 <button
                   onClick={() => setMobileMenuOpen(false)}
-                  className="p-2 rounded-full bg-muted text-muted-foreground hover:text-foreground"
+                  className="p-3 rounded-2xl bg-muted/40 text-muted-foreground hover:text-foreground transition-all active:scale-95"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
               
-              <div className="flex-1 overflow-y-auto py-6 px-4 space-y-6">
-                <nav className="space-y-2">
-                  <p className="px-3 text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">Navigation</p>
+              <div className="flex-1 overflow-y-auto py-10 px-6 space-y-10">
+                <nav className="space-y-4">
+                  <p className="px-4 text-[10px] font-black uppercase tracking-[0.4em] text-muted-foreground/60 mb-6">Navigation_Map</p>
                   {navLinks.map(link => (
                     <Link
                       key={link.href}
                       href={link.href}
                       onClick={() => setMobileMenuOpen(false)}
                       className={cn(
-                        "block px-4 py-3 rounded-xl font-medium transition-colors",
+                        "flex items-center gap-4 px-6 py-4 rounded-2xl font-bold transition-all duration-300",
                         pathname === link.href
-                          ? "bg-primary text-primary-foreground"
-                          : "hover:bg-muted text-foreground"
+                          ? "bg-primary text-primary-foreground shadow-glow shadow-primary/20"
+                          : "hover:bg-muted text-muted-foreground hover:text-foreground"
                       )}
                     >
-                      {link.label}
+                      <span className="text-xs uppercase tracking-[0.2em]">{link.label}</span>
                     </Link>
                   ))}
                   <Link
                     href="/search"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="block px-4 py-3 rounded-xl font-medium hover:bg-muted text-foreground transition-colors"
+                    className="flex items-center gap-4 px-6 py-4 rounded-2xl font-bold text-muted-foreground hover:bg-muted hover:text-foreground transition-all duration-300"
                   >
-                    Search Events
+                    <span className="text-xs uppercase tracking-[0.2em]">Scan Events</span>
                   </Link>
                 </nav>
 
-                <div className="border-t border-border pt-6 space-y-4">
+                <div className="border-t border-border/40 pt-10 space-y-6">
                   {isAuthenticated ? (
-                    <div className="flex justify-center">
+                    <div className="flex items-center gap-4 px-6 py-4 rounded-[2rem] bg-muted/20 border border-border/40">
                       <UserButton 
                         appearance={{
                           elements: {
-                            userButtonAvatarBox: "h-14 w-14 rounded-none",
-                            userButtonTrigger: "w-full flex justify-center",
+                            userButtonAvatarBox: "h-12 w-12 rounded-2xl shadow-xl",
+                            userButtonTrigger: "w-full flex justify-start",
                             rootBox: "w-full"
                           }
                         }}
                       />
+                      <div className="flex flex-col">
+                        <span className="text-sm font-bold truncate">{user?.name}</span>
+                        <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-60">{user?.role}</span>
+                      </div>
                     </div>
                   ) : (
-                    <div className="space-y-3">
-                      <Button asChild className="w-full rounded-xl" onClick={() => setMobileMenuOpen(false)}>
-                        <Link href="/register">Get Started</Link>
+                    <div className="grid grid-cols-1 gap-4">
+                      <Button asChild size="xl" className="w-full rounded-2xl shadow-glow" onClick={() => setMobileMenuOpen(false)}>
+                        <Link href="/register">Initialize Node</Link>
                       </Button>
-                      <Button asChild variant="outline" className="w-full rounded-xl" onClick={() => setMobileMenuOpen(false)}>
-                        <Link href="/login">Sign In</Link>
+                      <Button asChild variant="outline" size="xl" className="w-full rounded-2xl" onClick={() => setMobileMenuOpen(false)}>
+                        <Link href="/login">Auth_In</Link>
                       </Button>
                     </div>
                   )}

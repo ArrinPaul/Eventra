@@ -51,61 +51,65 @@ export function EventCard({ event, variant = 'default' }: { event: EventraEvent,
 
   return (
     <Link href={`/events/${event.id}`} className="block h-full group">
-      <div className="h-full bg-background border border-border/80 rounded-[2.5rem] overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-500 flex flex-col group-hover:-translate-y-1">
+      <Card className="h-full border-none shadow-2xl overflow-hidden flex flex-col group-hover:shadow-glow group-hover:shadow-primary/5 group-hover:-translate-y-2 duration-700">
         {/* IMAGE AREA */}
-        <div className="relative aspect-[16/10] overflow-hidden bg-muted m-3 rounded-[2rem]">
+        <div className="relative aspect-[16/10] overflow-hidden bg-muted m-4 rounded-[2.5rem]">
           {event.imageUrl ? (
             <Image 
               src={event.imageUrl} 
               alt={event.title}
               fill
-              className="object-cover group-hover:scale-105 transition-transform duration-700"
+              className="object-cover group-hover:scale-110 transition-transform duration-1000"
             />
           ) : (
             <div className="w-full h-full bg-gradient-to-br from-primary/5 to-primary/10 flex items-center justify-center">
                <Zap className="w-12 h-12 text-primary/10" />
             </div>
           )}
-          <Badge className="absolute top-4 left-4 z-10 bg-background/80 backdrop-blur-md text-foreground border-none font-black text-[9px] uppercase tracking-widest px-3 py-1">
+          <Badge variant="glass" className="absolute top-5 left-5 z-10 rounded-full px-4 py-1">
             {event.category || t('generalCategory')}
           </Badge>
-          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
         </div>
 
         {/* CONTENT AREA */}
-        <div className="p-8 pt-4 flex-1 flex flex-col justify-between space-y-8">
-          <div className="space-y-4">
-            <h3 className="text-2xl font-display font-bold tracking-tight text-foreground line-clamp-2 leading-tight group-hover:text-primary transition-colors">
+        <div className="p-10 pt-4 flex-1 flex flex-col justify-between space-y-10">
+          <div className="space-y-6">
+            <h3 className="text-3xl font-display font-bold tracking-tight text-foreground line-clamp-2 leading-[1.1] group-hover:text-primary transition-colors">
               {event.title}
             </h3>
-            <div className="space-y-3">
-              <div className="flex items-center gap-3 text-xs font-bold text-muted-foreground">
-                <Calendar className="w-4 h-4 text-primary" />
+            <div className="space-y-4">
+              <div className="flex items-center gap-4 text-xs font-bold text-muted-foreground/80">
+                <div className="w-8 h-8 rounded-xl bg-primary/5 flex items-center justify-center">
+                  <Calendar className="w-4 h-4 text-primary" />
+                </div>
                 <span>{format(displayDate, 'MMM d, yyyy')}</span>
               </div>
-              <div className="flex items-center gap-3 text-xs font-bold text-muted-foreground">
-                <MapPin className="w-4 h-4 text-primary" />
+              <div className="flex items-center gap-4 text-xs font-bold text-muted-foreground/80">
+                <div className="w-8 h-8 rounded-xl bg-primary/5 flex items-center justify-center">
+                  <MapPin className="w-4 h-4 text-primary" />
+                </div>
                 <span className="truncate">{typeof event.location === 'string' ? event.location : (event.location as any)?.venue || t('virtual')}</span>
               </div>
             </div>
           </div>
 
-          <div className="flex items-center justify-between pt-6 border-t border-border/60">
-            <div className="space-y-1">
-              <p className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-60">{t('registrationLabel')}</p>
-              <p className="text-sm font-bold text-foreground italic">{t('freeAccess')}</p>
+          <div className="flex items-center justify-between pt-8 border-t border-border/40">
+            <div className="space-y-2">
+              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground opacity-60 leading-none">{t('registrationLabel')}</p>
+              <p className="text-base font-display font-bold text-foreground italic">{t('freeAccess')}</p>
             </div>
             <Button 
               size="sm" 
               onClick={handleQuickRegister} 
               disabled={isRegistering} 
-              className="rounded-xl h-10 px-6 bg-primary text-primary-foreground font-black uppercase tracking-widest text-[10px] shadow-glow shadow-primary/20 border-none transition-all active:scale-95"
+              className="rounded-full h-11 px-8 shadow-glow"
             >
               {isRegistering ? <Loader2 className="w-3 h-3 animate-spin" /> : commonT('register')}
             </Button>
           </div>
         </div>
-      </div>
+      </Card>
     </Link>
   );
 }
