@@ -24,10 +24,10 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex">
+    <div className="min-h-screen bg-background flex premium-bg">
       <Sidebar />
-      <main className="flex-1 ml-[80px] md:ml-[280px] transition-[margin] duration-300">
-        <div className="p-4 md:p-10">
+      <main className="flex-1 ml-[80px] md:ml-[280px] transition-[margin] duration-300 mesh-glow min-h-screen">
+        <div className="p-4 md:p-10 max-w-[1600px] mx-auto">
           <DashboardClient />
         </div>
       </main>

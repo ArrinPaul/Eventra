@@ -146,35 +146,21 @@
   }
   
   .glass-card {
-    @apply bg-zinc-900/60 backdrop-blur-2xl border border-white/20 shadow-2xl;
+    @apply bg-background/40 backdrop-blur-md border border-border/40 shadow-2xl;
   }
 
-  .border-gradient {
-    position: relative;
-    border: 1px solid transparent;
-    background-clip: padding-box;
+  .premium-bg {
+    @apply relative overflow-hidden;
   }
   
-  .border-gradient::before {
+  .premium-bg::before {
     content: '';
-    position: absolute;
-    top: 0; right: 0; bottom: 0; left: 0;
-    z-index: -1;
-    margin: -1px;
-    border-radius: inherit;
-    background: linear-gradient(to bottom right, rgba(255,255,255,0.3), rgba(255,255,255,0.1));
-  }
-
-  .bento-grid {
-    @apply grid gap-4 md:grid-cols-4 md:grid-rows-2;
-  }
-
-  .bento-item {
-    @apply relative overflow-hidden rounded-[2rem] border border-white/15 bg-zinc-900/40 p-8 transition-all hover:bg-zinc-900/60 hover:border-white/30;
+    @apply absolute inset-0 -z-10 opacity-30 pointer-events-none;
+    background: radial-gradient(circle at 50% -20%, hsla(var(--primary), 0.12) 0%, transparent 60%);
   }
 
   .mesh-glow {
-    background: radial-gradient(circle at 50% -20%, hsla(250, 84%, 67%, 0.15) 0%, transparent 80%);
+    background: radial-gradient(circle at 50% -10%, hsla(var(--primary), 0.08) 0%, transparent 70%);
   }
 }
 

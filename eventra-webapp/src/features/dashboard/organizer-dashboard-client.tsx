@@ -129,11 +129,11 @@ export default function OrganizerDashboard() {
           { label: 'Active Campaigns', value: managedEvents.length, sub: `${activeEvents} currently live`, icon: Calendar, color: 'text-primary' },
           { label: 'Total Reach', value: totalRegistrations.toLocaleString(), sub: 'Attendees across all nodes', icon: Users, color: 'text-emerald-500' },
         ].map((stat, i) => (
-          <div key={i} className="p-10 rounded-[3rem] bg-background border border-border/80 shadow-2xl group relative overflow-hidden">
+          <Card key={i} className="p-10 group relative overflow-hidden border-none shadow-2xl">
             <div className="absolute top-0 right-0 w-64 h-64 bg-primary/[0.02] blur-[100px] rounded-full -mr-32 -mt-32" />
             <div className="relative z-10 flex flex-col justify-between h-full space-y-12">
                <div className="flex justify-between items-start">
-                  <div className={cn("w-16 h-16 rounded-2xl bg-muted flex items-center justify-center transition-transform group-hover:scale-110")}>
+                  <div className={cn("w-16 h-16 rounded-2xl bg-muted flex items-center justify-center transition-transform group-hover:scale-110 shadow-sm")}>
                     <stat.icon className={cn("w-8 h-8", stat.color)} />
                   </div>
                   <div className="p-3 rounded-xl bg-muted/40 border border-border/40">
@@ -141,23 +141,23 @@ export default function OrganizerDashboard() {
                   </div>
                </div>
                <div>
-                  <p className="text-5xl font-display font-bold text-foreground leading-none mb-4 tracking-tighter">{stat.value}</p>
-                  <p className="text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground mb-4">{stat.label}</p>
+                  <p className="text-6xl font-display font-bold text-foreground leading-none mb-4 tracking-tighter">{stat.value}</p>
+                  <p className="text-[11px] font-black uppercase tracking-[0.3em] text-muted-foreground mb-4 opacity-60">{stat.label}</p>
                   <p className="text-xs font-bold text-primary/60">{stat.sub}</p>
                </div>
             </div>
-          </div>
+          </Card>
         ))}
       </div>
 
       {/* TABS INTERFACE */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-12">
-        <TabsList className="bg-transparent border-b border-border w-full justify-start rounded-none h-auto p-0 gap-10">
+        <TabsList className="bg-transparent border-b border-border/60 w-full justify-start rounded-none h-auto p-0 gap-10">
           {['events', 'insights', 'feedback', 'team'].map(tab => (
             <TabsTrigger 
               key={tab} 
               value={tab} 
-              className="bg-transparent border-none rounded-none data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary text-muted-foreground font-black uppercase tracking-[0.2em] text-[11px] pb-4 px-0 transition-all capitalize"
+              className="bg-transparent border-none rounded-none data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary text-muted-foreground font-black uppercase tracking-[0.2em] text-[11px] pb-4 px-0 transition-all capitalize shadow-none hover:text-foreground"
             >
               {tab}
             </TabsTrigger>
@@ -165,8 +165,8 @@ export default function OrganizerDashboard() {
         </TabsList>
 
         <TabsContent value="events" className="animate-in fade-in slide-in-from-bottom-4 duration-500 m-0">
-          <div className="rounded-[3rem] bg-background border border-border/80 shadow-2xl overflow-hidden">
-            <div className="p-10 border-b border-border/60">
+          <Card className="overflow-hidden border-none shadow-2xl">
+            <div className="p-10 border-b border-border/60 bg-muted/5">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
                 <div className="space-y-2">
                   <h3 className="text-3xl font-display font-bold tracking-tight">Active Nodes</h3>
@@ -176,7 +176,7 @@ export default function OrganizerDashboard() {
                   <Search className="absolute left-5 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
                   <Input
                     placeholder="Search mission codes..."
-                    className="pl-14 h-14 rounded-2xl bg-muted/20 border-border/60 focus-visible:ring-primary shadow-inner"
+                    className="pl-14"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />

@@ -191,15 +191,15 @@ export default function AttendeeDashboard() {
           { label: 'Node Level', value: user.level || 1, icon: Zap, color: 'text-emerald-500' },
           { label: 'Total Syncs', value: registrations.filter((r: any) => r.ticket.status === 'checked-in').length, icon: Activity, color: 'text-cyan-500' },
         ].map((stat, i) => (
-          <div key={i} className="p-8 rounded-[2.5rem] bg-background border border-border/80 shadow-xl hover:shadow-2xl transition-all group">
-            <div className="w-12 h-12 rounded-2xl bg-muted flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+          <Card key={i} className="p-8 group border-none shadow-2xl hover:shadow-primary/5">
+            <div className="w-12 h-12 rounded-2xl bg-muted flex items-center justify-center mb-6 group-hover:scale-110 transition-transform shadow-sm">
               <stat.icon className={cn("w-6 h-6", stat.color)} />
             </div>
             <div className="space-y-1">
                <p className="text-4xl font-display font-bold tracking-tighter leading-none">{stat.value}</p>
                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-60">{stat.label}</p>
             </div>
-          </div>
+          </Card>
         ))}
       </div>
 
@@ -209,7 +209,7 @@ export default function AttendeeDashboard() {
 
           {/* Recommended Events */}
           <section className="space-y-10">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between px-2">
               <div className="space-y-2">
                 <h2 className="text-3xl font-display font-bold tracking-tighter flex items-center gap-4">
                   <Sparkles className="h-8 w-8 text-primary" />
@@ -217,7 +217,7 @@ export default function AttendeeDashboard() {
                 </h2>
                 <p className="text-sm font-medium text-muted-foreground">Based on your activity nodes and interests.</p>
               </div>
-              <Button variant="ghost" className="font-black uppercase tracking-widest text-[10px] text-primary group" asChild>
+              <Button variant="ghost" className="font-black uppercase tracking-widest text-[10px] text-primary group h-auto p-0" asChild>
                 <Link href="/explore">
                   View Network <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
                 </Link>
@@ -228,7 +228,7 @@ export default function AttendeeDashboard() {
               <div className="flex w-max space-x-8 pb-8 px-1">
                 {featuredEvents.map((event: any) => (
                   <Link key={event.id} href={`/events/${event.id}`} className="group block w-[360px]">
-                    <div className="overflow-hidden bg-background border border-border/80 shadow-xl hover:shadow-2xl transition-all duration-500 rounded-[2.5rem] p-4">
+                    <Card className="p-4 border-none shadow-2xl hover:shadow-primary/5">
                       <div className="aspect-[16/10] w-full relative overflow-hidden rounded-[2rem] bg-muted mb-6">
                         {event.imageUrl ? (
                           <Image
@@ -256,7 +256,7 @@ export default function AttendeeDashboard() {
                           <span>{format(new Date(event.startDate), 'MMM d, yyyy')}</span>
                         </div>
                       </div>
-                    </div>
+                    </Card>
                   </Link>
                 ))}
               </div>
@@ -270,16 +270,16 @@ export default function AttendeeDashboard() {
           <ReferralSystem />
 
           {/* Digital Pass */}
-          <div className="rounded-[3rem] bg-background border border-border/80 shadow-xl overflow-hidden group">
-            <div className="p-10 space-y-10">
-               <div className="space-y-2">
-                  <Badge className="bg-primary/10 text-primary border-none rounded-full px-4 py-1 text-[10px] font-black uppercase tracking-widest">
+          <Card className="p-10 space-y-10 border-none shadow-2xl group overflow-hidden relative">
+               <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-[50px] rounded-full -mr-16 -mt-16" />
+               <div className="space-y-2 relative z-10">
+                  <Badge variant="outline" className="rounded-full px-4 py-1 text-[10px] font-black uppercase tracking-widest">
                      Digital Pass
                   </Badge>
                   <h3 className="text-2xl font-display font-bold tracking-tight">Access Token</h3>
                </div>
                
-               <div className="flex flex-col items-center">
+               <div className="flex flex-col items-center relative z-10">
                   {registrations && registrations.length > 0 ? (
                     <>
                       <div className="bg-foreground p-8 rounded-[2.5rem] mb-10 shadow-2xl group-hover:scale-105 transition-transform duration-500">
@@ -292,7 +292,7 @@ export default function AttendeeDashboard() {
                             {registrations[0].ticket.ticketNumber || 'EV-000-000'}
                           </p>
                         </div>
-                        <Button variant="outline" className="w-full rounded-2xl h-14 border-2 font-black uppercase tracking-widest text-[11px] hover:bg-muted" asChild>
+                        <Button variant="outline" className="w-full" asChild>
                           <Link href="/tickets">All Access Points</Link>
                         </Button>
                       </div>
@@ -304,8 +304,7 @@ export default function AttendeeDashboard() {
                     </div>
                   )}
                </div>
-            </div>
-          </div>
+          </Card>
 
           <ActivityFeed initialActivities={activities} userId={user.id} />
         </div>

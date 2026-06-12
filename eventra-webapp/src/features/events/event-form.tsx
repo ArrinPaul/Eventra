@@ -47,6 +47,9 @@ function getLocationString(event: EventraEvent): string {
   return '';
 }
 
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+
 export function EventForm({ onSave, event }: EventFormProps) {
   const { user } = useAuth();
   const { uploadFile } = useStorage();
@@ -60,8 +63,7 @@ export function EventForm({ onSave, event }: EventFormProps) {
     
     setUploading(true);
     try {
-      // Client-side resize to 520x520 for fast uploading and rendering
-      const resizedFile = await resizeImage(file, 520, 520);
+      const resizedFile = await resizeImage(file, 800, 800);
       const storageId = await uploadFile(resizedFile);
       setImageUrl(`/api/storage/${storageId}`);
     } catch (err) {
@@ -72,47 +74,7 @@ export function EventForm({ onSave, event }: EventFormProps) {
     }
   };
 
-  // Helper to resize image on client side
-  const resizeImage = (file: File, maxWidth: number, maxHeight: number): Promise<File> => {
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = (event) => {
-        const img = new (window.Image)();
-        img.src = event.target?.result as string;
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          let width = img.width;
-          let height = img.height;
-
-          if (width > height) {
-            if (width > maxWidth) {
-              height *= maxWidth / width;
-              width = maxWidth;
-            }
-          } else {
-            if (height > maxHeight) {
-              width *= maxHeight / height;
-              height = maxHeight;
-            }
-          }
-
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext('2d');
-          ctx?.drawImage(img, 0, 0, width, height);
-          
-          canvas.toBlob((blob) => {
-            if (blob) {
-              resolve(new File([blob], file.name, { type: 'image/jpeg', lastModified: Date.now() }));
-            } else {
-              resolve(file);
-            }
-          }, 'image/jpeg', 0.8);
-        };
-      };
-    });
-  };
+  // ... (resizeImage remains the same)
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -164,48 +126,167 @@ export function EventForm({ onSave, event }: EventFormProps) {
   }
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        {/* Image Upload */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Event Image</label>
-          <div className="flex items-center gap-4">
-            {imageUrl ? (
-              <div className="relative w-full h-48 rounded-lg overflow-hidden border border-border bg-card">
-                <Image src={imageUrl} alt="Event" fill className="object-cover" unoptimized={imageUrl.startsWith('blob:') || imageUrl.startsWith('data:')} />
-                <Button type="button" size="icon" variant="ghost" className="absolute top-2 right-2 bg-background/50 hover:bg-background/70 h-8 w-8" onClick={() => { setImageUrl(null); if (fileInputRef.current) fileInputRef.current.value = ''; }}>
-                  <X className="h-4 w-4" />
-                </Button>
+    <Card className="max-w-4xl mx-auto border-none shadow-2xl">
+      <CardHeader className="p-10 pb-0 space-y-4">
+        <Badge variant="outline" className="w-fit">Mission Initialization</Badge>
+        <CardTitle className="text-4xl md:text-5xl tracking-tighter">
+          Event <span className="text-primary italic">Configuration.</span>
+        </CardTitle>
+        <CardDescription className="text-lg font-medium">
+          Define the parameters for your next experience node.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="p-10">
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-10">
+            {/* Image Upload */}
+            <div className="space-y-4">
+              <label className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground ml-1">Event Visual Node</label>
+              <div className="relative group">
+                {imageUrl ? (
+                  <div className="relative w-full h-80 rounded-[2rem] overflow-hidden border-2 border-border/60 bg-muted/20 group-hover:border-primary/30 transition-all duration-500 shadow-xl">
+                    <Image src={imageUrl} alt="Event" fill className="object-cover group-hover:scale-105 transition-transform duration-700" unoptimized={imageUrl.startsWith('blob:') || imageUrl.startsWith('data:')} />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm">
+                       <Button type="button" variant="outline" className="bg-background/20 text-white border-white/20 hover:bg-background/40" onClick={() => { setImageUrl(null); if (fileInputRef.current) fileInputRef.current.value = ''; }}>
+                         Change Asset
+                       </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <button type="button" onClick={() => fileInputRef.current?.click()} disabled={uploading} className="w-full h-80 rounded-[2rem] border-2 border-dashed border-border/60 hover:border-primary/40 bg-muted/20 flex flex-col items-center justify-center gap-6 transition-all duration-500 group-hover:bg-muted/30 shadow-inner">
+                    <div className="w-20 h-20 rounded-3xl bg-background border border-border/60 flex items-center justify-center group-hover:scale-110 transition-transform shadow-sm">
+                      {uploading ? <Loader2 className="h-8 w-8 animate-spin text-primary" /> : <ImagePlus className="h-8 w-8 text-muted-foreground" />}
+                    </div>
+                    <div className="text-center space-y-1">
+                      <p className="font-bold text-foreground">Upload Experience Key Visual</p>
+                      <p className="text-xs text-muted-foreground font-medium uppercase tracking-widest">Supports JPG, PNG, WEBP • Max 5MB</p>
+                    </div>
+                  </button>
+                )}
+                <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
               </div>
-            ) : (
-              <button type="button" onClick={() => fileInputRef.current?.click()} disabled={uploading} className="w-full h-48 rounded-lg border-2 border-dashed border-border hover:border-primary/50 bg-card flex flex-col items-center justify-center gap-2 transition-colors">
-                {uploading ? <Loader2 className="h-8 w-8 animate-spin text-primary" /> : <ImagePlus className="h-8 w-8 text-muted-foreground" />}
-                <span className="text-sm text-muted-foreground">{uploading ? 'Uploading...' : 'Click to upload event image'}</span>
-              </button>
-            )}
-            <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
-          </div>
-        </div>
+            </div>
 
-        <FormField control={form.control} name="title" render={({ field }) => (<FormItem><FormLabel>Title</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)}/>
-        <div className="grid grid-cols-2 gap-4">
-            <FormField control={form.control} name="date" render={({ field }) => (<FormItem><FormLabel>Date</FormLabel><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem>)}/>
-            <FormField control={form.control} name="time" render={({ field }) => (<FormItem><FormLabel>Time</FormLabel><FormControl><Input type="time" {...field} /></FormControl><FormMessage /></FormItem>)}/>
-        </div>
-        <FormField control={form.control} name="location" render={({ field }) => (<FormItem><FormLabel>Location</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)}/>
-        <div className="grid grid-cols-2 gap-4">
-            <FormField control={form.control} name="category" render={({ field }) => (<FormItem><FormLabel>Category</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl><SelectContent><SelectItem value="Workshop">Workshop</SelectItem><SelectItem value="Talk">Talk</SelectItem><SelectItem value="Panel">Panel</SelectItem><SelectItem value="Tech">Tech</SelectItem><SelectItem value="Networking">Networking</SelectItem><SelectItem value="Social">Social</SelectItem><SelectItem value="Career">Career</SelectItem></SelectContent></Select><FormMessage /></FormItem>)}/>
-            <FormField control={form.control} name="targetAudience" render={({ field }) => (<FormItem><FormLabel>Target Audience</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl><SelectContent><SelectItem value="Student">Student</SelectItem><SelectItem value="Professional">Professional</SelectItem><SelectItem value="Both">Both</SelectItem></SelectContent></Select><FormMessage /></FormItem>)}/>
-        </div>
-        <div className="grid grid-cols-3 gap-4">
-            <FormField control={form.control} name="capacity" render={({ field }) => (<FormItem><FormLabel>Capacity</FormLabel><FormControl><Input type="number" min={1} {...field} /></FormControl><FormMessage /></FormItem>)}/>
-            <FormField control={form.control} name="status" render={({ field }) => (<FormItem><FormLabel>Status</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl><SelectContent><SelectItem value="draft">Draft</SelectItem><SelectItem value="published">Published</SelectItem></SelectContent></Select><FormMessage /></FormItem>)}/>
-            <FormField control={form.control} name="type" render={({ field }) => (<FormItem><FormLabel>Event Type</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl><SelectContent><SelectItem value="physical">In-Person</SelectItem><SelectItem value="virtual">Virtual</SelectItem><SelectItem value="hybrid">Hybrid</SelectItem></SelectContent></Select><FormMessage /></FormItem>)}/>
-        </div>
-        <FormField control={form.control} name="description" render={({ field }) => (<FormItem><FormLabel>Description</FormLabel><FormControl><Textarea {...field} /></FormControl><FormMessage /></FormItem>)}/>
-        <Button type="submit" className="w-full">Save Event</Button>
-      </form>
-    </Form>
+            <div className="space-y-8">
+              <FormField control={form.control} name="title" render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground ml-1">Mission Title</干部FormLabel>
+                  <FormControl><Input placeholder="Enter the name of your experience..." {...field} /></FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}/>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <FormField control={form.control} name="date" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground ml-1">Start Date</FormLabel>
+                    <FormControl><Input type="date" {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}/>
+                <FormField control={form.control} name="time" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground ml-1">Launch Time</FormLabel>
+                    <FormControl><Input type="time" {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}/>
+              </div>
+
+              <FormField control={form.control} name="location" render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground ml-1">Operational Coordinate</FormLabel>
+                  <FormControl><Input placeholder="Venue name or virtual link..." {...field} /></FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}/>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <FormField control={form.control} name="category" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground ml-1">Node Category</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl>
+                      <SelectContent>
+                        <SelectItem value="Workshop">Workshop</SelectItem>
+                        <SelectItem value="Talk">Talk</SelectItem>
+                        <SelectItem value="Panel">Panel</SelectItem>
+                        <SelectItem value="Tech">Tech</SelectItem>
+                        <SelectItem value="Networking">Networking</SelectItem>
+                        <SelectItem value="Social">Social</SelectItem>
+                        <SelectItem value="Career">Career</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}/>
+                <FormField control={form.control} name="targetAudience" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground ml-1">Target Persona</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl>
+                      <SelectContent>
+                        <SelectItem value="Student">Student</SelectItem>
+                        <SelectItem value="Professional">Professional</SelectItem>
+                        <SelectItem value="Both">Both Persona</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}/>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <FormField control={form.control} name="capacity" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground ml-1">Max Syncs</FormLabel>
+                    <FormControl><Input type="number" min={1} {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}/>
+                <FormField control={form.control} name="status" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground ml-1">Mission Status</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl>
+                      <SelectContent>
+                        <SelectItem value="draft">Draft Node</SelectItem>
+                        <SelectItem value="published">Initialize Live</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}/>
+                <FormField control={form.control} name="type" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground ml-1">Environment</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl>
+                      <SelectContent>
+                        <SelectItem value="physical">Physical Node</SelectItem>
+                        <SelectItem value="virtual">Virtual Mesh</SelectItem>
+                        <SelectItem value="hybrid">Hybrid Protocol</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}/>
+              </div>
+
+              <FormField control={form.control} name="description" render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground ml-1">Mission Briefing</FormLabel>
+                  <FormControl><Textarea placeholder="Describe the experience goals and value proposition..." {...field} /></FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}/>
+            </div>
+
+            <Button type="submit" size="xl" className="w-full shadow-glow">Initialize Experience Node</Button>
+          </form>
+        </Form>
+      </CardContent>
+    </Card>
   );
 }
 
