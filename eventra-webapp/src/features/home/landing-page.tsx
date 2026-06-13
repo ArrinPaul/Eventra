@@ -58,20 +58,29 @@ const MODULES = [
     icon: MessageSquare,
     description: 'High-performance real-time networking for attendees and organizers.',
     preview: (
-      <div className="w-full bg-muted/30 rounded-2xl border border-border p-6 flex flex-col gap-4 overflow-hidden">
-        <div className="flex items-center gap-3 border-b border-border/50 pb-4">
-           <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold text-[10px]">JD</div>
-           <div className="flex flex-col">
-              <span className="text-[10px] font-bold text-foreground leading-none">John Doe</span>
-              <span className="text-[8px] text-emerald-500 font-medium italic">Authorized</span>
+      <div className="w-full bg-background/40 backdrop-blur-md rounded-[2.5rem] border border-border/40 p-8 flex flex-col gap-6 overflow-hidden shadow-inner">
+        <div className="flex items-center justify-between border-b border-border/20 pb-6">
+           <div className="flex items-center gap-4">
+              <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-primary to-primary/60 flex items-center justify-center text-primary-foreground font-black text-xs shadow-glow shadow-primary/20">JD</div>
+              <div className="flex flex-col gap-1">
+                 <span className="text-xs font-black text-foreground leading-none uppercase tracking-wider">John_Doe_0x1</span>
+                 <span className="text-[10px] text-emerald-500 font-bold uppercase tracking-widest flex items-center gap-1.5">
+                    <div className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" />
+                    Verified_Sync
+                 </span>
+              </div>
+           </div>
+           <div className="flex gap-1.5">
+              <div className="w-2 h-2 rounded-full bg-muted-foreground/20" />
+              <div className="w-2 h-2 rounded-full bg-muted-foreground/20" />
            </div>
         </div>
-        <div className="flex flex-col gap-3">
-           <div className="self-start bg-muted/50 p-2.5 rounded-2xl rounded-tl-none max-w-[85%]">
-              <p className="text-[10px] text-foreground/80 leading-tight font-medium">Verified your session track for tomorrow?</p>
+        <div className="flex flex-col gap-4">
+           <div className="self-start bg-muted/30 p-4 rounded-[1.5rem] rounded-tl-none max-w-[80%] border border-border/10 shadow-sm">
+              <p className="text-xs text-foreground/70 leading-relaxed font-bold">Protocol check: Have you verified your session encryption keys for tomorrow's keynote?</p>
            </div>
-           <div className="self-end bg-primary p-2.5 rounded-2xl rounded-tr-none max-w-[85%] border border-primary text-primary-foreground">
-              <p className="text-[10px] font-bold leading-tight">Yes! Registered for the AI Strategy workshop. 🚀</p>
+           <div className="self-end bg-primary/10 p-4 rounded-[1.5rem] rounded-tr-none max-w-[80%] border border-primary/20 text-primary">
+              <p className="text-xs font-black leading-relaxed">Uplink confirmed. Nodes are synchronized. Ready for deployment. 🚀</p>
            </div>
         </div>
       </div>
@@ -83,34 +92,41 @@ const MODULES = [
     icon: Sparkles,
     description: 'Gamified attendee progression with experience points and levels.',
     preview: (
-      <div className="w-full bg-muted/30 rounded-2xl border border-border p-6 flex flex-col gap-4 overflow-hidden">
-        <div className="flex items-center justify-between mb-2">
-           <span className="text-[10px] font-black text-foreground uppercase tracking-widest">Growth progression</span>
-           <Badge variant="secondary" className="text-[8px] font-black uppercase py-0 px-1.5 bg-primary text-primary-foreground border-none">Level 12</Badge>
+      <div className="w-full bg-background/40 backdrop-blur-md rounded-[2.5rem] border border-border/40 p-8 flex flex-col gap-8 overflow-hidden shadow-inner">
+        <div className="flex items-center justify-between">
+           <div className="flex flex-col gap-1.5">
+              <span className="text-[10px] font-black text-primary uppercase tracking-[0.3em]">Network_Authority</span>
+              <h4 className="text-xl font-display font-bold tracking-tight">Sync Level 12</h4>
+           </div>
+           <div className="w-12 h-12 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shadow-glow shadow-primary/5">
+              <Trophy className="w-6 h-6" />
+           </div>
         </div>
-        <div className="space-y-4">
-           <div className="p-4 rounded-xl bg-background border border-border shadow-sm flex items-center gap-4">
-              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                 <Trophy className="w-5 h-5 text-primary" />
-              </div>
+        <div className="space-y-6">
+           <div className="p-6 rounded-[2rem] bg-background/60 border border-border/30 shadow-xl flex items-center gap-6">
               <div className="flex-1">
-                 <div className="flex justify-between items-center mb-1.5">
-                    <span className="text-[10px] font-bold text-foreground uppercase">Next Milestone</span>
-                    <span className="text-[9px] font-mono text-muted-foreground">850 / 1200 XP</span>
+                 <div className="flex justify-between items-center mb-3">
+                    <span className="text-[10px] font-black text-foreground uppercase tracking-widest">Next Node Unlock</span>
+                    <span className="text-[10px] font-mono font-bold text-primary">850 / 1200 XP</span>
                  </div>
-                 <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
-                    <div className="h-full bg-primary w-[70%]" />
+                 <div className="h-2 w-full bg-muted/40 rounded-full overflow-hidden border border-border/10">
+                    <motion.div 
+                      initial={{ width: 0 }}
+                      whileInView={{ width: '70%' }}
+                      transition={{ duration: 1.5, ease: "easeOut" }}
+                      className="h-full bg-gradient-to-r from-primary to-primary/60 shadow-glow shadow-primary/20" 
+                    />
                  </div>
               </div>
            </div>
-           <div className="grid grid-cols-2 gap-3">
-              <div className="p-3 rounded-xl bg-background border border-border shadow-sm flex flex-col gap-1">
-                 <span className="text-[8px] font-black text-muted-foreground uppercase">Badges</span>
-                 <span className="text-xs font-black text-foreground">8 / 15</span>
+           <div className="grid grid-cols-2 gap-4">
+              <div className="p-5 rounded-[1.5rem] bg-muted/20 border border-border/20 flex flex-col gap-2 shadow-sm hover:bg-muted/30 transition-colors cursor-default">
+                 <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Digital_Badges</span>
+                 <span className="text-xl font-display font-black text-foreground tracking-tight">08 <span className="text-[10px] text-muted-foreground/60">/ 15</span></span>
               </div>
-              <div className="p-3 rounded-xl bg-background border border-border shadow-sm flex flex-col gap-1">
-                 <span className="text-[8px] font-black text-muted-foreground uppercase">Streak</span>
-                 <span className="text-xs font-black text-foreground">5 Days</span>
+              <div className="p-5 rounded-[1.5rem] bg-muted/20 border border-border/20 flex flex-col gap-2 shadow-sm hover:bg-muted/30 transition-colors cursor-default">
+                 <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Uptime_Streak</span>
+                 <span className="text-xl font-display font-black text-primary tracking-tight">05 <span className="text-[10px] text-muted-foreground/60">DAYS</span></span>
               </div>
            </div>
         </div>
@@ -123,33 +139,39 @@ const MODULES = [
     icon: Calendar,
     description: 'Dynamic session tracks and personalized schedules for every attendee.',
     preview: (
-      <div className="w-full bg-muted/30 rounded-2xl border border-border p-6 flex flex-col overflow-hidden">
-        <div className="flex items-center justify-between mb-4">
-           <span className="text-[10px] font-black text-foreground uppercase">May 2026</span>
-           <div className="flex gap-1.5">
-              <div className="w-5 h-5 rounded-md border border-border flex items-center justify-center text-[8px] bg-background">‹</div>
-              <div className="w-5 h-5 rounded-md border border-border flex items-center justify-center text-[8px] bg-background">›</div>
+      <div className="w-full bg-background/40 backdrop-blur-md rounded-[2.5rem] border border-border/40 p-8 flex flex-col overflow-hidden shadow-inner">
+        <div className="flex items-center justify-between mb-8">
+           <div className="flex items-center gap-3">
+              <Calendar className="w-5 h-5 text-primary" />
+              <span className="text-xs font-black text-foreground uppercase tracking-[0.2em]">Deployment_Schedule</span>
+           </div>
+           <div className="flex gap-2">
+              <div className="w-8 h-8 rounded-xl border border-border/40 flex items-center justify-center text-xs bg-background/60 hover:bg-background transition-colors cursor-pointer shadow-sm text-muted-foreground">‹</div>
+              <div className="w-8 h-8 rounded-xl border border-border/40 flex items-center justify-center text-xs bg-background/60 hover:bg-background transition-colors cursor-pointer shadow-sm text-muted-foreground">›</div>
            </div>
         </div>
-        <div className="grid grid-cols-7 gap-1.5">
+        <div className="grid grid-cols-7 gap-2">
            {Array.from({ length: 14 }).map((_, i) => {
              const isEvent = i === 5 || i === 8 || i === 12;
              return (
                <div key={i} className={cn(
-                 "aspect-square rounded-lg border p-1 transition-all flex flex-col gap-0.5",
-                 isEvent ? "bg-primary/20 border-primary/40 shadow-glow shadow-primary/10" : "bg-background border-border/50"
+                 "aspect-square rounded-xl border transition-all flex flex-col items-center justify-center gap-1 group/day cursor-pointer",
+                 isEvent ? "bg-primary border-primary shadow-glow shadow-primary/20 text-primary-foreground" : "bg-background/60 border-border/20 hover:border-primary/40 text-muted-foreground"
                )}>
-                  <span className="text-[7px] font-mono text-muted-foreground">{i + 1}</span>
+                  <span className="text-[9px] font-mono font-bold">{i + 1}</span>
                   {isEvent && (
-                    <div className="h-1 w-full bg-primary rounded-full" />
+                    <div className="w-1 h-1 bg-white rounded-full animate-pulse" />
                   )}
                </div>
              );
            })}
         </div>
-        <div className="mt-4 p-2 rounded-lg bg-primary/5 border border-primary/10 flex items-center gap-2">
-           <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-           <span className="text-[9px] font-bold text-foreground">Next: Keynote Session @ 10 AM</span>
+        <div className="mt-8 p-4 rounded-[1.5rem] bg-primary/5 border border-primary/20 flex items-center gap-4 shadow-sm">
+           <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+           <div className="flex flex-col">
+              <span className="text-[9px] font-black text-primary uppercase tracking-widest">Active_Node</span>
+              <span className="text-xs font-bold text-foreground">Keynote: Future of Neural Mesh @ 10:00 AM</span>
+           </div>
         </div>
       </div>
     )
@@ -160,21 +182,23 @@ const MODULES = [
     icon: Layers,
     description: 'Visualize your event pipeline with intuitive drag-and-drop boards.',
     preview: (
-      <div className="w-full bg-muted/30 rounded-2xl border border-border p-6 flex gap-3 overflow-hidden">
+      <div className="w-full bg-background/40 backdrop-blur-md rounded-[2.5rem] border border-border/40 p-8 flex gap-4 overflow-hidden shadow-inner">
         {[
-          { label: "Pipeline", cards: ["Sponsors", "Artist"] },
-          { label: "Approved", cards: ["Venue"] }
+          { label: "Deployment", cards: ["Sponsors", "Talent"] },
+          { label: "Validated", cards: ["Venue"] }
         ].map((col, idx) => (
-          <div key={idx} className="flex-1 flex flex-col gap-2.5">
-             <span className="text-[8px] font-black uppercase text-muted-foreground px-1">{col.label}</span>
+          <div key={idx} className="flex-1 flex flex-col gap-4">
+             <span className="text-[9px] font-black uppercase text-muted-foreground/60 px-1 tracking-widest">{col.label}</span>
              {col.cards.map((card, cIdx) => (
-               <div key={cIdx} className="bg-background rounded-xl border border-border p-2.5 shadow-sm">
-                  <p className="text-[9px] font-bold text-foreground">{card}</p>
-                  <div className="h-1 w-2/3 bg-muted rounded-full mt-2" />
+               <div key={cIdx} className="bg-background/60 rounded-2xl border border-border/30 p-4 shadow-sm group/card cursor-pointer hover:border-primary/30 transition-colors">
+                  <p className="text-[10px] font-black text-foreground uppercase tracking-tight">{card}</p>
+                  <div className="h-1 w-2/3 bg-primary/20 rounded-full mt-3 overflow-hidden">
+                     <div className="h-full bg-primary w-1/2" />
+                  </div>
                </div>
              ))}
-             <div className="border-2 border-dashed border-border rounded-xl h-8 flex items-center justify-center text-[8px] text-muted-foreground font-black uppercase bg-muted/10">
-                + Add
+             <div className="border-2 border-dashed border-border/30 rounded-2xl h-12 flex items-center justify-center text-[9px] text-muted-foreground font-black uppercase bg-muted/5 hover:bg-muted/10 transition-colors cursor-pointer">
+                + Node
              </div>
           </div>
         ))}
@@ -187,72 +211,38 @@ const MODULES = [
     icon: BarChart3,
     description: 'Deep analytics and real-time ticketing revenue tracking.',
     preview: (
-      <div className="w-full bg-muted/30 rounded-2xl border border-border p-6 flex flex-col overflow-hidden">
-        <div className="flex items-center justify-between mb-6">
-           <div className="space-y-0.5">
-              <span className="text-[10px] font-black text-foreground uppercase text-primary">Ticketing Flow</span>
-              <p className="text-[8px] text-muted-foreground font-medium uppercase tracking-tight italic">Live generated value</p>
+      <div className="w-full bg-background/40 backdrop-blur-md rounded-[2.5rem] border border-border/40 p-8 flex flex-col overflow-hidden shadow-inner">
+        <div className="flex items-center justify-between mb-8">
+           <div className="space-y-1">
+              <span className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">Financial_Mesh</span>
+              <h4 className="text-xl font-display font-bold tracking-tight">Live Revenue</h4>
            </div>
-           <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-primary/10 border border-primary/20">
-              <div className="w-1 h-1 rounded-full bg-primary animate-pulse" />
-              <span className="text-[8px] font-black text-primary uppercase">Active</span>
+           <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20">
+              <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+              <span className="text-[9px] font-black text-primary uppercase tracking-widest">Active</span>
            </div>
         </div>
-        <div className="h-24 flex items-end gap-1 px-1">
-          {[40, 70, 45, 90, 65, 80, 50, 85, 60, 95, 75, 80, 55, 90, 100].map((h, i) => (
+        <div className="h-28 flex items-end gap-1.5 px-1">
+          {[40, 70, 45, 90, 65, 80, 50, 85, 60, 95, 75, 80, 55, 90, 100, 85, 65, 45].map((h, i) => (
             <motion.div 
               key={i}
               initial={{ height: 0 }}
               animate={{ height: `${h}%` }}
-              transition={{ delay: i * 0.03, duration: 0.5 }}
-              className="flex-1 bg-gradient-to-t from-primary to-primary/40 rounded-t-[1px]"
+              transition={{ delay: i * 0.02, duration: 0.8, ease: "easeOut" }}
+              className="flex-1 bg-gradient-to-t from-primary/20 via-primary to-primary/40 rounded-full"
             />
           ))}
         </div>
-        <div className="grid grid-cols-2 gap-4 mt-6 pt-4 border-t border-border/50">
-           <div className="space-y-0.5">
-              <span className="text-[7px] font-bold text-muted-foreground uppercase">Total Revenue</span>
-              <p className="text-[10px] font-mono font-black text-foreground tracking-tighter">$12,450.00</p>
+        <div className="grid grid-cols-2 gap-6 mt-8 pt-6 border-t border-border/20">
+           <div className="space-y-1">
+              <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Total Generated</span>
+              <p className="text-lg font-display font-black text-foreground tracking-tighter">$124,500.00</p>
            </div>
-           <div className="space-y-0.5 text-right">
-              <span className="text-[7px] font-bold text-muted-foreground uppercase">Avg Ticket</span>
-              <p className="text-[10px] font-mono font-black text-primary tracking-tighter">$45.00</p>
+           <div className="space-y-1 text-right">
+              <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Growth Rate</span>
+              <p className="text-lg font-display font-black text-emerald-500 tracking-tighter">+24.8%</p>
            </div>
         </div>
-      </div>
-    )
-  },
-  {
-    id: 'dashboard',
-    title: 'Command',
-    icon: Cpu,
-    description: 'The mission control for your entire experience delivery.',
-    preview: (
-      <div className="w-full bg-muted/30 rounded-2xl border border-border p-6 flex flex-col gap-4 overflow-hidden">
-         <div className="grid grid-cols-2 gap-3">
-            <div className="rounded-xl bg-primary border border-primary p-3 flex flex-col justify-center gap-0.5 shadow-sm">
-               <span className="text-[7px] uppercase font-black text-primary-foreground/70 tracking-widest">Active Events</span>
-               <div className="text-sm font-black text-primary-foreground italic leading-none">24</div>
-            </div>
-            <div className="rounded-xl bg-background border border-border p-3 flex flex-col justify-center gap-0.5 shadow-sm">
-               <span className="text-[7px] uppercase font-black text-muted-foreground tracking-widest">Reach</span>
-               <div className="text-sm font-black text-foreground italic leading-none">14.2k</div>
-            </div>
-         </div>
-         <div className="flex-1 rounded-xl bg-background border border-border p-3 flex flex-col gap-2.5 shadow-sm">
-            <span className="text-[9px] font-black text-foreground uppercase tracking-wider">Campaign Velocity</span>
-            <div className="space-y-1.5">
-               {[
-                 { t: "Winter Tech Summit", s: "92%", c: "text-primary" },
-                 { t: "Global Hackathon", s: "45%", c: "text-muted-foreground" }
-               ].map((act, i) => (
-                 <div key={i} className="flex items-center justify-between py-1.5 border-b border-border/50 last:border-0">
-                    <span className="text-[9px] font-bold text-foreground/80">{act.t}</span>
-                    <span className={cn("text-[8px] font-mono font-black uppercase", act.c)}>{act.s}</span>
-                 </div>
-               ))}
-            </div>
-         </div>
       </div>
     )
   }
@@ -317,7 +307,7 @@ export default function LandingPage({ featuredEvents = [] }: { featuredEvents?: 
   const scale = useTransform(scrollYProgress, [0, 0.4], [1, 0.95]);
 
   return (
-    <div ref={containerRef} className="min-h-screen bg-background text-foreground selection:bg-primary/30 selection:text-primary font-sans overflow-x-hidden">
+    <div ref={containerRef} className="relative min-h-screen bg-background text-foreground selection:bg-primary/30 selection:text-primary font-sans overflow-x-clip">
       
       {/* NAVIGATION */}
       <motion.nav 
@@ -331,10 +321,7 @@ export default function LandingPage({ featuredEvents = [] }: { featuredEvents?: 
       >
         <div className="container mx-auto px-10 h-20 flex items-center justify-between">
           <div className="flex items-center gap-4 group cursor-pointer transition-transform active:scale-95">
-            <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shadow-glow shadow-primary/20 group-hover:rotate-6 transition-transform">
-               <Logo iconClassName="w-6 h-6 text-primary-foreground" />
-            </div>
-            <span className="font-display font-bold tracking-tighter text-2xl text-foreground">Eventra.</span>
+             <Logo iconClassName="w-10 h-10" showText />
           </div>
           <div className="hidden md:flex items-center gap-12 text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/60">
             <Link href="#features" className="hover:text-primary transition-colors">Features</Link>
@@ -366,9 +353,9 @@ export default function LandingPage({ featuredEvents = [] }: { featuredEvents?: 
           initial="hidden" 
           animate="visible" 
           variants={STAGGER} 
-          className="relative z-10 max-w-6xl space-y-12"
+          className="relative z-10 w-full max-w-6xl space-y-12 flex flex-col items-center"
         >
-          <motion.h1 variants={FADE_UP} className="text-7xl md:text-[9rem] font-display font-medium tracking-[ -0.05em] leading-[0.85] text-foreground">
+          <motion.h1 variants={FADE_UP} className="text-7xl md:text-[9.5rem] font-display font-medium tracking-[-0.05em] leading-[0.85] text-foreground">
             Discussion to <br />
             <span className="text-primary italic">Execution.</span>
           </motion.h1>
@@ -388,24 +375,24 @@ export default function LandingPage({ featuredEvents = [] }: { featuredEvents?: 
           </motion.div>
         </motion.div>
 
-        {/* Dashboard Preview */}
+        {/* Dashboard Preview - Professional High Fidelity App UI */}
         <motion.div 
-          initial={{ opacity: 0, y: 100, scale: 0.95 }}
+          initial={{ opacity: 0, y: 100, scale: 0.98 }}
           whileInView={{ opacity: 1, y: 0, scale: 1 }}
           viewport={{ once: true }}
           transition={{ delay: 0.2, duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
-          className="mt-24 relative w-full max-w-7xl aspect-[16/10] mx-auto rounded-[2.5rem] border-[8px] border-muted bg-background shadow-[0_80px_150px_-30px_rgba(0,0,0,0.4)] overflow-hidden group flex"
+          className="mt-24 relative w-full max-w-7xl aspect-[16/10] mx-auto rounded-[3rem] border-[12px] border-muted/80 bg-background shadow-[0_100px_200px_-40px_rgba(0,0,0,0.5)] overflow-hidden group flex ring-1 ring-white/10"
         >
            {/* Sidebar Navigation */}
-           <div className="w-20 md:w-64 border-r border-border/60 bg-muted/30 flex flex-col p-6 shrink-0">
-              <div className="flex items-center gap-3 mb-12 px-2">
-                 <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-                    <Logo iconClassName="w-5 h-5 text-primary-foreground" />
+           <div className="w-20 md:w-64 border-r border-border/50 bg-muted/20 flex flex-col p-6 shrink-0 backdrop-blur-md">
+              <div className="flex items-center gap-3 mb-10 px-2">
+                 <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
+                    <Logo iconClassName="w-6 h-6 text-primary-foreground" />
                  </div>
-                 <span className="font-display font-bold text-lg hidden md:block tracking-tight">Eventra.</span>
+                 <span className="font-display font-black text-xl hidden md:block tracking-tighter uppercase">Eventra<span className="text-primary italic">.</span></span>
               </div>
               
-              <div className="space-y-2">
+              <div className="space-y-1">
                  {[
                    { i: Activity, l: "Overview", a: true },
                    { i: Calendar, l: "Events" },
@@ -416,79 +403,89 @@ export default function LandingPage({ featuredEvents = [] }: { featuredEvents?: 
                  ].map((item, i) => (
                    <motion.div 
                      key={i} 
-                     whileHover={{ x: 4 }}
+                     whileHover={{ x: 4, backgroundColor: 'rgba(var(--primary), 0.05)' }}
                      className={cn(
-                       "flex items-center gap-4 px-4 py-3 rounded-xl transition-all cursor-pointer group/nav",
-                       item.a ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20" : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                       "flex items-center gap-4 px-4 py-3 rounded-2xl transition-all cursor-pointer group/nav",
+                       item.a ? "bg-primary text-primary-foreground shadow-xl shadow-primary/30" : "text-muted-foreground hover:text-foreground"
                      )}
                    >
                       <item.i className="w-5 h-5 shrink-0" />
-                      <span className="text-sm font-bold hidden md:block">{item.l}</span>
+                      <span className="text-sm font-bold hidden md:block tracking-tight">{item.l}</span>
                    </motion.div>
                  ))}
               </div>
               
-              <div className="mt-auto space-y-4 px-2">
-                 <div className="p-4 rounded-2xl bg-primary/5 border border-primary/10 hidden md:block">
-                    <p className="text-[10px] font-black uppercase text-primary tracking-widest mb-2">Pro Mesh active</p>
-                    <div className="h-1.5 w-full bg-primary/20 rounded-full overflow-hidden">
-                       <div className="h-full bg-primary w-3/4" />
+              <div className="mt-auto space-y-6 px-2">
+                 <div className="p-5 rounded-[2rem] bg-background/40 border border-border/40 hidden md:block shadow-sm">
+                    <div className="flex justify-between items-center mb-3">
+                       <p className="text-[9px] font-black uppercase text-primary tracking-[0.2em]">Mesh Pro</p>
+                       <Zap className="w-3 h-3 text-primary" />
                     </div>
+                    <div className="h-1.5 w-full bg-primary/10 rounded-full overflow-hidden">
+                       <motion.div 
+                         initial={{ width: 0 }}
+                         whileInView={{ width: '75%' }}
+                         transition={{ duration: 1.5, delay: 1 }}
+                         className="h-full bg-primary" 
+                       />
+                    </div>
+                    <p className="text-[9px] text-muted-foreground mt-3 font-bold">14.2GB / 20GB Sync</p>
                  </div>
                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-muted border border-border shrink-0" />
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-muted to-border border border-border shrink-0 shadow-inner" />
                     <div className="hidden md:block">
-                       <p className="text-xs font-bold leading-none">Admin User</p>
-                       <p className="text-[10px] text-muted-foreground mt-1">PRO PLAN</p>
+                       <p className="text-xs font-black leading-none uppercase tracking-wider">Admin_0x1</p>
+                       <p className="text-[9px] text-primary mt-1.5 font-black uppercase tracking-widest">Enterprise</p>
                     </div>
                  </div>
               </div>
            </div>
 
            {/* Main App Area */}
-           <div className="flex-1 flex flex-col min-w-0 bg-background/50">
-              {/* Header Bar */}
-              <div className="h-14 border-b border-border/60 flex items-center justify-between px-10 shrink-0 bg-muted/10">
+           <div className="flex-1 flex flex-col min-w-0 bg-muted/5">
+              {/* Browser Header Bar */}
+              <div className="h-14 border-b border-border/50 flex items-center justify-between px-10 shrink-0 bg-background/40 backdrop-blur-md">
                  <div className="flex items-center gap-4 flex-1">
                     <div className="flex gap-2">
-                      <div className="w-3 h-3 rounded-full bg-red-500/20" />
-                      <div className="w-3 h-3 rounded-full bg-amber-500/20" />
-                      <div className="w-3 h-3 rounded-full bg-emerald-500/20" />
+                      <div className="w-3 h-3 rounded-full bg-red-500/20 border border-red-500/30" />
+                      <div className="w-3 h-3 rounded-full bg-amber-500/20 border border-amber-500/30" />
+                      <div className="w-3 h-3 rounded-full bg-emerald-500/20 border border-emerald-500/30" />
                     </div>
-                    <div className="h-8 flex-1 max-w-md bg-background/80 border border-border/60 rounded-lg flex items-center px-4 gap-2 ml-4">
-                       <Search className="w-3 h-3 text-muted-foreground/40" />
-                       <span className="text-[10px] font-mono text-muted-foreground/60 tracking-wider">eventra.cloud/mission-control</span>
+                    <div className="h-8 flex-1 max-w-xl bg-muted/20 border border-border/40 rounded-xl flex items-center px-5 gap-3 ml-6">
+                       <Globe className="w-3 h-3 text-muted-foreground/40" />
+                       <span className="text-[10px] font-mono text-muted-foreground/50 tracking-widest select-none">https://eventra.cloud/mission-control</span>
                     </div>
                  </div>
                  <div className="flex items-center gap-6">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/5 border border-emerald-500/10">
                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                       <span className="text-[9px] font-black uppercase tracking-widest text-emerald-500">Live</span>
+                       <span className="text-[9px] font-black uppercase tracking-[0.2em] text-emerald-500">Live</span>
                     </div>
-                    <div className="w-8 h-8 rounded-full bg-muted border border-border" />
+                    <div className="w-8 h-8 rounded-full bg-muted/40 border border-border/40" />
                  </div>
               </div>
 
-              <div className="h-16 border-b border-border/60 flex items-center justify-between px-10 shrink-0">
+              {/* Sub Header / Breadcrumbs */}
+              <div className="h-16 border-b border-border/30 flex items-center justify-between px-10 shrink-0 bg-background/20">
                  <div className="flex items-center gap-6">
-                    <h2 className="text-lg font-bold tracking-tight">Executive Dashboard</h2>
-                    <div className="h-4 w-px bg-border/60" />
+                    <h2 className="text-lg font-black tracking-tight uppercase tracking-widest text-foreground/80">Dashboard</h2>
+                    <div className="h-4 w-px bg-border/40" />
                     <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-primary/5 border border-primary/10">
                        <Activity className="w-3 h-3 text-primary" />
-                       <span className="text-[9px] font-black uppercase tracking-widest text-primary">Real-time Analytics</span>
+                       <span className="text-[9px] font-black uppercase tracking-widest text-primary">Operational</span>
                     </div>
                  </div>
                  <div className="flex items-center gap-3">
-                    <Button size="sm" variant="ghost" className="h-8 w-8 p-0 rounded-lg hover:bg-muted"><Calendar className="w-4 h-4" /></Button>
-                    <Button size="sm" variant="ghost" className="h-8 w-8 p-0 rounded-lg hover:bg-muted"><Users className="w-4 h-4" /></Button>
-                    <Button size="sm" variant="outline" className="rounded-full px-4 font-bold h-8 text-[10px] uppercase tracking-widest">Share</Button>
+                    <Button size="sm" variant="ghost" className="h-9 w-9 p-0 rounded-xl hover:bg-background/40 transition-colors"><Calendar className="w-4 h-4 text-muted-foreground" /></Button>
+                    <Button size="sm" variant="ghost" className="h-9 w-9 p-0 rounded-xl hover:bg-background/40 transition-colors"><Users className="w-4 h-4 text-muted-foreground" /></Button>
+                    <Button size="sm" variant="outline" className="rounded-xl px-5 font-black h-9 text-[9px] uppercase tracking-[0.2em] border-border/40 bg-background/40 shadow-sm hover:bg-background">Share Intel</Button>
                  </div>
               </div>
 
               {/* Dashboard Content */}
-              <div className="flex-1 p-8 overflow-hidden flex flex-col gap-6">
+              <div className="flex-1 p-10 overflow-hidden flex flex-col gap-8">
                  {/* Top Metrics Row */}
-                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 shrink-0">
+                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8 shrink-0">
                     {[
                       { l: "Monthly Revenue", v: "$124,500", c: "+12.4%", i: BarChart3, color: "text-emerald-500" },
                       { l: "Active Attendees", v: "14,202", c: "+8.1%", i: Users, color: "text-primary" },
@@ -496,18 +493,18 @@ export default function LandingPage({ featuredEvents = [] }: { featuredEvents?: 
                     ].map((m, i) => (
                       <motion.div 
                         key={i} 
-                        whileHover={{ y: -5, scale: 1.02 }}
-                        className="p-6 rounded-[1.5rem] border border-border/60 bg-background flex flex-col justify-between h-36 group/metric transition-shadow hover:shadow-xl hover:shadow-primary/5 cursor-pointer"
+                        whileHover={{ y: -8, scale: 1.02 }}
+                        className="p-8 rounded-[2.5rem] border border-border/40 bg-background flex flex-col justify-between h-44 shadow-sm hover:shadow-2xl hover:shadow-primary/5 cursor-pointer transition-all duration-500"
                       >
                          <div className="flex justify-between items-start">
-                            <span className="text-[9px] font-black uppercase text-muted-foreground/60 tracking-[0.2em]">{m.l}</span>
-                            <div className={cn("w-8 h-8 rounded-xl bg-muted/50 flex items-center justify-center transition-colors group-hover/metric:bg-primary/10", m.color)}>
-                               <m.i className="w-4 h-4" />
+                            <span className="text-[9px] font-black uppercase text-muted-foreground/60 tracking-[0.3em]">{m.l}</span>
+                            <div className={cn("w-10 h-10 rounded-2xl bg-muted/40 flex items-center justify-center transition-colors border border-border/40", m.color)}>
+                               <m.i className="w-5 h-5" />
                             </div>
                          </div>
                          <div className="flex items-end justify-between">
-                            <span className="text-3xl font-display font-bold tracking-tighter">{m.v}</span>
-                            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 text-[10px] font-bold">
+                            <span className="text-4xl font-display font-bold tracking-tighter">{m.v}</span>
+                            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-500 text-[10px] font-black tracking-widest">
                                <ArrowRight className="w-3 h-3 -rotate-45" />
                                {m.c}
                             </div>
@@ -516,40 +513,41 @@ export default function LandingPage({ featuredEvents = [] }: { featuredEvents?: 
                     ))}
                  </div>
 
-                 {/* Main Chart Area */}
+                 {/* Main Chart Area - Refined Data Viz */}
                  <motion.div 
                    layout
-                   className="flex-1 min-h-0 rounded-[2rem] border border-border/60 bg-background p-8 flex flex-col gap-6 relative overflow-hidden group/main-chart shadow-sm"
+                   className="flex-1 min-h-0 rounded-[3rem] border border-border/40 bg-background p-10 flex flex-col gap-8 relative overflow-hidden shadow-sm"
                  >
                     <div className="flex items-center justify-between relative z-10 shrink-0">
-                       <div className="space-y-1">
-                          <h3 className="text-base font-bold">Growth Projection</h3>
-                          <p className="text-[10px] text-muted-foreground font-medium">Real-time attendance & revenue tracking across nodes</p>
+                       <div className="space-y-1.5">
+                          <h3 className="text-xl font-bold tracking-tight">Growth Projection</h3>
+                          <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest opacity-60">Real-time attendance & revenue tracking across nodes</p>
                        </div>
-                       <div className="flex bg-muted/50 p-1 rounded-full gap-1">
+                       <div className="flex bg-muted/30 p-1.5 rounded-2xl gap-1.5 border border-border/40">
                           {['D', 'W', 'M'].map(t => (
-                            <button key={t} className={cn("w-8 h-8 rounded-full text-[9px] font-black transition-all", t === 'W' ? 'bg-background shadow-sm text-primary' : 'text-muted-foreground hover:text-foreground')}>{t}</button>
+                            <button key={t} className={cn("w-10 h-10 rounded-xl text-[10px] font-black transition-all", t === 'W' ? 'bg-background shadow-lg text-primary border border-border/40' : 'text-muted-foreground hover:text-foreground hover:bg-background/20')}>{t}</button>
                           ))}
                        </div>
                     </div>
 
-                    <div className="flex-1 flex items-end gap-2 px-2 relative z-10 min-h-0">
+                    <div className="flex-1 flex items-end gap-3 px-2 relative z-10 min-h-0">
                        {[40, 70, 45, 90, 65, 80, 50, 85, 60, 95, 75, 85, 60, 40, 55, 70, 90, 100, 80, 60, 85, 45, 75, 90, 60, 70, 50, 80, 65, 40].map((h, i) => (
                          <motion.div 
                            key={i} 
                            initial={{ height: 0 }}
                            whileInView={{ height: `${h}%` }}
-                           whileHover={{ scaleY: 1.1, backgroundColor: 'var(--primary)' }}
+                           whileHover={{ scaleY: 1.05, backgroundColor: 'var(--primary)', opacity: 1 }}
                            transition={{ 
-                             height: { delay: i * 0.02, duration: 0.8, ease: [0.16, 1, 0.3, 1] },
+                             height: { delay: i * 0.02, duration: 1, ease: [0.16, 1, 0.3, 1] },
                              scaleY: { duration: 0.2 }
                            }}
-                           className="flex-1 bg-primary/20 rounded-full cursor-pointer transition-colors" 
+                           className="flex-1 bg-primary/10 rounded-full cursor-pointer transition-all duration-300 opacity-60" 
                          />
                        ))}
                     </div>
 
-                    <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-[0.02] pointer-events-none" />
+                    {/* Grid Overlay for realism */}
+                    <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-[0.03] pointer-events-none" />
                  </motion.div>
               </div>
            </div>
@@ -735,13 +733,13 @@ export default function LandingPage({ featuredEvents = [] }: { featuredEvents?: 
       </section>
 
       {/* INTEGRATION VISUALIZATION */}
-      <section className="py-40 relative bg-background/50 overflow-hidden">
+      <section className="py-24 relative bg-background/50 overflow-hidden">
         <div className="container mx-auto px-10 text-center">
-           <h2 className="text-6xl md:text-9xl font-display font-bold tracking-tighter text-foreground mb-8 leading-[0.95]">
+           <h2 className="text-6xl md:text-[8rem] font-display font-bold tracking-tighter text-foreground mb-8 leading-[0.95]">
               Unified <span className="text-primary italic font-black">Control.</span>
            </h2>
-           <p className="text-lg text-muted-foreground max-w-3xl mx-auto mb-24 font-medium leading-loose opacity-90">
-             Eventra consolidates your stack into a single, high-performance ecosystem, streaming real-time operational data into your mission control.
+           <p className="text-lg text-muted-foreground max-w-3xl mx-auto mb-20 font-medium leading-loose opacity-90">
+             Eventra consolidates your stack into a single, high-performance ecosystem, streaming real-time operational data into your core dashboard.
            </p>
            
            <div className="relative max-w-6xl mx-auto min-h-[500px] flex items-center justify-between gap-12 px-6 md:px-24">
@@ -797,12 +795,12 @@ export default function LandingPage({ featuredEvents = [] }: { featuredEvents?: 
                      initial={{ opacity: 0, x: -30 }}
                      whileInView={{ opacity: 1, x: 0 }}
                      transition={{ delay: i * 0.1, duration: 0.8 }}
-                     className="flex items-center gap-4 bg-background border border-border/60 px-6 py-4 rounded-[1.25rem] shadow-2xl shadow-foreground/[0.02] w-full md:w-64 group hover:border-primary/40 transition-all cursor-default hover:-translate-y-1"
+                     className="flex items-center gap-5 bg-background/80 backdrop-blur-sm border border-border/40 px-8 py-5 rounded-[1.5rem] shadow-2xl ring-1 ring-white/5 w-full md:w-72 group hover:border-primary/40 transition-all cursor-default hover:-translate-y-1"
                    >
-                      <div className={cn("w-10 h-10 rounded-xl bg-muted/50 flex items-center justify-center transition-all duration-500 group-hover:scale-110 group-hover:bg-muted", tool.color)}>
+                      <div className={cn("w-12 h-12 rounded-2xl bg-muted/50 flex items-center justify-center transition-all duration-500 group-hover:scale-110 group-hover:bg-muted border border-border/20", tool.color)}>
                          <tool.icon className="w-5 h-5" />
                       </div>
-                      <span className="font-bold text-foreground text-sm tracking-tight">{tool.label}</span>
+                      <span className="font-black text-foreground text-base tracking-tight uppercase">{tool.label}</span>
                    </motion.div>
                  ))}
               </div>
@@ -810,20 +808,20 @@ export default function LandingPage({ featuredEvents = [] }: { featuredEvents?: 
               {/* Right Side: Central Eventra Hub */}
               <div className="relative z-10 hidden md:block">
                  <motion.div 
-                   animate={{ scale: [1, 1.03, 1] }}
+                   animate={{ scale: [1, 1.02, 1] }}
                    transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-                   className="relative group shadow-[0_0_80px_rgba(var(--primary),0.15)] rounded-[4rem]"
+                   className="relative group rounded-[5rem]"
                  >
-                    <div className="w-48 h-48 rounded-[3.5rem] bg-primary flex items-center justify-center relative overflow-hidden border border-white/10 shadow-2xl">
+                    <div className="w-64 h-64 rounded-[4.5rem] bg-primary flex items-center justify-center relative overflow-hidden border-4 border-white/10 shadow-[0_0_100px_rgba(var(--primary),0.3)]">
                        <Logo 
-                         iconClassName="w-32 h-32 bg-transparent shadow-none p-0" 
+                         iconClassName="w-40 h-48 bg-transparent shadow-none p-0" 
                          className="gap-0" 
                        />
-                       <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent pointer-events-none" />
+                       <div className="absolute inset-0 bg-gradient-to-tr from-white/20 to-transparent pointer-events-none opacity-50" />
                     </div>
                     {/* Animated outer rings */}
-                    <div className="absolute inset-0 -m-4 border border-primary/10 rounded-[4rem] animate-pulse" />
-                    <div className="absolute inset-0 -m-8 border border-primary/5 rounded-[4.5rem] animate-pulse delay-1000" />
+                    <div className="absolute inset-0 -m-6 border-2 border-primary/20 rounded-[5rem] animate-pulse" />
+                    <div className="absolute inset-0 -m-12 border border-primary/10 rounded-[5.5rem] animate-pulse delay-700" />
                  </motion.div>
               </div>
            </div>
@@ -831,14 +829,14 @@ export default function LandingPage({ featuredEvents = [] }: { featuredEvents?: 
       </section>
 
       {/* NETWORK ACTIVITY */}
-      <section id="events" className="py-32 bg-background/50">
+      <section id="events" className="py-24 bg-background/50">
         <div className="container mx-auto px-10">
-           <div className="flex flex-col md:flex-row justify-between items-end mb-20 gap-8">
-              <div className="max-w-2xl">
+           <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-8">
+              <div className="max-w-2xl text-left">
                  <Badge variant="outline" className="mb-4 border-primary/30 bg-primary/10 text-primary rounded-full px-5 py-1.5 text-[11px] uppercase font-black tracking-[0.3em]">Global Mesh Network</Badge>
                  <h2 className="text-5xl md:text-8xl font-display font-bold tracking-tighter text-foreground leading-[1.05]">Live Operations.</h2>
                  <p className="mt-4 text-xl text-muted-foreground font-medium opacity-90 leading-relaxed">
-                   Real-time operational status of event clusters and nodes deployed across the secure Eventra mesh.
+                   Real-time status of event nodes deployed across the secure Eventra global mesh.
                  </p>
               </div>
               <Button size="xl" variant="outline" className="border-border/60 hover:bg-muted rounded-full font-black px-10 h-14 transition-all hover:scale-105 text-lg" asChild>
@@ -846,37 +844,40 @@ export default function LandingPage({ featuredEvents = [] }: { featuredEvents?: 
               </Button>
            </div>
 
-           <div className="grid md:grid-cols-3 gap-8">
+           <div className="grid md:grid-cols-3 gap-10">
              {featuredEvents.length > 0 ? featuredEvents.slice(0, 3).map((event) => (
                <EventCard key={event.id} event={event} />
              )) : (
                [1, 2, 3].map(i => (
-                 <div key={i} className="rounded-[2.5rem] border border-border/60 bg-muted/20 p-8 flex flex-col gap-6 group relative overflow-hidden transition-all hover:border-primary/30 hover:-translate-y-2 shadow-xl hover:shadow-primary/5">
+                 <div key={i} className="rounded-[3rem] border border-border/60 bg-muted/10 p-10 flex flex-col gap-8 group relative overflow-hidden transition-all hover:border-primary/30 hover:-translate-y-2 shadow-xl hover:shadow-primary/5">
                     <div className="flex justify-between items-start">
-                       <div className="w-12 h-12 rounded-2xl bg-background border border-border/60 flex items-center justify-center shadow-sm transition-all duration-500 group-hover:scale-110 group-hover:border-primary/20">
+                       <div className="w-14 h-14 rounded-2xl bg-background border border-border/60 flex items-center justify-center shadow-sm transition-all duration-500 group-hover:scale-110 group-hover:border-primary/20">
                           <Activity className="w-6 h-6 text-muted-foreground group-hover:text-primary transition-colors" />
                        </div>
-                       <div className="px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-[10px] font-black text-primary uppercase tracking-[0.2em]">
+                       <div className="px-5 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[10px] font-black text-emerald-500 uppercase tracking-[0.2em]">
                           Operational
                        </div>
                     </div>
-                    <div className="space-y-4">
-                       <div className="h-4 w-56 bg-muted/50 rounded-full overflow-hidden relative">
+                    <div className="space-y-6">
+                       <div className="h-6 w-full bg-muted/40 rounded-full overflow-hidden relative border border-border/10">
                           <motion.div 
-                            className="absolute inset-0 bg-primary/30 shadow-[0_0_15px_var(--primary)]"
-                            animate={{ x: ['-100%', '100%'] }}
-                            transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                            className="absolute inset-y-0 left-0 bg-primary/40 shadow-[0_0_20px_var(--primary)]"
+                            animate={{ 
+                              x: ['-100%', '100%'],
+                              width: ['20%', '40%', '20%']
+                            }}
+                            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
                           />
                        </div>
-                       <div className="h-3 w-40 bg-muted/30 rounded-full" />
+                       <div className="h-4 w-2/3 bg-muted/20 rounded-full" />
                     </div>
-                    <div className="pt-6 mt-auto border-t border-border/60 flex justify-between items-center text-[10px] font-mono font-black text-muted-foreground/60 uppercase tracking-[0.3em]">
-                       <span>Node_0x{i}F4</span>
-                       <span>Region: US-East-1</span>
+                    <div className="pt-8 mt-auto border-t border-border/60 flex justify-between items-center text-[11px] font-mono font-black text-muted-foreground/50 uppercase tracking-[0.3em]">
+                       <span>Node_0x{i}F4_Sync</span>
+                       <span className="flex items-center gap-2">
+                         <div className="w-1 h-1 rounded-full bg-primary" />
+                         US-East-1
+                       </span>
                     </div>
-                    
-                    {/* Background Grid Pattern */}
-                    <div className="absolute inset-0 -z-10 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'radial-gradient(var(--border) 1px, transparent 0)', backgroundSize: '32px 32px' }} />
                  </div>
                ))
              )}
@@ -885,8 +886,8 @@ export default function LandingPage({ featuredEvents = [] }: { featuredEvents?: 
       </section>
 
       {/* FINAL CTA */}
-      <section className="py-40 relative overflow-hidden border-t border-border/60">
-        <div className="absolute inset-0 bg-primary/10 blur-[150px] rounded-full translate-y-1/2" />
+      <section className="py-32 relative overflow-hidden border-t border-border/60">
+        <div className="absolute inset-0 bg-primary/5 blur-[150px] rounded-full translate-y-1/2" />
         <div className="container mx-auto px-10 relative z-10 text-center space-y-12">
            <motion.div
              initial={{ opacity: 0, scale: 0.9 }}
@@ -897,72 +898,57 @@ export default function LandingPage({ featuredEvents = [] }: { featuredEvents?: 
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-primary"></span>
               </span>
-              <span className="text-[11px] font-black tracking-[0.3em] uppercase text-primary">Free Public Beta v0.1</span>
+              <span className="text-[11px] font-black tracking-[0.3em] uppercase text-primary">Public Beta v0.1_Operational</span>
            </motion.div>
            
-           <h2 className="text-6xl md:text-9xl font-display font-bold tracking-tighter leading-[0.9] text-foreground">Scale your next <br /> <span className="text-primary italic">experience.</span></h2>
+           <h2 className="text-6xl md:text-[9rem] font-display font-bold tracking-tighter leading-[0.9] text-foreground">Scale your next <br /> <span className="text-primary italic">experience.</span></h2>
            
-           <div className="flex flex-col sm:flex-row items-center justify-center gap-6 pt-4">
-              <Button size="xl" className="rounded-full px-14 h-16 bg-primary text-primary-foreground hover:bg-primary/90 font-black text-xl shadow-2xl shadow-primary/20 transition-all hover:scale-105 active:scale-95 shadow-glow border-none" asChild>
+           <div className="flex flex-col sm:flex-row items-center justify-center gap-8 pt-6">
+              <Button size="xl" className="rounded-full px-16 h-16 bg-primary text-primary-foreground hover:bg-primary/90 font-black text-xl shadow-2xl shadow-primary/30 transition-all hover:scale-105 active:scale-95 shadow-glow border-none" asChild>
                  <Link href="/register">Get Started Free</Link>
               </Button>
-              <Link href="#" className="text-muted-foreground hover:text-foreground transition-all flex items-center gap-3 group font-black text-lg px-10 py-4 rounded-full hover:bg-muted">
-                 Contact Sales <ArrowRight className="w-5 h-5 group-hover:translate-x-1.5 transition-transform" />
+              <Link href="#" className="text-muted-foreground hover:text-foreground transition-all flex items-center gap-4 group font-black text-lg px-12 py-4 rounded-full hover:bg-muted ring-1 ring-border/40">
+                 Contact Sales <ArrowRight className="w-5 h-5 group-hover:translate-x-2 transition-transform" />
               </Link>
            </div>
         </div>
       </section>
 
-      <footer className="border-t border-border pt-12 pb-8 bg-background relative z-10">
-        <div className="container mx-auto px-6">
-           <div className="grid grid-cols-2 md:grid-cols-4 gap-12 mb-12">
-              <div className="col-span-2 md:col-span-1 space-y-4">
+      <footer className="border-t border-border/60 pt-16 pb-10 bg-background relative z-10">
+        <div className="container mx-auto px-10">
+           <div className="grid grid-cols-2 md:grid-cols-4 gap-16 mb-16">
+              <div className="col-span-2 md:col-span-1 space-y-6">
                  <Logo showText />
-                 <p className="text-xs text-muted-foreground leading-relaxed max-w-xs font-bold">
-                    Building the infrastructure for the next generation of live experiences.
+                 <p className="text-sm text-muted-foreground leading-relaxed max-w-xs font-bold opacity-70">
+                    Engineered for high-performance delivery of modern live experiences.
                  </p>
               </div>
-              <div className="space-y-4">
-                 <h4 className="text-xs font-black uppercase tracking-widest text-foreground">Product</h4>
-                 <ul className="space-y-2 text-xs text-muted-foreground font-bold">
-                    <li><Link href="#" className="hover:text-primary transition-colors">Features</Link></li>
-                    <li><Link href="#" className="hover:text-primary transition-colors">Ecosystem</Link></li>
-                    <li><Link href="#" className="hover:text-primary transition-colors">Integrations</Link></li>
-                 </ul>
-              </div>
-              <div className="space-y-4">
-                 <h4 className="text-xs font-black uppercase tracking-widest text-foreground">Company</h4>
-                 <ul className="space-y-2 text-xs text-muted-foreground font-bold">
-                    <li><Link href="#" className="hover:text-primary transition-colors">About</Link></li>
-                    <li><Link href="#" className="hover:text-white transition-colors">Blog</Link></li>
-                    <li><Link href="#" className="hover:text-white transition-colors">Careers</Link></li>
-                 </ul>
-              </div>
-              <div className="space-y-4">
-                 <h4 className="text-xs font-black uppercase tracking-widest text-foreground">Support</h4>
-                 <ul className="space-y-2 text-xs text-muted-foreground font-bold">
-                    <li><Link href="#" className="hover:text-white transition-colors">Documentation</Link></li>
-                    <li><Link href="#" className="hover:text-white transition-colors">Help Center</Link></li>
-                    <li><Link href="#" className="hover:text-white transition-colors">Privacy</Link></li>
-                 </ul>
-              </div>
+              {['Product', 'Company', 'Support'].map((cat) => (
+                <div key={cat} className="space-y-6">
+                   <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-foreground opacity-50">{cat}</h4>
+                   <ul className="space-y-4 text-xs text-muted-foreground font-black uppercase tracking-widest">
+                      {['Features', 'Ecosystem', 'Network'].map((item) => (
+                        <li key={item}><Link href="#" className="hover:text-primary transition-colors">{item}</Link></li>
+                      ))}
+                   </ul>
+                </div>
+              ))}
            </div>
            
-           <div className="pt-6 border-t border-border flex flex-col md:flex-row items-center justify-between gap-6">
-              <div className="flex items-center gap-8 text-[10px] font-black text-muted-foreground uppercase tracking-widest">
-                 <span>© 2026 Eventra Inc.</span>
-                 <div className="flex items-center gap-2">
+           <div className="pt-10 border-t border-border/40 flex flex-col md:flex-row items-center justify-between gap-8">
+              <div className="flex items-center gap-10 text-[9px] font-black text-muted-foreground/60 uppercase tracking-[0.4em]">
+                 <span>© 2026 Eventra Protocol Inc.</span>
+                 <div className="flex items-center gap-2.5">
                     <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full shadow-glow" />
-                    <span>All Systems Operational</span>
+                    <span className="text-emerald-500/80">Systems_Nominal</span>
                  </div>
               </div>
               <div className="flex gap-6">
-                 <div className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted transition-colors cursor-pointer text-muted-foreground hover:text-foreground">
-                    <Globe className="w-4 h-4" />
-                 </div>
-                 <div className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted transition-colors cursor-pointer text-muted-foreground hover:text-foreground">
-                    <Terminal className="w-4 h-4" />
-                 </div>
+                 {[Globe, Terminal, MessageSquare].map((Icon, i) => (
+                   <div key={i} className="w-10 h-10 rounded-2xl border border-border/40 flex items-center justify-center hover:bg-muted transition-all cursor-pointer text-muted-foreground hover:text-primary shadow-sm hover:-translate-y-1">
+                      <Icon className="w-4 h-4" />
+                   </div>
+                 ))}
               </div>
            </div>
         </div>

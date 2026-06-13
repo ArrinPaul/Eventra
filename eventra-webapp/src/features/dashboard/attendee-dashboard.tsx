@@ -34,6 +34,8 @@ import { getUserRegistrations } from '@/app/actions/registrations';
 import { getEvents } from '@/app/actions/events';
 import { getActivityFeed } from '@/app/actions/feed';
 
+import { QRCodeSVG } from 'qrcode.react';
+
 export default function AttendeeDashboard() {
   const { user } = useAuth();
   const t = useTranslations('Dashboard');
@@ -69,7 +71,7 @@ export default function AttendeeDashboard() {
 
   if (loading) {
     return (
-      <div className="flex h-full items-center justify-center py-40">
+      <div className="flex h-[80vh] items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div className="w-10 h-10 rounded-full border-2 border-notion-hairline border-t-notion-primary animate-spin" />
           <p className="text-body-sm text-notion-ink-muted">Syncing with mesh...</p>
@@ -81,7 +83,7 @@ export default function AttendeeDashboard() {
   const upcomingEvent = registrations.length > 0 ? registrations[0].event : null;
 
   return (
-    <div className="max-w-7xl mx-auto space-y-12 pb-20">
+    <div className="w-full max-w-7xl mx-auto space-y-10 pb-20 px-4 md:px-0">
       {/* HEADER SECTION */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 border-b border-notion-hairline pb-8">
         <div className="space-y-4">
@@ -113,7 +115,7 @@ export default function AttendeeDashboard() {
           { label: 'Node Level', value: user.level || 1, icon: Zap, color: 'text-notion-accent-teal' },
           { label: 'Syncs', value: registrations.filter((r: any) => r.ticket.status === 'checked-in').length, icon: Activity, color: 'text-notion-accent-green' },
         ].map((stat, i) => (
-          <Card key={i} className="p-6 hover:shadow-notion-soft transition-shadow border-notion-hairline">
+          <Card key={i} className="p-6 hover:shadow-notion-soft transition-shadow border-notion-hairline bg-white dark:bg-zinc-950">
             <div className="flex items-center gap-4">
               <div className="w-10 h-10 rounded-lg bg-notion-canvas-soft flex items-center justify-center">
                 <stat.icon className={cn("w-5 h-5", stat.color)} />
@@ -127,8 +129,8 @@ export default function AttendeeDashboard() {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-        <div className="lg:col-span-2 space-y-12">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+        <div className="lg:col-span-2 space-y-10">
           
           {/* UP NEXT HERO */}
           <section className="space-y-6">
@@ -136,7 +138,7 @@ export default function AttendeeDashboard() {
                <h2 className="text-h2">Next mission</h2>
             </div>
             {upcomingEvent ? (
-              <Card variant="elevated-hover" className="overflow-hidden group cursor-pointer border-notion-hairline">
+              <Card variant="elevated-hover" className="overflow-hidden group cursor-pointer border-notion-hairline bg-white dark:bg-zinc-950">
                 <Link href={`/events/${upcomingEvent.id}`}>
                   <div className="grid md:grid-cols-5 h-full">
                     <div className="md:col-span-3 p-10 flex flex-col justify-between space-y-8">
@@ -183,7 +185,7 @@ export default function AttendeeDashboard() {
                 </Link>
               </Card>
             ) : (
-              <Card variant="soft" className="p-20 text-center border-dashed border-2 border-notion-hairline">
+              <Card variant="soft" className="p-20 text-center border-dashed border-2 border-notion-hairline bg-white/50 dark:bg-zinc-950/50 backdrop-blur-sm">
                  <div className="max-w-xs mx-auto space-y-4">
                     <div className="w-12 h-12 rounded-lg bg-notion-canvas flex items-center justify-center mx-auto shadow-notion-soft">
                        <Calendar className="w-6 h-6 text-notion-ink-muted" />
@@ -219,7 +221,7 @@ export default function AttendeeDashboard() {
               <div className="flex gap-6">
                 {featuredEvents.map((event: any) => (
                   <Link key={event.id} href={`/events/${event.id}`} className="group block w-72 shrink-0">
-                    <Card className="p-0 overflow-hidden hover:shadow-notion-soft transition-shadow border-notion-hairline">
+                    <Card className="p-0 overflow-hidden hover:shadow-notion-soft transition-shadow border-notion-hairline bg-white dark:bg-zinc-950">
                       <div className="aspect-video relative overflow-hidden bg-notion-canvas-soft">
                         {event.imageUrl ? (
                           <Image
@@ -260,7 +262,7 @@ export default function AttendeeDashboard() {
           <ReferralSystem />
 
           {/* Digital Pass */}
-          <Card className="p-8 space-y-8 border-notion-hairline relative overflow-hidden bg-notion-surface">
+          <Card className="p-8 space-y-8 border-notion-hairline relative overflow-hidden bg-white dark:bg-zinc-950">
                <div className="absolute top-0 right-0 w-32 h-32 bg-notion-primary/5 blur-[40px] rounded-full -mr-16 -mt-16" />
                <div className="space-y-2 relative z-10">
                   <Badge variant="outline" className="text-notion-primary border-notion-primary/20">
@@ -272,8 +274,21 @@ export default function AttendeeDashboard() {
                <div className="flex flex-col items-center relative z-10">
                   {registrations && registrations.length > 0 ? (
                     <>
-                      <div className="bg-notion-ink p-6 rounded-xl mb-8 shadow-notion-elevated">
-                        <QrCode className="w-28 h-28 text-notion-canvas" />
+                      <div className="bg-white p-4 rounded-2xl mb-8 shadow-2xl ring-1 ring-black/5">
+                        <QRCodeSVG 
+                          value={registrations[0].ticket.ticketNumber || 'EV-000-000'}
+                          size={160}
+                          level="H"
+                          includeMargin={false}
+                          imageSettings={{
+                            src: "/logo-icon.png", // Assuming we have a small icon
+                            x: undefined,
+                            y: undefined,
+                            height: 24,
+                            width: 24,
+                            excavate: true,
+                          }}
+                        />
                       </div>
                       <div className="w-full space-y-6 text-center">
                         <div className="space-y-1">
