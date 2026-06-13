@@ -72,11 +72,9 @@ export function EngagementMetrics({ userId }: EngagementMetricsProps) {
                   <span className="text-notion-ink">92% to next level</span>
                 </div>
                 <div className="h-2.5 w-full bg-notion-canvas-soft rounded-full overflow-hidden border border-notion-hairline shadow-inner">
-                   <motion.div 
-                     initial={{ width: 0 }}
-                     whileInView={{ width: `${data.percentile}%` }}
-                     transition={{ duration: 1.5, ease: "easeOut" }}
-                     className="h-full bg-gradient-to-r from-notion-primary to-notion-accent-sky shadow-sm" 
+                   <div 
+                     style={{ width: `${data.percentile}%` }}
+                     className="h-full bg-gradient-to-r from-notion-primary to-notion-accent-sky shadow-sm transition-all duration-1000" 
                    />
                 </div>
              </div>
