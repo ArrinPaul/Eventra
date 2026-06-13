@@ -9,6 +9,12 @@ import { cn } from '@/core/utils/utils';
 import { motion } from 'framer-motion';
 import { Logo } from '@/components/brand/logo';
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import {
   LayoutDashboard,
   Calendar,
   BarChart3,

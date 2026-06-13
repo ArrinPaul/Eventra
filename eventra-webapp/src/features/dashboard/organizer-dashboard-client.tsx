@@ -88,7 +88,7 @@ export default function OrganizerDashboard() {
       <div className="flex h-full items-center justify-center py-40">
         <div className="flex flex-col items-center gap-4">
           <div className="w-10 h-10 rounded-full border-2 border-notion-hairline border-t-notion-primary animate-spin" />
-          <p className="text-body-sm text-notion-ink-muted">Syncing mission control...</p>
+          <p className="text-body-sm text-notion-ink-muted">Loading dashboard...</p>
         </div>
       </div>
     );
@@ -100,25 +100,25 @@ export default function OrganizerDashboard() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 border-b border-notion-hairline pb-8">
         <div className="space-y-4">
            <Badge variant="outline" className="text-notion-primary border-notion-primary/20 bg-notion-primary/5">
-             Command Center
+             Organizer Dashboard
            </Badge>
            <h1 className="text-display-2 leading-none">
-             Mission <span className="text-notion-primary italic">Control.</span>
+             Event <span className="text-notion-primary italic">Dashboard.</span>
            </h1>
            <p className="text-body-md text-notion-ink-secondary max-w-xl">
-             Manage your active campaigns, analyze reach, and coordinate operations.
+             Manage your events, analyze attendee reach, and coordinate operations.
            </p>
         </div>
         <Button asChild variant="primary" size="lg" className="h-12 shadow-notion-elevated">
-          <Link href="/events/create"><Plus className="mr-2 h-4 w-4" /> New Mission</Link>
+          <Link href="/events/create"><Plus className="mr-2 h-4 w-4" /> Create Event</Link>
         </Button>
       </div>
 
       {/* KPI STATS */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {[
-          { label: 'Active Campaigns', value: managedEvents.length, icon: Calendar, color: 'text-notion-primary' },
-          { label: 'Total Reach', value: totalRegistrations.toLocaleString(), icon: Users, color: 'text-notion-accent-teal' },
+          { label: 'Active Events', value: managedEvents.length, icon: Calendar, color: 'text-notion-primary' },
+          { label: 'Total Registrations', value: totalRegistrations.toLocaleString(), icon: Users, color: 'text-notion-accent-teal' },
         ].map((stat, i) => (
           <Card key={i} className="p-8 hover:shadow-notion-soft transition-shadow border-notion-hairline relative overflow-hidden bg-notion-surface">
             <div className="absolute top-0 right-0 w-32 h-32 bg-notion-primary/5 blur-[40px] rounded-full -mr-16 -mt-16" />
@@ -143,7 +143,7 @@ export default function OrganizerDashboard() {
       {/* TABS INTERFACE */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
         <TabsList className="bg-transparent border-b border-notion-hairline w-full justify-start rounded-none h-auto p-0 gap-8">
-          {['events', 'insights', 'feedback', 'team'].map(tab => (
+          {['events', 'analytics', 'feedback', 'team'].map(tab => (
             <TabsTrigger 
               key={tab} 
               value={tab} 
@@ -159,13 +159,13 @@ export default function OrganizerDashboard() {
             <div className="p-6 border-b border-notion-hairline bg-notion-canvas-soft/30">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div className="space-y-1">
-                  <h3 className="text-title font-bold">Active Nodes</h3>
-                  <p className="text-body-sm text-notion-ink-muted">{managedEvents.length} distinct experiences</p>
+                  <h3 className="text-title font-bold">Active Events</h3>
+                  <p className="text-body-sm text-notion-ink-muted">{managedEvents.length} events</p>
                 </div>
                 <div className="relative w-full md:w-80">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-notion-ink-faint" />
                   <Input
-                    placeholder="Search mission codes..."
+                    placeholder="Search events..."
                     className="pl-10"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
@@ -188,7 +188,7 @@ export default function OrganizerDashboard() {
                         {event.organizerId !== user?.id && <Badge variant="secondary" className="text-[10px] py-0">Partner</Badge>}
                       </div>
                       <div className="flex flex-wrap items-center gap-4 text-caption text-notion-ink-muted">
-                        <span className="flex items-center gap-1.5"><Users size={12} className="text-notion-primary" /> {event.registeredCount || 0} Syncs</span>
+                        <span className="flex items-center gap-1.5"><Users size={12} className="text-notion-primary" /> {event.registeredCount || 0} Registrations</span>
                         <span className="flex items-center gap-1.5"><MapPin size={12} className="text-notion-primary" /> {typeof event.location === 'string' ? event.location : event.location?.venue || 'Virtual'}</span>
                         <Badge variant="secondary" className={cn(
                            "text-[10px] py-0 px-2 border-none",
@@ -217,11 +217,11 @@ export default function OrganizerDashboard() {
                      <Calendar className="w-8 h-8 text-notion-ink-faint" />
                   </div>
                   <div className="space-y-1">
-                     <h3 className="text-title font-bold">No missions found.</h3>
-                     <p className="text-body-sm text-notion-ink-muted max-w-xs mx-auto">Your search didn't match any active nodes or you haven't initialized any yet.</p>
+                     <h3 className="text-title font-bold">No events found.</h3>
+                     <p className="text-body-sm text-notion-ink-muted max-w-xs mx-auto">Your search didn't match any active events or you haven't created any yet.</p>
                   </div>
                   <Button asChild variant="primary" className="mt-4">
-                    <Link href="/events/create">Initialize First Node</Link>
+                    <Link href="/events/create">Create Your First Event</Link>
                   </Button>
                 </div>
               )}
@@ -229,7 +229,7 @@ export default function OrganizerDashboard() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="insights" className="m-0">
+        <TabsContent value="analytics" className="m-0">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {managedEvents.map(event => (
               <Card key={event.id} className="p-8 border-notion-hairline hover:shadow-notion-soft transition-all cursor-pointer group flex flex-col justify-between min-h-[280px] bg-notion-surface">
@@ -238,14 +238,14 @@ export default function OrganizerDashboard() {
                     <div className="w-12 h-12 rounded-lg bg-notion-accent-purple/10 flex items-center justify-center text-notion-accent-purple group-hover:scale-110 transition-transform">
                       <BrainCircuit size={24} />
                     </div>
-                    <Badge variant="sticker">Neural Link Ready</Badge>
+                    <Badge variant="sticker">Analytics Ready</Badge>
                   </div>
                   <h3 className="text-title font-bold truncate text-notion-ink group-hover:text-notion-primary transition-colors">{event.title}</h3>
-                  <p className="text-caption text-notion-ink-muted uppercase font-bold">Predictive Analytics Stream Active</p>
+                  <p className="text-caption text-notion-ink-muted uppercase font-bold">Event Analytics Active</p>
                 </div>
                 <div className="pt-6 mt-auto border-t border-notion-hairline">
                   <Button variant="link" className="text-notion-primary font-bold p-0 h-auto text-eyebrow uppercase group-hover:translate-x-1 transition-transform" asChild>
-                    <Link href={`/organizer/insights/${event.id}`}>Analyze Intel <ChevronRight size={12} className="ml-1" /></Link>
+                    <Link href={`/organizer/insights/${event.id}`}>View Analytics <ChevronRight size={12} className="ml-1" /></Link>
                   </Button>
                 </div>
               </Card>

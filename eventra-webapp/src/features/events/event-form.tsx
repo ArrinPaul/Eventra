@@ -63,11 +63,10 @@ export function EventForm({ onSave, event }: EventFormProps) {
     
     setUploading(true);
     try {
-      const resizedFile = await resizeImage(file, 800, 800);
-      const storageId = await uploadFile(resizedFile);
+      const storageId = await uploadFile(file);
       setImageUrl(`/api/storage/${storageId}`);
     } catch (err) {
-      console.error('Resize/Upload failed:', err);
+      console.error('Upload failed:', err);
       setImageUrl(URL.createObjectURL(file));
     } finally {
       setUploading(false);
@@ -128,12 +127,12 @@ export function EventForm({ onSave, event }: EventFormProps) {
   return (
     <Card className="max-w-4xl mx-auto border-none shadow-2xl">
       <CardHeader className="p-10 pb-0 space-y-4">
-        <Badge variant="outline" className="w-fit">Mission Initialization</Badge>
+        <Badge variant="outline" className="w-fit">Event Setup</Badge>
         <CardTitle className="text-4xl md:text-5xl tracking-tighter">
           Event <span className="text-primary italic">Configuration.</span>
         </CardTitle>
         <CardDescription className="text-lg font-medium">
-          Define the parameters for your next experience node.
+          Define the details for your next event.
         </CardDescription>
       </CardHeader>
       <CardContent className="p-10">
@@ -141,14 +140,14 @@ export function EventForm({ onSave, event }: EventFormProps) {
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-10">
             {/* Image Upload */}
             <div className="space-y-4">
-              <label className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground ml-1">Event Visual Node</label>
+              <label className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground ml-1">Event Image</label>
               <div className="relative group">
                 {imageUrl ? (
                   <div className="relative w-full h-80 rounded-[2rem] overflow-hidden border-2 border-border/60 bg-muted/20 group-hover:border-primary/30 transition-all duration-500 shadow-xl">
                     <Image src={imageUrl} alt="Event" fill className="object-cover group-hover:scale-105 transition-transform duration-700" unoptimized={imageUrl.startsWith('blob:') || imageUrl.startsWith('data:')} />
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm">
                        <Button type="button" variant="outline" className="bg-background/20 text-white border-white/20 hover:bg-background/40" onClick={() => { setImageUrl(null); if (fileInputRef.current) fileInputRef.current.value = ''; }}>
-                         Change Asset
+                         Change Image
                        </Button>
                     </div>
                   </div>
@@ -158,7 +157,7 @@ export function EventForm({ onSave, event }: EventFormProps) {
                       {uploading ? <Loader2 className="h-8 w-8 animate-spin text-primary" /> : <ImagePlus className="h-8 w-8 text-muted-foreground" />}
                     </div>
                     <div className="text-center space-y-1">
-                      <p className="font-bold text-foreground">Upload Experience Key Visual</p>
+                      <p className="font-bold text-foreground">Upload Event Image</p>
                       <p className="text-xs text-muted-foreground font-medium uppercase tracking-widest">Supports JPG, PNG, WEBP • Max 5MB</p>
                     </div>
                   </button>
@@ -170,8 +169,8 @@ export function EventForm({ onSave, event }: EventFormProps) {
             <div className="space-y-8">
               <FormField control={form.control} name="title" render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground ml-1">Mission Title</FormLabel>
-                  <FormControl><Input placeholder="Enter the name of your experience..." {...field} /></FormControl>
+                  <FormLabel className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground ml-1">Event Title</FormLabel>
+                  <FormControl><Input placeholder="Enter event name..." {...field} /></FormControl>
                   <FormMessage />
                 </FormItem>
               )}/>
@@ -179,14 +178,14 @@ export function EventForm({ onSave, event }: EventFormProps) {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <FormField control={form.control} name="date" render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground ml-1">Start Date</FormLabel>
+                    <FormLabel className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground ml-1">Date</FormLabel>
                     <FormControl><Input type="date" {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )}/>
                 <FormField control={form.control} name="time" render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground ml-1">Launch Time</FormLabel>
+                    <FormLabel className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground ml-1">Time</FormLabel>
                     <FormControl><Input type="time" {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
@@ -195,7 +194,7 @@ export function EventForm({ onSave, event }: EventFormProps) {
 
               <FormField control={form.control} name="location" render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground ml-1">Operational Coordinate</FormLabel>
+                  <FormLabel className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground ml-1">Location</FormLabel>
                   <FormControl><Input placeholder="Venue name or virtual link..." {...field} /></FormControl>
                   <FormMessage />
                 </FormItem>
@@ -204,7 +203,7 @@ export function EventForm({ onSave, event }: EventFormProps) {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <FormField control={form.control} name="category" render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground ml-1">Node Category</FormLabel>
+                    <FormLabel className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground ml-1">Category</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl>
                       <SelectContent>
@@ -222,13 +221,13 @@ export function EventForm({ onSave, event }: EventFormProps) {
                 )}/>
                 <FormField control={form.control} name="targetAudience" render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground ml-1">Target Persona</FormLabel>
+                    <FormLabel className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground ml-1">Target Audience</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl>
                       <SelectContent>
                         <SelectItem value="Student">Student</SelectItem>
                         <SelectItem value="Professional">Professional</SelectItem>
-                        <SelectItem value="Both">Both Persona</SelectItem>
+                        <SelectItem value="Both">Both</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -239,19 +238,19 @@ export function EventForm({ onSave, event }: EventFormProps) {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <FormField control={form.control} name="capacity" render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground ml-1">Max Syncs</FormLabel>
+                    <FormLabel className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground ml-1">Capacity</FormLabel>
                     <FormControl><Input type="number" min={1} {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )}/>
                 <FormField control={form.control} name="status" render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground ml-1">Mission Status</FormLabel>
+                    <FormLabel className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground ml-1">Status</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl>
                       <SelectContent>
-                        <SelectItem value="draft">Draft Node</SelectItem>
-                        <SelectItem value="published">Initialize Live</SelectItem>
+                        <SelectItem value="draft">Draft</SelectItem>
+                        <SelectItem value="published">Publish Live</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -259,13 +258,13 @@ export function EventForm({ onSave, event }: EventFormProps) {
                 )}/>
                 <FormField control={form.control} name="type" render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground ml-1">Environment</FormLabel>
+                    <FormLabel className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground ml-1">Event Type</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl>
                       <SelectContent>
-                        <SelectItem value="physical">Physical Node</SelectItem>
-                        <SelectItem value="virtual">Virtual Mesh</SelectItem>
-                        <SelectItem value="hybrid">Hybrid Protocol</SelectItem>
+                        <SelectItem value="physical">Physical</SelectItem>
+                        <SelectItem value="virtual">Virtual</SelectItem>
+                        <SelectItem value="hybrid">Hybrid</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -275,14 +274,14 @@ export function EventForm({ onSave, event }: EventFormProps) {
 
               <FormField control={form.control} name="description" render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground ml-1">Mission Briefing</FormLabel>
-                  <FormControl><Textarea placeholder="Describe the experience goals and value proposition..." {...field} /></FormControl>
+                  <FormLabel className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground ml-1">Description</FormLabel>
+                  <FormControl><Textarea placeholder="Describe your event..." {...field} /></FormControl>
                   <FormMessage />
                 </FormItem>
               )}/>
             </div>
 
-            <Button type="submit" size="xl" className="w-full shadow-glow">Initialize Experience Node</Button>
+            <Button type="submit" size="xl" className="w-full shadow-glow">Create Event</Button>
           </form>
         </Form>
       </CardContent>

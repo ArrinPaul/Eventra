@@ -25,6 +25,7 @@ export default {
     extend: {
       fontFamily: {
         sans: ['var(--font-inter)', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        display: ['var(--font-inter)', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
       },
       fontSize: {
         'display-1': ['64px', { lineHeight: '1.0', letterSpacing: '-2.125px', fontWeight: '700' }],
@@ -104,6 +105,7 @@ export default {
       boxShadow: {
         'notion-soft': 'rgba(0,0,0,0.01) 0 0.175px 1.041px, rgba(0,0,0,0.02) 0 0.8px 2.925px, rgba(0,0,0,0.027) 0 2.025px 7.847px, rgba(0,0,0,0.04) 0 4px 18px',
         'notion-elevated': 'rgba(0,0,0,0.02) 0 1px 2px, rgba(0,0,0,0.03) 0 2px 4px, rgba(0,0,0,0.04) 0 4px 8px, rgba(0,0,0,0.05) 0 8px 16px, rgba(0,0,0,0.05) 0 23px 52px',
+        glow: '0 0 40px -10px var(--tw-shadow-color)',
       },
       spacing: {
         xxs: '4px',

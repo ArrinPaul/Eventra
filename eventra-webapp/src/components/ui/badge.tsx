@@ -15,6 +15,7 @@ const badgeVariants = cva(
         success: "border-transparent bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-100",
         warning: "border-transparent bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-100",
         sticker: "border-transparent bg-notion-accent-sky/20 text-notion-accent-sky",
+        glass: "border-white/20 bg-black/60 backdrop-blur-xl text-white",
       },
     },
     defaultVariants: {

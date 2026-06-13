@@ -18,6 +18,7 @@ import { ChartContainer, ChartTooltipContent } from '@/components/ui/chart';
 import { ExportButton } from '@/components/shared/export-button';
 import { cn } from '@/core/utils/utils';
 import { getOrganizerRevenueDashboard } from '@/app/actions/analytics';
+import { format } from 'date-fns';
 
 const COLORS = ['#0075de', '#62aef0', '#d6b6f6', '#ff64c8', '#2a9d99'];
 

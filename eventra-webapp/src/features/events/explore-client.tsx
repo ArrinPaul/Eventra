@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Filter, Calendar, MapPin, Clock, Users, ArrowRight, ChevronDown, X, Zap } from 'lucide-react';
+import { Search, Filter, Calendar, MapPin, Clock, Users, ArrowRight, ChevronDown, X, Zap, ZapOff } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';

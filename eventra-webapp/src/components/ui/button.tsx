@@ -17,6 +17,7 @@ const buttonVariants = cva(
         link: "text-notion-primary underline-offset-4 hover:underline",
         outline: "bg-transparent border border-notion-hairline text-notion-ink rounded-full hover:bg-notion-canvas-soft",
         destructive: "bg-red-600 text-white rounded-md hover:bg-red-700",
+        soft: "bg-notion-canvas-soft text-notion-ink hover:bg-notion-hairline",
       },
       size: {
         default: "h-11 px-6",
@@ -24,6 +25,7 @@ const buttonVariants = cva(
         lg: "h-12 px-8 text-title",
         icon: "h-10 w-10 rounded-full bg-black/5 hover:bg-black/10",
         pill: "h-8 px-3 text-eyebrow rounded-full",
+        xl: "h-14 px-10 text-lg",
       },
     },
     defaultVariants: {

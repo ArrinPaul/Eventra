@@ -135,3 +135,32 @@
 ::-webkit-scrollbar-thumb {
   @apply bg-notion-hairline border-[3px] border-solid border-transparent bg-clip-padding rounded-full hover:bg-notion-ink-faint transition-colors;
 }
+
+/* Legacy Utility classes - Linear/Vercel Inspired for Landing Page */
+@layer utilities {
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-b from-white via-white to-white/70;
+  }
+  
+  .glass {
+    @apply bg-black/60 backdrop-blur-xl border border-white/20;
+  }
+  
+  .glass-card {
+    @apply bg-background/40 backdrop-blur-md border border-border/40 shadow-2xl;
+  }
+
+  .premium-bg {
+    @apply relative overflow-hidden;
+  }
+  
+  .premium-bg::before {
+    content: '';
+    @apply absolute inset-0 -z-10 opacity-30 pointer-events-none;
+    background: radial-gradient(circle at 50% -20%, hsla(var(--notion-primary), 0.12) 0%, transparent 60%);
+  }
+
+  .mesh-glow {
+    background: radial-gradient(circle at 50% -10%, hsla(var(--notion-primary), 0.08) 0%, transparent 70%);
+  }
+}

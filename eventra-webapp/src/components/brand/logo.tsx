@@ -20,7 +20,7 @@ export function Logo({ className, iconClassName, showText = false }: LogoProps) 
         <svg 
           viewBox="0 0 24 24" 
           fill="none" 
-          className="w-full h-full text-notion-primary"
+          className="w-full h-full"
         >
           <motion.path
             d="M4 4H20V8H8V12H18V16H8V20H20V24H4V4Z"
