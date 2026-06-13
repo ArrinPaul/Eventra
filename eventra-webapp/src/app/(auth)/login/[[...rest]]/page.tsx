@@ -4,24 +4,23 @@ import { SignIn } from "@clerk/nextjs";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { Logo } from "@/components/brand/logo";
-import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
 
 const AUTH_APPEARANCE = {
   elements: {
-    rootBox: "w-full",
-    card: "bg-transparent border-none shadow-none p-0",
-    headerTitle: "hidden",
-    headerSubtitle: "hidden",
+    rootBox: "w-full flex justify-center",
+    card: "w-full bg-muted/30 backdrop-blur-xl border border-border/70 rounded-[2.5rem] shadow-2xl p-8 md:p-12 ring-1 ring-white/5",
+    headerTitle: "text-2xl font-display font-bold tracking-tight text-foreground",
+    headerSubtitle: "text-muted-foreground text-sm font-medium leading-relaxed",
     socialButtonsBlockButton:
       "h-12 rounded-2xl border border-border/70 bg-background/80 hover:bg-muted transition-all text-foreground font-bold uppercase tracking-[0.2em] text-[10px] shadow-sm",
     socialButtonsBlockButtonText: "font-bold text-foreground",
-    dividerRow: "py-8",
+    dividerRow: "py-6",
     dividerLine: "bg-border/70",
     dividerText:
-      "text-[9px] uppercase font-black tracking-[0.4em] text-muted-foreground/60 px-6 bg-transparent",
+      "text-[9px] uppercase font-black tracking-[0.4em] text-muted-foreground/60 px-4 bg-transparent",
     formFieldLabel:
-      "text-[10px] uppercase font-black tracking-[0.2em] text-muted-foreground mb-3 ml-1",
+      "text-[10px] uppercase font-black tracking-[0.2em] text-muted-foreground mb-2 ml-1",
     formFieldInput:
       "h-12 rounded-2xl border border-border/60 bg-background/80 focus:bg-background focus:ring-4 focus:ring-primary/10 focus:border-primary/60 transition-all text-foreground px-5 text-sm font-medium",
     formButtonPrimary:
@@ -39,7 +38,7 @@ const AUTH_APPEARANCE = {
 
 export default function LoginPage() {
   return (
-    <div className="relative min-h-screen overflow-hidden bg-background text-foreground selection:bg-primary/30 selection:text-primary flex flex-col items-center justify-center p-6 md:p-12">
+    <div className="relative min-h-screen overflow-hidden bg-background text-foreground grid place-items-center p-6 md:p-12">
       {/* BACKGROUND ELEMENTS */}
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute -top-40 left-1/2 h-[520px] w-[520px] -translate-x-1/2 rounded-full bg-primary/20 blur-3xl" />
@@ -58,38 +57,27 @@ export default function LoginPage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="relative z-10 w-full max-w-xl flex flex-col items-center gap-12"
+        className="relative z-10 w-full max-w-[480px] flex flex-col items-center gap-10"
       >
         <Link href="/" className="flex flex-col items-center gap-4 group transition-transform hover:scale-105">
           <Logo iconClassName="w-12 h-12" />
           <span className="font-display font-bold tracking-tighter text-3xl">Eventra</span>
         </Link>
 
-        <div className="w-full rounded-[3rem] border border-border/70 bg-muted/30 backdrop-blur-xl p-8 md:p-16 shadow-2xl ring-1 ring-white/5">
-          <div className="space-y-4 text-center mb-10">
-            <Badge className="w-fit rounded-full border-primary/30 bg-primary/10 text-primary uppercase text-[10px] font-bold tracking-[0.2em] px-4 py-1">       
-              System Access
-            </Badge>
-            <h2 className="text-3xl md:text-4xl font-display font-bold tracking-tight">Welcome Back</h2>
-            <p className="text-muted-foreground text-sm md:text-base font-medium max-w-sm mx-auto leading-relaxed">
-              Authenticate to continue your mission within the ecosystem.
-            </p>
-          </div>
-
-          <div className="mt-8">
-            <SignIn path="/login" appearance={AUTH_APPEARANCE} />
-          </div>
-
-          <div className="mt-12 border-t border-border/60 pt-8 flex justify-center">
-            <Link
-              href="/"
-              className="inline-flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.3em] text-muted-foreground hover:text-foreground transition-all group"
-            >
-              <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
-              Return to mission control
-            </Link>
-          </div>
+        <div className="w-full flex justify-center">
+           <SignIn 
+             path="/login" 
+             appearance={AUTH_APPEARANCE} 
+           />
         </div>
+
+        <Link
+          href="/"
+          className="inline-flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.3em] text-muted-foreground hover:text-foreground transition-all group"
+        >
+          <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
+          Return to home
+        </Link>
 
         <div className="flex gap-8 text-[9px] font-black uppercase tracking-[0.3em] text-muted-foreground/60">
           <span className="flex items-center gap-2">

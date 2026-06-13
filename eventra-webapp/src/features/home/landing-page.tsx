@@ -414,13 +414,17 @@ export default function LandingPage({ featuredEvents = [] }: { featuredEvents?: 
                    { i: Bot, l: "AI Agent" },
                    { i: Globe, l: "Network" }
                  ].map((item, i) => (
-                   <div key={i} className={cn(
-                     "flex items-center gap-4 px-4 py-3 rounded-xl transition-all cursor-pointer group/nav",
-                     item.a ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20" : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                   )}>
+                   <motion.div 
+                     key={i} 
+                     whileHover={{ x: 4 }}
+                     className={cn(
+                       "flex items-center gap-4 px-4 py-3 rounded-xl transition-all cursor-pointer group/nav",
+                       item.a ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20" : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                     )}
+                   >
                       <item.i className="w-5 h-5 shrink-0" />
                       <span className="text-sm font-bold hidden md:block">{item.l}</span>
-                   </div>
+                   </motion.div>
                  ))}
               </div>
               
@@ -444,75 +448,109 @@ export default function LandingPage({ featuredEvents = [] }: { featuredEvents?: 
            {/* Main App Area */}
            <div className="flex-1 flex flex-col min-w-0 bg-background/50">
               {/* Header Bar */}
-              <div className="h-20 border-b border-border/60 flex items-center justify-between px-10 shrink-0">
-                 <div className="flex items-center gap-6">
-                    <h2 className="text-xl font-bold tracking-tight">Executive Dashboard</h2>
-                    <div className="h-4 w-px bg-border/60" />
-                    <div className="flex items-center gap-2">
-                       <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                       <span className="text-[10px] font-black uppercase tracking-widest text-emerald-500">Live Operations</span>
+              <div className="h-14 border-b border-border/60 flex items-center justify-between px-10 shrink-0 bg-muted/10">
+                 <div className="flex items-center gap-4 flex-1">
+                    <div className="flex gap-2">
+                      <div className="w-3 h-3 rounded-full bg-red-500/20" />
+                      <div className="w-3 h-3 rounded-full bg-amber-500/20" />
+                      <div className="w-3 h-3 rounded-full bg-emerald-500/20" />
+                    </div>
+                    <div className="h-8 flex-1 max-w-md bg-background/80 border border-border/60 rounded-lg flex items-center px-4 gap-2 ml-4">
+                       <Search className="w-3 h-3 text-muted-foreground/40" />
+                       <span className="text-[10px] font-mono text-muted-foreground/60 tracking-wider">eventra.cloud/mission-control</span>
                     </div>
                  </div>
-                 <div className="flex items-center gap-4">
-                    <div className="flex -space-x-3">
-                       {[1, 2, 3].map(i => (
-                         <div key={i} className="w-8 h-8 rounded-full border-2 border-background bg-muted" />
-                       ))}
+                 <div className="flex items-center gap-6">
+                    <div className="flex items-center gap-2">
+                       <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                       <span className="text-[9px] font-black uppercase tracking-widest text-emerald-500">Live</span>
                     </div>
-                    <Button size="sm" variant="outline" className="rounded-full px-5 font-bold h-9">Manage Access</Button>
+                    <div className="w-8 h-8 rounded-full bg-muted border border-border" />
+                 </div>
+              </div>
+
+              <div className="h-16 border-b border-border/60 flex items-center justify-between px-10 shrink-0">
+                 <div className="flex items-center gap-6">
+                    <h2 className="text-lg font-bold tracking-tight">Executive Dashboard</h2>
+                    <div className="h-4 w-px bg-border/60" />
+                    <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-primary/5 border border-primary/10">
+                       <Activity className="w-3 h-3 text-primary" />
+                       <span className="text-[9px] font-black uppercase tracking-widest text-primary">Real-time Analytics</span>
+                    </div>
+                 </div>
+                 <div className="flex items-center gap-3">
+                    <Button size="sm" variant="ghost" className="h-8 w-8 p-0 rounded-lg hover:bg-muted"><Calendar className="w-4 h-4" /></Button>
+                    <Button size="sm" variant="ghost" className="h-8 w-8 p-0 rounded-lg hover:bg-muted"><Users className="w-4 h-4" /></Button>
+                    <Button size="sm" variant="outline" className="rounded-full px-4 font-bold h-8 text-[10px] uppercase tracking-widest">Share</Button>
                  </div>
               </div>
 
               {/* Dashboard Content */}
-              <div className="flex-1 p-10 overflow-hidden flex flex-col gap-8">
+              <div className="flex-1 p-8 overflow-hidden flex flex-col gap-6">
                  {/* Top Metrics Row */}
-                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8 shrink-0">
+                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 shrink-0">
                     {[
-                      { l: "Monthly Revenue", v: "$124,500", c: "+12.4%", i: BarChart3 },
-                      { l: "Active Attendees", v: "14,202", c: "+8.1%", i: Users },
-                      { l: "Event Velocity", v: "98.2%", c: "+2.4%", i: Zap }
+                      { l: "Monthly Revenue", v: "$124,500", c: "+12.4%", i: BarChart3, color: "text-emerald-500" },
+                      { l: "Active Attendees", v: "14,202", c: "+8.1%", i: Users, color: "text-primary" },
+                      { l: "Event Velocity", v: "98.2%", c: "+2.4%", i: Zap, color: "text-amber-500" }
                     ].map((m, i) => (
-                      <div key={i} className="p-8 rounded-[2rem] border border-border/60 bg-muted/20 flex flex-col justify-between h-40 group/metric transition-all hover:bg-muted/40">
+                      <motion.div 
+                        key={i} 
+                        whileHover={{ y: -5, scale: 1.02 }}
+                        className="p-6 rounded-[1.5rem] border border-border/60 bg-background flex flex-col justify-between h-36 group/metric transition-shadow hover:shadow-xl hover:shadow-primary/5 cursor-pointer"
+                      >
                          <div className="flex justify-between items-start">
-                            <span className="text-[10px] font-black uppercase text-muted-foreground tracking-[0.2em]">{m.l}</span>
-                            <m.i className="w-4 h-4 text-primary opacity-60" />
+                            <span className="text-[9px] font-black uppercase text-muted-foreground/60 tracking-[0.2em]">{m.l}</span>
+                            <div className={cn("w-8 h-8 rounded-xl bg-muted/50 flex items-center justify-center transition-colors group-hover/metric:bg-primary/10", m.color)}>
+                               <m.i className="w-4 h-4" />
+                            </div>
                          </div>
                          <div className="flex items-end justify-between">
-                            <span className="text-4xl font-display font-bold tracking-tighter">{m.v}</span>
-                            <span className="text-xs font-bold text-emerald-500">{m.c}</span>
+                            <span className="text-3xl font-display font-bold tracking-tighter">{m.v}</span>
+                            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 text-[10px] font-bold">
+                               <ArrowRight className="w-3 h-3 -rotate-45" />
+                               {m.c}
+                            </div>
                          </div>
-                      </div>
+                      </motion.div>
                     ))}
                  </div>
 
                  {/* Main Chart Area */}
-                 <div className="flex-1 min-h-0 rounded-[2.5rem] border border-border/60 bg-muted/10 p-10 flex flex-col gap-8 relative overflow-hidden group/main-chart">
+                 <motion.div 
+                   layout
+                   className="flex-1 min-h-0 rounded-[2rem] border border-border/60 bg-background p-8 flex flex-col gap-6 relative overflow-hidden group/main-chart shadow-sm"
+                 >
                     <div className="flex items-center justify-between relative z-10 shrink-0">
                        <div className="space-y-1">
-                          <h3 className="text-lg font-bold">Growth Projection</h3>
-                          <p className="text-xs text-muted-foreground font-medium">Real-time attendance & revenue tracking</p>
+                          <h3 className="text-base font-bold">Growth Projection</h3>
+                          <p className="text-[10px] text-muted-foreground font-medium">Real-time attendance & revenue tracking across nodes</p>
                        </div>
-                       <div className="flex gap-2">
-                          {['Day', 'Week', 'Month'].map(t => (
-                            <button key={t} className={cn("px-4 py-1.5 rounded-full text-[10px] font-black uppercase transition-all", t === 'Week' ? 'bg-background shadow-sm' : 'text-muted-foreground hover:text-foreground')}>{t}</button>
+                       <div className="flex bg-muted/50 p-1 rounded-full gap-1">
+                          {['D', 'W', 'M'].map(t => (
+                            <button key={t} className={cn("w-8 h-8 rounded-full text-[9px] font-black transition-all", t === 'W' ? 'bg-background shadow-sm text-primary' : 'text-muted-foreground hover:text-foreground')}>{t}</button>
                           ))}
                        </div>
                     </div>
 
-                    <div className="flex-1 flex items-end gap-3 px-2 relative z-10 min-h-0">
-                       {[40, 70, 45, 90, 65, 80, 50, 85, 60, 95, 75, 85, 60, 40, 55, 70, 90, 100, 80, 60, 85, 45, 75, 90, 60].map((h, i) => (
+                    <div className="flex-1 flex items-end gap-2 px-2 relative z-10 min-h-0">
+                       {[40, 70, 45, 90, 65, 80, 50, 85, 60, 95, 75, 85, 60, 40, 55, 70, 90, 100, 80, 60, 85, 45, 75, 90, 60, 70, 50, 80, 65, 40].map((h, i) => (
                          <motion.div 
                            key={i} 
                            initial={{ height: 0 }}
                            whileInView={{ height: `${h}%` }}
-                           transition={{ delay: i * 0.03, duration: 1, ease: [0.16, 1, 0.3, 1] }}
-                           className="flex-1 bg-gradient-to-t from-primary/10 via-primary/40 to-primary rounded-full" 
+                           whileHover={{ scaleY: 1.1, backgroundColor: 'var(--primary)' }}
+                           transition={{ 
+                             height: { delay: i * 0.02, duration: 0.8, ease: [0.16, 1, 0.3, 1] },
+                             scaleY: { duration: 0.2 }
+                           }}
+                           className="flex-1 bg-primary/20 rounded-full cursor-pointer transition-colors" 
                          />
                        ))}
                     </div>
 
-                    <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-[0.03] pointer-events-none" />
-                 </div>
+                    <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-[0.02] pointer-events-none" />
+                 </motion.div>
               </div>
            </div>
         </motion.div>
@@ -707,6 +745,44 @@ export default function LandingPage({ featuredEvents = [] }: { featuredEvents?: 
            </p>
            
            <div className="relative max-w-6xl mx-auto min-h-[500px] flex items-center justify-between gap-12 px-6 md:px-24">
+              {/* Connecting Lines SVG */}
+              <div className="absolute inset-0 pointer-events-none hidden md:block" style={{ zIndex: 0 }}>
+                 <svg className="w-full h-full" viewBox="0 0 800 500" fill="none" preserveAspectRatio="none">
+                    {[
+                      "M 280 100 Q 400 100 520 250",
+                      "M 280 180 Q 400 180 520 250",
+                      "M 280 260 Q 400 260 520 250",
+                      "M 280 340 Q 400 340 520 250",
+                      "M 280 420 Q 400 420 520 250"
+                    ].map((d, i) => (
+                      <g key={i}>
+                        <path d={d} stroke="currentColor" strokeWidth="1" className="text-primary/10 dark:text-primary/20" />
+                        <motion.path
+                          d={d}
+                          stroke="url(#line-gradient)"
+                          strokeWidth="2"
+                          strokeDasharray="20 100"
+                          initial={{ strokeDashoffset: 120 }}
+                          animate={{ strokeDashoffset: -120 }}
+                          transition={{ 
+                            duration: 3, 
+                            repeat: Infinity, 
+                            ease: "linear",
+                            delay: i * 0.4
+                          }}
+                        />
+                      </g>
+                    ))}
+                    <defs>
+                      <linearGradient id="line-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor="transparent" />
+                        <stop offset="50%" stopColor="hsl(var(--primary))" />
+                        <stop offset="100%" stopColor="transparent" />
+                      </linearGradient>
+                    </defs>
+                 </svg>
+              </div>
+
               {/* Left Side: Tool Cards */}
               <div className="flex flex-col gap-6 relative z-10 w-full md:w-auto">
                  {[
