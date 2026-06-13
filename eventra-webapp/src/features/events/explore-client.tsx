@@ -1,53 +1,37 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Filter, Calendar, MapPin, Clock, Users, ArrowRight, ChevronDown, X, Zap, ZapOff } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Search, Filter, X, ZapOff, Activity, Compass, ChevronRight } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { getEvents } from '@/app/actions/events';
-import Link from 'next/link';
-import Image from 'next/image';
 import { useTranslations } from 'next-intl';
+import { EventCard } from './event-card';
+import { cn } from '@/core/utils/utils';
 
 interface EventItem {
-  id: string;
-  title: string;
-  description: string;
-  category: string;
-  type: string;
-  startDate: Date;
-  endDate: Date;
-  location: any;
-  capacity: number;
-  registeredCount: number;
-  price: string;
-  imageUrl: string | null;
-  isPaid: boolean;
-  status: string;
+  id: string; title: string; description: string; category: string;
+  type: string; startDate: Date; endDate: Date; location: any;
+  capacity: number; registeredCount: number; price: string;
+  imageUrl: string | null; isPaid: boolean; status: string;
 }
-
-import { EventCard } from './event-card';
 
 export default function ExploreClient() {
   const t = useTranslations('Events');
-  const commonT = useTranslations('Common');
   const [events, setEvents] = useState<EventItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
+  
   const categories = [
-    { value: 'All', label: t('categories.all') },
-    { value: 'Technology', label: t('categories.technology') },
-    { value: 'Business', label: t('categories.business') },
-    { value: 'Design', label: t('categories.design') },
-    { value: 'Science', label: t('categories.science') },
-    { value: 'Arts', label: t('categories.arts') },
-    { value: 'Health', label: t('categories.health') },
-    { value: 'Sports', label: t('categories.sports') },
-    { value: 'Music', label: t('categories.music') },
-    { value: 'Education', label: t('categories.education') },
+    { value: 'All', label: 'All Categories' },
+    { value: 'Technology', label: 'Technology' },
+    { value: 'Business', label: 'Business' },
+    { value: 'Design', label: 'Design' },
+    { value: 'Science', label: 'Science' },
+    { value: 'Arts', label: 'Arts' },
   ];
 
   const fetchEvents = useCallback(async () => {
@@ -56,7 +40,7 @@ export default function ExploreClient() {
       const result = await getEvents({
         search: search || undefined,
         category: selectedCategory !== 'All' ? selectedCategory : undefined,
-        limit: 50,
+        limit: 20,
       });
       setEvents(result as EventItem[]);
     } catch (error) {
@@ -68,65 +52,63 @@ export default function ExploreClient() {
   }, [search, selectedCategory]);
 
   useEffect(() => {
-    fetchEvents();
-  }, [fetchEvents]);
-
-  // Debounced search
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      fetchEvents();
-    }, 300);
+    const timer = setTimeout(() => fetchEvents(), 300);
     return () => clearTimeout(timer);
-  }, [search, fetchEvents]);
+  }, [search, selectedCategory, fetchEvents]);
 
   return (
-    <div className="max-w-7xl mx-auto space-y-16 pb-20">
+    <div className="w-full max-w-6xl mx-auto space-y-12 pb-24 px-6 md:px-10">
       {/* Page Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-10">
-        <div className="space-y-6">
-           <Badge variant="outline" className="border-primary/30 bg-primary/10 text-primary rounded-full px-6 py-1.5 text-[10px] font-black uppercase tracking-[0.4em]">
-             Mesh_Network_Scan
-           </Badge>
-           <h1 className="text-5xl md:text-8xl font-display font-bold tracking-tighter leading-[0.9] text-foreground">
-             Global <span className="text-primary italic">Explore.</span>
+      <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 border-b border-notion-hairline pb-10">
+        <div className="space-y-3 text-left">
+           <div className="flex items-center gap-2">
+              <Badge variant="outline" className="bg-notion-canvas border-notion-hairline text-notion-ink-faint font-bold px-3 py-0.5 rounded-md shadow-sm uppercase text-[9px] tracking-widest">
+                Network Scan
+              </Badge>
+           </div>
+           <h1 className="text-4xl md:text-5xl font-display font-black tracking-tighter text-notion-ink uppercase">
+             Global <span className="text-notion-primary italic">Explore.</span>
            </h1>
-           <p className="text-xl text-muted-foreground font-medium max-w-2xl leading-relaxed opacity-80">
-             Traverse the Eventra ecosystem. Real-time synchronization of nodes, experiences, and community activity.
+           <p className="text-lg text-notion-ink-muted font-medium max-w-2xl leading-relaxed">
+             Real-time synchronization of event nodes, digital experiences, and global community activity.
            </p>
         </div>
-      </div>
+      </header>
 
       {/* Search & Filters */}
-      <div className="space-y-12">
-        <div className="relative group max-w-3xl">
-          <Search className="absolute left-8 top-1/2 -translate-y-1/2 w-6 h-6 text-muted-foreground/40 group-focus-within:text-primary transition-all duration-500" />
-          <Input
-            placeholder={t('searchEvents')}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-20 h-20 rounded-[2.5rem] bg-background/40 backdrop-blur-xl border-border/60 text-xl font-medium focus-visible:ring-primary shadow-2xl transition-all duration-500 hover:border-primary/30"
-          />
-          {search && (
-            <button
-              onClick={() => setSearch('')}
-              className="absolute right-8 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-2 rounded-xl hover:bg-muted"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          )}
+      <div className="space-y-8">
+        <div className="flex flex-col md:flex-row gap-4 items-center">
+           <div className="relative group flex-1 w-full">
+             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-notion-ink-faint group-focus-within:text-primary transition-colors" />
+             <Input
+               placeholder="Search event title or tags..."
+               value={search}
+               onChange={(e) => setSearch(e.target.value)}
+               className="pl-11 h-12 rounded-xl bg-notion-canvas-soft border-notion-hairline text-sm font-bold uppercase tracking-widest focus:bg-white transition-all shadow-sm"
+             />
+             {search && (
+               <button onClick={() => setSearch('')} className="absolute right-4 top-1/2 -translate-y-1/2 text-notion-ink-faint hover:text-notion-ink transition-colors p-1 rounded-md">
+                 <X className="w-4 h-4" />
+               </button>
+             )}
+           </div>
+           <Button variant="outline" className="h-12 rounded-xl border-notion-hairline bg-white font-bold text-xs gap-2 px-6 shadow-sm shrink-0">
+              <Filter className="w-4 h-4" /> Advanced
+           </Button>
         </div>
 
         {/* Category Pills */}
-        <div className="flex gap-4 overflow-x-auto pb-6 scrollbar-hide px-2">
+        <div className="flex gap-2.5 overflow-x-auto pb-4 scrollbar-hide">
           {categories.map((cat) => (
             <button
               key={cat.value}
               onClick={() => setSelectedCategory(cat.value)}
-              className={`px-10 py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] whitespace-nowrap transition-all duration-500 border-2 active:scale-95 ${
+              className={cn(
+                "px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all border shadow-sm active:scale-95",
                 selectedCategory === cat.value
-                  ? 'bg-primary text-primary-foreground border-primary shadow-glow shadow-primary/20'
-                  : 'bg-background/40 backdrop-blur-md border-border/40 text-muted-foreground hover:text-foreground hover:border-primary/30 shadow-xl'
-              }`}
+                  ? "bg-primary text-white border-primary shadow-glow shadow-primary/20"
+                  : "bg-white dark:bg-zinc-950 border-notion-hairline text-notion-ink-muted hover:text-notion-ink hover:border-notion-ink-faint"
+              )}
             >
               {cat.label}
             </button>
@@ -136,50 +118,58 @@ export default function ExploreClient() {
 
       {/* Results */}
       {loading ? (
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-10">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="rounded-[3rem] border border-border/40 bg-muted/10 overflow-hidden animate-pulse aspect-[4/5] shadow-xl" />
+            <div key={i} className="rounded-[1.5rem] border border-notion-hairline bg-notion-canvas-soft/50 overflow-hidden animate-pulse aspect-[4/5] shadow-sm" />
           ))}
         </div>
       ) : events.length === 0 ? (
-        <motion.div
-          className="text-center py-60 bg-muted/5 rounded-[4rem] border-2 border-dashed border-border/60"
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-        >
-          <div className="w-24 h-24 bg-muted rounded-[2.5rem] flex items-center justify-center mx-auto mb-10 shadow-inner">
-            <ZapOff className="w-10 h-10 text-muted-foreground/30" />
+        <div className="text-center py-32 bg-notion-canvas-soft/50 rounded-[2.5rem] border-2 border-dashed border-notion-hairline space-y-6">
+          <div className="w-16 h-16 bg-white dark:bg-zinc-950 rounded-2xl flex items-center justify-center mx-auto shadow-sm border border-notion-hairline">
+            <ZapOff className="w-8 h-8 text-notion-ink-faint/30" />
           </div>
-          <div className="space-y-4">
-            <h3 className="text-4xl font-display font-bold tracking-tighter">{t('noEvents')}</h3>
-            <p className="text-lg text-muted-foreground font-medium max-w-sm mx-auto opacity-60">{t('adjustFilters')}</p>
-            <div className="pt-8">
-               <Button variant="outline" size="lg" onClick={() => { setSearch(''); setSelectedCategory('All'); }} className="rounded-full px-10">
-                  Reset Protocol
-               </Button>
-            </div>
+          <div className="space-y-2">
+            <h3 className="text-xl font-bold tracking-tight text-notion-ink">Sector Empty</h3>
+            <p className="text-sm text-notion-ink-muted font-medium max-w-xs mx-auto">No events detected matching your current scan parameters.</p>
           </div>
-        </motion.div>
+          <Button variant="outline" size="sm" onClick={() => { setSearch(''); setSelectedCategory('All'); }} className="rounded-xl font-bold px-8 h-10">
+             Reset Scan
+          </Button>
+        </div>
       ) : (
-        <motion.div
-          className="grid md:grid-cols-2 lg:grid-cols-3 gap-10"
-          initial="initial"
-          animate="animate"
-          variants={{ animate: { transition: { staggerChildren: 0.1 } } }}
-        >
-          {events.map((event) => (
-            <motion.div
-              key={event.id}
-              variants={{
-                initial: { opacity: 0, y: 40, scale: 0.98 },
-                animate: { opacity: 1, y: 0, scale: 1 },
-              }}
-              transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-            >
-              <EventCard event={event as any} />
-            </motion.div>
-          ))}
-        </motion.div>
+        <div className="space-y-8">
+           <div className="flex items-center justify-between px-1">
+              <div className="flex items-center gap-3">
+                 <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                 <h2 className="text-xs font-black uppercase tracking-widest text-notion-ink-faint">Live Nodes Found</h2>
+              </div>
+              <span className="text-[10px] font-black text-notion-ink-faint uppercase">{events.length} results</span>
+           </div>
+           <motion.div
+             className="grid md:grid-cols-2 lg:grid-cols-3 gap-8"
+             initial="initial" animate="animate"
+             variants={{ animate: { transition: { staggerChildren: 0.05 } } }}
+           >
+             {events.map((event) => (
+               <motion.div
+                 key={event.id}
+                 variants={{
+                   initial: { opacity: 0, y: 20 },
+                   animate: { opacity: 1, y: 0 },
+                 }}
+                 transition={{ duration: 0.5, ease: "easeOut" }}
+               >
+                 <EventCard event={event as any} />
+               </motion.div>
+             ))}
+           </motion.div>
+           
+           <div className="pt-10 flex justify-center">
+              <Button variant="outline" size="lg" className="rounded-xl font-bold border-notion-hairline hover:bg-white px-10 h-12">
+                 Load More Nodes
+              </Button>
+           </div>
+        </div>
       )}
     </div>
   );

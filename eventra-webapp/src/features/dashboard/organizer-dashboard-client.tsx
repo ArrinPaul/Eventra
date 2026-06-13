@@ -9,14 +9,13 @@ import { cn } from '@/core/utils/utils';
 import {
   Plus, Calendar, Users, Search,
   Loader2, Trash2, Edit, Copy, BrainCircuit, ChevronRight,
-  Activity, MapPin, ExternalLink
+  Activity, MapPin, ExternalLink, Filter, ArrowUpRight
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { format } from 'date-fns';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useRouter } from 'next/navigation';
 import { getEvents, deleteEvent, cloneEvent } from '@/app/actions/events';
 import type { EventraEvent } from '@/types';
 
@@ -85,114 +84,126 @@ export default function OrganizerDashboard() {
 
   if (loading) {
     return (
-      <div className="flex h-full items-center justify-center py-40">
+      <div className="flex h-[80vh] items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div className="w-10 h-10 rounded-full border-2 border-notion-hairline border-t-notion-primary animate-spin" />
-          <p className="text-body-sm text-notion-ink-muted">Loading dashboard...</p>
+          <p className="text-sm font-medium text-notion-ink-muted uppercase tracking-widest">Loading Console...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto space-y-12 pb-20">
+    <div className="w-full max-w-6xl mx-auto space-y-12 pb-24 px-6 md:px-10">
       {/* HEADER SECTION */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 border-b border-notion-hairline pb-8">
-        <div className="space-y-4">
-           <Badge variant="outline" className="text-notion-primary border-notion-primary/20 bg-notion-primary/5">
-             Organizer Dashboard
-           </Badge>
-           <h1 className="text-display-2 leading-none">
-             Event <span className="text-notion-primary italic">Dashboard.</span>
+      <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 border-b border-notion-hairline pb-10">
+        <div className="space-y-3">
+           <div className="flex items-center gap-2">
+              <Badge variant="outline" className="bg-notion-canvas border-notion-hairline text-notion-ink-muted font-bold px-3 py-0.5 rounded-md shadow-sm">
+                Management Console
+              </Badge>
+           </div>
+           <h1 className="text-4xl md:text-5xl font-display font-black tracking-tighter text-notion-ink uppercase">
+             Event <span className="text-notion-primary italic">Mesh.</span>
            </h1>
-           <p className="text-body-md text-notion-ink-secondary max-w-xl">
-             Manage your events, analyze attendee reach, and coordinate operations.
+           <p className="text-lg text-notion-ink-muted font-medium max-w-xl">
+             Orchestrate your campaigns, analyze network reach, and manage active nodes.
            </p>
         </div>
-        <Button asChild variant="primary" size="lg" className="h-12 shadow-notion-elevated">
-          <Link href="/events/create"><Plus className="mr-2 h-4 w-4" /> Create Event</Link>
+        <Button asChild variant="primary" size="lg" className="h-12 px-8 rounded-xl shadow-notion-elevated font-black uppercase tracking-widest text-xs">
+          <Link href="/events/create"><Plus className="mr-2 h-4 w-4" /> Create Node</Link>
         </Button>
-      </div>
+      </header>
 
       {/* KPI STATS */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {[
-          { label: 'Active Events', value: managedEvents.length, icon: Calendar, color: 'text-notion-primary' },
-          { label: 'Total Registrations', value: totalRegistrations.toLocaleString(), icon: Users, color: 'text-notion-accent-teal' },
+          { label: 'Active Clusters', value: managedEvents.length, icon: Calendar, color: 'text-notion-primary', bg: 'bg-notion-primary/5', trend: '+2.4%' },
+          { label: 'Network Registrations', value: totalRegistrations.toLocaleString(), icon: Users, color: 'text-notion-accent-teal', bg: 'bg-notion-accent-teal/5', trend: '+12.1%' },
         ].map((stat, i) => (
-          <Card key={i} className="p-8 hover:shadow-notion-soft transition-shadow border-notion-hairline relative overflow-hidden bg-notion-surface">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-notion-primary/5 blur-[40px] rounded-full -mr-16 -mt-16" />
-            <div className="relative z-10 flex flex-col justify-between h-full space-y-8">
-               <div className="flex justify-between items-start">
-                  <div className="w-12 h-12 rounded-lg bg-notion-canvas-soft flex items-center justify-center">
-                    <stat.icon className={cn("w-6 h-6", stat.color)} />
+          <Card key={i} className="group hover:shadow-notion-soft transition-all duration-500 border-notion-hairline overflow-hidden bg-white dark:bg-zinc-950 rounded-[2rem]">
+            <CardContent className="p-8 relative">
+               <div className="absolute top-0 right-0 w-32 h-32 bg-notion-primary/5 blur-[40px] rounded-full -mr-16 -mt-16 group-hover:bg-notion-primary/10 transition-colors" />
+               <div className="relative z-10 flex flex-col justify-between h-full space-y-10">
+                  <div className="flex justify-between items-start">
+                     <div className={cn("w-14 h-14 rounded-2xl flex items-center justify-center border border-notion-hairline shadow-sm transition-transform group-hover:scale-110", stat.bg)}>
+                       <stat.icon className={cn("w-7 h-7", stat.color)} />
+                     </div>
+                     <Badge variant="secondary" className="bg-notion-accent-green/10 text-notion-accent-green border-none px-3 py-1 font-bold text-[10px]">
+                       <ArrowUpRight size={12} className="mr-1" /> {stat.trend}
+                     </Badge>
                   </div>
-                  <Badge variant="secondary" className="bg-notion-canvas-soft text-notion-ink-muted border-none">
-                    <Activity size={12} className="mr-1.5" /> Live
-                  </Badge>
+                  <div className="space-y-1">
+                     <p className="text-4xl font-display font-black text-notion-ink tracking-tighter">{stat.value}</p>
+                     <p className="text-[10px] font-black uppercase tracking-[0.2em] text-notion-ink-faint">{stat.label}</p>
+                  </div>
                </div>
-               <div>
-                  <p className="text-display-1 font-bold text-notion-ink leading-none mb-2">{stat.value}</p>
-                  <p className="text-eyebrow uppercase font-bold text-notion-ink-muted">{stat.label}</p>
-               </div>
-            </div>
+            </CardContent>
           </Card>
         ))}
       </div>
 
       {/* TABS INTERFACE */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
-        <TabsList className="bg-transparent border-b border-notion-hairline w-full justify-start rounded-none h-auto p-0 gap-8">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-10">
+        <TabsList className="bg-muted/30 p-1.5 rounded-2xl border border-notion-hairline w-fit">
           {['events', 'analytics', 'feedback', 'team'].map(tab => (
             <TabsTrigger 
               key={tab} 
               value={tab} 
-              className="bg-transparent border-none rounded-none data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-notion-primary data-[state=active]:text-notion-ink text-notion-ink-muted text-body-sm font-medium pb-3 px-0 transition-all capitalize shadow-none hover:text-notion-ink"
+              className="rounded-xl px-8 py-2 text-[10px] font-black uppercase tracking-widest data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-950 data-[state=active]:shadow-sm data-[state=active]:text-primary transition-all"
             >
               {tab}
             </TabsTrigger>
           ))}
         </TabsList>
 
-        <TabsContent value="events" className="m-0 space-y-6">
-          <Card className="overflow-hidden border-notion-hairline bg-notion-surface">
-            <div className="p-6 border-b border-notion-hairline bg-notion-canvas-soft/30">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <TabsContent value="events" className="m-0 space-y-8">
+          <Card className="overflow-hidden border-notion-hairline bg-white dark:bg-zinc-950 rounded-[2rem] shadow-sm">
+            <div className="p-8 border-b border-notion-hairline bg-notion-canvas-soft/30">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
                 <div className="space-y-1">
-                  <h3 className="text-title font-bold">Active Events</h3>
-                  <p className="text-body-sm text-notion-ink-muted">{managedEvents.length} events</p>
+                  <h3 className="text-xl font-bold tracking-tight text-notion-ink flex items-center gap-3">
+                     <Activity size={18} className="text-notion-primary" />
+                     Live Clusters
+                  </h3>
+                  <p className="text-sm font-medium text-notion-ink-muted">{managedEvents.length} operational nodes detected</p>
                 </div>
-                <div className="relative w-full md:w-80">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-notion-ink-faint" />
-                  <Input
-                    placeholder="Search events..."
-                    className="pl-10"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
+                <div className="flex items-center gap-4">
+                   <div className="relative w-full md:w-80">
+                     <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-notion-ink-faint" />
+                     <Input
+                       placeholder="Filter by node title..."
+                       className="pl-10 rounded-xl bg-white dark:bg-black border-notion-hairline h-10 text-xs font-bold uppercase tracking-widest"
+                       value={searchTerm}
+                       onChange={(e) => setSearchTerm(e.target.value)}
+                     />
+                   </div>
+                   <Button variant="outline" size="icon" className="rounded-xl border-notion-hairline h-10 w-10">
+                      <Filter size={16} className="text-notion-ink-faint" />
+                   </Button>
                 </div>
               </div>
             </div>
             
             <div className="divide-y divide-notion-hairline">
               {filteredEvents.map((event: any) => (
-                <div key={event.id} className="flex flex-col md:flex-row md:items-center justify-between p-6 hover:bg-notion-canvas-soft/50 transition-colors group">
-                  <div className="flex items-center gap-6">
-                    <div className="w-16 h-16 rounded-lg bg-notion-canvas-soft flex flex-col items-center justify-center flex-shrink-0 border border-notion-hairline">
-                      <span className="text-[10px] font-bold uppercase text-notion-primary leading-none mb-1">{format(new Date(event.startDate), 'MMM')}</span>
-                      <span className="text-title font-bold text-notion-ink leading-none">{format(new Date(event.startDate), 'dd')}</span>
+                <div key={event.id} className="flex flex-col md:flex-row md:items-center justify-between p-8 hover:bg-notion-canvas-soft/40 transition-colors group">
+                  <div className="flex items-center gap-8">
+                    <div className="w-16 h-16 rounded-2xl bg-notion-canvas-soft flex flex-col items-center justify-center flex-shrink-0 border border-notion-hairline shadow-inner transition-transform group-hover:scale-105">
+                      <span className="text-[10px] font-black uppercase text-notion-primary leading-none mb-1">{format(new Date(event.startDate), 'MMM')}</span>
+                      <span className="text-xl font-display font-black text-notion-ink leading-none">{format(new Date(event.startDate), 'dd')}</span>
                     </div>
-                    <div className="space-y-1.5">
-                      <div className="flex items-center gap-3">
-                        <h3 className="text-body-md font-bold text-notion-ink group-hover:text-notion-primary transition-colors">{event.title}</h3>
-                        {event.organizerId !== user?.id && <Badge variant="secondary" className="text-[10px] py-0">Partner</Badge>}
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-4">
+                        <h3 className="text-lg font-bold text-notion-ink group-hover:text-notion-primary transition-colors tracking-tight">{event.title}</h3>
+                        {event.organizerId !== user?.id && <Badge className="bg-notion-accent-purple/10 text-notion-accent-purple border-none text-[9px] font-black uppercase tracking-widest">Collaborative</Badge>}
                       </div>
-                      <div className="flex flex-wrap items-center gap-4 text-caption text-notion-ink-muted">
-                        <span className="flex items-center gap-1.5"><Users size={12} className="text-notion-primary" /> {event.registeredCount || 0} Registrations</span>
-                        <span className="flex items-center gap-1.5"><MapPin size={12} className="text-notion-primary" /> {typeof event.location === 'string' ? event.location : event.location?.venue || 'Virtual'}</span>
-                        <Badge variant="secondary" className={cn(
-                           "text-[10px] py-0 px-2 border-none",
-                           event.status === 'published' ? "bg-notion-accent-green/10 text-notion-accent-green" : "bg-notion-canvas-soft text-notion-ink-muted"
+                      <div className="flex flex-wrap items-center gap-6 text-[11px] font-bold text-notion-ink-muted uppercase tracking-widest">
+                        <span className="flex items-center gap-2"><Users size={12} className="text-notion-primary" /> {event.registeredCount || 0} Synced</span>
+                        <span className="flex items-center gap-2"><MapPin size={12} className="text-notion-primary" /> {typeof event.location === 'string' ? event.location : event.location?.venue || 'Digital'}</span>
+                        <Badge className={cn(
+                           "text-[9px] font-black px-2 py-0 border-none uppercase tracking-[0.2em]",
+                           event.status === 'published' ? "bg-emerald-500/10 text-emerald-500" : "bg-notion-ink-faint/10 text-notion-ink-faint"
                         )}>
                           {event.status}
                         </Badge>
@@ -200,28 +211,29 @@ export default function OrganizerDashboard() {
                     </div>
                   </div>
                   
-                  <div className="flex items-center gap-2 mt-6 md:mt-0 opacity-0 group-hover:opacity-100 transition-all translate-x-2 group-hover:translate-x-0">
-                    <Button variant="ghost" size="icon" className="h-9 w-9 rounded-md hover:bg-notion-canvas-soft" onClick={() => handleClone(event.id)} disabled={isCloning === event.id}>
-                      {isCloning === event.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Copy size={16} />}
+                  <div className="flex items-center gap-3 mt-6 md:mt-0 opacity-0 group-hover:opacity-100 transition-all translate-x-4 group-hover:translate-x-0">
+                    <Button variant="outline" size="icon" className="h-10 w-10 rounded-xl border-notion-hairline hover:bg-white" onClick={() => handleClone(event.id)} disabled={isCloning === event.id}>
+                      {isCloning === event.id ? <Loader2 className="h-4 w-4 animate-spin text-primary" /> : <Copy size={16} className="text-notion-ink-faint" />}
                     </Button>
-                    <Button variant="ghost" size="icon" className="h-9 w-9 rounded-md hover:bg-notion-canvas-soft text-notion-primary" asChild><Link href={`/events/${event.id}`}><ExternalLink size={16} /></Link></Button>
-                    <Button variant="ghost" size="icon" className="h-9 w-9 rounded-md hover:bg-notion-canvas-soft" asChild><Link href={`/events/${event.id}/edit`}><Edit size={16} /></Link></Button>
-                    <Button variant="ghost" size="icon" className="h-9 w-9 rounded-md hover:bg-red-50 text-red-500 hover:text-red-600" onClick={() => handleDelete(event.id)}><Trash2 size={16} /></Button>
+                    <div className="w-px h-6 bg-notion-hairline mx-1" />
+                    <Button variant="outline" size="icon" className="h-10 w-10 rounded-xl border-notion-hairline hover:bg-white text-notion-primary" asChild><Link href={`/events/${event.id}`}><ExternalLink size={16} /></Link></Button>
+                    <Button variant="outline" size="icon" className="h-10 w-10 rounded-xl border-notion-hairline hover:bg-white" asChild><Link href={`/events/${event.id}/edit`}><Edit size={16} /></Link></Button>
+                    <Button variant="outline" size="icon" className="h-10 w-10 rounded-xl border-notion-hairline hover:bg-red-50 text-red-500 hover:text-red-600" onClick={() => handleDelete(event.id)}><Trash2 size={16} /></Button>
                   </div>
                 </div>
               ))}
               
               {filteredEvents.length === 0 && (
-                <div className="p-20 text-center space-y-6">
-                  <div className="w-16 h-16 bg-notion-canvas-soft rounded-lg flex items-center justify-center mx-auto border border-notion-hairline shadow-notion-soft">
-                     <Calendar className="w-8 h-8 text-notion-ink-faint" />
+                <div className="p-24 text-center space-y-8">
+                  <div className="w-16 h-16 bg-notion-canvas-soft rounded-[1.5rem] flex items-center justify-center mx-auto border border-notion-hairline shadow-sm">
+                     <Calendar className="w-8 h-8 text-notion-ink-faint/40" />
                   </div>
-                  <div className="space-y-1">
-                     <h3 className="text-title font-bold">No events found.</h3>
-                     <p className="text-body-sm text-notion-ink-muted max-w-xs mx-auto">Your search didn't match any active events or you haven't created any yet.</p>
+                  <div className="space-y-2">
+                     <h3 className="text-xl font-bold tracking-tight">System Empty.</h3>
+                     <p className="text-sm font-medium text-notion-ink-muted max-w-xs mx-auto">No nodes found in the current sector. Deploy a new event to begin synchronization.</p>
                   </div>
-                  <Button asChild variant="primary" className="mt-4">
-                    <Link href="/events/create">Create Your First Event</Link>
+                  <Button asChild variant="primary" className="rounded-xl px-10 h-11 font-black uppercase tracking-widest text-[10px] shadow-notion-soft">
+                    <Link href="/events/create">Deploy First Node</Link>
                   </Button>
                 </div>
               )}
@@ -232,21 +244,26 @@ export default function OrganizerDashboard() {
         <TabsContent value="analytics" className="m-0">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {managedEvents.map(event => (
-              <Card key={event.id} className="p-8 border-notion-hairline hover:shadow-notion-soft transition-all cursor-pointer group flex flex-col justify-between min-h-[280px] bg-notion-surface">
-                <div className="space-y-6">
+              <Card key={event.id} className="p-8 border-notion-hairline bg-white dark:bg-zinc-950 hover:shadow-notion-elevated transition-all duration-500 cursor-pointer group flex flex-col justify-between min-h-[300px] rounded-[2rem]">
+                <div className="space-y-8">
                   <div className="flex justify-between items-start">
-                    <div className="w-12 h-12 rounded-lg bg-notion-accent-purple/10 flex items-center justify-center text-notion-accent-purple group-hover:scale-110 transition-transform">
-                      <BrainCircuit size={24} />
+                    <div className="w-14 h-14 rounded-2xl bg-notion-accent-purple/10 flex items-center justify-center text-notion-accent-purple group-hover:scale-110 transition-transform shadow-sm">
+                      <BrainCircuit size={28} />
                     </div>
-                    <Badge variant="sticker">Analytics Ready</Badge>
+                    <Badge className="bg-notion-accent-sky/10 text-notion-accent-sky border-none text-[9px] font-black uppercase tracking-widest">Active Insight</Badge>
                   </div>
-                  <h3 className="text-title font-bold truncate text-notion-ink group-hover:text-notion-primary transition-colors">{event.title}</h3>
-                  <p className="text-caption text-notion-ink-muted uppercase font-bold">Event Analytics Active</p>
+                  <div className="space-y-2">
+                     <h3 className="text-xl font-bold tracking-tight text-notion-ink group-hover:text-notion-primary transition-colors line-clamp-2">{event.title}</h3>
+                     <p className="text-[10px] font-black uppercase tracking-widest text-notion-ink-faint leading-none">Telemetry Stream Operational</p>
+                  </div>
                 </div>
-                <div className="pt-6 mt-auto border-t border-notion-hairline">
-                  <Button variant="link" className="text-notion-primary font-bold p-0 h-auto text-eyebrow uppercase group-hover:translate-x-1 transition-transform" asChild>
-                    <Link href={`/organizer/insights/${event.id}`}>View Analytics <ChevronRight size={12} className="ml-1" /></Link>
+                <div className="pt-8 mt-auto border-t border-notion-hairline/50 flex justify-between items-center">
+                  <Button variant="link" className="text-notion-primary font-black p-0 h-auto text-[10px] uppercase tracking-[0.2em] group-hover:translate-x-1 transition-transform" asChild>
+                    <Link href={`/organizer/insights/${event.id}`}>Analyze Intel <ChevronRight size={12} className="ml-1" /></Link>
                   </Button>
+                  <div className="flex gap-1">
+                     {[1, 2, 3].map(i => <div key={i} className="w-1 h-3 rounded-full bg-notion-primary/20 group-hover:bg-notion-primary transition-colors" style={{ transitionDelay: `${i * 100}ms` }} />)}
+                  </div>
                 </div>
               </Card>
             ))}

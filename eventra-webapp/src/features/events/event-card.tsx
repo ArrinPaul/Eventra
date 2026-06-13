@@ -4,20 +4,23 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { Card } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { 
   Calendar, 
   MapPin, 
   Loader2,
-  Sparkles
+  Sparkles,
+  ArrowRight,
+  Clock
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import type { EventraEvent } from '@/types';
 import { useTranslations } from 'next-intl';
+import { cn } from '@/core/utils/utils';
 
 export function EventCard({ event }: { event: EventraEvent }) {
   const router = useRouter();
@@ -37,8 +40,9 @@ export function EventCard({ event }: { event: EventraEvent }) {
     }
     setIsRegistering(true);
     try {
+      // Simulate registration logic
       await new Promise(resolve => setTimeout(resolve, 800));
-      toast({ title: commonT('success'), description: t('registeredToast', { title: event.title }) });
+      toast({ title: "Registration Successful", description: `You're now synced for ${event.title}` });
     } catch (error) {
       toast({ title: commonT('failed'), variant: 'destructive' });
     } finally { setIsRegistering(false); }
@@ -46,60 +50,68 @@ export function EventCard({ event }: { event: EventraEvent }) {
 
   return (
     <Link href={`/events/${event.id}`} className="block h-full group">
-      <Card className="h-full flex flex-col border-notion-hairline hover:shadow-notion-soft transition-all duration-300">
+      <Card className="h-full flex flex-col border-notion-hairline bg-white dark:bg-zinc-950 hover:shadow-notion-elevated transition-all duration-500 rounded-[1.5rem] overflow-hidden">
         {/* IMAGE AREA */}
-        <div className="relative aspect-video overflow-hidden bg-notion-canvas-soft border-b border-notion-hairline">
+        <div className="relative aspect-[16/10] overflow-hidden bg-notion-canvas-soft border-b border-notion-hairline/50">
           {event.imageUrl ? (
             <Image 
               src={event.imageUrl} 
               alt={event.title}
               fill
-              className="object-cover group-hover:scale-105 transition-transform duration-700"
+              className="object-cover group-hover:scale-105 transition-transform duration-1000 ease-out"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center">
-               <Sparkles className="w-10 h-10 text-notion-ink-faint/20" />
+            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-muted/20 to-border/10">
+               <Sparkles className="w-10 h-10 text-notion-ink-faint/10" />
             </div>
           )}
-          <Badge variant="secondary" className="absolute top-3 left-3 z-10 bg-white/80 backdrop-blur-md text-notion-ink border-none">
-            {event.category || t('generalCategory')}
-          </Badge>
+          <div className="absolute top-4 left-4 z-10 flex gap-2">
+            <Badge className="bg-white/90 dark:bg-black/80 backdrop-blur-md text-notion-ink border-none text-[9px] font-black px-2.5 py-0.5 uppercase tracking-widest shadow-sm">
+               {event.category || "General"}
+            </Badge>
+          </div>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
         </div>
 
         {/* CONTENT AREA */}
-        <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
-          <div className="space-y-2">
-            <h3 className="text-h3 font-bold text-notion-ink line-clamp-2 leading-tight group-hover:text-notion-primary transition-colors">
+        <CardContent className="p-6 flex-1 flex flex-col justify-between space-y-6">
+          <div className="space-y-4">
+            <h3 className="text-xl font-display font-bold text-notion-ink line-clamp-2 leading-tight group-hover:text-notion-primary transition-colors">
               {event.title}
             </h3>
-            <div className="space-y-1.5">
-              <div className="flex items-center gap-2 text-body-sm text-notion-ink-secondary">
-                <Calendar className="w-3.5 h-3.5 text-notion-primary" />
-                <span>{format(displayDate, 'MMM d, yyyy')}</span>
+            <div className="space-y-2.5">
+              <div className="flex items-center gap-3 text-xs font-medium text-notion-ink-muted">
+                <div className="w-7 h-7 rounded-lg bg-notion-canvas-soft flex items-center justify-center text-notion-primary shrink-0">
+                   <Calendar className="w-3.5 h-3.5" />
+                </div>
+                <span>{format(displayDate, 'EEEE, MMM do')}</span>
               </div>
-              <div className="flex items-center gap-2 text-body-sm text-notion-ink-secondary">
-                <MapPin className="w-3.5 h-3.5 text-notion-primary" />
-                <span className="truncate">{typeof event.location === 'string' ? event.location : (event.location as any)?.venue || t('virtual')}</span>
+              <div className="flex items-center gap-3 text-xs font-medium text-notion-ink-muted">
+                <div className="w-7 h-7 rounded-lg bg-notion-canvas-soft flex items-center justify-center text-notion-primary shrink-0">
+                   <MapPin className="w-3.5 h-3.5" />
+                </div>
+                <span className="truncate">{typeof event.location === 'string' ? event.location : (event.location as any)?.venue || "Virtual Mesh"}</span>
               </div>
             </div>
           </div>
 
-          <div className="flex items-center justify-between pt-4 border-t border-notion-hairline">
-            <div className="space-y-0.5">
-              <p className="text-eyebrow text-notion-ink-faint uppercase">{t('registrationLabel')}</p>
-              <p className="text-body-sm font-bold text-notion-ink">{t('freeAccess')}</p>
+          <div className="flex items-center justify-between pt-5 border-t border-notion-hairline/50">
+            <div className="space-y-1">
+              <p className="text-[9px] font-black uppercase tracking-widest text-notion-ink-faint">Access Protocol</p>
+              <p className="text-xs font-bold text-emerald-500 uppercase tracking-tight">Open Enrollment</p>
             </div>
             <Button 
               size="sm" 
-              variant="utility"
               onClick={handleQuickRegister} 
               disabled={isRegistering} 
-              className="h-8 shadow-notion-soft"
+              className="rounded-xl font-black px-5 h-9 shadow-sm hover:shadow-notion-soft group/btn"
             >
-              {isRegistering ? <Loader2 className="w-3 h-3 animate-spin" /> : commonT('register')}
+              {isRegistering ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : (
+                 <span className="flex items-center gap-2">Sync <ArrowRight className="w-3.5 h-3.5 group-hover/btn:translate-x-0.5 transition-transform" /></span>
+              )}
             </Button>
           </div>
-        </div>
+        </CardContent>
       </Card>
     </Link>
   );

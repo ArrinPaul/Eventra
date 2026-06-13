@@ -31,7 +31,9 @@ import {
   ShieldCheck,
   Moon,
   Sun,
-  Trophy
+  Trophy,
+  ChevronRight,
+  Plus
 } from 'lucide-react';
 
 const FADE_UP: Variants = {
@@ -171,76 +173,6 @@ const MODULES = [
            <div className="flex flex-col">
               <span className="text-[9px] font-black text-primary uppercase tracking-widest">Active_Node</span>
               <span className="text-xs font-bold text-foreground">Keynote: Future of Neural Mesh @ 10:00 AM</span>
-           </div>
-        </div>
-      </div>
-    )
-  },
-  {
-    id: 'boards',
-    title: 'Campaigns',
-    icon: Layers,
-    description: 'Visualize your event pipeline with intuitive drag-and-drop boards.',
-    preview: (
-      <div className="w-full bg-background/40 backdrop-blur-md rounded-[2.5rem] border border-border/40 p-8 flex gap-4 overflow-hidden shadow-inner">
-        {[
-          { label: "Deployment", cards: ["Sponsors", "Talent"] },
-          { label: "Validated", cards: ["Venue"] }
-        ].map((col, idx) => (
-          <div key={idx} className="flex-1 flex flex-col gap-4">
-             <span className="text-[9px] font-black uppercase text-muted-foreground/60 px-1 tracking-widest">{col.label}</span>
-             {col.cards.map((card, cIdx) => (
-               <div key={cIdx} className="bg-background/60 rounded-2xl border border-border/30 p-4 shadow-sm group/card cursor-pointer hover:border-primary/30 transition-colors">
-                  <p className="text-[10px] font-black text-foreground uppercase tracking-tight">{card}</p>
-                  <div className="h-1 w-2/3 bg-primary/20 rounded-full mt-3 overflow-hidden">
-                     <div className="h-full bg-primary w-1/2" />
-                  </div>
-               </div>
-             ))}
-             <div className="border-2 border-dashed border-border/30 rounded-2xl h-12 flex items-center justify-center text-[9px] text-muted-foreground font-black uppercase bg-muted/5 hover:bg-muted/10 transition-colors cursor-pointer">
-                + Node
-             </div>
-          </div>
-        ))}
-      </div>
-    )
-  },
-  {
-    id: 'reports',
-    title: 'Revenue',
-    icon: BarChart3,
-    description: 'Deep analytics and real-time ticketing revenue tracking.',
-    preview: (
-      <div className="w-full bg-background/40 backdrop-blur-md rounded-[2.5rem] border border-border/40 p-8 flex flex-col overflow-hidden shadow-inner">
-        <div className="flex items-center justify-between mb-8">
-           <div className="space-y-1">
-              <span className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">Financial_Mesh</span>
-              <h4 className="text-xl font-display font-bold tracking-tight">Live Revenue</h4>
-           </div>
-           <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20">
-              <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-              <span className="text-[9px] font-black text-primary uppercase tracking-widest">Active</span>
-           </div>
-        </div>
-        <div className="h-28 flex items-end gap-1.5 px-1">
-          {[40, 70, 45, 90, 65, 80, 50, 85, 60, 95, 75, 80, 55, 90, 100, 85, 65, 45].map((h, i) => (
-            <motion.div 
-              key={i}
-              initial={{ height: 0 }}
-              animate={{ height: `${h}%` }}
-              transition={{ delay: i * 0.02, duration: 0.8, ease: "easeOut" }}
-              className="flex-1 bg-gradient-to-t from-primary/20 via-primary to-primary/40 rounded-full"
-            />
-          ))}
-        </div>
-        <div className="grid grid-cols-2 gap-6 mt-8 pt-6 border-t border-border/20">
-           <div className="space-y-1">
-              <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Total Generated</span>
-              <p className="text-lg font-display font-black text-foreground tracking-tighter">$124,500.00</p>
-           </div>
-           <div className="space-y-1 text-right">
-              <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Growth Rate</span>
-              <p className="text-lg font-display font-black text-emerald-500 tracking-tighter">+24.8%</p>
            </div>
         </div>
       </div>
@@ -798,7 +730,7 @@ export default function LandingPage({ featuredEvents = [] }: { featuredEvents?: 
                      className="flex items-center gap-5 bg-background/80 backdrop-blur-sm border border-border/40 px-8 py-5 rounded-[1.5rem] shadow-2xl ring-1 ring-white/5 w-full md:w-72 group hover:border-primary/40 transition-all cursor-default hover:-translate-y-1"
                    >
                       <div className={cn("w-12 h-12 rounded-2xl bg-muted/50 flex items-center justify-center transition-all duration-500 group-hover:scale-110 group-hover:bg-muted border border-border/20", tool.color)}>
-                         <tool.icon className="w-5 h-5" />
+                         <tool.icon className="w-6 h-6" />
                       </div>
                       <span className="font-black text-foreground text-base tracking-tight uppercase">{tool.label}</span>
                    </motion.div>
@@ -834,7 +766,7 @@ export default function LandingPage({ featuredEvents = [] }: { featuredEvents?: 
            <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-8">
               <div className="max-w-2xl text-left">
                  <Badge variant="outline" className="mb-4 border-primary/30 bg-primary/10 text-primary rounded-full px-5 py-1.5 text-[11px] uppercase font-black tracking-[0.3em]">Global Mesh Network</Badge>
-                 <h2 className="text-5xl md:text-8xl font-display font-bold tracking-tighter text-foreground leading-[1.05]">Live Operations.</h2>
+                 <h2 className="text-5xl md:text-[8rem] font-display font-bold tracking-tighter text-foreground leading-[1.05]">Live Operations.</h2>
                  <p className="mt-4 text-xl text-muted-foreground font-medium opacity-90 leading-relaxed">
                    Real-time status of event nodes deployed across the secure Eventra global mesh.
                  </p>

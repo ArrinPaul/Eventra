@@ -26,8 +26,6 @@ export const metadata: Metadata = {
   description: 'Intelligent Event Management Platform for universities and organizations. Create, manage, and discover events with powerful tools.',
 };
 
-import { ClerkDebug } from '@/components/clerk-debug';
-
 export default async function RootLayout({
   children,
 }: Readonly<{
@@ -52,7 +50,6 @@ export default async function RootLayout({
           />
         </head>
         <body className="font-sans antialiased bg-background text-foreground">
-          <ClerkDebug />
           <NextIntlClientProvider locale={locale} messages={messages}>
             <Providers>
               {children}
