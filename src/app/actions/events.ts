@@ -131,7 +131,7 @@ export async function getEventById(id: string) {
   }
 }
 
-import { slugify } from './scraper';
+import { slugify } from '@/core/utils/slugify';
 
 /**
  * Create a new event

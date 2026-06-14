@@ -14,6 +14,7 @@ import EventModeration from './event-moderation';
 import SystemSettings from './system-settings';
 import AdminAnalyticsOverview from './admin-analytics-overview';
 import { EventScraperTool } from './event-scraper-tool';
+import { SystemMaintenancePanel } from './system-maintenance-panel';
 
 import { useEffect } from 'react';
 import { listAdminUsers } from '@/app/actions/admin';
@@ -144,7 +145,10 @@ export default function AdminDashboardClient() {
                 <TabsContent value="users"><UserManagement /></TabsContent>
                 <TabsContent value="moderation"><EventModeration /></TabsContent>
                 <TabsContent value="analytics"><AdminAnalyticsOverview /></TabsContent>
-                <TabsContent value="settings"><SystemSettings /></TabsContent>
+                <TabsContent value="settings" className="space-y-8">
+                  <SystemMaintenancePanel />
+                  <SystemSettings />
+                </TabsContent>
             </Tabs>
         </div>
     );

@@ -6,19 +6,7 @@ import { auth } from '@clerk/nextjs/server';
 import { validateRole } from '@/lib/auth-utils';
 import { generateEmbedding } from '@/lib/ai';
 import { revalidatePath } from 'next/cache';
-
-/**
- * Basic Slug Generator
- */
-export function slugify(text: string) {
-  return text
-    .toString()
-    .toLowerCase()
-    .trim()
-    .replace(/\s+/g, '-')     // Replace spaces with -
-    .replace(/[^\w\-]+/g, '') // Remove all non-word chars
-    .replace(/\-\-+/g, '-');   // Replace multiple - with single -
-}
+import { slugify } from '@/core/utils/slugify';
 
 /**
  * Extract Metadata from a URL (Proof of Concept Scraper)

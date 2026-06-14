@@ -213,6 +213,8 @@ export type SystemSettings = {
   feedEnabled: boolean;
   gamificationEnabled: boolean;
   aiRecommendations: boolean;
+  maintenanceMode: boolean;
+  lastMaintenanceAt: string | null;
 };
 
 const defaultSettings: SystemSettings = {
@@ -222,6 +224,8 @@ const defaultSettings: SystemSettings = {
   feedEnabled: true,
   gamificationEnabled: true,
   aiRecommendations: true,
+  maintenanceMode: false,
+  lastMaintenanceAt: null,
 };
 
 export async function getSystemSettings(): Promise<SystemSettings> {
