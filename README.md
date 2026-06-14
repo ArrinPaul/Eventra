@@ -172,17 +172,16 @@ npm run dev
 
 ---
 
-## 🚧 Status & Roadmap
+## 📄 License
 
-1. **Phase 1: Security & Tech Debt** (Current)
-   - Restore Auth.js (v5) and secure RBAC utilities.
-   - Global refactor of legacy `_id` to standardized `id`.
-2. **Phase 2: Commercial Re-integration**
-   - Re-enable Stripe payments and Sponsor revenue dashboard.
-3. **Phase 3: AI Scale**
-   - Optimization of Vector Similarity caching for global recommendations.
+Copyright © 2026 **Eventra Ecosystem**. All rights reserved.
+
+This project and its accompanying documentation are the proprietary and confidential property of **Eventra**. Any unauthorized use, reproduction, or distribution of this software, in whole or in part, without the prior written consent of the copyright holder is strictly prohibited.
+
+### **Usage Restrictions**
+- **Commercial Use**: Prohibited without a valid enterprise license.
+- **Modification**: Modification of the core Intelligence Engine (Genkit flows) is restricted to certified contributors.
+- **Redistribution**: Redistribution of the binary or source code is not permitted.
 
 ---
-
-## 📄 License
-This repository is currently private and confidential.
+*Last Updated: June 14, 2026*

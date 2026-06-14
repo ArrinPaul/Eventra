@@ -77,17 +77,20 @@ export function EventGallery({ eventId, isRegistered, isStaff }: EventGalleryPro
 
     setUploading(true);
     try {
-      // In a real app, you'd upload to ImageKit/Cloudinary first
-      // For this implementation, we simulate the storage logic with a temporary URL
-      // (Assuming a storage service like Supabase Storage or Vercel Blob is configured)
-      
+      // Convert file to Base64 for persistent storage in this prototype
+      const reader = new FileReader();
+      const base64Promise = new Promise<string>((resolve, reject) => {
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+
+      const base64Data = await base64Promise;
       const storageId = `img_${Date.now()}`;
-      // In a real environment, we'd use the actual uploaded URL
-      const mockUrl = URL.createObjectURL(file); 
 
       await uploadEventMedia({
         eventId,
-        url: mockUrl,
+        url: base64Data, // Use persistent Base64 instead of temporary Blob URL
         storageId,
         caption: ""
       });

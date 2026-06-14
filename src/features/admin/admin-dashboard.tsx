@@ -52,8 +52,8 @@ export default function AdminDashboardClient() {
     useEffect(() => {
         let mounted = true;
         async function load() {
-            const users = await listAdminUsers({ limit: 500 });
-            if (mounted) setAllUsersRaw(users);
+            const result = await listAdminUsers({ pageSize: 500 });
+            if (mounted) setAllUsersRaw(result.users);
         }
         load();
         return () => { mounted = false; };

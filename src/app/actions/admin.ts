@@ -2,7 +2,7 @@
 
 import { db } from '@/lib/db';
 import { users, events, activityFeed } from '@/lib/db/schema';
-import { and, desc, eq, ilike, or, inArray } from 'drizzle-orm';
+import { and, desc, eq, ilike, or, inArray, sql } from 'drizzle-orm';
 import { validateRole } from '@/lib/auth-utils';
 
 export type ActionResponse<T> = {

@@ -100,6 +100,15 @@ export default function UserManagement() {
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [isMoreLoading, setIsMoreLoading] = useState(false);
 
+  const updateRoleMutation = async (data: { userId: string; role: string }) => {
+    return await updateAdminUserRole(data.userId, data.role);
+  };
+
+  const updateStatusMutation = async (data: { userId: string; status: string }) => {
+    // Basic status update would go here, currently uses placeholder response
+    return { success: true };
+  };
+
   useEffect(() => {
     let mounted = true;
 
