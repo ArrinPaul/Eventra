@@ -53,6 +53,7 @@ export function Sidebar({ className }: SidebarProps) {
   const navLinks = React.useMemo(() => [
     { href: '/', label: 'Overview', icon: LayoutDashboard },
     { href: '/explore', label: 'Explore', icon: Compass },
+    { href: '/ai-tools', label: 'AI Workspace', icon: Bot, requireAuth: true },
     { href: '/tickets', label: 'My Tickets', icon: Ticket, requireAuth: true },
     { href: '/my-events', label: 'Schedule', icon: Calendar, requireAuth: true },
     { href: '/search', label: 'Global Search', icon: Search },

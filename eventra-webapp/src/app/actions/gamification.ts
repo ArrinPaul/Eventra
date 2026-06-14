@@ -83,13 +83,22 @@ export async function checkAndAwardBadges(userId: string) {
         case 'points':
           if (user.points >= criteria.value) eligible = true;
           break;
+        case 'account_created':
+          eligible = true; // They exist, so true
+          break;
+        case 'registration_count':
+          const rCount = await db.select({ value: count() }).from(tickets).where(eq(tickets.userId, userId));
+          if (rCount[0].value >= (criteria.count || 1)) eligible = true;
+          break;
+        case 'attendance_count':
         case 'events_attended':
           const tCount = await db.select({ value: count() }).from(tickets).where(and(eq(tickets.userId, userId), eq(tickets.status, 'checked-in')));
-          if (tCount[0].value >= criteria.value) eligible = true;
+          if (tCount[0].value >= (criteria.count || criteria.value)) eligible = true;
           break;
+        case 'post_count':
         case 'community_posts':
           const pCount = await db.select({ value: count() }).from(posts).where(eq(posts.authorId, userId));
-          if (pCount[0].value >= criteria.value) eligible = true;
+          if (pCount[0].value >= (criteria.count || criteria.value)) eligible = true;
           break;
       }
 

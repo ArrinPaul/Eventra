@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { motion } from 'framer-motion';
-import { Search, Filter, X, ZapOff, Activity, Compass, ChevronRight } from 'lucide-react';
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Search, Filter, X, ZapOff, Activity, Compass, ChevronRight, SlidersHorizontal, Check } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -10,6 +10,7 @@ import { getEvents } from '@/app/actions/events';
 import { useTranslations } from 'next-intl';
 import { EventCard } from './event-card';
 import { cn } from '@/core/utils/utils';
+import { useDebounce } from '@/hooks/use-debounce';
 
 interface EventItem {
   id: string; title: string; description: string; category: string;
@@ -24,7 +25,11 @@ export default function ExploreClient() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const [showFilters, setShowFilters] = useState(false);
+  const [selectedType, setSelectedType] = useState<string | null>(null);
   
+  const debouncedSearch = useDebounce(search, 500);
+
   const categories = [
     { value: 'All', label: 'All Categories' },
     { value: 'Technology', label: 'Technology' },
@@ -34,27 +39,35 @@ export default function ExploreClient() {
     { value: 'Arts', label: 'Arts' },
   ];
 
-  const fetchEvents = useCallback(async () => {
+  const types = ['physical', 'virtual', 'hybrid'];
+
+  const fetchEvents = React.useCallback(async () => {
     setLoading(true);
     try {
       const result = await getEvents({
-        search: search || undefined,
+        search: debouncedSearch || undefined,
         category: selectedCategory !== 'All' ? selectedCategory : undefined,
         limit: 20,
       });
-      setEvents(result as EventItem[]);
+      
+      // Client-side type filtering until getEvents supports it
+      let filtered = result as EventItem[];
+      if (selectedType) {
+        filtered = filtered.filter(e => e.type === selectedType);
+      }
+      
+      setEvents(filtered);
     } catch (error) {
       console.error('Failed to fetch events:', error);
       setEvents([]);
     } finally {
       setLoading(false);
     }
-  }, [search, selectedCategory]);
+  }, [debouncedSearch, selectedCategory, selectedType]);
 
   useEffect(() => {
-    const timer = setTimeout(() => fetchEvents(), 300);
-    return () => clearTimeout(timer);
-  }, [search, selectedCategory, fetchEvents]);
+    fetchEvents();
+  }, [fetchEvents]);
 
   return (
     <div className="w-full max-w-6xl mx-auto space-y-12 pb-24 px-6 md:px-10">
@@ -92,10 +105,67 @@ export default function ExploreClient() {
                </button>
              )}
            </div>
-           <Button variant="outline" className="h-12 rounded-xl border-notion-hairline bg-white font-bold text-xs gap-2 px-6 shadow-sm shrink-0">
-              <Filter className="w-4 h-4" /> Advanced
+           <Button 
+             variant={showFilters ? "primary" : "outline"} 
+             onClick={() => setShowFilters(!showFilters)}
+             className={cn(
+               "h-12 rounded-xl border-notion-hairline font-bold text-xs gap-2 px-6 shadow-sm shrink-0 transition-all",
+               showFilters ? "shadow-glow shadow-primary/20" : "bg-white"
+             )}
+           >
+              <SlidersHorizontal className="w-4 h-4" /> Filters
            </Button>
         </div>
+
+        <AnimatePresence>
+           {showFilters && (
+             <motion.div 
+               initial={{ height: 0, opacity: 0 }}
+               animate={{ height: 'auto', opacity: 1 }}
+               exit={{ height: 0, opacity: 0 }}
+               className="overflow-hidden"
+             >
+                <div className="p-6 rounded-[1.5rem] bg-notion-canvas-soft border border-notion-hairline grid grid-cols-1 md:grid-cols-2 gap-8">
+                   <div className="space-y-4">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-notion-ink-faint">Event Environment</p>
+                      <div className="flex flex-wrap gap-2">
+                         {types.map(type => (
+                           <button 
+                             key={type}
+                             onClick={() => setSelectedType(selectedType === type ? null : type)}
+                             className={cn(
+                               "px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border flex items-center gap-2",
+                               selectedType === type 
+                                ? "bg-notion-primary text-white border-primary" 
+                                : "bg-white border-notion-hairline text-notion-ink-muted hover:border-notion-ink-faint"
+                             )}
+                           >
+                              {selectedType === type && <Check className="w-3 h-3" />}
+                              {type}
+                           </button>
+                         ))}
+                      </div>
+                   </div>
+                   <div className="space-y-4">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-notion-ink-faint">Active Filters</p>
+                      <div className="flex flex-wrap gap-2">
+                         {selectedCategory !== 'All' && <Badge className="bg-notion-primary/10 text-primary border-none">Category: {selectedCategory}</Badge>}
+                         {selectedType && <Badge className="bg-notion-primary/10 text-primary border-none">Type: {selectedType}</Badge>}
+                         {!selectedType && selectedCategory === 'All' && <p className="text-xs font-medium text-notion-ink-faint italic">No active filters</p>}
+                         {(selectedType || selectedCategory !== 'All') && (
+                            <button 
+                              onClick={() => { setSelectedCategory('All'); setSelectedType(null); }}
+                              className="text-[10px] font-black text-notion-ink-faint hover:text-red-500 uppercase tracking-widest ml-2"
+                            >
+                               Clear All
+                            </button>
+                         )}
+                      </div>
+                   </div>
+                </div>
+             </motion.div>
+           )}
+        </AnimatePresence>
 
         {/* Category Pills */}
         <div className="flex gap-2.5 overflow-x-auto pb-4 scrollbar-hide">
@@ -132,7 +202,7 @@ export default function ExploreClient() {
             <h3 className="text-xl font-bold tracking-tight text-notion-ink">Sector Empty</h3>
             <p className="text-sm text-notion-ink-muted font-medium max-w-xs mx-auto">No events detected matching your current scan parameters.</p>
           </div>
-          <Button variant="outline" size="sm" onClick={() => { setSearch(''); setSelectedCategory('All'); }} className="rounded-xl font-bold px-8 h-10">
+          <Button variant="outline" size="sm" onClick={() => { setSearch(''); setSelectedCategory('All'); setSelectedType(null); }} className="rounded-xl font-bold px-8 h-10">
              Reset Scan
           </Button>
         </div>

@@ -23,7 +23,6 @@ import { cn } from '@/core/utils/utils';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { ActivityFeed } from '@/features/feed/activity-feed';
 import { EngagementMetrics } from './engagement-metrics';
 import { ReferralSystem } from './referral-system';
@@ -57,7 +56,7 @@ export default function AttendeeDashboard() {
       <div className="flex h-[80vh] items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div className="w-10 h-10 rounded-full border-2 border-notion-hairline border-t-notion-primary animate-spin" />
-          <p className="text-sm font-medium text-notion-ink-muted">Syncing data...</p>
+          <p className="text-sm font-medium text-notion-ink-muted uppercase tracking-widest">Syncing data...</p>
         </div>
       </div>
     );
@@ -66,12 +65,13 @@ export default function AttendeeDashboard() {
   const registrations = data?.registrations || [];
   const featuredEvents = data?.featuredEvents || [];
   const activities = data?.activities || [];
+  const userStats = data?.userStats || null;
   const upcomingEvent = registrations.length > 0 ? registrations[0].event : null;
 
   return (
-    <div className="w-full max-w-6xl mx-auto space-y-12 pb-24 px-6 md:px-10">
+    <div className="w-full max-w-6xl mx-auto space-y-12 pb-24 px-4 md:px-10">
       {/* HEADER */}
-      <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+      <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 px-1 md:px-0">
         <div className="space-y-2">
           <div className="flex items-center gap-2">
              <Badge variant="outline" className="bg-notion-canvas border-notion-hairline text-notion-ink-muted font-bold px-3 py-0.5 rounded-md shadow-sm">
@@ -97,9 +97,9 @@ export default function AttendeeDashboard() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {[
           { label: 'Active Passes', value: registrations.length, icon: Ticket, color: 'text-notion-primary', bg: 'bg-notion-primary/5' },
-          { label: 'XP Points', value: user.xp || 0, icon: Trophy, color: 'text-notion-accent-orange', bg: 'bg-notion-accent-orange/5' },
-          { label: 'Node Level', value: user.level || 1, icon: Zap, color: 'text-notion-accent-teal', bg: 'bg-notion-accent-teal/5' },
-          { label: 'Total Syncs', value: registrations.filter((r: any) => r.ticket.status === 'checked-in').length, icon: Activity, color: 'text-notion-accent-green', bg: 'bg-notion-accent-green/5' },
+          { label: 'XP Points', value: userStats?.xp || 0, icon: Trophy, color: 'text-notion-accent-orange', bg: 'bg-notion-accent-orange/5' },
+          { label: 'Node Level', value: userStats?.level || 1, icon: Zap, color: 'text-notion-accent-teal', bg: 'bg-notion-accent-teal/5' },
+          { label: 'Total Syncs', value: userStats?.attended || 0, icon: Activity, color: 'text-notion-accent-green', bg: 'bg-notion-accent-green/5' },
         ].map((stat, i) => (
           <Card key={i} className="border-notion-hairline bg-white dark:bg-zinc-950 shadow-notion-soft overflow-hidden group hover:-translate-y-1 transition-all duration-300">
             <CardContent className="p-6">
@@ -140,7 +140,7 @@ export default function AttendeeDashboard() {
                     <div className="md:col-span-7 p-8 md:p-10 flex flex-col justify-between space-y-10">
                        <div className="space-y-6">
                           <Badge className="bg-notion-accent-green/10 text-notion-accent-green border-none px-3 py-1 text-[10px] font-black uppercase tracking-widest">Confirmed Access</Badge>
-                          <h3 className="text-3xl font-display font-bold leading-[1.1] group-hover:text-notion-primary transition-colors">
+                          <h3 className="text-3xl font-display font-bold leading-[1.1] group-hover:text-notion-primary transition-colors text-notion-ink">
                              {upcomingEvent.title}
                           </h3>
                           <div className="space-y-4">
@@ -186,7 +186,7 @@ export default function AttendeeDashboard() {
                     <Calendar className="w-6 h-6 text-notion-ink-faint" />
                  </div>
                  <div className="space-y-1">
-                    <h3 className="text-lg font-bold">Your agenda is clear.</h3>
+                    <h3 className="text-lg font-bold text-notion-ink">Your agenda is clear.</h3>
                     <p className="text-sm text-notion-ink-muted max-w-[260px] mx-auto leading-relaxed">No upcoming events found. Explore the mesh to join new experiences.</p>
                  </div>
                  <Button asChild variant="primary" className="rounded-xl px-8 shadow-notion-soft">
@@ -197,7 +197,7 @@ export default function AttendeeDashboard() {
           </section>
 
           {/* METRICS */}
-          <EngagementMetrics userId={user.id} />
+          <EngagementMetrics stats={userStats} />
 
           {/* SUGGESTIONS */}
           <section className="space-y-8">
@@ -233,7 +233,7 @@ export default function AttendeeDashboard() {
                       </div>
                     </div>
                     <div className="p-6 space-y-4">
-                      <h3 className="text-lg font-bold truncate group-hover:text-notion-primary transition-colors leading-tight">
+                      <h3 className="text-lg font-bold truncate group-hover:text-notion-primary transition-colors leading-tight text-notion-ink">
                         {event.title}
                       </h3>
                       <div className="flex items-center justify-between text-[11px] font-bold text-notion-ink-muted uppercase tracking-widest">
@@ -254,13 +254,13 @@ export default function AttendeeDashboard() {
         {/* SIDEBAR */}
         <div className="lg:col-span-4 space-y-10">
           {/* DIGITAL PASS */}
-          <Card className="border-notion-hairline bg-white dark:bg-zinc-950 shadow-notion-elevated overflow-hidden relative group">
+          <Card className="border-notion-hairline bg-white dark:bg-zinc-950 shadow-notion-elevated overflow-hidden relative group rounded-[2rem]">
                <div className="absolute top-0 right-0 w-32 h-32 bg-notion-primary/5 blur-[40px] rounded-full -mr-16 -mt-16 group-hover:bg-notion-primary/10 transition-colors duration-500" />
                <div className="p-8 space-y-8 relative z-10">
                   <div className="flex justify-between items-start">
                      <div className="space-y-1">
                         <Badge variant="outline" className="text-notion-primary border-notion-primary/20 bg-notion-primary/5 uppercase text-[9px] font-black tracking-widest px-2 py-0">Active Pass</Badge>
-                        <h3 className="text-lg font-bold">Node Access</h3>
+                        <h3 className="text-lg font-bold text-notion-ink">Node Access</h3>
                      </div>
                      <button className="text-notion-ink-faint hover:text-notion-ink transition-colors">
                         <MoreVertical className="w-4 h-4" />
@@ -296,7 +296,7 @@ export default function AttendeeDashboard() {
                          <div className="w-16 h-16 rounded-full bg-notion-canvas-soft flex items-center justify-center mx-auto">
                             <Activity className="h-8 w-8 text-notion-ink-faint" />
                          </div>
-                         <p className="text-[10px] font-black uppercase tracking-widest">No active nodes</p>
+                         <p className="text-[10px] font-black uppercase tracking-widest text-notion-ink">No active nodes</p>
                        </div>
                      )}
                   </div>

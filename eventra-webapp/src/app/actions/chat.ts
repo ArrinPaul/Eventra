@@ -6,6 +6,7 @@ import { auth } from '@clerk/nextjs/server';
 import { eq, and, desc, sql, inArray } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
+import { aiChatbotFlow } from '@/lib/ai';
 
 const sendMessageSchema = z.object({
   roomId: z.string().uuid(),
@@ -120,6 +121,51 @@ export async function sendMessage(rawInput: any) {
   } catch (error) {
     console.error('sendMessage Error:', error);
     return { success: false, error: 'Failed to send' };
+  }
+}
+
+/**
+ * Generate AI-suggested replies based on recent conversation context
+ */
+export async function getAISuggestedReplies(roomId: string) {
+  const { userId } = await auth();
+  if (!userId) return [];
+
+  try {
+    const recentMessages = await getChatMessages(roomId, 5);
+    if (recentMessages.length === 0) return [];
+
+    const context = recentMessages
+      .map(m => `${m.sender.name}: ${m.message.content}`)
+      .join('\n');
+
+    const prompt = `
+      Given the following recent chat messages in an event group, suggest 3 short, professional, and helpful replies that a user could send.
+      
+      CONVERSATION:
+      ${context}
+      
+      Return the suggestions as a JSON array of strings.
+    `;
+
+    const { answer } = await aiChatbotFlow({
+      question: prompt,
+      eventContext: "General Networking Chat",
+    });
+
+    try {
+      // Very basic extraction if the AI didn't follow JSON format perfectly
+      const match = answer.match(/\[.*\]/s);
+      if (match) {
+        return JSON.parse(match[0]);
+      }
+      return [answer.split('\n')[0]]; // Fallback
+    } catch (e) {
+      return [];
+    }
+  } catch (error) {
+    console.error('getAISuggestedReplies Error:', error);
+    return [];
   }
 }
 
