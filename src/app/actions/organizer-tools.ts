@@ -1,7 +1,7 @@
 'use server';
 
 import { db } from '@/lib/db';
-import { activityFeed } from '@/lib/db/schema';
+import { activityFeed, notifications, tickets } from '@/lib/db/schema';
 import { and, desc, eq } from 'drizzle-orm';
 import { validateEventOwnership, validateRole } from '@/lib/auth-utils';
 
@@ -54,19 +54,43 @@ export async function createAnnouncement(input: {
 
   try {
     const expiresAt = Date.now() + Math.max(1, input.expiresHours) * 60 * 60 * 1000;
-    const [row] = await db
-      .insert(activityFeed)
-      .values({
-        userId: user.id,
-        actorId: user.id,
-        type: 'organizer_announcement',
-        targetId: input.eventId,
-        content: input.content,
-        metadata: { type: input.type, expiresAt, active: true },
-      })
-      .returning();
+    
+    const result = await db.transaction(async (tx) => {
+      // 1. Create Feed Entry
+      const [row] = await tx
+        .insert(activityFeed)
+        .values({
+          userId: user.id,
+          actorId: user.id,
+          type: 'organizer_announcement',
+          targetId: input.eventId,
+          content: input.content,
+          metadata: { type: input.type, expiresAt, active: true },
+        })
+        .returning();
 
-    return { success: true, id: row.id };
+      // 2. Get all attendees
+      const attendees = await tx
+        .select({ userId: tickets.userId })
+        .from(tickets)
+        .where(and(eq(tickets.eventId, input.eventId), eq(tickets.status, 'confirmed')));
+
+      // 3. Create Notifications
+      if (attendees.length > 0) {
+        const notifs = attendees.map(a => ({
+          userId: a.userId,
+          title: `Announcement: ${input.type.toUpperCase()}`,
+          message: input.content,
+          type: input.type === 'urgent' ? 'alert' : 'info',
+          link: `/events/${input.eventId}`
+        }));
+        await tx.insert(notifications).values(notifs);
+      }
+
+      return row;
+    });
+
+    return { success: true, id: result.id };
   } catch (error) {
     console.error('createAnnouncement Error:', error);
     return { success: false, id: null as string | null };
