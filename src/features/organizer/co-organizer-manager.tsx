@@ -11,7 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2, UserMinus, UserPlus, Mail, ShieldCheck } from 'lucide-react';
 import type { Id } from '@/types';
 import { updateEvent } from '@/app/actions/events';
-import { getUserByEmail, getUsersByEmails, type AdminUserRow } from '@/app/actions/admin';
+import { getUserByEmail, getUsersByIds, type AdminUserRow } from '@/app/actions/admin';
 
 interface CoOrganizerManagerProps {
   eventId: string;
@@ -45,13 +45,15 @@ export function CoOrganizerManager({
         setLoading(false);
         return;
       }
-      // We need a way to fetch multiple users by IDs.
-      // For now, let's assume we can use their emails if we had them,
-      // but since we only have IDs, we need a getUserByIds action.
-      // I'll use listAdminUsers with a filter if possible, or just fetch them.
-      // Improving admin.ts with getUsersByEmails was a start, but I need getUsersByIDs.
-      // Let's use a simple loop for now or add it to admin.ts.
-      setLoading(false);
+      setLoading(true);
+      try {
+        const users = await getUsersByIds(coOrganizerIds);
+        setCoOrganizers(users);
+      } catch (error) {
+        console.error("Failed to fetch co-organizers:", error);
+      } finally {
+        setLoading(false);
+      }
     }
     fetchCoOrganizers();
   }, [coOrganizerIds]);
@@ -85,6 +87,9 @@ export function CoOrganizerManager({
       if (result.success) {
         toast({ title: "Co-organizer added", description: `${targetUser.name} can now manage this event.` });
         setEmail('');
+        // Refresh local list
+        const updatedUsers = await getUsersByIds([...coOrganizerIds, targetUser.id]);
+        setCoOrganizers(updatedUsers);
       } else {
         toast({ title: "Error", description: "Failed to update event.", variant: "destructive" });
       }
@@ -105,6 +110,7 @@ export function CoOrganizerManager({
       });
       if (result.success) {
         toast({ title: "Co-organizer removed" });
+        setCoOrganizers(prev => prev.filter(u => u.id !== userId));
       } else {
         toast({ title: "Error", description: "Failed to update event.", variant: "destructive" });
       }
@@ -147,27 +153,32 @@ export function CoOrganizerManager({
         <div className="space-y-4">
           <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">Co-Organizers</p>
           <div className="space-y-3">
-            {coOrganizerIds.length === 0 ? (
+            {loading ? (
+              <div className="text-center py-10">
+                <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
+              </div>
+            ) : coOrganizers.length === 0 ? (
               <div className="text-center py-10 border-2 border-dashed border-border rounded-2xl bg-muted/10">
                 <p className="text-sm text-muted-foreground font-medium">
                   No co-organizers added yet.
                 </p>
               </div>
             ) : (
-              coOrganizerIds.map((id) => (
-                <div key={id} className="flex items-center gap-4 p-4 bg-card rounded-2xl border border-border/50 group hover:border-primary/30 transition-colors">
+              coOrganizers.map((coOp) => (
+                <div key={coOp.id} className="flex items-center gap-4 p-4 bg-card rounded-2xl border border-border/50 group hover:border-primary/30 transition-colors">
                   <Avatar className="h-12 w-12 border-2 border-border">
-                    <AvatarFallback className="bg-muted text-muted-foreground font-bold">?</AvatarFallback>
+                    <AvatarImage src={coOp.image || undefined} />
+                    <AvatarFallback className="bg-muted text-muted-foreground font-bold">{coOp.name?.charAt(0)}</AvatarFallback>
                   </Avatar>
                   <div>
-                    <p className="font-bold text-foreground">User ID: {id.substring(0, 8)}...</p>
-                    <p className="text-[10px] font-medium text-muted-foreground">Collaborator</p>
+                    <p className="font-bold text-foreground">{coOp.name}</p>
+                    <p className="text-[10px] font-medium text-muted-foreground">{coOp.email}</p>
                   </div>
                   <Button 
                     variant="ghost" 
                     size="icon" 
                     className="ml-auto text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-xl"
-                    onClick={() => handleRemove(id)}
+                    onClick={() => handleRemove(coOp.id)}
                     disabled={isUpdating}
                   >
                     <UserMinus className="h-5 w-5" />

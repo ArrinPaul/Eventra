@@ -47,5 +47,5 @@ export async function manualPromoteAttendee(eventId: string, userId: string) {
 
   // We reuse the auto-promotion logic but could be extended for specific userId
   // For now, let's keep it simple: promote next available
-  return await autoPromoteFromWaitlist(eventId);
+  return await autoPromoteFromWaitlist(eventId, undefined, userId);
 }

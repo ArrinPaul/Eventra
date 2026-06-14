@@ -155,7 +155,7 @@ export async function getAISuggestedReplies(roomId: string) {
 
     try {
       // Very basic extraction if the AI didn't follow JSON format perfectly
-      const match = answer.match(/\[.*\]/s);
+      const match = answer.match(/\[[\s\S]*\]/);
       if (match) {
         return JSON.parse(match[0]);
       }

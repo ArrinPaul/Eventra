@@ -50,6 +50,8 @@ export async function getEvents(filters?: {
   limit?: number;
   organizerId?: string;
   status?: string;
+  dateRange?: string; // 'today', 'this-week', 'this-month'
+  priceType?: string; // 'free', 'paid'
 }) {
   try {
     const conditions = [];
@@ -75,6 +77,28 @@ export async function getEvents(filters?: {
           ilike(events.description, `%${filters.search}%`)
         )
       );
+    }
+    
+    if (filters?.priceType) {
+      if (filters.priceType === 'free') conditions.push(eq(events.isPaid, false));
+      if (filters.priceType === 'paid') conditions.push(eq(events.isPaid, true));
+    }
+    
+    if (filters?.dateRange) {
+      const now = new Date();
+      if (filters.dateRange === 'today') {
+        const tomorrow = new Date(now);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        conditions.push(sql`${events.startDate} >= ${now.toISOString()} AND ${events.startDate} < ${tomorrow.toISOString()}`);
+      } else if (filters.dateRange === 'this-week') {
+        const nextWeek = new Date(now);
+        nextWeek.setDate(nextWeek.getDate() + 7);
+        conditions.push(sql`${events.startDate} >= ${now.toISOString()} AND ${events.startDate} < ${nextWeek.toISOString()}`);
+      } else if (filters.dateRange === 'this-month') {
+        const nextMonth = new Date(now);
+        nextMonth.setMonth(nextMonth.getMonth() + 1);
+        conditions.push(sql`${events.startDate} >= ${now.toISOString()} AND ${events.startDate} < ${nextMonth.toISOString()}`);
+      }
     }
 
     const result = await db.select().from(events)

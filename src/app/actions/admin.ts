@@ -25,9 +25,14 @@ export type AdminUserRow = {
 export async function listAdminUsers(filters?: {
   search?: string;
   role?: string;
-  limit?: number;
-}): Promise<AdminUserRow[]> {
+  page?: number;
+  pageSize?: number;
+}): Promise<{ users: AdminUserRow[]; totalCount: number }> {
   await validateRole(['admin']);
+
+  const page = filters?.page ?? 1;
+  const pageSize = filters?.pageSize ?? 50;
+  const offset = (page - 1) * pageSize;
 
   try {
     const conditions = [];
@@ -37,6 +42,13 @@ export async function listAdminUsers(filters?: {
     if (filters?.role && filters.role !== 'all') {
       conditions.push(eq(users.role, filters.role));
     }
+
+    const whereClause = conditions.length ? and(...conditions) : undefined;
+
+    const [countResult] = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(users)
+      .where(whereClause);
 
     const rows = await db
       .select({
@@ -50,14 +62,15 @@ export async function listAdminUsers(filters?: {
         createdAt: users.createdAt,
       })
       .from(users)
-      .where(conditions.length ? and(...conditions) : undefined)
+      .where(whereClause)
       .orderBy(desc(users.createdAt))
-      .limit(filters?.limit ?? 100);
+      .limit(pageSize)
+      .offset(offset);
 
-    return rows;
+    return { users: rows, totalCount: countResult.count };
   } catch (error) {
     console.error('listAdminUsers Error:', error);
-    return [];
+    return { users: [], totalCount: 0 };
   }
 }
 
@@ -80,6 +93,29 @@ export async function getUsersByEmails(emails: string[]): Promise<AdminUserRow[]
       .where(inArray(users.email, emails));
   } catch (error) {
     console.error('getUsersByEmails Error:', error);
+    return [];
+  }
+}
+
+export async function getUsersByIds(ids: string[]): Promise<AdminUserRow[]> {
+  await validateRole(['organizer', 'admin']);
+  if (!ids.length) return [];
+  try {
+    return await db
+      .select({
+        id: users.id,
+        name: users.name,
+        email: users.email,
+        role: users.role,
+        points: users.points,
+        level: users.level,
+        image: users.image,
+        createdAt: users.createdAt,
+      })
+      .from(users)
+      .where(inArray(users.id, ids));
+  } catch (error) {
+    console.error('getUsersByIds Error:', error);
     return [];
   }
 }

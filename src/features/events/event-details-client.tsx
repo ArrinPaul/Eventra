@@ -73,7 +73,7 @@ export default function EventDetailsClient({ eventId, initialEvent }: { eventId:
     try {
       const result = await registerForEvent(eventId, { tierId });
       if (result.success) {
-        toast({ title: 'Successfully Synced', description: result.ticketNumber ? `Pass ID: ${result.ticketNumber}` : 'Added to waitlist.' });
+        toast({ title: 'Successfully Synced', description: (result as any).ticketNumber ? `Pass ID: ${(result as any).ticketNumber}` : 'Added to waitlist.' });        
         const status = await getRegistrationStatus(eventId);
         setRegistration(status);
       } else {

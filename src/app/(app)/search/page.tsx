@@ -11,6 +11,9 @@ import { format } from 'date-fns';
 import { useDebounce } from '@/hooks/use-debounce';
 import { globalSearch } from '@/app/actions/search';
 import { motion, AnimatePresence } from 'framer-motion';
+import { cn } from '@/core/utils/utils';
+import Image from 'next/image';
+import { Button } from '@/components/ui/button';
 
 export default function SearchPage() {
   const [query, setQuery] = useState('');

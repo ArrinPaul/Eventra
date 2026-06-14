@@ -25,7 +25,8 @@ import {
   LogOut,
   Zap,
   Activity,
-  Globe
+  Globe,
+  Bot
 } from 'lucide-react';
 import {
   Tooltip,

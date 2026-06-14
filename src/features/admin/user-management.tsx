@@ -92,47 +92,64 @@ export default function UserManagement() {
   const [showUserDialog, setShowUserDialog] = useState(false);
   const [showBanDialog, setShowBanDialog] = useState(false);
   const [banReason, setBanReason] = useState('');
-  const itemsPerPage = 10;
-
+  
+  const [page, setPage] = useState(1);
+  const [pageSize] = useState(20);
+  const [totalCount, setTotalCount] = useState(0);
   const [usersRaw, setUsersRaw] = useState<any[]>([]);
-  const statsQuery = useMemo(() => ({ totalUsers: usersRaw.length }), [usersRaw.length]);
-  const paginationStatus: string = 'Exhausted';
-  
-  const loadMore = (_num: number) => {
-    // Backlog(P3.1): server-driven pagination can replace current wide fetch once query cursors are introduced.
-  };
-  
-  const updateRoleMutation = async (data: any) => updateAdminUserRole(data.userId, data.role);
-  
-  const updateStatusMutation = async (_data: any) => ({ success: false });
-//       role: filters.role,
-//       search: filters.search,
-//     },
-//     { initialNumItems: itemsPerPage }
-//   );
-//   
-
-  const loading = usersRaw === undefined;
-  const users = useMemo(() => usersRaw ?? [], [usersRaw]);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [isMoreLoading, setIsMoreLoading] = useState(false);
 
   useEffect(() => {
     let mounted = true;
 
     async function load() {
-      const rows = await listAdminUsers({ search: filters.search || undefined, role: filters.role, limit: 200 });
+      setIsInitialLoading(true);
+      const result = await listAdminUsers({ 
+        search: filters.search || undefined, 
+        role: filters.role, 
+        page: 1, 
+        pageSize 
+      });
       if (!mounted) return;
-      setUsersRaw(rows);
+      setUsersRaw(result.users);
+      setTotalCount(result.totalCount);
+      setPage(1);
+      setIsInitialLoading(false);
     }
 
     load();
     return () => {
       mounted = false;
     };
-  }, [filters.search, filters.role]);
+  }, [filters.search, filters.role, pageSize]);
+
+  const handleLoadMore = async () => {
+    if (isMoreLoading) return;
+    setIsMoreLoading(true);
+    const nextPage = page + 1;
+    try {
+      const result = await listAdminUsers({ 
+        search: filters.search || undefined, 
+        role: filters.role, 
+        page: nextPage, 
+        pageSize 
+      });
+      setUsersRaw(prev => [...prev, ...result.users]);
+      setTotalCount(result.totalCount);
+      setPage(nextPage);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsMoreLoading(false);
+    }
+  };
+
+  const hasMore = usersRaw.length < totalCount;
 
   // Transform and filter (status filter still client-side for simplicity)
   const filteredUsers = useMemo(() => {
-    let result = [...users].map((u: any) => ({
+    let result = [...usersRaw].map((u: any) => ({
       ...u,
       createdAt: new Date(u.createdAt),
       lastActive: new Date(u.createdAt),
@@ -147,17 +164,13 @@ export default function UserManagement() {
     }
 
     return result;
-  }, [users, filters.status]);
-
-  const handleLoadMore = () => {
-    loadMore(itemsPerPage);
-  };
+  }, [usersRaw, filters.status]);
 
   const stats = useMemo(() => ({
-    total: statsQuery?.totalUsers || 0,
-    active: statsQuery?.totalUsers || 0, // Simplified
+    total: totalCount,
+    active: totalCount, // Simplified
     banned: 0, // Simplified
-  }), [statsQuery]);
+  }), [totalCount]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -261,12 +274,12 @@ export default function UserManagement() {
       </Card>
 
       <div className="flex items-center justify-center text-foreground py-4">
-        {paginationStatus === "CanLoadMore" && (
+        {hasMore && !isMoreLoading && (
           <Button variant="outline" size="sm" onClick={handleLoadMore}>
             Load More Users
           </Button>
         )}
-        {paginationStatus === "LoadingMore" && (
+        {isMoreLoading && (
           <Loader2 className="w-6 h-6 animate-spin text-primary" />
         )}
       </div>

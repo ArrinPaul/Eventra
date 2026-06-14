@@ -225,16 +225,17 @@ async function joinWaitlist(eventId: string, userId: string) {
 /**
  * Promote the next person from waitlist (Reservation model)
  * Grants the user a 24-hour window to claim their spot.
+ * If targetUserId is provided, it attempts to promote that specific user.
  */
-export async function autoPromoteFromWaitlist(eventId: string, tx?: any) {
+export async function autoPromoteFromWaitlist(eventId: string, tx?: any, targetUserId?: string) {
   const { userId } = await auth();
   if (!userId) {
     throw new Error('Authentication required');
   }
 
   const executePromotion = async (transaction: any) => {
-    // 1. Find next in line
-    const nextInLine = await transaction
+    // 1. Find the person to promote
+    const query = transaction
       .select({
         id: waitlist.id,
         userId: waitlist.userId,
@@ -245,10 +246,15 @@ export async function autoPromoteFromWaitlist(eventId: string, tx?: any) {
         }
       })
       .from(waitlist)
-      .innerJoin(users, eq(waitlist.userId, users.id))
-      .where(and(eq(waitlist.eventId, eventId), eq(waitlist.status, 'waiting')))
-      .orderBy(waitlist.position)
-      .limit(1);
+      .innerJoin(users, eq(waitlist.userId, users.id));
+    
+    if (targetUserId) {
+      query.where(and(eq(waitlist.eventId, eventId), eq(waitlist.userId, targetUserId), eq(waitlist.status, 'waiting')));
+    } else {
+      query.where(and(eq(waitlist.eventId, eventId), eq(waitlist.status, 'waiting'))).orderBy(waitlist.position);
+    }
+
+    const nextInLine = await query.limit(1);
 
     if (nextInLine.length === 0) return null;
 

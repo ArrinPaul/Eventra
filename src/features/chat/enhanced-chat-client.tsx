@@ -87,56 +87,73 @@ export default function EnhancedChatClient({ initialRoomId }: { initialRoomId?: 
     }
     loadMessages();
 
-    // 3. Real-time Subscription
-    const channel = supabase
-      .channel(`room:${selectedRoomId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'chat_messages',
-          filter: `room_id=eq.${selectedRoomId}`,
-        },
-        async (payload) => {
-          const newest = payload.new as any;
-          const senderId = newest.sender_id;
-          let senderInfo = userCacheRef.current[senderId];
-
-          // If not in cache, fetch once and cache it
-          if (!senderInfo) {
-            const { data: userData } = await supabase
-              .from('users')
-              .select('id, name, image')
-              .eq('id', senderId)
-              .single();
-            
-            senderInfo = userData || { id: senderId, name: 'Unknown', image: null };
-            userCacheRef.current[senderId] = senderInfo;
+    // 3. Real-time Subscription with Reconnection Logic
+    const subscribeToRoom = () => {
+      const channel = supabase
+        .channel(`room:${selectedRoomId}`, {
+          config: {
+            presence: { key: user?.id },
           }
+        })
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'chat_messages',
+            filter: `room_id=eq.${selectedRoomId}`,
+          },
+          async (payload) => {
+            const newest = payload.new as any;
+            const senderId = newest.sender_id;
+            let senderInfo = userCacheRef.current[senderId];
 
-          const formattedMsg = {
-            message: {
-              id: newest.id,
-              content: newest.content,
-              imageUrl: newest.image_url,
-              senderId: newest.sender_id,
-              createdAt: newest.created_at,
-            },
-            sender: senderInfo
-          };
+            if (!senderInfo) {
+              const { data: userData } = await supabase
+                .from('users')
+                .select('id, name, image')
+                .eq('id', senderId)
+                .single();
+              
+              senderInfo = userData || { id: senderId, name: 'Unknown', image: null };
+              userCacheRef.current[senderId] = senderInfo;
+            }
 
-          setMessages((prev) => {
-            if (prev.some(m => m.message.id === formattedMsg.message.id)) return prev;
-            return [...prev, formattedMsg];
-          });
-          
-          setTimeout(() => {
-            messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-          }, 100);
-        }
-      )
-      .subscribe();
+            const formattedMsg = {
+              message: {
+                id: newest.id,
+                content: newest.content,
+                imageUrl: newest.image_url,
+                senderId: newest.sender_id,
+                createdAt: newest.created_at,
+              },
+              sender: senderInfo
+            };
+
+            setMessages((prev) => {
+              if (prev.some(m => m.message.id === formattedMsg.message.id)) return prev;
+              return [...prev, formattedMsg];
+            });
+            
+            setTimeout(() => {
+              messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+            }, 100);
+          }
+        )
+        .subscribe(async (status) => {
+          if (status === 'SUBSCRIBED') {
+            console.log(`Subscribed to room:${selectedRoomId}`);
+          }
+          if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
+            console.log(`Connection ${status} for room:${selectedRoomId}, retrying...`);
+            setTimeout(subscribeToRoom, 3000);
+          }
+        });
+
+      return channel;
+    };
+
+    const channel = subscribeToRoom();
 
     return () => {
       supabase.removeChannel(channel);
