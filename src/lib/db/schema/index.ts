@@ -91,11 +91,13 @@ export const verificationTokens = pgTable(
 
 export const events = pgTable('events', {
   id: uuid('id').primaryKey().defaultRandom(),
+  slug: text('slug').unique().notNull(),
   title: text('title').notNull(),
   description: text('description').notNull(),
   startDate: timestamp('start_date').notNull(),
   endDate: timestamp('end_date').notNull(),
   imageUrl: text('image_url'),
+  externalUrl: text('external_url'),
   category: text('category').notNull(),
   status: text('status').default('draft').notNull(),
   type: text('type').default('physical').notNull(),
@@ -120,6 +122,7 @@ export const events = pgTable('events', {
   startDateIdx: index('events_start_date_idx').on(table.startDate),
   categoryIdx: index('events_category_idx').on(table.category),
   statusIdx: index('events_status_idx').on(table.status),
+  slugIdx: uniqueIndex('events_slug_idx').on(table.slug),
   organizerIdx: index('events_organizer_idx').on(table.organizerId),
 }));
 
@@ -612,3 +615,13 @@ export const sponsorLeadsRelations = relations(sponsorLeads, ({ one }) => ({
     references: [users.id],
   }),
 }));
+
+export const ingestionSources = pgTable('ingestion_sources', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  name: text('name').notNull(),
+  url: text('url').notNull().unique(),
+  category: text('category').notNull(),
+  lastScrapedAt: timestamp('last_scraped_at'),
+  isActive: boolean('is_active').default(true).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});

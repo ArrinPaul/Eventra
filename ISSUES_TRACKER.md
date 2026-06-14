@@ -1,6 +1,8 @@
 ## 🚀 Social Discovery & Final Audit (June 14, 2026)
 - [x] **People Recommendation System**: Implemented vector-based "Network Matchmaking" with AI conversation starters.
 - [x] **Quick Connect Feature**: Added one-click connection + AI-intro messaging from the dashboard.
+- [x] **Neural Event Ingestor (Scraper)**: Implemented automated metadata extraction and ingestion from external URLs.
+- [x] **SEO-Friendly Slugs**: Added automatic slug generation for all events to support better indexing.
 - [x] **Dashboard Social Integration**: Added "People You May Know" section to the Attendee Dashboard.
 - [x] **Recommendation Engine Audit**: 
     - Verified Event recommendations (now excludes registered events).

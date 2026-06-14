@@ -131,6 +131,8 @@ export async function getEventById(id: string) {
   }
 }
 
+import { slugify } from './scraper';
+
 /**
  * Create a new event
  */
@@ -145,8 +147,11 @@ export async function createEvent(rawInput: any): Promise<ActionResponse<any>> {
   const data = validated.data;
 
   try {
+    const slug = `${slugify(data.title)}-${Math.random().toString(36).substring(2, 7)}`;
+
     const newEvent = await db.insert(events).values({
       ...data,
+      slug,
       isPaid: false, // Force free
       price: '0',    // Force free
       location: data.location || { venue: 'TBD' },

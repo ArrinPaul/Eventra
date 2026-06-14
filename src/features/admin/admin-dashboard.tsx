@@ -6,13 +6,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Check, Download, Search, X, LayoutDashboard, Users, Settings, BarChart3, Flag, Loader2 } from 'lucide-react';
+import { Check, Download, Search, X, LayoutDashboard, Users, Settings, BarChart3, Flag, Loader2, Globe } from 'lucide-react';
 import type { User, UserRole } from '@/types';
 import { Badge } from '@/components/ui/badge';
 import UserManagement from './user-management';
 import EventModeration from './event-moderation';
 import SystemSettings from './system-settings';
 import AdminAnalyticsOverview from './admin-analytics-overview';
+import { EventScraperTool } from './event-scraper-tool';
 
 import { useEffect } from 'react';
 import { listAdminUsers } from '@/app/actions/admin';
@@ -86,6 +87,7 @@ export default function AdminDashboardClient() {
             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
                 <TabsList className="flex flex-wrap h-auto gap-1 bg-muted/50 p-1">
                     <TabsTrigger value="dashboard" className="gap-2"><LayoutDashboard className="w-4 h-4" /> Dashboard</TabsTrigger>
+                    <TabsTrigger value="ingestion" className="gap-2"><Globe className="w-4 h-4" /> Ingestion</TabsTrigger>
                     <TabsTrigger value="users" className="gap-2"><Users className="w-4 h-4" /> Users</TabsTrigger>
                     <TabsTrigger value="moderation" className="gap-2"><Flag className="w-4 h-4" /> Moderation</TabsTrigger>
                     <TabsTrigger value="analytics" className="gap-2"><BarChart3 className="w-4 h-4" /> Analytics</TabsTrigger>
@@ -138,6 +140,7 @@ export default function AdminDashboardClient() {
                     )}
                 </TabsContent>
 
+                <TabsContent value="ingestion"><EventScraperTool /></TabsContent>
                 <TabsContent value="users"><UserManagement /></TabsContent>
                 <TabsContent value="moderation"><EventModeration /></TabsContent>
                 <TabsContent value="analytics"><AdminAnalyticsOverview /></TabsContent>
