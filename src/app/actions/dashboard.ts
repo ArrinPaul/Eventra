@@ -5,6 +5,7 @@ import { getEvents } from './events';
 import { getActivityFeed } from './feed';
 import { getUserStats, getLeaderboard } from './gamification';
 import { getOrganizerRevenueDashboard } from './analytics';
+import { getAIConnectionRecommendations } from './ai-recommendations';
 import { auth } from '@clerk/nextjs/server';
 import { validateRole } from '@/lib/auth-utils';
 
@@ -26,12 +27,13 @@ export async function getDashboardData() {
   }
 
   // Fetch all data in parallel on the server
-  const [registrations, featuredEvents, activities, userStats, leaderboard] = await Promise.all([
+  const [registrations, featuredEvents, activities, userStats, leaderboard, peopleSuggestions] = await Promise.all([
     getUserRegistrations(),
     getEvents({ limit: 4 }),
     getActivityFeed({ userId, limit: 5 }),
     getUserStats(userId),
-    getLeaderboard(5)
+    getLeaderboard(5),
+    getAIConnectionRecommendations(userId)
   ]);
 
   return {
@@ -40,6 +42,7 @@ export async function getDashboardData() {
     activities,
     userStats,
     leaderboard,
-    organizerStats
+    organizerStats,
+    peopleSuggestions
   };
 }

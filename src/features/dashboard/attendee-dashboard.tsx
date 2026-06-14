@@ -15,7 +15,9 @@ import {
   Zap, 
   Sparkles,
   ChevronRight,
-  MoreVertical
+  MoreVertical,
+  Users,
+  Loader2
 } from 'lucide-react';
 
 import { useAuth } from '@/hooks/use-auth';
@@ -23,16 +25,23 @@ import { cn } from '@/core/utils/utils';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useToast } from '@/hooks/use-toast';
 import { ActivityFeed } from '@/features/feed/activity-feed';
 import { EngagementMetrics } from './engagement-metrics';
 import { ReferralSystem } from './referral-system';
 import { getDashboardData } from '@/app/actions/dashboard';
 import { QRCodeSVG } from 'qrcode.react';
+import { quickConnect } from '@/app/actions/networking';
+import { useRouter } from 'next/navigation';
 
 export default function AttendeeDashboard() {
   const { user } = useAuth();
+  const router = useRouter();
+  const { toast } = useToast();
   const [data, setData] = React.useState<any>(null);
   const [loading, setLoading] = React.useState(true);
+  const [connectingId, setConnectingId] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     async function loadData() {
@@ -49,6 +58,23 @@ export default function AttendeeDashboard() {
     loadData();
   }, [user]);
 
+  const handleQuickConnect = async (person: any) => {
+    setConnectingId(person.userId);
+    try {
+      const result = await quickConnect(person.userId, person.conversationStarter);
+      if (result.success) {
+        toast({ title: 'Connected!', description: `Message sent to ${person.name}.` });
+        if ((result as any).roomId) {
+          router.push(`/chat?room=${(result as any).roomId}`);
+        }
+      }
+    } catch (e) {
+      toast({ title: 'Connection failed', variant: 'destructive' });
+    } finally {
+      setConnectingId(null);
+    }
+  };
+
   if (!user) return null;
 
   if (loading) {
@@ -64,6 +90,7 @@ export default function AttendeeDashboard() {
 
   const registrations = data?.registrations || [];
   const featuredEvents = data?.featuredEvents || [];
+  const peopleSuggestions = data?.peopleSuggestions || [];
   const activities = data?.activities || [];
   const userStats = data?.userStats || null;
   const upcomingEvent = registrations.length > 0 ? registrations[0].event : null;
@@ -247,6 +274,63 @@ export default function AttendeeDashboard() {
                   </Card>
                 </Link>
               ))}
+            </div>
+          </section>
+
+          {/* PEOPLE SUGGESTIONS */}
+          <section className="space-y-8">
+            <div className="flex items-center justify-between px-1">
+              <div className="space-y-1">
+                <h2 className="text-xl font-bold tracking-tight text-notion-ink flex items-center gap-2">
+                  <Users className="h-5 w-5 text-notion-primary" />
+                  Network Matchmaking
+                </h2>
+                <p className="text-xs font-medium text-notion-ink-muted">Connect with people sharing your interests.</p>
+              </div>
+              <Link href="/networking" className="text-[10px] font-black uppercase tracking-widest text-notion-primary hover:underline flex items-center gap-1">
+                View All <ChevronRight className="h-3 w-3" />
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {peopleSuggestions.slice(0, 4).map((person: any) => (
+                <Card key={person.userId} className="border-notion-hairline bg-white dark:bg-zinc-950 p-4 hover:shadow-notion-soft transition-all rounded-2xl group relative">
+                   <div className="flex items-center gap-4">
+                      <Avatar className="h-12 w-12 border border-notion-hairline">
+                        <AvatarImage src={person.image} />
+                        <AvatarFallback className="bg-notion-primary/10 text-notion-primary font-bold">{person.name?.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                         <h4 className="font-bold text-notion-ink truncate">{person.name}</h4>
+                         <p className="text-[10px] text-notion-ink-faint uppercase font-black tracking-widest">{person.role}</p>
+                      </div>
+                      <div className="flex gap-1">
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="rounded-full hover:bg-notion-primary/10 text-notion-primary"
+                          onClick={() => handleQuickConnect(person)}
+                          disabled={connectingId === person.userId}
+                        >
+                          {connectingId === person.userId ? <Loader2 className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4 fill-current" />}
+                        </Button>
+                        <Button variant="ghost" size="icon" className="rounded-full hover:bg-notion-primary/10 text-notion-primary opacity-0 group-hover:opacity-100 transition-opacity" asChild>
+                           <Link href={`/profile/${person.userId}`}><ArrowRight className="h-4 w-4" /></Link>
+                        </Button>
+                      </div>
+                   </div>
+                   <div className="mt-3 p-3 bg-notion-canvas-soft rounded-xl border border-notion-hairline/50">
+                      <p className="text-[10px] text-notion-ink-muted leading-tight line-clamp-2 italic">
+                        "{person.conversationStarter}"
+                      </p>
+                   </div>
+                </Card>
+              ))}
+              {peopleSuggestions.length === 0 && (
+                <div className="col-span-full py-10 text-center border border-dashed border-notion-hairline rounded-2xl opacity-50">
+                  <p className="text-xs font-medium text-notion-ink-muted uppercase tracking-widest">Growing the network...</p>
+                </div>
+              )}
             </div>
           </section>
         </div>

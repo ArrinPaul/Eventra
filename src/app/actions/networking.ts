@@ -170,3 +170,35 @@ export async function removeConnection(otherUserId: string) {
     return { success: false, error: 'Failed to remove connection' };
   }
 }
+
+import { createChatRoom, sendMessage } from './chat';
+
+/**
+ * Quick Connect: Send connection request + an initial message
+ */
+export async function quickConnect(receiverId: string, message: string) {
+  const userId = await requireUserId();
+
+  try {
+    // 1. Send the connection request
+    const connResult = await sendConnectionRequest(receiverId);
+    if (!connResult.success) return connResult;
+
+    // 2. Create or find a DM room
+    const room = await createChatRoom({
+      name: `DM`,
+      type: 'direct',
+      participantIds: [receiverId] // current userId is added automatically by createChatRoom logic
+    });
+
+    // 3. Send the intro message
+    if (room && room.id) {
+      await sendMessage({ roomId: room.id, content: message });
+    }
+
+    return { success: true, roomId: room?.id };
+  } catch (error) {
+    console.error('quickConnect Error:', error);
+    return { success: false, error: 'Failed to establish quick connection' };
+  }
+}

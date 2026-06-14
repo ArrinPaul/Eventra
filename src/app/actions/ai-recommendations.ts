@@ -5,7 +5,8 @@ import { validateRole } from '@/lib/auth-utils';
 import { db } from '@/lib/db';
 import { aiRecommendationCache, events, users, tickets, eventFeedback, communityMembers, communities } from '@/lib/db/schema';
 import { and, eq, ne, desc } from 'drizzle-orm';
-import { recommendationFlow, contentRecommendationFlow, connectionRecommendationFlow } from '@/lib/ai';
+import { recommendationFlow, contentRecommendationFlow, connectionRecommendationFlow, generateEmbedding } from '@/lib/ai';
+import { sql } from 'drizzle-orm';
 
 export interface RecommendationBundle {
 	events: Array<{ id: string; title: string; category?: string; score?: number }>;
@@ -27,6 +28,9 @@ export type AIContentRecommendation = {
 
 export type AIConnectionRecommendation = {
   userId: string;
+  name: string;
+  image?: string | null;
+  role: string;
   strength: number;
   conversationStarter: string;
 };
@@ -54,7 +58,7 @@ function isCacheFresh(updatedAt: Date) {
 }
 
 /**
- * Get personalized recommendations using Genkit
+ * Get personalized event recommendations using Vector search + Genkit
  */
 export async function getAIRecommendations(userId?: string): Promise<AIEventRecommendation[]> {
   const caller = await validateRole(['attendee', 'organizer', 'admin', 'professional']);
@@ -65,15 +69,28 @@ export async function getAIRecommendations(userId?: string): Promise<AIEventReco
   }
 
   try {
-    // 1. Get User Profile
+    // 1. Get User Profile & Embedding
     const user = await db.query.users.findFirst({
       where: eq(users.id, targetUserId)
     });
 
     if (!user) throw new Error('User not found');
 
-    // 2. Get User Interactions (Past registrations, feedback, communities)
-    const [pastRegistrations, userFeedback, userCommunities] = await Promise.all([
+    let userEmbedding = user.embedding;
+
+    // If user has no embedding, generate one from bio + interests
+    if (!userEmbedding && (user.interests || user.bio)) {
+      const textToEmbed = `${user.name} interests: ${user.interests || ''}. Bio: ${user.bio || ''}`;
+      const embeddingResult = await generateEmbedding(textToEmbed);
+      if (embeddingResult && (embeddingResult as any).embedding) {
+        userEmbedding = (embeddingResult as any).embedding.values;
+        // Update user record with the new embedding
+        await db.update(users).set({ embedding: userEmbedding }).where(eq(users.id, targetUserId));
+      }
+    }
+
+    // 2. Get User Interactions for context enrichment
+    const [pastRegistrations, userFeedback] = await Promise.all([
       db.select({ eventTitle: events.title, category: events.category })
         .from(tickets)
         .innerJoin(events, eq(tickets.eventId, events.id))
@@ -82,117 +99,71 @@ export async function getAIRecommendations(userId?: string): Promise<AIEventReco
       db.select({ rating: eventFeedback.rating, comment: eventFeedback.comment })
         .from(eventFeedback)
         .where(eq(eventFeedback.userId, targetUserId))
-        .limit(5),
-      db.select({ name: communities.name })
-        .from(communityMembers)
-        .innerJoin(communities, eq(communityMembers.communityId, communities.id))
-        .where(eq(communityMembers.userId, targetUserId))
         .limit(5)
     ]);
 
-    // 3. Get Available Events
-    const availableEvents = await db
-      .select({
-        id: events.id,
-        title: events.title,
-        description: events.description,
-        category: events.category,
-      })
-      .from(events)
-      .where(ne(events.status, 'cancelled'))
-      .limit(20);
+    // 3. Find Candidate Events via Vector Similarity (Hybrid approach)
+    let candidateEvents;
+    
+    // Get already registered event IDs to exclude
+    const registeredEventIds = pastRegistrations.map(r => r.eventTitle); // This is titles, need IDs
+    const regTickets = await db.select({ eventId: tickets.eventId }).from(tickets).where(eq(tickets.userId, targetUserId));
+    const excludedIds = regTickets.map(t => t.eventId);
 
-    // 4. Run AI Recommendation Flow
+    if (userEmbedding) {
+      const userVector = JSON.stringify(userEmbedding);
+      candidateEvents = await db.execute(sql`
+        SELECT id, title, description, category
+        FROM events
+        WHERE status = 'published'
+          AND embedding IS NOT NULL
+          ${excludedIds.length > 0 ? sql`AND id NOT IN (${sql.join(excludedIds.map(id => sql`${id}`), sql`, `)})` : sql``}
+        ORDER BY embedding <=> ${userVector}::vector
+        LIMIT 15
+      `);
+    } else {
+      candidateEvents = await db
+        .select({
+          id: events.id,
+          title: events.title,
+          description: events.description,
+          category: events.category,
+        })
+        .from(events)
+        .where(and(
+          ne(events.status, 'cancelled'),
+          excludedIds.length > 0 ? sql`id NOT IN (${sql.join(excludedIds.map(id => sql`${id}`), sql`, `)})` : sql``
+        ))
+        .limit(15);
+    }
+
+    // 4. Run AI Recommendation Flow for final reasoning
     const interests = user.interests
       ? user.interests.split(',').map((i: string) => i.trim()).filter(Boolean)
       : [];
     
-    // Construct interaction summary for AI context if we wanted to change the flow, 
-    // but for now we'll just use interests and role as the flow expects.
-    // In a future update, we can extend the recommendationFlow input schema.
-    
-    const eventIds = availableEvents.map((event) => event.id);
-    const cacheKey = buildRecommendationCacheKey({
-      userId: targetUserId,
-      userRole: user.role,
-      interests,
-      eventIds,
-    });
-
-    const cached = await db.query.aiRecommendationCache.findFirst({
-      where: and(
-        eq(aiRecommendationCache.userId, targetUserId),
-        eq(aiRecommendationCache.cacheKey, cacheKey),
-      ),
-    });
-
-    if (cached && isCacheFresh(cached.updatedAt)) {
-      return cached.payload as AIEventRecommendation[];
-    }
-
-    // Combine interests with interaction keywords for the AI
-    const enrichedInterests = [...interests];
-    pastRegistrations.forEach(r => enrichedInterests.push(r.category));
-    userCommunities.forEach(c => enrichedInterests.push(c.name));
-    
-    const uniqueInterests = Array.from(new Set(enrichedInterests));
+    const enrichedInterests = Array.from(new Set([...interests, ...pastRegistrations.map(r => r.category)]));
 
     const { recommendations } = await recommendationFlow({
-      userInterests: uniqueInterests,
+      userInterests: enrichedInterests,
       userRole: user.role,
-      availableEvents: availableEvents as any,
+      availableEvents: (candidateEvents as any).rows || (candidateEvents as any),
     });
 
-    const resolvedRecommendations = (recommendations || []) as AIEventRecommendation[];
-    const now = new Date();
-
-    await db.insert(aiRecommendationCache)
-      .values({
-        userId: targetUserId,
-        cacheKey,
-        payload: resolvedRecommendations,
-        createdAt: now,
-        updatedAt: now,
-      })
-      .onConflictDoUpdate({
-        target: [aiRecommendationCache.userId, aiRecommendationCache.cacheKey],
-        set: {
-          payload: resolvedRecommendations,
-          updatedAt: now,
-        },
-      });
-
-    return resolvedRecommendations;
+    return (recommendations || []) as AIEventRecommendation[];
   } catch (error) {
     console.error('Recommendation Error:', error);
     return [];
   }
 }
 
-// Additional recommendation streams (Content & People)
-export async function getPersonalizedRecommendations(userId?: string): Promise<RecommendationBundle> {
+/**
+ * Get personalized connection suggestions (Similar tastes/interests)
+ */
+export async function getAIConnectionRecommendations(userId?: string): Promise<AIConnectionRecommendation[]> {
   const caller = await validateRole(['attendee', 'organizer', 'admin', 'professional']);
   const targetUserId = userId || caller.id;
 
-  if (targetUserId !== caller.id && caller.role !== 'admin') {
-    throw new Error('Unauthorized');
-  }
-
-  return {
-    events: [],
-    sessions: [],
-    people: [],
-  };
-}
-
-export async function getAIContentRecommendations(userId?: string): Promise<AIContentRecommendation[]> {
-  const caller = await validateRole(['attendee', 'organizer', 'admin', 'professional']);
-  const targetUserId = userId || caller.id;
-
-  if (targetUserId !== caller.id && caller.role !== 'admin') {
-    throw new Error('Unauthorized');
-  }
-	
   try {
     const user = await db.query.users.findFirst({
       where: eq(users.id, targetUserId)
@@ -200,61 +171,119 @@ export async function getAIContentRecommendations(userId?: string): Promise<AICo
 
     if (!user) throw new Error('User not found');
 
-    // In a real app, we'd fetch from a 'content' or 'resources' table
-    const mockContent = [
-      { id: '1', title: 'Mastering Event Networking', category: 'Professional Development' },
-      { id: '2', title: 'The Future of AI in Events', category: 'Technology' },
-      { id: '3', title: 'Sustainability in Large Scale Gatherings', category: 'Environment' }
-    ];
+    let userEmbedding = user.embedding;
+    if (!userEmbedding && (user.interests || user.bio)) {
+      const textToEmbed = `User Profile - Interests: ${user.interests || ''}. Bio: ${user.bio || ''}`;
+      const embeddingResult = await generateEmbedding(textToEmbed);
+      if (embeddingResult && (embeddingResult as any).embedding) {
+        userEmbedding = (embeddingResult as any).embedding.values;
+        await db.update(users).set({ embedding: userEmbedding }).where(eq(users.id, targetUserId));
+      }
+    }
+
+    // 1. Get similar users via vector search
+    let potentialMatches;
+    if (userEmbedding) {
+      const userVector = JSON.stringify(userEmbedding);
+      // Find top 10 users with similar interests, excluding self
+      const results = await db.execute(sql`
+        SELECT id, name, role, interests, bio, image
+        FROM users
+        WHERE id != ${targetUserId}
+          AND embedding IS NOT NULL
+        ORDER BY embedding <=> ${userVector}::vector
+        LIMIT 10
+      `);
+      potentialMatches = (results as any).rows || results;
+    } else {
+      potentialMatches = await db
+        .select({
+          id: users.id,
+          name: users.name,
+          role: users.role,
+          interests: users.interests,
+          image: users.image,
+          bio: users.bio
+        })
+        .from(users)
+        .where(ne(users.id, targetUserId))
+        .limit(10);
+    }
+
+    // 2. Filter out people they are already following/connected with
+    const userFollows = await db.execute(sql`
+      SELECT following_id FROM follows WHERE follower_id = ${targetUserId}
+    `);
+    const followingIds = new Set((((userFollows as any).rows || userFollows) as any[]).map((f: any) => f.following_id));
+    
+    const filteredMatches = (potentialMatches as any[]).filter(m => !followingIds.has(m.id));
+
+    if (filteredMatches.length === 0) return [];
+
+    // 3. Use AI to generate "Conversation Starters" and refine matches
+    const { connections } = await connectionRecommendationFlow({
+      userProfile: {
+        id: user.id,
+        name: user.name,
+        interests: user.interests,
+        role: user.role
+      },
+      network: filteredMatches.map(m => ({
+        id: m.id,
+        name: m.name,
+        interests: m.interests,
+        role: m.role
+      })),
+    });
+
+    // 4. Map back to the full user objects
+    const result: AIConnectionRecommendation[] = (connections || []).map(conn => {
+      const fullUser = filteredMatches.find(m => m.id === conn.userId);
+      return {
+        userId: conn.userId,
+        name: fullUser?.name || 'Unknown',
+        image: fullUser?.image,
+        role: fullUser?.role || 'Attendee',
+        strength: conn.strength,
+        conversationStarter: conn.conversationStarter
+      };
+    });
+
+    return result;
+  } catch (error) {
+    console.error('Connection Recommendation Error:', error);
+    return [];
+  }
+}
+
+// Additional recommendation streams (Content - Recommend Communities)
+export async function getAIContentRecommendations(userId?: string): Promise<AIContentRecommendation[]> {
+  const caller = await validateRole(['attendee', 'organizer', 'admin', 'professional']);
+  const targetUserId = userId || caller.id;
+
+  try {
+    const user = await db.query.users.findFirst({
+      where: eq(users.id, targetUserId)
+    });
+
+    if (!user) throw new Error('User not found');
 
     const interests = user.interests ? user.interests.split(',').map((i: string) => i.trim()) : [];
 
+    // Fetch communities as content
+    const availableCommunities = await db
+      .select({ id: communities.id, title: communities.name, category: communities.category })
+      .from(communities)
+      .limit(20);
+
     const { recommendedContent } = await contentRecommendationFlow({
       userInterests: interests,
-      availableContent: mockContent,
+      availableContent: availableCommunities.map(c => ({ contentId: c.id, ...c })),
     });
 
     return (recommendedContent || []) as AIContentRecommendation[];
   } catch (error) {
     console.error('Content Recommendation Error:', error);
-    return [];
-  }
-}
-
-export async function getAIConnectionRecommendations(userId?: string): Promise<AIConnectionRecommendation[]> {
-  const caller = await validateRole(['attendee', 'organizer', 'admin', 'professional']);
-  const targetUserId = userId || caller.id;
-
-  if (targetUserId !== caller.id && caller.role !== 'admin') {
-    throw new Error('Unauthorized');
-  }
-	
-  try {
-    const user = await db.query.users.findFirst({
-      where: eq(users.id, targetUserId)
-    });
-
-    if (!user) throw new Error('User not found');
-
-    const others = await db
-      .select({
-        id: users.id,
-        name: users.name,
-        role: users.role,
-        interests: users.interests,
-      })
-      .from(users)
-      .where(ne(users.id, targetUserId))
-      .limit(10);
-
-    const { connections } = await connectionRecommendationFlow({
-      userProfile: user,
-      network: others,
-    });
-
-    return (connections || []) as AIConnectionRecommendation[];
-  } catch (error) {
-    console.error('Connection Recommendation Error:', error);
     return [];
   }
 }
