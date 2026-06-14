@@ -1,10 +1,71 @@
 'use server';
 
 import { db } from '@/lib/db';
-import { sponsors } from '@/lib/db/schema';
-import { eq, desc, asc } from 'drizzle-orm';
+import { sponsors, sponsorLeads, users } from '@/lib/db/schema';
+import { eq, desc, asc, and } from 'drizzle-orm';
 import { validateEventOwnership } from '@/lib/auth-utils';
 import { revalidatePath } from 'next/cache';
+
+/**
+ * Record a lead (sponsor scanning an attendee)
+ */
+export async function recordSponsorLead(data: {
+  sponsorId: string;
+  userId: string;
+  notes?: string;
+}) {
+  try {
+    const [lead] = await db
+      .insert(sponsorLeads)
+      .values({
+        sponsorId: data.sponsorId,
+        userId: data.userId,
+        notes: data.notes,
+      })
+      .onConflictDoUpdate({
+        target: [sponsorLeads.sponsorId, sponsorLeads.userId],
+        set: {
+          notes: data.notes,
+          scannedAt: new Date(),
+        }
+      })
+      .returning();
+    
+    return { success: true, lead };
+  } catch (error) {
+    console.error('recordSponsorLead Error:', error);
+    return { success: false, error: 'Failed to record lead' };
+  }
+}
+
+/**
+ * Get leads for a sponsor
+ */
+export async function getSponsorLeads(sponsorId: string) {
+  try {
+    const results = await db
+      .select({
+        id: sponsorLeads.id,
+        notes: sponsorLeads.notes,
+        scannedAt: sponsorLeads.scannedAt,
+        user: {
+          id: users.id,
+          name: users.name,
+          email: users.email,
+          image: users.image,
+        }
+      })
+      .from(sponsorLeads)
+      .innerJoin(users, eq(sponsorLeads.userId, users.id))
+      .where(eq(sponsorLeads.sponsorId, sponsorId))
+      .orderBy(desc(sponsorLeads.scannedAt));
+
+    return results;
+  } catch (error) {
+    console.error('getSponsorLeads Error:', error);
+    return [];
+  }
+}
 
 /**
  * Add or update a sponsor

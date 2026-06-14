@@ -585,3 +585,30 @@ export const commentsRelations = relations(comments, ({ one }) => ({
     references: [posts.id],
   }),
 }));
+
+export const sponsorLeads = pgTable('sponsor_leads', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  sponsorId: uuid('sponsor_id').references(() => sponsors.id, { onDelete: 'cascade' }).notNull(),
+  userId: text('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  notes: text('notes'),
+  scannedAt: timestamp('scanned_at').defaultNow().notNull(),
+}, (table) => ({
+  sponsorIdx: index('sponsor_leads_sponsor_idx').on(table.sponsorId),
+  userIdx: index('sponsor_leads_user_idx').on(table.userId),
+  uniqueLead: uniqueIndex('sponsor_leads_unique_idx').on(table.sponsorId, table.userId),
+}));
+
+export const sponsorsRelationsExtended = relations(sponsors, ({ many }) => ({
+  leads: many(sponsorLeads),
+}));
+
+export const sponsorLeadsRelations = relations(sponsorLeads, ({ one }) => ({
+  sponsor: one(sponsors, {
+    fields: [sponsorLeads.sponsorId],
+    references: [sponsors.id],
+  }),
+  user: one(users, {
+    fields: [sponsorLeads.userId],
+    references: [users.id],
+  }),
+}));

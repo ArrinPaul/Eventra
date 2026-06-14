@@ -75,6 +75,27 @@ export async function generateSocialMediaPosts(eventId: string): Promise<string[
   }
 }
 
+/**
+ * Distribute a social media post (Mock for Phase 3)
+ */
+export async function distributeSocialPost(eventId: string, platform: string, content: string) {
+  await validateEventOwnership(eventId);
+
+  // In a real implementation, this would handle OAuth tokens for X/LinkedIn/Instagram
+  // and use their respective APIs to post content.
+  console.log(`[SOCIAL_DISTRIBUTION] Posting to ${platform}: ${content}`);
+  
+  // Simulate network delay
+  await new Promise(resolve => setTimeout(resolve, 1500));
+
+  return { 
+    success: true, 
+    platform, 
+    postedAt: new Date().toISOString(),
+    link: platform === 'twitter' ? 'https://x.com/eventra/status/123' : '#'
+  };
+}
+
 export async function getPredictiveAttendance(eventId: string) {
   // Guard: Owner or admin
   await validateEventOwnership(eventId);

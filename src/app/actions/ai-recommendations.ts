@@ -3,8 +3,8 @@
 import { createHash } from 'node:crypto';
 import { validateRole } from '@/lib/auth-utils';
 import { db } from '@/lib/db';
-import { aiRecommendationCache, events, users } from '@/lib/db/schema';
-import { and, eq, ne } from 'drizzle-orm';
+import { aiRecommendationCache, events, users, tickets, eventFeedback, communityMembers, communities } from '@/lib/db/schema';
+import { and, eq, ne, desc } from 'drizzle-orm';
 import { recommendationFlow, contentRecommendationFlow, connectionRecommendationFlow } from '@/lib/ai';
 
 export interface RecommendationBundle {
@@ -72,7 +72,25 @@ export async function getAIRecommendations(userId?: string): Promise<AIEventReco
 
     if (!user) throw new Error('User not found');
 
-    // 2. Get Available Events
+    // 2. Get User Interactions (Past registrations, feedback, communities)
+    const [pastRegistrations, userFeedback, userCommunities] = await Promise.all([
+      db.select({ eventTitle: events.title, category: events.category })
+        .from(tickets)
+        .innerJoin(events, eq(tickets.eventId, events.id))
+        .where(eq(tickets.userId, targetUserId))
+        .limit(5),
+      db.select({ rating: eventFeedback.rating, comment: eventFeedback.comment })
+        .from(eventFeedback)
+        .where(eq(eventFeedback.userId, targetUserId))
+        .limit(5),
+      db.select({ name: communities.name })
+        .from(communityMembers)
+        .innerJoin(communities, eq(communityMembers.communityId, communities.id))
+        .where(eq(communityMembers.userId, targetUserId))
+        .limit(5)
+    ]);
+
+    // 3. Get Available Events
     const availableEvents = await db
       .select({
         id: events.id,
@@ -84,10 +102,14 @@ export async function getAIRecommendations(userId?: string): Promise<AIEventReco
       .where(ne(events.status, 'cancelled'))
       .limit(20);
 
-    // 3. Run AI Recommendation Flow
+    // 4. Run AI Recommendation Flow
     const interests = user.interests
       ? user.interests.split(',').map((i: string) => i.trim()).filter(Boolean)
       : [];
+    
+    // Construct interaction summary for AI context if we wanted to change the flow, 
+    // but for now we'll just use interests and role as the flow expects.
+    // In a future update, we can extend the recommendationFlow input schema.
     
     const eventIds = availableEvents.map((event) => event.id);
     const cacheKey = buildRecommendationCacheKey({
@@ -108,8 +130,15 @@ export async function getAIRecommendations(userId?: string): Promise<AIEventReco
       return cached.payload as AIEventRecommendation[];
     }
 
+    // Combine interests with interaction keywords for the AI
+    const enrichedInterests = [...interests];
+    pastRegistrations.forEach(r => enrichedInterests.push(r.category));
+    userCommunities.forEach(c => enrichedInterests.push(c.name));
+    
+    const uniqueInterests = Array.from(new Set(enrichedInterests));
+
     const { recommendations } = await recommendationFlow({
-      userInterests: interests,
+      userInterests: uniqueInterests,
       userRole: user.role,
       availableEvents: availableEvents as any,
     });
@@ -140,7 +169,7 @@ export async function getAIRecommendations(userId?: string): Promise<AIEventReco
   }
 }
 
-// Keep other mock functions for now as they are not primary Phase 3 goals
+// Additional recommendation streams (Content & People)
 export async function getPersonalizedRecommendations(userId?: string): Promise<RecommendationBundle> {
   const caller = await validateRole(['attendee', 'organizer', 'admin', 'professional']);
   const targetUserId = userId || caller.id;

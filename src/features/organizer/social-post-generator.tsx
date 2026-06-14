@@ -3,14 +3,15 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
-import { Loader2, Sparkles, Copy, Check, MessageSquare, Briefcase, Camera, Share2 } from 'lucide-react';
-import { generateSocialMediaPosts } from '@/app/actions/event-insights';
+import { Loader2, Sparkles, Copy, Check, MessageSquare, Briefcase, Camera, Share2, Send } from 'lucide-react';
+import { generateSocialMediaPosts, distributeSocialPost } from '@/app/actions/event-insights';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export function SocialPostGenerator({ eventId }: { eventId: string }) {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [sharing, setSharing] = useState<number | null>(null);
   const [posts, setPosts] = useState<any[] | null>(null);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
 
@@ -18,12 +19,35 @@ export function SocialPostGenerator({ eventId }: { eventId: string }) {
     setLoading(true);
     try {
       const result = await generateSocialMediaPosts(eventId);
-      setPosts(result.map((content: string) => ({ platform: 'X (MessageSquare)', content })));
+      setPosts(result.map((content: string, i: number) => {
+        const platforms = ['X (Twitter)', 'LinkedIn', 'Instagram'];
+        const icons = [MessageSquare, Briefcase, Camera];
+        return { 
+          platform: platforms[i] || 'Social', 
+          content,
+          icon: icons[i] || Share2,
+          hashtags: ['#Eventra', '#Networking', '#TechEvent']
+        };
+      }));
       toast({ title: 'Social posts generated!' });
     } catch (e: any) {
       toast({ title: 'Generation failed', description: e.message, variant: 'destructive' });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleShare = async (content: string, platform: string, index: number) => {
+    setSharing(index);
+    try {
+      const result = await distributeSocialPost(eventId, platform.toLowerCase(), content);
+      if (result.success) {
+        toast({ title: `Posted to ${platform}!`, description: 'Your update is now live.' });
+      }
+    } catch (e: any) {
+      toast({ title: 'Distribution failed', description: e.message, variant: 'destructive' });
+    } finally {
+      setSharing(null);
     }
   };
 
@@ -56,13 +80,11 @@ export function SocialPostGenerator({ eventId }: { eventId: string }) {
             Generate Promo Posts
           </Button>
         ) : (
-          <Tabs defaultValue="X (MessageSquare)" className="w-full">
-            <TabsList className="bg-card border-border w-full justify-start overflow-x-auto">
+          <Tabs defaultValue={posts[0].platform} className="w-full">
+            <TabsList className="bg-card border-border w-full justify-start overflow-x-auto h-auto p-1">
               {posts.map((p) => (
-                <TabsTrigger key={p.platform} value={p.platform} className="text-xs data-[state=active]:bg-purple-600">
-                  {p.platform === 'X (MessageSquare)' && <MessageSquare className="h-3 w-3 mr-1" />}
-                  {p.platform === 'Briefcase' && <Briefcase className="h-3 w-3 mr-1" />}
-                  {p.platform === 'Camera' && <Camera className="h-3 w-3 mr-1" />}
+                <TabsTrigger key={p.platform} value={p.platform} className="text-[10px] data-[state=active]:bg-purple-600 py-1 px-3">
+                  <p.icon className="h-3 w-3 mr-1" />
                   {p.platform.split(' ')[0]}
                 </TabsTrigger>
               ))}
@@ -76,14 +98,25 @@ export function SocialPostGenerator({ eventId }: { eventId: string }) {
                       <span key={h} className="text-[10px] text-purple-400 font-medium">{h}</span>
                     ))}
                   </div>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="absolute top-2 right-2 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
-                    onClick={() => handleCopy(p.content + '\n\n' + p.hashtags.join(' '), i)}
-                  >
-                    {copiedIndex === i ? <Check className="h-4 w-4 text-success" /> : <Copy className="h-4 w-4" />}
-                  </Button>
+                  <div className="flex gap-2 mt-4">
+                    <Button 
+                      size="sm" 
+                      className="flex-1 bg-purple-600 hover:bg-purple-500 h-8 text-[10px]"
+                      onClick={() => handleShare(p.content, p.platform, i)}
+                      disabled={sharing === i}
+                    >
+                      {sharing === i ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : <Send className="h-3 w-3 mr-1" />}
+                      Share Now
+                    </Button>
+                    <Button 
+                      variant="outline"
+                      size="sm" 
+                      className="h-8 border-border text-[10px]"
+                      onClick={() => handleCopy(p.content + '\n\n' + p.hashtags.join(' '), i)}
+                    >
+                      {copiedIndex === i ? <Check className="h-3 w-3 text-green-400" /> : <Copy className="h-3 w-3" />}
+                    </Button>
+                  </div>
                 </div>
               </TabsContent>
             ))}

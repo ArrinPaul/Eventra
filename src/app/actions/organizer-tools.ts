@@ -1,9 +1,11 @@
 'use server';
 
 import { db } from '@/lib/db';
-import { activityFeed, notifications, tickets } from '@/lib/db/schema';
+import { activityFeed, notifications, tickets, events, users } from '@/lib/db/schema';
 import { and, desc, eq } from 'drizzle-orm';
 import { validateEventOwnership, validateRole } from '@/lib/auth-utils';
+import { sendEmail, constructAnnouncementEmail } from '@/core/services/email';
+import { logger } from '@/lib/logger';
 
 export type AnnouncementType = 'info' | 'warning' | 'urgent';
 
@@ -53,6 +55,9 @@ export async function createAnnouncement(input: {
   await validateEventOwnership(input.eventId);
 
   try {
+    const event = await db.query.events.findFirst({ where: eq(events.id, input.eventId) });
+    if (!event) throw new Error('Event not found');
+
     const expiresAt = Date.now() + Math.max(1, input.expiresHours) * 60 * 60 * 1000;
     
     const result = await db.transaction(async (tx) => {
@@ -69,10 +74,15 @@ export async function createAnnouncement(input: {
         })
         .returning();
 
-      // 2. Get all attendees
+      // 2. Get all attendees with emails
       const attendees = await tx
-        .select({ userId: tickets.userId })
+        .select({ 
+          userId: tickets.userId,
+          userEmail: users.email,
+          userName: users.name
+        })
         .from(tickets)
+        .innerJoin(users, eq(tickets.userId, users.id))
         .where(and(eq(tickets.eventId, input.eventId), eq(tickets.status, 'confirmed')));
 
       // 3. Create Notifications
@@ -85,12 +95,35 @@ export async function createAnnouncement(input: {
           link: `/events/${input.eventId}`
         }));
         await tx.insert(notifications).values(notifs);
+
+        // 4. Send Emails asynchronously (don't block the transaction response, but we're inside tx, careful)
+        // Actually, we should probably do this AFTER the transaction.
       }
 
-      return row;
+      return { row, attendees };
     });
 
-    return { success: true, id: result.id };
+    // 4. Send Emails AFTER transaction
+    const { attendees } = result;
+    if (attendees.length > 0) {
+      for (const attendee of attendees) {
+        if (attendee.userEmail) {
+          const emailContent = constructAnnouncementEmail(
+            attendee.userName || 'Attendee',
+            event.title,
+            input.content,
+            input.type
+          );
+          sendEmail({
+            to: attendee.userEmail,
+            subject: emailContent.subject,
+            html: emailContent.html,
+          }).catch(err => logger.error('Announcement email failed', err));
+        }
+      }
+    }
+
+    return { success: true, id: result.row.id };
   } catch (error) {
     console.error('createAnnouncement Error:', error);
     return { success: false, id: null as string | null };

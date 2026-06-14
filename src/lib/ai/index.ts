@@ -45,9 +45,10 @@ function logAiFailure(flowName: string, error: unknown) {
   console.warn(`[AI:${flowName}] degraded due to ${reason}`, error);
 }
 
-async function safeGenerate(flowName: string, input: Parameters<typeof ai.generate>[0]) {
+async function safeGenerate<T>(flowName: string, input: Parameters<typeof ai.generate>[0]) {
   try {
-    return await withTimeout(ai.generate(input));
+    const result = await withTimeout(ai.generate(input));
+    return result;
   } catch (error) {
     logAiFailure(flowName, error);
     return null;
@@ -187,17 +188,15 @@ export const recommendationFlow = ai.defineFlow(
 
     const result = await safeGenerate('recommendationFlow', {
       prompt,
-      output: { format: 'json' },
+      output: { format: 'json', schema: z.array(z.object({
+        eventId: z.string(),
+        relevanceScore: z.number(),
+        reason: z.string(),
+      })) },
     });
 
-    try {
-      const parsed = result?.output as any;
-      if (!parsed) return { recommendations: [] };
-      const recommendations = Array.isArray(parsed) ? parsed : (parsed.recommendations || []);
-      return { recommendations: recommendations.slice(0, 3) };
-    } catch (e) {
-      return { recommendations: [] };
-    }
+    const recommendations = result?.output || [];
+    return { recommendations: recommendations.slice(0, 3) };
   }
 );
 
@@ -234,10 +233,20 @@ export const eventPlannerFlow = ai.defineFlow(
 
     const result = await safeGenerate('eventPlannerFlow', {
       prompt,
-      output: { format: 'json' },
+      output: { 
+        format: 'json', 
+        schema: z.object({
+          suggestedDescription: z.string(),
+          suggestedAgenda: z.array(z.object({
+            time: z.string(),
+            title: z.string(),
+            description: z.string(),
+          })),
+        }) 
+      },
     });
 
-    return (result?.output as any) || { suggestedDescription: "", suggestedAgenda: [] };
+    return result?.output || { suggestedDescription: "", suggestedAgenda: [] };
   }
 );
 

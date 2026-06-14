@@ -74,3 +74,24 @@ export function constructCertificateEmail(userName: string, eventTitle: string) 
     `,
   };
 }
+
+export function constructAnnouncementEmail(userName: string, eventTitle: string, content: string, type: string) {
+  return {
+    subject: `Important Update: ${eventTitle}`,
+    html: `
+      <div style="font-family: sans-serif; padding: 20px; color: #333; max-width: 600px; margin: auto; border: 1px solid #eee; border-radius: 10px;">
+        <h1 style="color: ${type === 'urgent' ? '#ef4444' : '#06b6d4'}; text-align: center;">Event Announcement</h1>
+        <p>Hello ${userName || 'Attendee'},</p>
+        <p>The organizer of <strong>${eventTitle}</strong> has posted an update:</p>
+        <div style="background: #f8fafc; padding: 20px; border-radius: 10px; margin: 20px 0; border-left: 4px solid ${type === 'urgent' ? '#ef4444' : '#06b6d4'};">
+          <p style="margin: 0; font-style: italic;">"${content}"</p>
+        </div>
+        <p>Stay tuned for more updates on the Eventra platform.</p>
+        <div style="text-align: center; margin-top: 30px;">
+          <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://eventra.com'}/events" style="background: ${type === 'urgent' ? '#ef4444' : '#06b6d4'}; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Go to Eventra</a>
+        </div>
+        <p style="margin-top: 40px; font-size: 12px; color: #94a3b8; text-align: center;">Sent via Eventra Notifications</p>
+      </div>
+    `,
+  };
+}
