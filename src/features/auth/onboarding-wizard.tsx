@@ -52,7 +52,6 @@ const studentSchema = z.object({
   college: z.string().min(2, 'College name is required'),
   degree: z.enum(['ug', 'pg'], { required_error: 'Please select your degree' }),
   year: z.number().min(1).max(5),
-  interests: z.array(z.string()).min(1, 'Select at least one interest'),
 });
 
 // Step 2: Professional Specific Schema
@@ -62,7 +61,6 @@ const professionalSchema = z.object({
   country: z.string().min(2, 'Country is required'),
   gender: z.enum(['male', 'female', 'other', 'prefer-not-to-say'], { required_error: 'Please select your gender' }),
   bloodGroup: z.string().min(1, 'Blood group is required'),
-  interests: z.array(z.string()).min(1, 'Select at least one interest'),
 });
 
 // Step 2: Organizer Specific Schema
@@ -113,12 +111,12 @@ export function OnboardingWizard() {
 
   const studentForm = useForm<StudentFormData>({
     resolver: zodResolver(studentSchema),
-    defaultValues: { college: '', degree: 'ug', year: 1, interests: [] },
+    defaultValues: { college: '', degree: 'ug', year: 1 },
   });
 
   const professionalForm = useForm<ProfessionalFormData>({
     resolver: zodResolver(professionalSchema),
-    defaultValues: { company: '', designation: '', country: '', gender: 'male', bloodGroup: '', interests: [] },
+    defaultValues: { company: '', designation: '', country: '', gender: 'male', bloodGroup: '' },
   });
 
   const organizerForm = useForm<OrganizerFormData>({
@@ -151,8 +149,6 @@ export function OnboardingWizard() {
   const toggleInterest = (interest: string) => {
     setSelectedInterests(prev => {
       const newInterests = prev.includes(interest) ? prev.filter(i => i !== interest) : [...prev, interest];
-      if (userType === 'student') studentForm.setValue('interests', newInterests);
-      if (userType === 'professional') professionalForm.setValue('interests', newInterests);
       return newInterests;
     });
   };
@@ -182,9 +178,13 @@ export function OnboardingWizard() {
       }
     }
   };
-// 
 
   const handleComplete = async () => {
+    if (selectedInterests.length === 0) {
+      toast({ variant: 'destructive', title: 'Interests required', description: 'Please select at least one interest.' });
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const userData: any = {
@@ -194,14 +194,13 @@ export function OnboardingWizard() {
         image: onboardingData.photoURL || null,
         role: userType,
         onboardingCompleted: true,
+        interests: selectedInterests.join(', '),
       };
 
       if (userType === 'student' && onboardingData.student) {
         Object.assign(userData, onboardingData.student);
-        if (Array.isArray(userData.interests)) userData.interests = userData.interests.join(', ');
       } else if (userType === 'professional' && onboardingData.professional) {
         Object.assign(userData, onboardingData.professional);
-        if (Array.isArray(userData.interests)) userData.interests = userData.interests.join(', ');
       } else if (userType === 'organizer' && onboardingData.organizer) {
         userData.organizationName = onboardingData.organizer.organizationName;
         userData.designation = onboardingData.organizer.designation;
@@ -221,7 +220,7 @@ export function OnboardingWizard() {
   return (
     <Card className="w-full max-w-2xl mx-auto shadow-xl">
       <CardHeader className="text-center pb-2">
-        <div className="flex items-center justify-center gap-2 mb-2"><Sparkles className="h-6 w-6 text-primary" /><CardTitle className="text-2xl">Complete Your Profile</CardTitle></div>
+        <div className="flex items-center justify-center gap-2 mb-2"><CardTitle className="text-2xl">Complete Your Profile</CardTitle></div>
         <CardDescription>Let&apos;s personalize your Eventra experience</CardDescription>
         <Progress value={progress} className="mt-4 h-2" />
       </CardHeader>

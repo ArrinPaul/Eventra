@@ -17,6 +17,7 @@ import { getUserRegistrations } from '@/app/actions/registrations';
 import { getUserCertificates } from '@/app/actions/certificates';
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
+import { EditProfileDialog } from '@/features/profile/edit-profile-dialog';
 
 export default function ProfilePage() {
   const { user } = useAuth();
@@ -67,17 +68,19 @@ export default function ProfilePage() {
           </div>
           <div className="p-10 md:p-16 -mt-24 relative z-10">
             <div className="flex flex-col md:flex-row items-end gap-10">
-              <div className="relative group">
-                <Avatar className="h-40 w-40 rounded-[2.5rem] border-8 border-background shadow-2xl ring-1 ring-border/50">
-                  <AvatarImage src={user.image || ''} alt={user.name || ''} className="object-cover" />
-                  <AvatarFallback className="bg-muted text-primary text-4xl font-display font-bold">
-                    {user.name?.charAt(0) || 'U'}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="absolute inset-0 rounded-[2.5rem] bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
-                   <Edit className="w-8 h-8 text-white" />
+              <EditProfileDialog>
+                <div className="relative group cursor-pointer">
+                  <Avatar className="h-40 w-40 rounded-[2.5rem] border-8 border-background shadow-2xl ring-1 ring-border/50">
+                    <AvatarImage src={user.image || ''} alt={user.name || ''} className="object-cover" />
+                    <AvatarFallback className="bg-muted text-primary text-4xl font-display font-bold">
+                      {user.name?.charAt(0) || 'U'}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="absolute inset-0 rounded-[2.5rem] bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <Edit className="w-8 h-8 text-white" />
+                  </div>
                 </div>
-              </div>
+              </EditProfileDialog>
               
               <div className="flex-1 space-y-4">
                 <div className="flex flex-wrap items-center gap-4">

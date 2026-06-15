@@ -150,11 +150,11 @@ export default function MyTicketsClient({ initialTickets = [] }: { initialTicket
   );
 
   const handleCancel = async (ticket: EventTicket) => {
-    if (!confirm('Confirm de-synchronization? This will revoke your node access immediately.')) return;
+    if (!confirm('Confirm de-synchronization? This will revoke your infrastructure access immediately.')) return;
     try {
       const result: any = await cancelRegistration(ticket.id);
       if (result.success) {
-        toast({ title: "Sync Revoked", description: "Node access has been terminated." });
+        toast({ title: "Sync Revoked", description: "Infrastructure access has been terminated." });
         setTickets(tickets.map(t => t.id === ticket.id ? { ...t, status: 'cancelled' } : t));
       }
     } catch (e: any) {

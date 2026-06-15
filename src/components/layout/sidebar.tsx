@@ -148,7 +148,6 @@ export function Sidebar({ className }: SidebarProps) {
              <div className="p-4 rounded-2xl bg-primary/5 border border-primary/10 space-y-3">
                 <div className="flex justify-between items-center">
                    <p className="text-[9px] font-black uppercase text-primary tracking-widest leading-none">Infrastructure Pulse</p>
-                   <Activity size={10} className="text-primary animate-pulse" />
                 </div>
                 <div className="h-1 w-full bg-primary/10 rounded-full overflow-hidden">
                    <div className="h-full bg-primary w-3/4" />

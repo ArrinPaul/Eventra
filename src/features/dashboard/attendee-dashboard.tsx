@@ -152,7 +152,6 @@ export default function AttendeeDashboard() {
           <section className="space-y-6">
             <div className="flex items-center justify-between px-1">
                <h2 className="text-xl font-bold tracking-tight text-notion-ink flex items-center gap-2">
-                 <div className="w-2 h-2 rounded-full bg-notion-primary animate-pulse" />
                  Upcoming Experience
                </h2>
                {upcomingEvent && (
@@ -231,7 +230,6 @@ export default function AttendeeDashboard() {
             <div className="flex items-center justify-between px-1">
               <div className="space-y-1">
                 <h2 className="text-xl font-bold tracking-tight text-notion-ink flex items-center gap-2">
-                  <Sparkles className="h-5 w-5 text-notion-primary" />
                   Recommended for You
                 </h2>
                 <p className="text-xs font-medium text-notion-ink-muted">Tailored to your activity and interests.</p>
@@ -283,7 +281,6 @@ export default function AttendeeDashboard() {
             <div className="flex items-center justify-between px-1">
               <div className="space-y-1">
                 <h2 className="text-xl font-bold tracking-tight text-notion-ink flex items-center gap-2">
-                  <Users className="h-5 w-5 text-notion-primary" />
                   Network Matchmaking
                 </h2>
                 <p className="text-xs font-medium text-notion-ink-muted">Connect with people sharing your interests.</p>

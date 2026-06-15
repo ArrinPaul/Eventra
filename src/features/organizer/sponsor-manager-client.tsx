@@ -336,7 +336,7 @@ export function SponsorManagerClient({ eventId, eventTitle }: SponsorManagerProp
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <Card className="bg-card border-border text-foreground">
               <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2"><Award className="w-5 h-5 text-primary" /> Active Sponsors</CardTitle>
+                <CardTitle className="text-lg flex items-center gap-2">Active Sponsors</CardTitle>
                 <CardDescription>Select a sponsor to manage their leads.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-2">
