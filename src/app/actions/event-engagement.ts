@@ -17,7 +17,7 @@ export type DiscussionMessage = {
 };
 
 export async function getEventDiscussion(eventId: string): Promise<DiscussionMessage[]> {
-  await validateRole(['attendee', 'organizer', 'admin', 'professional']);
+  await validateRole(['attendee', 'organizer', 'admin', 'professional', 'student', 'speaker', 'vendor']);
 
   try {
     const rows = await db
@@ -46,7 +46,7 @@ export async function getEventDiscussion(eventId: string): Promise<DiscussionMes
 }
 
 export async function createDiscussionMessage(input: { eventId: string; content: string; isQuestion: boolean }) {
-  const user = await validateRole(['attendee', 'organizer', 'admin', 'professional']);
+  const user = await validateRole(['attendee', 'organizer', 'admin', 'professional', 'student', 'speaker', 'vendor']);
 
   try {
     const [row] = await db
@@ -69,7 +69,7 @@ export async function createDiscussionMessage(input: { eventId: string; content:
 }
 
 export async function likeDiscussionMessage(id: string) {
-  await validateRole(['attendee', 'organizer', 'admin', 'professional']);
+  await validateRole(['attendee', 'organizer', 'admin', 'professional', 'student', 'speaker', 'vendor']);
 
   try {
     const row = await db.query.activityFeed.findFirst({ where: eq(activityFeed.id, id) });
@@ -120,7 +120,7 @@ export type EventPoll = {
 };
 
 export async function getEventPolls(eventId: string): Promise<EventPoll[]> {
-  await validateRole(['attendee', 'organizer', 'admin', 'professional']);
+  await validateRole(['attendee', 'organizer', 'admin', 'professional', 'student', 'speaker', 'vendor']);
 
   try {
     const rows = await db
@@ -215,7 +215,7 @@ export async function deleteEventPoll(id: string) {
 }
 
 export async function voteEventPoll(input: { id: string; optionIndex: number }) {
-  const user = await validateRole(['attendee', 'organizer', 'admin', 'professional']);
+  const user = await validateRole(['attendee', 'organizer', 'admin', 'professional', 'student', 'speaker', 'vendor']);
 
   try {
     const row = await db.query.activityFeed.findFirst({ where: eq(activityFeed.id, input.id) });
@@ -251,7 +251,7 @@ export type EventReactionStat = {
 };
 
 export async function getEventReactions(eventId: string): Promise<EventReactionStat[]> {
-  const user = await validateRole(['attendee', 'organizer', 'admin', 'professional']);
+  const user = await validateRole(['attendee', 'organizer', 'admin', 'professional', 'student', 'speaker', 'vendor']);
 
   try {
     const rows = await db
@@ -282,7 +282,7 @@ export async function getEventReactions(eventId: string): Promise<EventReactionS
 }
 
 export async function addEventReaction(input: { eventId: string; emoji: string }) {
-  const user = await validateRole(['attendee', 'organizer', 'admin', 'professional']);
+  const user = await validateRole(['attendee', 'organizer', 'admin', 'professional', 'student', 'speaker', 'vendor']);
 
   try {
     const rows = await db

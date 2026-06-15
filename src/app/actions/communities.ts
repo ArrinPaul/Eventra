@@ -38,7 +38,7 @@ const commentSchema = z.object({
  * Create a new community
  */
 export async function createCommunity(rawInput: any) {
-  const user = await validateRole(['attendee', 'organizer', 'admin', 'professional']);
+  const user = await validateRole(['attendee', 'organizer', 'admin', 'professional', 'student', 'speaker', 'vendor']);
   const validated = communitySchema.safeParse(rawInput);
   
   if (!validated.success) {
@@ -86,7 +86,7 @@ export async function createCommunity(rawInput: any) {
  * Join a community
  */
 export async function joinCommunity(communityId: string) {
-  const user = await validateRole(['attendee', 'organizer', 'admin', 'professional']);
+  const user = await validateRole(['attendee', 'organizer', 'admin', 'professional', 'student', 'speaker', 'vendor']);
 
   try {
     const existing = await db
@@ -129,7 +129,7 @@ export async function joinCommunity(communityId: string) {
  * Create a post
  */
 export async function createPost(rawInput: any) {
-  const user = await validateRole(['attendee', 'organizer', 'admin', 'professional']);
+  const user = await validateRole(['attendee', 'organizer', 'admin', 'professional', 'student', 'speaker', 'vendor']);
   const validated = postSchema.safeParse(rawInput);
 
   if (!validated.success) {
@@ -199,7 +199,7 @@ export async function createPost(rawInput: any) {
  * Like a post
  */
 export async function likePost(postId: string) {
-  const user = await validateRole(['attendee', 'organizer', 'admin', 'professional']);
+  const user = await validateRole(['attendee', 'organizer', 'admin', 'professional', 'student', 'speaker', 'vendor']);
 
   try {
     await db
@@ -221,7 +221,7 @@ export async function likePost(postId: string) {
  * Create a comment
  */
 export async function createComment(rawInput: any) {
-  const user = await validateRole(['attendee', 'organizer', 'admin', 'professional']);
+  const user = await validateRole(['attendee', 'organizer', 'admin', 'professional', 'student', 'speaker', 'vendor']);
   const validated = commentSchema.safeParse(rawInput);
 
   if (!validated.success) {
@@ -477,7 +477,7 @@ export async function getMyCommunityMembership(communityId: string): Promise<boo
 }
 
 export async function updatePost(postId: string, content: string) {
-  const user = await validateRole(['attendee', 'organizer', 'admin', 'professional']);
+  const user = await validateRole(['attendee', 'organizer', 'admin', 'professional', 'student', 'speaker', 'vendor']);
 
   try {
     const existing = await db.query.posts.findFirst({ where: eq(posts.id, postId) });
@@ -502,7 +502,7 @@ export async function updatePost(postId: string, content: string) {
 }
 
 export async function deletePost(postId: string) {
-  const user = await validateRole(['attendee', 'organizer', 'admin', 'professional']);
+  const user = await validateRole(['attendee', 'organizer', 'admin', 'professional', 'student', 'speaker', 'vendor']);
 
   try {
     const existing = await db.query.posts.findFirst({ where: eq(posts.id, postId) });
@@ -522,7 +522,7 @@ export async function deletePost(postId: string) {
 }
 
 export async function flagPost(postId: string, reason: string) {
-  const user = await validateRole(['attendee', 'organizer', 'admin', 'professional']);
+  const user = await validateRole(['attendee', 'organizer', 'admin', 'professional', 'student', 'speaker', 'vendor']);
 
   try {
     await logActivity({

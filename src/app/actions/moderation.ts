@@ -8,7 +8,7 @@ import { aiModerationFlow } from '@/lib/ai';
  */
 export async function moderateContent(content: string) {
   // Guard: Authenticated
-  await validateRole(['attendee', 'organizer', 'admin', 'professional']);
+  await validateRole(['attendee', 'organizer', 'admin', 'professional', 'student', 'speaker', 'vendor']);
 
   try {
     const result = await aiModerationFlow({ content });

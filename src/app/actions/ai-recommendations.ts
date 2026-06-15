@@ -61,7 +61,7 @@ function isCacheFresh(updatedAt: Date) {
  * Get personalized event recommendations using Vector search + Genkit
  */
 export async function getAIRecommendations(userId?: string): Promise<AIEventRecommendation[]> {
-  const caller = await validateRole(['attendee', 'organizer', 'admin', 'professional']);
+  const caller = await validateRole(['attendee', 'organizer', 'admin', 'professional', 'student', 'speaker', 'vendor']);
   const targetUserId = userId || caller.id;
 
   if (targetUserId !== caller.id && caller.role !== 'admin') {
@@ -161,15 +161,20 @@ export async function getAIRecommendations(userId?: string): Promise<AIEventReco
  * Get personalized connection suggestions (Similar tastes/interests)
  */
 export async function getAIConnectionRecommendations(userId?: string): Promise<AIConnectionRecommendation[]> {
-  const caller = await validateRole(['attendee', 'organizer', 'admin', 'professional']);
-  const targetUserId = userId || caller.id;
+  const { userId: callerId } = await auth();
+  if (!callerId) throw new Error('Unauthorized');
+
+  const targetUserId = userId || callerId;
 
   try {
     const user = await db.query.users.findFirst({
       where: eq(users.id, targetUserId)
     });
 
-    if (!user) throw new Error('User not found');
+    if (!user) {
+      console.warn(`[ai-recommendations] User not found for connections: ${targetUserId}`);
+      return [];
+    }
 
     let userEmbedding = user.embedding;
     if (!userEmbedding && (user.interests || user.bio)) {
@@ -258,7 +263,7 @@ export async function getAIConnectionRecommendations(userId?: string): Promise<A
 
 // Additional recommendation streams (Content - Recommend Communities)
 export async function getAIContentRecommendations(userId?: string): Promise<AIContentRecommendation[]> {
-  const caller = await validateRole(['attendee', 'organizer', 'admin', 'professional']);
+  const caller = await validateRole(['attendee', 'organizer', 'admin', 'professional', 'student', 'speaker', 'vendor']);
   const targetUserId = userId || caller.id;
 
   try {

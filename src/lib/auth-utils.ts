@@ -19,8 +19,14 @@ export async function validateRole(requiredRoles: UserRole[]) {
     where: eq(users.id, userId),
   });
 
-  if (!user || !requiredRoles.includes(user.role as UserRole)) {
-    throw new Error('Unauthorized: Insufficient permissions');
+  if (!user) {
+    console.error(`[auth-utils] User not found in DB: ${userId}`);
+    throw new Error('Unauthorized: User profile not found. Please complete onboarding.');
+  }
+
+  if (!requiredRoles.includes(user.role as UserRole)) {
+    console.error(`[auth-utils] Role mismatch for ${userId}. Role in DB: "${user.role}" (type: ${typeof user.role}), Required: [${requiredRoles.join(', ')}]`);
+    throw new Error(`Unauthorized: Insufficient permissions (Role: ${user.role})`);
   }
 
   return user as { id: string; role: UserRole; [key: string]: any };

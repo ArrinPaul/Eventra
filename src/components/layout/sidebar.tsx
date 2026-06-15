@@ -26,7 +26,9 @@ import {
   Zap,
   Activity,
   Globe,
-  Bot
+  Cpu,
+  MessageCircle,
+  Lightbulb
 } from 'lucide-react';
 import {
   Tooltip,
@@ -54,9 +56,9 @@ export function Sidebar({ className }: SidebarProps) {
   const navLinks = React.useMemo(() => [
     { href: '/', label: 'Overview', icon: LayoutDashboard },
     { href: '/explore', label: 'Explore', icon: Compass },
-    { href: '/chat', label: 'Messages', icon: MessageSquare, requireAuth: true },
-    { href: '/ai-recommendations', label: 'For You', icon: Sparkles, requireAuth: true },
-    { href: '/ai-tools', label: 'AI Workspace', icon: Bot, requireAuth: true },
+    { href: '/chat', label: 'Messages', icon: MessageCircle, requireAuth: true },
+    { href: '/ai-recommendations', label: 'For You', icon: Lightbulb, requireAuth: true },
+    { href: '/ai-tools', label: 'AI Workspace', icon: Cpu, requireAuth: true },
     { href: '/tickets', label: 'My Tickets', icon: Ticket, requireAuth: true },
     { href: '/my-events', label: 'Schedule', icon: Calendar, requireAuth: true },
     { href: '/search', label: 'Global Search', icon: Search },

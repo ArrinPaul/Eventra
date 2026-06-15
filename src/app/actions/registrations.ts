@@ -41,7 +41,7 @@ function getErrorText(error: unknown, fallback: string) {
  * Register a user for an event (Create a ticket or join waitlist)
  */
 export async function registerForEvent(eventId: string, data?: { tierId?: string }) {
-  const user = await validateRole(['attendee', 'organizer', 'admin', 'professional']);
+  const user = await validateRole(['attendee', 'organizer', 'admin', 'professional', 'student', 'speaker', 'vendor']);
 
   try {
     // Rate limit: 5 registrations per minute per user

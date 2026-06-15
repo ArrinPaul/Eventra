@@ -50,12 +50,12 @@ export type UserChallenge = {
 };
 
 export async function getChallenges(): Promise<ChallengeDefinition[]> {
-  await validateRole(['attendee', 'organizer', 'admin', 'professional']);
+  await validateRole(['attendee', 'organizer', 'admin', 'professional', 'student', 'speaker', 'vendor']);
   return CHALLENGES;
 }
 
 export async function getUserChallenges(): Promise<UserChallenge[]> {
-  const user = await validateRole(['attendee', 'organizer', 'admin', 'professional']);
+  const user = await validateRole(['attendee', 'organizer', 'admin', 'professional', 'student', 'speaker', 'vendor']);
 
   try {
     const rows = await db
@@ -80,7 +80,7 @@ export async function getUserChallenges(): Promise<UserChallenge[]> {
 }
 
 export async function joinChallenge(challengeId: string) {
-  const user = await validateRole(['attendee', 'organizer', 'admin', 'professional']);
+  const user = await validateRole(['attendee', 'organizer', 'admin', 'professional', 'student', 'speaker', 'vendor']);
 
   try {
     const exists = await db.query.activityFeed.findFirst({
@@ -125,5 +125,8 @@ export async function joinChallenge(challengeId: string) {
   } catch (error) {
     console.error('joinChallenge Error:', error);
     return { success: false, error: 'Failed to join challenge' };
+  }
+}
+ to join challenge' };
   }
 }
