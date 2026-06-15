@@ -764,19 +764,19 @@ export default function LandingPage({ featuredEvents = [] }: { featuredEvents?: 
         </div>
       </section>
 
-      {/* NETWORK ACTIVITY */}
+      {/* LIVE INFRASTRUCTURE STATUS */}
       <section id="events" className="py-24 bg-background/50">
         <div className="container mx-auto px-10">
            <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-8">
               <div className="max-w-2xl text-left">
-                 <Badge variant="outline" className="mb-4 border-primary/30 bg-primary/10 text-primary rounded-full px-5 py-1.5 text-[11px] uppercase font-black tracking-[0.3em]">Global Mesh Network</Badge>
-                 <h2 className="text-4xl md:text-7xl font-display font-bold tracking-tighter text-foreground leading-[1.05]">Live Operations.</h2>
+                 <Badge variant="outline" className="mb-4 border-primary/30 bg-primary/10 text-primary rounded-full px-5 py-1.5 text-[11px] uppercase font-black tracking-[0.3em]">Infrastructure Pulse</Badge>
+                 <h2 className="text-4xl md:text-7xl font-display font-bold tracking-tighter text-foreground leading-[1.05]">Edge Nodes.</h2>
                  <p className="mt-4 text-lg text-muted-foreground font-medium opacity-90 leading-relaxed">
-                   Real-time status of event nodes deployed across the secure Eventra global mesh.
+                   Real-time synchronization status across our global high-availability network.
                  </p>
               </div>
               <Button size="xl" variant="outline" className="border-border/60 hover:bg-muted rounded-full font-black px-10 h-14 transition-all hover:scale-105 text-lg" asChild>
-                 <Link href="/explore">Scan Network</Link>
+                 <Link href="/explore">View Network</Link>
               </Button>
            </div>
 
@@ -784,14 +784,18 @@ export default function LandingPage({ featuredEvents = [] }: { featuredEvents?: 
              {featuredEvents.length > 0 ? featuredEvents.slice(0, 3).map((event) => (
                <EventCard key={event.id} event={event} />
              )) : (
-               [1, 2, 3].map(i => (
+               [
+                 { name: "North_America_East", region: "Virginia, US" },
+                 { name: "Europe_Central_1", region: "Frankfurt, DE" },
+                 { name: "Asia_Pacific_South", region: "Mumbai, IN" }
+               ].map((node, i) => (
                  <div key={i} className="rounded-[3rem] border border-border/60 bg-muted/10 p-10 flex flex-col gap-8 group relative overflow-hidden transition-all hover:border-primary/30 hover:-translate-y-2 shadow-xl hover:shadow-primary/5">
                     <div className="flex justify-between items-start">
                        <div className="w-14 h-14 rounded-2xl bg-background border border-border/60 flex items-center justify-center shadow-sm transition-all duration-500 group-hover:scale-110 group-hover:border-primary/20">
                           <Activity className="w-6 h-6 text-muted-foreground group-hover:text-primary transition-colors" />
                        </div>
                        <div className="px-5 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[10px] font-black text-emerald-500 uppercase tracking-[0.2em]">
-                          Operational
+                          Active
                        </div>
                     </div>
                     <div className="space-y-6">
@@ -808,10 +812,10 @@ export default function LandingPage({ featuredEvents = [] }: { featuredEvents?: 
                        <div className="h-4 w-2/3 bg-muted/20 rounded-full" />
                     </div>
                     <div className="pt-8 mt-auto border-t border-border/60 flex justify-between items-center text-[11px] font-mono font-black text-muted-foreground/50 uppercase tracking-[0.3em]">
-                       <span>Main_Hall_Sync</span>
+                       <span>{node.name}</span>
                        <span className="flex items-center gap-2">
                          <div className="w-1 h-1 rounded-full bg-primary" />
-                         US-East-1
+                         {node.region}
                        </span>
                     </div>
                  </div>

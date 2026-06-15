@@ -346,7 +346,7 @@ export default function AttendeeDashboard() {
                   <div className="flex justify-between items-start">
                      <div className="space-y-1">
                         <Badge variant="outline" className="text-notion-primary border-notion-primary/20 bg-notion-primary/5 uppercase text-[9px] font-black tracking-widest px-2 py-0">Active Pass</Badge>
-                        <h3 className="text-lg font-bold text-notion-ink">Node Access</h3>
+                        <h3 className="text-lg font-bold text-notion-ink">Infrastructure Access</h3>
                      </div>
                      <button className="text-notion-ink-faint hover:text-notion-ink transition-colors">
                         <MoreVertical className="w-4 h-4" />

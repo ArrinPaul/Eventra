@@ -3,7 +3,7 @@
 import { db } from '@/lib/db';
 import { users } from '@/lib/db/schema';
 import { eq, desc, not, inArray } from 'drizzle-orm';
-import { auth } from '@clerk/nextjs/server';
+import { auth, clerkClient } from '@clerk/nextjs/server';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
 
@@ -84,14 +84,48 @@ export async function updateUserDetails(id: string, data: any) {
   }
 
   try {
+    // If user might not exist, we need their email for the initial insert
+    let email = '';
+    const existingUser = await db.query.users.findFirst({
+      where: eq(users.id, id),
+      columns: { email: true }
+    });
+
+    if (existingUser) {
+      email = existingUser.email;
+    } else {
+      const { currentUser } = await import('@clerk/nextjs/server');
+      const clerkUser = await currentUser();
+      email = clerkUser?.emailAddresses[0]?.emailAddress || '';
+    }
+
     const [updated] = await db
-      .update(users)
-      .set({
+      .insert(users)
+      .values({
+        id: id,
+        email: email,
         ...validated.data,
         updatedAt: new Date(),
       })
-      .where(eq(users.id, id))
+      .onConflictDoUpdate({
+        target: users.id,
+        set: {
+          ...validated.data,
+          updatedAt: new Date(),
+        },
+      })
       .returning();
+
+    // Sync to Clerk metadata if onboarding or role changed
+    if (updated && (data.onboardingCompleted !== undefined || data.role !== undefined)) {
+      const client = await clerkClient();
+      await client.users.updateUserMetadata(id, {
+        publicMetadata: {
+          onboardingCompleted: updated.onboardingCompleted,
+          role: updated.role,
+        }
+      });
+    }
 
     return { success: true, user: updated };
   } catch (error) {

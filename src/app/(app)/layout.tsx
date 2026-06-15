@@ -1,11 +1,19 @@
 'use client';
 import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
 import { Sidebar } from '@/components/layout/sidebar';
 import { ErrorBoundary } from '@/components/shared/error-boundary';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth();
+  const { user, loading, isAuthenticated } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!loading && isAuthenticated && user && !user.onboardingCompleted) {
+      router.push('/onboarding');
+    }
+  }, [user, loading, isAuthenticated, router]);
 
   if (loading) {
     return (

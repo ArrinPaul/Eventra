@@ -255,11 +255,152 @@ export function OnboardingWizard() {
         )}
 
         {currentStep === 2 && userType === 'student' && (
-          <Form {...studentForm}><form className="space-y-4">
-            <FormField control={studentForm.control} name="college" render={({ field }) => (
-              <FormItem><FormLabel>College *</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
-            )} />
-          </form></Form>
+          <Form {...studentForm}>
+            <form className="space-y-4">
+              <FormField control={studentForm.control} name="college" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>College / University *</FormLabel>
+                  <FormControl><Input placeholder="e.g. Stanford University" {...field} /></FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
+              <div className="grid grid-cols-2 gap-4">
+                <FormField control={studentForm.control} name="degree" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Degree Level *</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl><SelectTrigger><SelectValue placeholder="Select level" /></SelectTrigger></FormControl>
+                      <SelectContent>
+                        <SelectItem value="ug">Undergraduate</SelectItem>
+                        <SelectItem value="pg">Postgraduate</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                <FormField control={studentForm.control} name="year" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Year of Study *</FormLabel>
+                    <Select onValueChange={(v) => field.onChange(parseInt(v))} defaultValue={field.value.toString()}>
+                      <FormControl><SelectTrigger><SelectValue placeholder="Select year" /></SelectTrigger></FormControl>
+                      <SelectContent>
+                        {[1, 2, 3, 4, 5].map(y => <SelectItem key={y} value={y.toString()}>{y} Year</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+              </div>
+            </form>
+          </Form>
+        )}
+
+        {currentStep === 2 && userType === 'professional' && (
+          <Form {...professionalForm}>
+            <form className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <FormField control={professionalForm.control} name="company" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Company *</FormLabel>
+                    <FormControl><Input placeholder="e.g. Google" {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                <FormField control={professionalForm.control} name="designation" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Designation *</FormLabel>
+                    <FormControl><Input placeholder="e.g. Senior Engineer" {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <FormField control={professionalForm.control} name="country" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Country *</FormLabel>
+                    <FormControl><Input placeholder="e.g. USA" {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                <FormField control={professionalForm.control} name="gender" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Gender *</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl><SelectTrigger><SelectValue placeholder="Select gender" /></SelectTrigger></FormControl>
+                      <SelectContent>
+                        <SelectItem value="male">Male</SelectItem>
+                        <SelectItem value="female">Female</SelectItem>
+                        <SelectItem value="other">Other</SelectItem>
+                        <SelectItem value="prefer-not-to-say">Prefer not to say</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+              </div>
+              <FormField control={professionalForm.control} name="bloodGroup" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Blood Group *</FormLabel>
+                  <FormControl><Input placeholder="e.g. O+" {...field} /></FormControl>
+                  <FormDescription>Required for event safety protocols.</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )} />
+            </form>
+          </Form>
+        )}
+
+        {currentStep === 2 && userType === 'organizer' && (
+          <Form {...organizerForm}>
+            <form className="space-y-4">
+              <FormField control={organizerForm.control} name="organizationName" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Organization Name *</FormLabel>
+                  <FormControl><Input placeholder="e.g. Tech Events Inc." {...field} /></FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
+              <FormField control={organizerForm.control} name="designation" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Your Role *</FormLabel>
+                  <FormControl><Input placeholder="e.g. Founder & CEO" {...field} /></FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
+              <FormField control={organizerForm.control} name="website" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Website</FormLabel>
+                  <FormControl><Input placeholder="https://example.com" {...field} /></FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
+            </form>
+          </Form>
+        )}
+
+        {currentStep === 3 && (
+          <div className="space-y-6">
+            <div className="text-center space-y-2">
+              <h3 className="text-lg font-bold">Pick Your Interests</h3>
+              <p className="text-sm text-muted-foreground">This helps us personalize your event recommendations.</p>
+            </div>
+            <div className="flex flex-wrap gap-2 justify-center">
+              {AVAILABLE_INTERESTS.map(interest => (
+                <Badge 
+                  key={interest} 
+                  variant={selectedInterests.includes(interest) ? 'default' : 'outline'}
+                  className={cn(
+                    "px-4 py-2 text-xs cursor-pointer transition-all",
+                    selectedInterests.includes(interest) ? "scale-110 shadow-glow" : "hover:bg-muted"
+                  )}
+                  onClick={() => toggleInterest(interest)}
+                >
+                  {interest}
+                  {selectedInterests.includes(interest) && <Check className="ml-2 w-3 h-3" />}
+                </Badge>
+              ))}
+            </div>
+          </div>
         )}
 
         <div className="flex justify-between mt-8 pt-4 border-t">
