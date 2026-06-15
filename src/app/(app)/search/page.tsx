@@ -60,7 +60,8 @@ export default function SearchPage() {
              Discover <span className="text-notion-primary italic">Everything.</span>
            </h1>
            <p className="text-lg text-notion-ink-muted font-medium max-w-2xl mx-auto leading-relaxed">
-             Find events, connect with experts, and discovery activity nodes across the Eventra mesh.
+             Find events, connect with experts, and discover activities across the platform.
+
            </p>
         </div>
         
@@ -211,4 +212,6 @@ export default function SearchPage() {
       </AnimatePresence>
     </div>
   );
+}
+ );
 }

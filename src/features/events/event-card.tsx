@@ -97,8 +97,8 @@ export function EventCard({ event }: { event: EventraEvent }) {
 
           <div className="flex items-center justify-between pt-5 border-t border-notion-hairline/50">
             <div className="space-y-1">
-              <p className="text-[9px] font-black uppercase tracking-widest text-notion-ink-faint">Access Protocol</p>
-              <p className="text-xs font-bold text-emerald-500 uppercase tracking-tight">Open Enrollment</p>
+              <p className="text-[9px] font-black uppercase tracking-widest text-notion-ink-faint">Access</p>
+              <p className="text-xs font-bold text-emerald-500 uppercase tracking-tight">Free Registration</p>
             </div>
             <Button 
               size="sm" 
@@ -107,7 +107,7 @@ export function EventCard({ event }: { event: EventraEvent }) {
               className="rounded-xl font-black px-5 h-9 shadow-sm hover:shadow-notion-soft group/btn"
             >
               {isRegistering ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : (
-                 <span className="flex items-center gap-2">Sync <ArrowRight className="w-3.5 h-3.5 group-hover/btn:translate-x-0.5 transition-transform" /></span>
+                 <span className="flex items-center gap-2">Join Event <ArrowRight className="w-3.5 h-3.5 group-hover/btn:translate-x-0.5 transition-transform" /></span>
               )}
             </Button>
           </div>

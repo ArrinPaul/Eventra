@@ -23,20 +23,32 @@ export function Logo({ className, iconClassName, showText = false }: LogoProps) 
           className="w-full h-full"
         >
           <motion.path
-            d="M4 4H20V8H8V12H18V16H8V20H20V24H4V4Z"
+            d="M12 2L2 7L12 12L22 7L12 2Z"
             fill="currentColor"
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5, ease: "easeOut" }}
-            style={{ transformOrigin: 'center' }}
+            fillOpacity="0.2"
+            initial={{ opacity: 0, y: -5 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
           />
-          {/* Subtle Accent Dot */}
-          <motion.circle
-            cx="21" cy="4" r="2.5"
-            className="fill-notion-accent-sky"
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ delay: 0.4, type: "spring", stiffness: 200 }}
+          <motion.path
+            d="M2 17L12 22L22 17"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            initial={{ pathLength: 0 }}
+            animate={{ pathLength: 1 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+          />
+          <motion.path
+            d="M2 12L12 17L22 12"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            initial={{ pathLength: 0 }}
+            animate={{ pathLength: 1 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
           />
         </svg>
       </div>

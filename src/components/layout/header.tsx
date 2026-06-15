@@ -47,6 +47,8 @@ export default function Header() {
   const navLinks = [
     { href: '/', label: 'Home' },
     { href: '/explore', label: t('explore') },
+    { href: '/chat', label: 'Messages', requireAuth: true },
+    { href: '/ai-recommendations', label: 'For You', requireAuth: true },
     { href: '/tickets', label: t('tickets'), requireAuth: true },
     { href: '/my-events', label: 'My Events', requireAuth: true },
     { href: '/admin', label: t('dashboard'), roles: ['organizer', 'admin'] },

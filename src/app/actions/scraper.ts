@@ -15,25 +15,59 @@ export async function scrapeEventMetadata(url: string) {
   await validateRole(['admin']);
 
   try {
-    const response = await fetch(url);
+    const response = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+      },
+    });
     const html = await response.text();
 
-    // Basic regex-based extraction for metadata tags
-    const getMeta = (prop: string) => {
-      const match = html.match(new RegExp(`<meta[^>]+(?:property|name)=["']${prop}["'][^>]+content=["']([^"']+)["']`, 'i'))
-        || html.match(new RegExp(`<meta[^>]+content=["']([^"']+)["'][^>]+(?:property|name)=["']${prop}["']`, 'i'));
-      return match ? match[1] : null;
+    // Enhanced extraction logic
+    const getMeta = (props: string[]) => {
+      for (const prop of props) {
+        const match = html.match(new RegExp(`<meta[^>]+(?:property|name)=["']${prop}["'][^>]+content=["']([^"']+)["']`, 'i'))
+          || html.match(new RegExp(`<meta[^>]+content=["']([^"']+)["'][^>]+(?:property|name)=["']${prop}["']`, 'i'));
+        if (match) return match[1];
+      }
+      return null;
     };
 
-    const title = getMeta('og:title') || html.match(/<title>([^<]+)<\/title>/i)?.[1] || 'External Event';
-    const description = getMeta('og:description') || getMeta('description') || 'No description available.';
-    const imageUrl = getMeta('og:image');
+    // Try to find JSON-LD
+    let jsonLdData: any = null;
+    try {
+      const jsonLdMatch = html.match(/<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/i);
+      if (jsonLdMatch) {
+        const parsed = JSON.parse(jsonLdMatch[1].trim());
+        jsonLdData = Array.isArray(parsed) ? parsed.find(item => item['@type'] === 'Event') : parsed;
+      }
+    } catch (e) {
+      console.warn('JSON-LD parse error:', e);
+    }
+
+    const title = jsonLdData?.name 
+      || getMeta(['og:title', 'twitter:title']) 
+      || html.match(/<title>([^<]+)<\/title>/i)?.[1] 
+      || 'External Event';
+
+    const description = jsonLdData?.description 
+      || getMeta(['og:description', 'description', 'twitter:description']) 
+      || 'No description available.';
+
+    const imageUrl = jsonLdData?.image 
+      || getMeta(['og:image', 'twitter:image', 'image']);
+
+    const startDate = jsonLdData?.startDate;
+    const endDate = jsonLdData?.endDate;
+    const location = jsonLdData?.location?.name || jsonLdData?.location?.address?.streetAddress;
 
     return {
-      title,
-      description,
+      title: title.trim(),
+      description: description.trim(),
       imageUrl,
       externalUrl: url,
+      startDate,
+      endDate,
+      location,
     };
   } catch (error) {
     console.error('Scraper Error:', error);

@@ -366,8 +366,8 @@ export default function LandingPage({ featuredEvents = [] }: { featuredEvents?: 
                  <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-muted to-border border border-border shrink-0 shadow-inner" />
                     <div className="hidden md:block">
-                       <p className="text-xs font-black leading-none uppercase tracking-wider">Admin_0x1</p>
-                       <p className="text-[9px] text-primary mt-1.5 font-black uppercase tracking-widest">Enterprise</p>
+                       <p className="text-xs font-black leading-none uppercase tracking-wider">Sarah Miller</p>
+                       <p className="text-[9px] text-primary mt-1.5 font-black uppercase tracking-widest">Organizer</p>
                     </div>
                  </div>
               </div>
@@ -804,7 +804,7 @@ export default function LandingPage({ featuredEvents = [] }: { featuredEvents?: 
                        <div className="h-4 w-2/3 bg-muted/20 rounded-full" />
                     </div>
                     <div className="pt-8 mt-auto border-t border-border/60 flex justify-between items-center text-[11px] font-mono font-black text-muted-foreground/50 uppercase tracking-[0.3em]">
-                       <span>Node_0x{i}F4_Sync</span>
+                       <span>Main_Hall_Sync</span>
                        <span className="flex items-center gap-2">
                          <div className="w-1 h-1 rounded-full bg-primary" />
                          US-East-1

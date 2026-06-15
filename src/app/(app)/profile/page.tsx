@@ -202,7 +202,8 @@ export default function ProfilePage() {
           <TabsContent value="badges" className="animate-in fade-in slide-in-from-bottom-4 duration-500 m-0">
             <div className="text-center py-32 bg-muted/10 rounded-[3rem] border-2 border-dashed border-border opacity-60">
               <Trophy className="w-16 h-16 text-muted-foreground/30 mx-auto mb-6" />
-              <p className="text-xl font-display font-bold">Node_Ranks: Initialize Active Syncs to earn badges.</p>
+              <p className="text-xl font-display font-bold">Badges: Attend events to earn rewards and recognition.</p>
+
             </div>
           </TabsContent>
         </Tabs>

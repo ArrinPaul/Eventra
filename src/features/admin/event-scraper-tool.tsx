@@ -88,7 +88,7 @@ export function EventScraperTool() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Globe className="w-5 h-5 text-primary" />
-            Neural Event Ingestor
+            Smart Event Ingestor
           </CardTitle>
           <CardDescription>
             Enter an external event URL (Eventbrite, Meetup, etc.) to automatically extract details and ingest it into the platform.

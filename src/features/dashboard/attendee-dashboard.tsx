@@ -108,14 +108,14 @@ export default function AttendeeDashboard() {
           <h1 className="text-4xl md:text-5xl font-display font-bold tracking-tight text-notion-ink">
             Hey, <span className="text-notion-primary">{user.name?.split(' ')[0]}</span>.
           </h1>
-          <p className="text-lg text-notion-ink-muted font-medium">Your event mesh is operational.</p>
+          <p className="text-lg text-notion-ink-muted font-medium">Everything is ready for your next event.</p>
         </div>
         <div className="flex gap-4">
           <Button variant="outline" size="lg" className="rounded-xl font-bold bg-white dark:bg-zinc-950 border-notion-hairline hover:bg-notion-canvas-soft transition-all" asChild>
-            <Link href="/my-events">Manage Passes</Link>
+            <Link href="/my-events">Manage Tickets</Link>
           </Button>
           <Button variant="primary" size="lg" className="rounded-xl font-bold shadow-notion-elevated px-8" asChild>
-            <Link href="/explore">Find Events</Link>
+            <Link href="/explore">Discover Events</Link>
           </Button>
         </div>
       </header>
@@ -123,10 +123,10 @@ export default function AttendeeDashboard() {
       {/* STATS */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {[
-          { label: 'Active Passes', value: registrations.length, icon: Ticket, color: 'text-notion-primary', bg: 'bg-notion-primary/5' },
-          { label: 'XP Points', value: userStats?.xp || 0, icon: Trophy, color: 'text-notion-accent-orange', bg: 'bg-notion-accent-orange/5' },
-          { label: 'Node Level', value: userStats?.level || 1, icon: Zap, color: 'text-notion-accent-teal', bg: 'bg-notion-accent-teal/5' },
-          { label: 'Total Syncs', value: userStats?.attended || 0, icon: Activity, color: 'text-notion-accent-green', bg: 'bg-notion-accent-green/5' },
+          { label: 'Active Tickets', value: registrations.length, icon: Ticket, color: 'text-notion-primary', bg: 'bg-notion-primary/5' },
+          { label: 'Reward Points', value: userStats?.xp || 0, icon: Trophy, color: 'text-notion-accent-orange', bg: 'bg-notion-accent-orange/5' },
+          { label: 'Member Level', value: userStats?.level || 1, icon: Zap, color: 'text-notion-accent-teal', bg: 'bg-notion-accent-teal/5' },
+          { label: 'Events Attended', value: userStats?.attended || 0, icon: Activity, color: 'text-notion-accent-green', bg: 'bg-notion-accent-green/5' },
         ].map((stat, i) => (
           <Card key={i} className="border-notion-hairline bg-white dark:bg-zinc-950 shadow-notion-soft overflow-hidden group hover:-translate-y-1 transition-all duration-300">
             <CardContent className="p-6">
@@ -232,14 +232,15 @@ export default function AttendeeDashboard() {
               <div className="space-y-1">
                 <h2 className="text-xl font-bold tracking-tight text-notion-ink flex items-center gap-2">
                   <Sparkles className="h-5 w-5 text-notion-primary" />
-                  Neural Suggestions
+                  Recommended for You
                 </h2>
                 <p className="text-xs font-medium text-notion-ink-muted">Tailored to your activity and interests.</p>
               </div>
               <Link href="/explore" className="text-[10px] font-black uppercase tracking-widest text-notion-primary hover:underline flex items-center gap-1">
-                View Network <ChevronRight className="h-3 w-3" />
+                Browse More <ChevronRight className="h-3 w-3" />
               </Link>
-            </div>
+              </div>
+
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               {featuredEvents.map((event: any) => (
@@ -287,10 +288,11 @@ export default function AttendeeDashboard() {
                 </h2>
                 <p className="text-xs font-medium text-notion-ink-muted">Connect with people sharing your interests.</p>
               </div>
-              <Link href="/networking" className="text-[10px] font-black uppercase tracking-widest text-notion-primary hover:underline flex items-center gap-1">
-                View All <ChevronRight className="h-3 w-3" />
+              <Link href="/explore" className="text-[10px] font-black uppercase tracking-widest text-notion-primary hover:underline flex items-center gap-1">
+                Browse More <ChevronRight className="h-3 w-3" />
               </Link>
-            </div>
+              </div>
+
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {peopleSuggestions.slice(0, 4).map((person: any) => (

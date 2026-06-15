@@ -87,7 +87,7 @@ export default function OrganizerDashboard() {
       <div className="flex h-[80vh] items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div className="w-10 h-10 rounded-full border-2 border-notion-hairline border-t-notion-primary animate-spin" />
-          <p className="text-sm font-medium text-notion-ink-muted uppercase tracking-widest">Loading Console...</p>
+          <p className="text-sm font-medium text-notion-ink-muted uppercase tracking-widest">Loading Dashboard...</p>
         </div>
       </div>
     );
@@ -104,22 +104,22 @@ export default function OrganizerDashboard() {
               </Badge>
            </div>
            <h1 className="text-4xl md:text-5xl font-display font-black tracking-tighter text-notion-ink uppercase">
-             Event <span className="text-notion-primary italic">Mesh.</span>
+             Event <span className="text-notion-primary italic">Manager.</span>
            </h1>
            <p className="text-lg text-notion-ink-muted font-medium max-w-xl">
-             Orchestrate your campaigns, analyze network reach, and manage active nodes.
+             Manage your events, analyze registrations, and grow your audience.
            </p>
         </div>
         <Button asChild variant="primary" size="lg" className="h-12 px-8 rounded-xl shadow-notion-elevated font-black uppercase tracking-widest text-xs">
-          <Link href="/events/create"><Plus className="mr-2 h-4 w-4" /> Create Node</Link>
+          <Link href="/events/create"><Plus className="mr-2 h-4 w-4" /> Create Event</Link>
         </Button>
       </header>
 
       {/* KPI STATS */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {[
-          { label: 'Active Clusters', value: managedEvents.length, icon: Calendar, color: 'text-notion-primary', bg: 'bg-notion-primary/5', trend: '+2.4%' },
-          { label: 'Network Registrations', value: totalRegistrations.toLocaleString(), icon: Users, color: 'text-notion-accent-teal', bg: 'bg-notion-accent-teal/5', trend: '+12.1%' },
+          { label: 'Active Events', value: managedEvents.length, icon: Calendar, color: 'text-notion-primary', bg: 'bg-notion-primary/5', trend: '+2.4%' },
+          { label: 'Total Registrations', value: totalRegistrations.toLocaleString(), icon: Users, color: 'text-notion-accent-teal', bg: 'bg-notion-accent-teal/5', trend: '+12.1%' },
         ].map((stat, i) => (
           <Card key={i} className="group hover:shadow-notion-soft transition-all duration-500 border-notion-hairline overflow-hidden bg-white dark:bg-zinc-950 rounded-[2rem]">
             <CardContent className="p-8 relative">
@@ -164,15 +164,15 @@ export default function OrganizerDashboard() {
                 <div className="space-y-1">
                   <h3 className="text-xl font-bold tracking-tight text-notion-ink flex items-center gap-3">
                      <Activity size={18} className="text-notion-primary" />
-                     Live Clusters
+                     Live Events
                   </h3>
-                  <p className="text-sm font-medium text-notion-ink-muted">{managedEvents.length} operational nodes detected</p>
+                  <p className="text-sm font-medium text-notion-ink-muted">{managedEvents.length} events are currently live</p>
                 </div>
                 <div className="flex items-center gap-4">
                    <div className="relative w-full md:w-80">
                      <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-notion-ink-faint" />
                      <Input
-                       placeholder="Filter by node title..."
+                       placeholder="Filter events..."
                        className="pl-10 rounded-xl bg-white dark:bg-black border-notion-hairline h-10 text-xs font-bold uppercase tracking-widest"
                        value={searchTerm}
                        onChange={(e) => setSearchTerm(e.target.value)}
@@ -199,7 +199,7 @@ export default function OrganizerDashboard() {
                         {event.organizerId !== user?.id && <Badge className="bg-notion-accent-purple/10 text-notion-accent-purple border-none text-[9px] font-black uppercase tracking-widest">Collaborative</Badge>}
                       </div>
                       <div className="flex flex-wrap items-center gap-6 text-[11px] font-bold text-notion-ink-muted uppercase tracking-widest">
-                        <span className="flex items-center gap-2"><Users size={12} className="text-notion-primary" /> {event.registeredCount || 0} Synced</span>
+                        <span className="flex items-center gap-2"><Users size={12} className="text-notion-primary" /> {event.registeredCount || 0} Registered</span>
                         <span className="flex items-center gap-2"><MapPin size={12} className="text-notion-primary" /> {typeof event.location === 'string' ? event.location : event.location?.venue || 'Digital'}</span>
                         <Badge className={cn(
                            "text-[9px] font-black px-2 py-0 border-none uppercase tracking-[0.2em]",
@@ -229,11 +229,11 @@ export default function OrganizerDashboard() {
                      <Calendar className="w-8 h-8 text-notion-ink-faint/40" />
                   </div>
                   <div className="space-y-2">
-                     <h3 className="text-xl font-bold tracking-tight">System Empty.</h3>
-                     <p className="text-sm font-medium text-notion-ink-muted max-w-xs mx-auto">No nodes found in the current sector. Deploy a new event to begin synchronization.</p>
+                     <h3 className="text-xl font-bold tracking-tight">No Events Found.</h3>
+                     <p className="text-sm font-medium text-notion-ink-muted max-w-xs mx-auto">Create a new event to begin managing your audience.</p>
                   </div>
                   <Button asChild variant="primary" className="rounded-xl px-10 h-11 font-black uppercase tracking-widest text-[10px] shadow-notion-soft">
-                    <Link href="/events/create">Deploy First Node</Link>
+                    <Link href="/events/create">Create Event</Link>
                   </Button>
                 </div>
               )}
@@ -250,16 +250,16 @@ export default function OrganizerDashboard() {
                     <div className="w-14 h-14 rounded-2xl bg-notion-accent-purple/10 flex items-center justify-center text-notion-accent-purple group-hover:scale-110 transition-transform shadow-sm">
                       <BrainCircuit size={28} />
                     </div>
-                    <Badge className="bg-notion-accent-sky/10 text-notion-accent-sky border-none text-[9px] font-black uppercase tracking-widest">Active Insight</Badge>
+                    <Badge className="bg-notion-accent-sky/10 text-notion-accent-sky border-none text-[9px] font-black uppercase tracking-widest">Insights</Badge>
                   </div>
                   <div className="space-y-2">
                      <h3 className="text-xl font-bold tracking-tight text-notion-ink group-hover:text-notion-primary transition-colors line-clamp-2">{event.title}</h3>
-                     <p className="text-[10px] font-black uppercase tracking-widest text-notion-ink-faint leading-none">Telemetry Stream Operational</p>
+                     <p className="text-[10px] font-black uppercase tracking-widest text-notion-ink-faint leading-none">View detailed audience metrics</p>
                   </div>
                 </div>
                 <div className="pt-8 mt-auto border-t border-notion-hairline/50 flex justify-between items-center">
                   <Button variant="link" className="text-notion-primary font-black p-0 h-auto text-[10px] uppercase tracking-[0.2em] group-hover:translate-x-1 transition-transform" asChild>
-                    <Link href={`/organizer/insights/${event.id}`}>Analyze Intel <ChevronRight size={12} className="ml-1" /></Link>
+                    <Link href={`/organizer/insights/${event.id}`}>View Insights <ChevronRight size={12} className="ml-1" /></Link>
                   </Button>
                   <div className="flex gap-1">
                      {[1, 2, 3].map(i => <div key={i} className="w-1 h-3 rounded-full bg-notion-primary/20 group-hover:bg-notion-primary transition-colors" style={{ transitionDelay: `${i * 100}ms` }} />)}
