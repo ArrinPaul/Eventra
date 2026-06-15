@@ -291,12 +291,12 @@ export default function LandingPage({ featuredEvents = [] }: { featuredEvents?: 
           variants={STAGGER} 
           className="relative z-10 w-full max-w-6xl space-y-12 flex flex-col items-center"
         >
-          <motion.h1 variants={FADE_UP} className="text-7xl md:text-[9.5rem] font-display font-medium tracking-[-0.05em] leading-[0.85] text-foreground">
+          <motion.h1 variants={FADE_UP} className="text-5xl md:text-8xl font-display font-medium tracking-[-0.05em] leading-[0.85] text-foreground">
             Discussion to <br />
             <span className="text-primary italic">Execution.</span>
           </motion.h1>
 
-          <motion.p variants={FADE_UP} className="text-lg md:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed font-medium opacity-70">
+          <motion.p variants={FADE_UP} className="text-base md:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed font-medium opacity-70">
             Eventra is your intelligent workspace for live experiences. <br className="hidden md:block" />
             Unified, AI-driven, and engineered for high-performance delivery.
           </motion.p>
@@ -519,8 +519,8 @@ export default function LandingPage({ featuredEvents = [] }: { featuredEvents?: 
         <div className="container mx-auto px-6 md:px-10">
           <div className="max-w-3xl mb-12">
              <Badge variant="outline" className="mb-4 border-primary/30 bg-primary/10 text-primary rounded-full px-5 py-1.5 text-[11px] uppercase font-black tracking-[0.3em]">Integrated Ecosystem</Badge>
-             <h2 className="text-5xl md:text-8xl font-display font-bold tracking-tighter mb-6 text-foreground leading-[1.05]">Built for scale.</h2>
-             <p className="text-xl text-muted-foreground leading-relaxed font-medium opacity-90 max-w-2xl">
+             <h2 className="text-4xl md:text-7xl font-display font-bold tracking-tighter mb-6 text-foreground leading-[1.05]">Built for scale.</h2>
+             <p className="text-lg text-muted-foreground leading-relaxed font-medium opacity-90 max-w-2xl">
                Hover through our core modules to see how Eventra orchestrates every layer of your experience with surgical precision.
              </p>
           </div>
@@ -611,8 +611,8 @@ export default function LandingPage({ featuredEvents = [] }: { featuredEvents?: 
         <div className="container mx-auto px-10">
            <div className="flex flex-col items-center text-center max-w-4xl mx-auto mb-20">
               <Badge variant="outline" className="mb-4 border-primary/30 bg-primary/10 text-primary rounded-full px-5 py-1.5 text-[11px] uppercase font-black tracking-[0.3em]">Neural Augmentation</Badge>
-              <h2 className="text-5xl md:text-8xl font-display font-bold tracking-tighter mb-6 text-foreground leading-[1.05]">Smart Tools for <br /> Smarter Events.</h2>
-              <p className="text-lg text-muted-foreground leading-loose font-medium opacity-90 max-w-3xl">
+              <h2 className="text-4xl md:text-7xl font-display font-bold tracking-tighter mb-6 text-foreground leading-[1.05]">Smart Tools for <br /> Smarter Events.</h2>
+              <p className="text-base text-muted-foreground leading-loose font-medium opacity-90 max-w-3xl">
                 Our neural layer automates the heavy lifting, extracting actionable insights from every interaction.
               </p>
            </div>
@@ -671,10 +671,10 @@ export default function LandingPage({ featuredEvents = [] }: { featuredEvents?: 
       {/* INTEGRATION VISUALIZATION */}
       <section className="py-24 relative bg-background/50 overflow-hidden">
         <div className="container mx-auto px-10 text-center">
-           <h2 className="text-6xl md:text-[8rem] font-display font-bold tracking-tighter text-foreground mb-8 leading-[0.95]">
+           <h2 className="text-5xl md:text-7xl font-display font-bold tracking-tighter text-foreground mb-8 leading-[0.95]">
               Unified <span className="text-primary italic font-black">Control.</span>
            </h2>
-           <p className="text-lg text-muted-foreground max-w-3xl mx-auto mb-20 font-medium leading-loose opacity-90">
+           <p className="text-base text-muted-foreground max-w-3xl mx-auto mb-20 font-medium leading-loose opacity-90">
              Eventra consolidates your stack into a single, high-performance ecosystem, streaming real-time operational data into your core dashboard.
            </p>
            
@@ -770,8 +770,8 @@ export default function LandingPage({ featuredEvents = [] }: { featuredEvents?: 
            <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-8">
               <div className="max-w-2xl text-left">
                  <Badge variant="outline" className="mb-4 border-primary/30 bg-primary/10 text-primary rounded-full px-5 py-1.5 text-[11px] uppercase font-black tracking-[0.3em]">Global Mesh Network</Badge>
-                 <h2 className="text-5xl md:text-[8rem] font-display font-bold tracking-tighter text-foreground leading-[1.05]">Live Operations.</h2>
-                 <p className="mt-4 text-xl text-muted-foreground font-medium opacity-90 leading-relaxed">
+                 <h2 className="text-4xl md:text-7xl font-display font-bold tracking-tighter text-foreground leading-[1.05]">Live Operations.</h2>
+                 <p className="mt-4 text-lg text-muted-foreground font-medium opacity-90 leading-relaxed">
                    Real-time status of event nodes deployed across the secure Eventra global mesh.
                  </p>
               </div>
@@ -837,13 +837,13 @@ export default function LandingPage({ featuredEvents = [] }: { featuredEvents?: 
               <span className="text-[11px] font-black tracking-[0.3em] uppercase text-primary">Public Beta v0.1_Operational</span>
            </motion.div>
            
-           <h2 className="text-6xl md:text-[9rem] font-display font-bold tracking-tighter leading-[0.9] text-foreground">Scale your next <br /> <span className="text-primary italic">experience.</span></h2>
+           <h2 className="text-5xl md:text-8xl font-display font-bold tracking-tighter leading-[0.9] text-foreground">Scale your next <br /> <span className="text-primary italic">experience.</span></h2>
            
            <div className="flex flex-col sm:flex-row items-center justify-center gap-8 pt-6">
-              <Button size="xl" className="rounded-full px-16 h-16 bg-primary text-primary-foreground hover:bg-primary/90 font-black text-xl shadow-2xl shadow-primary/30 transition-all hover:scale-105 active:scale-95 shadow-glow border-none" asChild>
+              <Button size="xl" className="rounded-full px-16 h-16 bg-primary text-primary-foreground hover:bg-primary/90 font-black text-lg shadow-2xl shadow-primary/30 transition-all hover:scale-105 active:scale-95 shadow-glow border-none" asChild>
                  <Link href="/register">Get Started Free</Link>
               </Button>
-              <Link href="#" className="text-muted-foreground hover:text-foreground transition-all flex items-center gap-4 group font-black text-lg px-12 py-4 rounded-full hover:bg-muted ring-1 ring-border/40">
+              <Link href="#" className="text-muted-foreground hover:text-foreground transition-all flex items-center gap-4 group font-black text-base px-12 py-4 rounded-full hover:bg-muted ring-1 ring-border/40">
                  Contact Sales <ArrowRight className="w-5 h-5 group-hover:translate-x-2 transition-transform" />
               </Link>
            </div>
