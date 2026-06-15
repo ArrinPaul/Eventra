@@ -2,6 +2,7 @@
 
 import { createHash } from 'node:crypto';
 import { validateRole } from '@/lib/auth-utils';
+import { auth } from '@clerk/nextjs/server';
 import { db } from '@/lib/db';
 import { aiRecommendationCache, events, users, tickets, eventFeedback, communityMembers, communities } from '@/lib/db/schema';
 import { and, eq, ne, desc } from 'drizzle-orm';

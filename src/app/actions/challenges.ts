@@ -127,6 +127,3 @@ export async function joinChallenge(challengeId: string) {
     return { success: false, error: 'Failed to join challenge' };
   }
 }
- to join challenge' };
-  }
-}

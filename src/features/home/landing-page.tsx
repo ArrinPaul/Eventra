@@ -24,6 +24,7 @@ import {
   Calendar,
   Users,
   MessageSquare,
+  MessageCircle,
   Bot,
   ZapOff,
   Clock,
@@ -55,34 +56,30 @@ const STAGGER: Variants = {
 
 const MODULES = [
   {
-    id: 'messaging',
+    id: 'networking',
     title: 'Networking',
-    icon: MessageSquare,
+    icon: MessageCircle,
     description: 'High-performance real-time networking for attendees and organizers.',
     preview: (
-      <div className="w-full bg-background/40 backdrop-blur-md rounded-[2.5rem] border border-border/40 p-8 flex flex-col gap-6 overflow-hidden shadow-inner">
-        <div className="flex items-center justify-between border-b border-border/20 pb-6">
-           <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-primary to-primary/60 flex items-center justify-center text-primary-foreground font-black text-xs shadow-glow shadow-primary/20">JD</div>
-              <div className="flex flex-col gap-1">
-                 <span className="text-xs font-black text-foreground leading-none uppercase tracking-wider">John_Doe_0x1</span>
-                 <span className="text-[10px] text-emerald-500 font-bold uppercase tracking-widest flex items-center gap-1.5">
+      <div className="w-full bg-background/40 backdrop-blur-md rounded-[2rem] border border-border/40 p-6 flex flex-col gap-4 overflow-hidden shadow-inner">
+        <div className="flex items-center justify-between border-b border-border/20 pb-4">
+           <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-primary to-primary/60 flex items-center justify-center text-primary-foreground font-black text-[10px] shadow-glow shadow-primary/20">AC</div>
+              <div className="flex flex-col">
+                 <span className="text-[10px] font-black text-foreground leading-none uppercase tracking-wider">Alex Chen</span>
+                 <span className="text-[8px] text-emerald-500 font-bold uppercase tracking-widest flex items-center gap-1">
                     <div className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" />
-                    Verified_Sync
+                    Connected
                  </span>
               </div>
            </div>
-           <div className="flex gap-1.5">
-              <div className="w-2 h-2 rounded-full bg-muted-foreground/20" />
-              <div className="w-2 h-2 rounded-full bg-muted-foreground/20" />
-           </div>
         </div>
-        <div className="flex flex-col gap-4">
-           <div className="self-start bg-muted/30 p-4 rounded-[1.5rem] rounded-tl-none max-w-[80%] border border-border/10 shadow-sm">
-              <p className="text-xs text-foreground/70 leading-relaxed font-bold">Protocol check: Have you verified your session encryption keys for tomorrow's keynote?</p>
+        <div className="flex flex-col gap-3">
+           <div className="self-start bg-muted/30 p-3 rounded-2xl rounded-tl-none max-w-[80%] border border-border/10 shadow-sm">
+              <p className="text-[10px] text-foreground/70 leading-tight font-bold">Protocol check: Have you verified your session encryption keys?</p>
            </div>
-           <div className="self-end bg-primary/10 p-4 rounded-[1.5rem] rounded-tr-none max-w-[80%] border border-primary/20 text-primary">
-              <p className="text-xs font-black leading-relaxed">Uplink confirmed. Nodes are synchronized. Ready for deployment. 🚀</p>
+           <div className="self-end bg-primary/10 p-3 rounded-2xl rounded-tr-none max-w-[80%] border border-primary/20 text-primary">
+              <p className="text-[10px] font-black leading-tight">Uplink confirmed. Nodes are synchronized. 🚀</p>
            </div>
         </div>
       </div>
@@ -90,45 +87,27 @@ const MODULES = [
   },
   {
     id: 'experience',
-    title: 'Experience',
-    icon: Sparkles,
+    title: 'Gamification',
+    icon: Trophy,
     description: 'Gamified attendee progression with experience points and levels.',
     preview: (
-      <div className="w-full bg-background/40 backdrop-blur-md rounded-[2.5rem] border border-border/40 p-8 flex flex-col gap-8 overflow-hidden shadow-inner">
+      <div className="w-full bg-background/40 backdrop-blur-md rounded-[2rem] border border-border/40 p-6 flex flex-col gap-6 overflow-hidden shadow-inner">
         <div className="flex items-center justify-between">
-           <div className="flex flex-col gap-1.5">
-              <span className="text-[10px] font-black text-primary uppercase tracking-[0.3em]">Network_Authority</span>
-              <h4 className="text-xl font-display font-bold tracking-tight">Sync Level 12</h4>
-           </div>
-           <div className="w-12 h-12 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shadow-glow shadow-primary/5">
-              <Trophy className="w-6 h-6" />
+           <h4 className="text-lg font-display font-bold tracking-tight text-foreground">Level 12</h4>
+           <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
+              <Trophy className="w-5 h-5" />
            </div>
         </div>
-        <div className="space-y-6">
-           <div className="p-6 rounded-[2rem] bg-background/60 border border-border/30 shadow-xl flex items-center gap-6">
+        <div className="space-y-4">
+           <div className="p-4 rounded-2xl bg-background/60 border border-border/30 shadow-sm flex items-center gap-4">
               <div className="flex-1">
-                 <div className="flex justify-between items-center mb-3">
-                    <span className="text-[10px] font-black text-foreground uppercase tracking-widest">Next Node Unlock</span>
-                    <span className="text-[10px] font-mono font-bold text-primary">850 / 1200 XP</span>
+                 <div className="flex justify-between items-center mb-2">
+                    <span className="text-[9px] font-black text-foreground uppercase tracking-widest">Next Unlock</span>
+                    <span className="text-[9px] font-mono font-bold text-primary">850 / 1200 XP</span>
                  </div>
-                 <div className="h-2 w-full bg-muted/40 rounded-full overflow-hidden border border-border/10">
-                    <motion.div 
-                      initial={{ width: 0 }}
-                      whileInView={{ width: '70%' }}
-                      transition={{ duration: 1.5, ease: "easeOut" }}
-                      className="h-full bg-gradient-to-r from-primary to-primary/60 shadow-glow shadow-primary/20" 
-                    />
+                 <div className="h-1.5 w-full bg-muted/40 rounded-full overflow-hidden">
+                    <motion.div initial={{ width: 0 }} whileInView={{ width: '70%' }} className="h-full bg-primary" />
                  </div>
-              </div>
-           </div>
-           <div className="grid grid-cols-2 gap-4">
-              <div className="p-5 rounded-[1.5rem] bg-muted/20 border border-border/20 flex flex-col gap-2 shadow-sm hover:bg-muted/30 transition-colors cursor-default">
-                 <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Digital_Badges</span>
-                 <span className="text-xl font-display font-black text-foreground tracking-tight">08 <span className="text-[10px] text-muted-foreground/60">/ 15</span></span>
-              </div>
-              <div className="p-5 rounded-[1.5rem] bg-muted/20 border border-border/20 flex flex-col gap-2 shadow-sm hover:bg-muted/30 transition-colors cursor-default">
-                 <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Uptime_Streak</span>
-                 <span className="text-xl font-display font-black text-primary tracking-tight">05 <span className="text-[10px] text-muted-foreground/60">DAYS</span></span>
               </div>
            </div>
         </div>
@@ -141,40 +120,65 @@ const MODULES = [
     icon: Calendar,
     description: 'Dynamic session tracks and personalized schedules for every attendee.',
     preview: (
-      <div className="w-full bg-background/40 backdrop-blur-md rounded-[2.5rem] border border-border/40 p-8 flex flex-col overflow-hidden shadow-inner">
-        <div className="flex items-center justify-between mb-8">
-           <div className="flex items-center gap-3">
-              <Calendar className="w-5 h-5 text-primary" />
-              <span className="text-xs font-black text-foreground uppercase tracking-[0.2em]">Deployment_Schedule</span>
-           </div>
-           <div className="flex gap-2">
-              <div className="w-8 h-8 rounded-xl border border-border/40 flex items-center justify-center text-xs bg-background/60 hover:bg-background transition-colors cursor-pointer shadow-sm text-muted-foreground">‹</div>
-              <div className="w-8 h-8 rounded-xl border border-border/40 flex items-center justify-center text-xs bg-background/60 hover:bg-background transition-colors cursor-pointer shadow-sm text-muted-foreground">›</div>
-           </div>
+      <div className="w-full bg-background/40 backdrop-blur-md rounded-[2rem] border border-border/40 p-6 flex flex-col overflow-hidden shadow-inner">
+        <div className="grid grid-cols-7 gap-1.5">
+           {Array.from({ length: 14 }).map((_, i) => (
+             <div key={i} className={cn(
+               "aspect-square rounded-lg border transition-all flex flex-col items-center justify-center gap-0.5",
+               i === 5 || i === 8 || i === 12 ? "bg-primary text-primary-foreground border-primary" : "bg-background/60 border-border/20 text-muted-foreground"
+             )}>
+                <span className="text-[8px] font-mono font-bold">{i + 1}</span>
+             </div>
+           ))}
         </div>
-        <div className="grid grid-cols-7 gap-2">
-           {Array.from({ length: 14 }).map((_, i) => {
-             const isEvent = i === 5 || i === 8 || i === 12;
-             return (
-               <div key={i} className={cn(
-                 "aspect-square rounded-xl border transition-all flex flex-col items-center justify-center gap-1 group/day cursor-pointer",
-                 isEvent ? "bg-primary border-primary shadow-glow shadow-primary/20 text-primary-foreground" : "bg-background/60 border-border/20 hover:border-primary/40 text-muted-foreground"
-               )}>
-                  <span className="text-[9px] font-mono font-bold">{i + 1}</span>
-                  {isEvent && (
-                    <div className="w-1 h-1 bg-white rounded-full animate-pulse" />
-                  )}
-               </div>
-             );
-           })}
+      </div>
+    )
+  },
+  {
+    id: 'analytics',
+    title: 'Analytics',
+    icon: BarChart3,
+    description: 'Real-time data visualization and attendance tracking across all event nodes.',
+    preview: (
+      <div className="w-full bg-background/40 backdrop-blur-md rounded-[2rem] border border-border/40 p-6 flex flex-col gap-4 overflow-hidden shadow-inner">
+        <div className="h-32 flex items-end gap-1.5 px-2">
+           {[40, 70, 45, 90, 65, 80, 50, 85, 60, 95].map((h, i) => (
+             <motion.div key={i} initial={{ height: 0 }} whileInView={{ height: `${h}%` }} className="flex-1 bg-primary/20 rounded-full" />
+           ))}
         </div>
-        <div className="mt-8 p-4 rounded-[1.5rem] bg-primary/5 border border-primary/20 flex items-center gap-4 shadow-sm">
-           <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-           <div className="flex flex-col">
-              <span className="text-[9px] font-black text-primary uppercase tracking-widest">Active_Node</span>
-              <span className="text-xs font-bold text-foreground">Keynote: Future of Neural Mesh @ 10:00 AM</span>
+        <p className="text-[9px] font-black uppercase text-center text-muted-foreground tracking-widest">Real-time Performance</p>
+      </div>
+    )
+  },
+  {
+    id: 'ai-tools',
+    title: 'AI Workspace',
+    icon: Cpu,
+    description: 'Intelligent automation layer for content summarization and action items.',
+    preview: (
+      <div className="w-full bg-background/40 backdrop-blur-md rounded-[2rem] border border-border/40 p-6 flex flex-col gap-4 overflow-hidden shadow-inner">
+        <div className="space-y-3">
+           <div className="flex items-center gap-2 p-2 rounded-xl bg-primary/5 border border-primary/10">
+              <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+              <span className="text-[9px] font-black uppercase text-primary">Neural_Processor_Active</span>
            </div>
+           <div className="h-2 w-3/4 bg-muted/40 rounded-full" />
+           <div className="h-2 w-1/2 bg-muted/20 rounded-full" />
         </div>
+      </div>
+    )
+  },
+  {
+    id: 'security',
+    title: 'Security',
+    icon: ShieldCheck,
+    description: 'Enterprise-grade encryption and secure access protocols for all attendees.',
+    preview: (
+      <div className="w-full bg-background/40 backdrop-blur-md rounded-[2rem] border border-border/40 p-6 flex flex-col items-center justify-center gap-4 overflow-hidden shadow-inner min-h-[160px]">
+        <div className="w-16 h-16 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500">
+           <ShieldCheck className="w-8 h-8" />
+        </div>
+        <span className="text-[10px] font-black uppercase text-emerald-500 tracking-[0.2em]">AES-256 SECURE</span>
       </div>
     )
   }
@@ -511,9 +515,9 @@ export default function LandingPage({ featuredEvents = [] }: { featuredEvents?: 
       </section>
 
       {/* MODULE NAVIGATION */}
-      <section id="ecosystem" className="py-24 relative">
-        <div className="container mx-auto px-10">
-          <div className="max-w-3xl mb-16">
+      <section id="ecosystem" className="py-16 relative">
+        <div className="container mx-auto px-6 md:px-10">
+          <div className="max-w-3xl mb-12">
              <Badge variant="outline" className="mb-4 border-primary/30 bg-primary/10 text-primary rounded-full px-5 py-1.5 text-[11px] uppercase font-black tracking-[0.3em]">Integrated Ecosystem</Badge>
              <h2 className="text-5xl md:text-8xl font-display font-bold tracking-tighter mb-6 text-foreground leading-[1.05]">Built for scale.</h2>
              <p className="text-xl text-muted-foreground leading-relaxed font-medium opacity-90 max-w-2xl">

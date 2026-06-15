@@ -41,7 +41,7 @@ export async function syncTicketQRCodes() {
  * Automatically refresh ticket statuses based on event dates.
  * Marks confirmed tickets as 'expired' if the event has ended.
  */
-export async function refreshTicketStatuses(eventId?: string) {
+export async function refreshTicketStatuses(eventId?: string, shouldRevalidate: boolean = true) {
   // Can be called by anyone but ideally triggered by a cron job or admin
   
   try {
@@ -68,8 +68,10 @@ export async function refreshTicketStatuses(eventId?: string) {
         )
       );
 
-    revalidatePath('/tickets');
-    if (eventId) revalidatePath(`/events/${eventId}`);
+    if (shouldRevalidate) {
+      revalidatePath('/tickets');
+      if (eventId) revalidatePath(`/events/${eventId}`);
+    }
 
     return { success: true, updatedCount: finishedEvents.length, error: null as string | null };
   } catch (error) {
