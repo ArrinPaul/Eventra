@@ -162,8 +162,16 @@ export async function updateAdminUserRole(userId: string, role: string) {
   }
 }
 
-export async function listModerationEvents(status?: string) {
+export async function listModerationEvents(filters?: {
+  status?: string;
+  page?: number;
+  pageSize?: number;
+}) {
   await validateRole(['admin']);
+
+  const page = filters?.page ?? 1;
+  const pageSize = filters?.pageSize ?? 20;
+  const offset = (page - 1) * pageSize;
 
   try {
     return await db
@@ -178,9 +186,10 @@ export async function listModerationEvents(status?: string) {
         createdAt: events.createdAt,
       })
       .from(events)
-      .where(status && status !== 'all' ? eq(events.status, status) : undefined)
+      .where(filters?.status && filters.status !== 'all' ? eq(events.status, filters.status as any) : undefined)
       .orderBy(desc(events.createdAt))
-      .limit(200);
+      .limit(pageSize)
+      .offset(offset);
   } catch (error) {
     console.error('listModerationEvents Error:', error);
     return [];

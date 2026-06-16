@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
@@ -26,39 +26,33 @@ import {
   PieChart,
   Pie
 } from 'recharts';
+import { getPlatformAnalytics, PlatformAnalytics } from '@/app/actions/analytics';
 
 export default function AdminAnalyticsOverview() {
   const [activeTab, setActiveTab] = useState('overview');
-  const [loading] = useState(false);
+  const [loading, setLoading] = useState(true);
   
-  // Backlog(P3.1): bind overview metrics to analytics service; defaults protect initial render state.
-  const [stats, setStats] = useState({
-    totalUsers: 0,
-    activeEvents: 0,
-    totalRegistrations: 0,
-    userTrend: 0,
-  });
+  const [data, setData] = useState<PlatformAnalytics | null>(null);
+
+  useEffect(() => {
+    async function load() {
+      try {
+        const res = await getPlatformAnalytics();
+        setData(res);
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
+  }, []);
   
-  const [detailed, setDetailed] = useState({
-    engagement: {
-      registrations: 0,
-      messages: 0,
-      badgesEarned: 0,
-    },
-    growthData: [],
-    usersByRole: {} as Record<string, number>,
-    eventsByStatus: {} as Record<string, number>,
-    engagementTrends: [],
-    demographics: {
-      byRole: {} as Record<string, number>,
-      byCountry: {} as Record<string, number>,
-    },
-  });
-  
-  if (loading) {
+  if (loading || !data) {
     return <div className="p-20 text-center text-muted-foreground"><RefreshCw className="animate-spin h-8 w-8 mx-auto mb-4" /> Loading platform analytics...</div>;
   }
 
+  const { stats, detailed } = data;
   const COLORS = ['#06b6d4', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981'];
 
   const engagementData = [

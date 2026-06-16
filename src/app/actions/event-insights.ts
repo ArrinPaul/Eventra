@@ -261,17 +261,25 @@ export async function generateEventSummary(eventId: string) {
       .filter(Boolean) as string[];
 
     // 3. Run Genkit Flow
-    const { summary } = await eventSummarizerFlow({
-      eventTitle: event.title,
-      eventDescription: event.description,
-      attendeeCount: event.registeredCount,
-      feedback: feedbackComments,
-    });
+    try {
+      const { summary } = await eventSummarizerFlow({
+        eventTitle: event.title,
+        eventDescription: event.description || '',
+        attendeeCount: event.registeredCount,
+        feedback: feedbackComments,
+      });
 
-    return {
-      success: true, 
-      summary 
-    } as EventSummaryResult;
+      return {
+        success: true, 
+        summary 
+      } as EventSummaryResult;
+    } catch (aiError) {
+      console.error('AI Flow Error (Likely missing GEMINI_API_KEY):', aiError);
+      return { 
+        success: false, 
+        error: 'AI services are currently unavailable. Please check API configuration.' 
+      } as EventSummaryResult;
+    }
   } catch (error: any) {
     console.error('Failed to generate summary:', error);
     return { success: false, error: sanitizeInsightsError(error, 'Failed to generate summary') } as EventSummaryResult;

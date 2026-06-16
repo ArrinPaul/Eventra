@@ -13,33 +13,50 @@ import { listModerationEvents, moderateEventStatus } from '@/app/actions/admin';
 export default function EventModeration() {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('pending');
+  const [page, setPage] = useState(1);
   const pageSize = 10;
   
   const [events, setEvents] = useState<any[]>([]);
-  const paginationStatus = 'Exhausted';
-  const loadMore = (num: number) => {
-    // Backlog(P3.1): switch to cursor-based moderation pagination when list size exceeds current cap.
+  const [loading, setLoading] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+
+  const loadEvents = async (pageNum: number, isNewTab: boolean = false) => {
+    setLoading(true);
+    try {
+      const rows = await listModerationEvents({
+        status: activeTab === 'pending' ? 'draft' : 'all',
+        page: pageNum,
+        pageSize
+      });
+      
+      if (isNewTab) {
+        setEvents(rows);
+      } else {
+        setEvents(prev => [...prev, ...rows]);
+      }
+      
+      setHasMore(rows.length === pageSize);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
   };
-  const moderateMutation = async (args: any) => moderateEventStatus(args.eventId, args.action);
 
   useEffect(() => {
-    let mounted = true;
-
-    async function load() {
-      const rows = await listModerationEvents(activeTab === 'pending' ? 'draft' : 'all');
-      if (!mounted) return;
-      setEvents(rows);
-    }
-
-    load();
-    return () => {
-      mounted = false;
-    };
+    setPage(1);
+    loadEvents(1, true);
   }, [activeTab]);
+
+  const loadMore = () => {
+    const nextPage = page + 1;
+    setPage(nextPage);
+    loadEvents(nextPage);
+  };
 
   const handleModerate = async (eventId: string, action: 'approve' | 'reject' | 'suspend') => {
     try {
-      await moderateMutation({ eventId, action });
+      await moderateEventStatus(eventId, action);
       setEvents((prev) =>
         prev.map((event) =>
           event.id === eventId
@@ -67,7 +84,7 @@ export default function EventModeration() {
         </TabsList>
         
         <TabsContent value={activeTab}>
-          {events.length === 0 ? (
+          {events.length === 0 && !loading ? (
             <div className="py-20 text-center text-muted-foreground border border-dashed border-border rounded-2xl bg-card">
               <Check size={48} className="mx-auto mb-4 opacity-20" />
               <p>No events found for moderation.</p>
@@ -121,15 +138,15 @@ export default function EventModeration() {
                 </Card>
               ))}
 
-              {false && (
+              {hasMore && !loading && (
                 <div className="flex justify-center pt-2">
-                  <Button variant="outline" className="border-border" onClick={() => loadMore(pageSize)}>
+                  <Button variant="outline" className="border-border" onClick={loadMore}>
                     Load More Events
                   </Button>
                 </div>
               )}
 
-              {false && (
+              {loading && (
                 <div className="py-4 text-center"><Loader2 className="animate-spin h-6 w-6 mx-auto text-primary" /></div>
               )}
             </div>

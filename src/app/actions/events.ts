@@ -114,6 +114,21 @@ export async function getEvents(filters?: {
 }
 
 /**
+ * Fetch events for calendar view (published only)
+ */
+export async function getCalendarEvents() {
+  try {
+    const result = await db.select().from(events)
+      .where(eq(events.status, 'published'))
+      .orderBy(events.startDate);
+    return result;
+  } catch (error) {
+    console.error('getCalendarEvents Error:', error);
+    return [];
+  }
+}
+
+/**
  * Fetch a single event by ID
  */
 export async function getEventById(id: string) {

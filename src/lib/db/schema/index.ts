@@ -98,6 +98,9 @@ export const events = pgTable('events', {
   endDate: timestamp('end_date').notNull(),
   imageUrl: text('image_url'),
   externalUrl: text('external_url'),
+  sourceType: text('source_type').default('native').notNull(),
+  sourcePlatform: text('source_platform'),
+  externalId: text('external_id'),
   category: text('category').notNull(),
   status: text('status').default('draft').notNull(),
   type: text('type').default('physical').notNull(),
@@ -124,6 +127,7 @@ export const events = pgTable('events', {
   statusIdx: index('events_status_idx').on(table.status),
   slugIdx: uniqueIndex('events_slug_idx').on(table.slug),
   organizerIdx: index('events_organizer_idx').on(table.organizerId),
+  externalIdIdx: index('events_external_id_idx').on(table.externalId),
 }));
 
 export const ticketTiers = pgTable('ticket_tiers', {

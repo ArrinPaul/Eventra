@@ -2,8 +2,9 @@
 
 import { db } from '@/lib/db';
 import { follows, users } from '@/lib/db/schema';
-import { and, eq, ne, or } from 'drizzle-orm';
+import { and, eq, ne, or, sql } from 'drizzle-orm';
 import { auth } from '@clerk/nextjs/server';
+import { createChatRoom, sendMessage } from './chat';
 
 export type NetworkUser = {
   id: string;
@@ -171,7 +172,29 @@ export async function removeConnection(otherUserId: string) {
   }
 }
 
-import { createChatRoom, sendMessage } from './chat';
+export async function getFollowStatus(targetUserId: string) {
+  const { userId: currentUserId } = await auth();
+  if (!currentUserId) return { isFollowing: false, followers: 0, following: 0 };
+
+  try {
+    const [followRecord, followerCount, followingCount] = await Promise.all([
+      db.query.follows.findFirst({
+        where: and(eq(follows.followerId, currentUserId), eq(follows.followingId, targetUserId)),
+      }),
+      db.select({ count: sql<number>`count(*)` }).from(follows).where(eq(follows.followingId, targetUserId)),
+      db.select({ count: sql<number>`count(*)` }).from(follows).where(eq(follows.followerId, targetUserId)),
+    ]);
+
+    return {
+      isFollowing: !!followRecord,
+      followers: Number(followerCount[0]?.count || 0),
+      following: Number(followingCount[0]?.count || 0),
+    };
+  } catch (error) {
+    console.error('getFollowStatus Error:', error);
+    return { isFollowing: false, followers: 0, following: 0 };
+  }
+}
 
 /**
  * Quick Connect: Send connection request + an initial message

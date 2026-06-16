@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -18,24 +18,28 @@ import {
 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { AIInsightsWidget } from './ai-insights-widget';
+import { getPlatformAnalytics, PlatformAnalytics } from '@/app/actions/analytics';
 
 export default function AnalyticsDashboard() {
   const [selectedTab, setSelectedTab] = useState('overview');
-  // Backlog(P3.1): wire this dashboard to analytics server actions; default values prevent null access.
-  const [analytics, setAnalytics] = useState({
-    totalEvents: 0,
-    activeEvents: 0,
-    totalUsers: 0,
-    totalRegistrations: 0,
-    eventsByCategory: {} as Record<string, number>,
-    eventsByStatus: {} as Record<string, number>,
-    recentRegistrations: 0,
-    upcomingEvents: 0,
-    completedEvents: 0,
-    averageRating: 0,
-  });
+  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState<PlatformAnalytics | null>(null);
 
-  if (!analytics) {
+  useEffect(() => {
+    async function load() {
+      try {
+        const res = await getPlatformAnalytics();
+        setData(res);
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
+  }, []);
+
+  if (loading || !data) {
     return (
       <div className="flex items-center justify-center py-20 text-foreground">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -43,19 +47,21 @@ export default function AnalyticsDashboard() {
     );
   }
 
-  const popularityData = Object.entries(analytics.eventsByCategory || {})
+  const { stats, detailed } = data;
+
+  const popularityData = Object.entries(detailed.eventsByCategory || {})
     .map(([cat, count]) => `${cat}: ${count} events`)
     .join(', ');
 
   const statCards = [
-    { label: 'Total Events', value: analytics.totalEvents, icon: Calendar, color: 'text-primary', bg: 'bg-primary/10' },
-    { label: 'Active Events', value: analytics.activeEvents, icon: Sparkles, color: 'text-success', bg: 'bg-green-500/10' },
-    { label: 'Total Users', value: analytics.totalUsers, icon: Users, color: 'text-purple-400', bg: 'bg-purple-500/10' },
-    { label: 'Registrations', value: analytics.totalRegistrations, icon: Ticket, color: 'text-amber-400', bg: 'bg-amber-500/10' },
+    { label: 'Total Events', value: stats.activeEvents + stats.completedEvents, icon: Calendar, color: 'text-primary', bg: 'bg-primary/10' },
+    { label: 'Active Events', value: stats.activeEvents, icon: Sparkles, color: 'text-success', bg: 'bg-green-500/10' },
+    { label: 'Total Users', value: stats.totalUsers, icon: Users, color: 'text-purple-400', bg: 'bg-purple-500/10' },
+    { label: 'Registrations', value: stats.totalRegistrations, icon: Ticket, color: 'text-amber-400', bg: 'bg-amber-500/10' },
   ];
 
-  const categoryEntries = Object.entries(analytics.eventsByCategory || {}).sort(([,a], [,b]) => (b as number) - (a as number));
-  const statusEntries = Object.entries(analytics.eventsByStatus || {});
+  const categoryEntries = Object.entries(detailed.eventsByCategory || {}).sort(([,a], [,b]) => (b as number) - (a as number));
+  const statusEntries = Object.entries(detailed.eventsByStatus || {});
   const maxCategoryCount = categoryEntries.length > 0 ? Math.max(...categoryEntries.map(([, v]) => v as number)) : 1;
 
   return (
@@ -107,21 +113,21 @@ export default function AnalyticsDashboard() {
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">New Registrations</span>
-                  <span className="font-bold text-primary">{analytics.recentRegistrations}</span>
+                  <span className="font-bold text-primary">{detailed.engagement.registrations}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">Upcoming Events</span>
-                  <span className="font-bold text-success">{analytics.upcomingEvents}</span>
+                  <span className="font-bold text-success">{stats.upcomingEvents}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">Completed Events</span>
-                  <span className="font-bold text-purple-400">{analytics.completedEvents}</span>
+                  <span className="font-bold text-purple-400">{stats.completedEvents}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">Average Rating</span>
                   <span className="font-bold text-amber-400 flex items-center gap-1">
                     <Star className="h-3 w-3 fill-amber-400" />
-                    {analytics.averageRating || 'N/A'}
+                    {stats.averageRating || 'N/A'}
                   </span>
                 </div>
               </CardContent>
