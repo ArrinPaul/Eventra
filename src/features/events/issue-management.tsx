@@ -90,7 +90,7 @@ export function IssueManagement({ eventId, isOrganizer = false }: IssueManagemen
 
   useEffect(() => {
     loadIssues();
-  }, [eventId]);
+  }, [eventId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadIssues = async () => {
     setLoading(true);

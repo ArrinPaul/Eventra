@@ -3,6 +3,7 @@
 import React, { useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Upload, Image as ImageIcon, X, Loader2 } from 'lucide-react';
+import Image from 'next/image';
 
 interface ImageUploaderProps {
   onUpload: (file: File) => void;
@@ -43,7 +44,7 @@ export function ImageUploader({ onUpload, disabled = false }: ImageUploaderProps
 
       {preview ? (
         <div className="relative">
-          <img src={preview} alt="Preview" className="w-full h-48 object-cover rounded-xl border" />
+          <Image src={preview} alt="Preview" width={400} height={192} className="w-full h-48 object-cover rounded-xl border" />
           <Button
             size="icon"
             variant="destructive"

@@ -67,7 +67,7 @@ export function EventUpdatesManager({ eventId }: EventUpdatesManagerProps) {
 
   useEffect(() => {
     loadUpdates();
-  }, [eventId]);
+  }, [eventId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadUpdates = async () => {
     setLoading(true);

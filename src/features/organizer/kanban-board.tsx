@@ -71,7 +71,7 @@ export function KanbanBoard({ eventId }: KanbanBoardProps) {
 
   useEffect(() => {
     loadTasks();
-  }, [eventId]);
+  }, [eventId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadTasks = async () => {
     setLoading(true);

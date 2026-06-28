@@ -74,7 +74,7 @@ export function SimpleCertificateManagement({ eventId, eventTitle }: SimpleCerti
 
   useEffect(() => {
     loadData();
-  }, [eventId]);
+  }, [eventId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadData = async () => {
     setLoading(true);

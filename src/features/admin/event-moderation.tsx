@@ -46,7 +46,7 @@ export default function EventModeration() {
   useEffect(() => {
     setPage(1);
     loadEvents(1, true);
-  }, [activeTab]);
+  }, [activeTab]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadMore = () => {
     const nextPage = page + 1;

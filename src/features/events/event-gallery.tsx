@@ -380,7 +380,7 @@ export function EventGallery({ eventId, isRegistered, isStaff }: EventGalleryPro
             <div className="grid grid-cols-3 gap-2">
               {pendingFiles.map((file, i) => (
                 <div key={i} className="relative aspect-square rounded-lg overflow-hidden border">
-                  <img src={URL.createObjectURL(file)} alt="" className="w-full h-full object-cover" />
+                  <Image src={URL.createObjectURL(file)} alt="" fill className="object-cover" />
                 </div>
               ))}
             </div>

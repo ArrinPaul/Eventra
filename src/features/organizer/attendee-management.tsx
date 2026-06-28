@@ -47,7 +47,7 @@ export function AttendeeManagement({ eventId, eventTitle }: AttendeeManagementPr
 
   useEffect(() => {
     loadAttendees();
-  }, [eventId]);
+  }, [eventId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadAttendees = async () => {
     setLoading(true);

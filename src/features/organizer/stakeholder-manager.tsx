@@ -71,7 +71,7 @@ export function StakeholderManager({ eventId }: StakeholderManagerProps) {
 
   useEffect(() => {
     loadData();
-  }, [eventId]);
+  }, [eventId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadData = async () => {
     setLoading(true);

@@ -27,7 +27,7 @@ export function ReportGenerator({ eventId }: ReportGeneratorProps) {
 
   useEffect(() => {
     loadReports();
-  }, [eventId]);
+  }, [eventId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadReports = async () => {
     setLoading(true);

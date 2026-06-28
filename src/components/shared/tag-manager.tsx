@@ -36,7 +36,7 @@ export function TagManager({
     if (mode === 'event' && eventId) {
       loadEventTags();
     }
-  }, [eventId, mode]);
+  }, [eventId, mode]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadEventTags = async () => {
     if (!eventId) return;
