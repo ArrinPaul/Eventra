@@ -9,114 +9,37 @@ export async function POST(request: NextRequest) {
     const { entryCode, eventId } = body;
 
     if (!entryCode || !eventId) {
-      return NextResponse.json(
-        { success: false, error: 'Entry code and event ID are required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ success: false, error: 'Entry code and event ID required' }, { status: 400 });
     }
 
     const ticket = await db.query.tickets.findFirst({
-      where: and(
-        eq(tickets.entryCode, entryCode),
-        eq(tickets.eventId, eventId)
-      ),
-      with: {
-        user: true,
-        event: true,
-      },
+      where: and(eq(tickets.entryCode, entryCode), eq(tickets.eventId, eventId)),
+      with: { user: true, event: true },
     });
 
     if (!ticket) {
-      return NextResponse.json(
-        { success: false, error: 'Invalid entry code for this event' },
-        { status: 404 }
-      );
+      return NextResponse.json({ success: false, error: 'Invalid entry code' }, { status: 404 });
     }
 
-    if (ticket.status === 'used' || ticket.status === 'checked-in') {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Ticket already used',
-          ticket: {
-            ticketNumber: ticket.ticketNumber,
-            status: ticket.status,
-            verifiedAt: ticket.verifiedAt,
-            userName: ticket.user.name,
-          },
-        },
-        { status: 409 }
-      );
+    if (ticket.status === 'checked-in') {
+      return NextResponse.json({ success: false, error: 'Already used', ticket: { ticketNumber: ticket.ticketNumber, status: ticket.status } }, { status: 409 });
     }
 
-    if (ticket.status === 'expired') {
-      return NextResponse.json(
-        { success: false, error: 'Ticket has expired' },
-        { status: 410 }
-      );
+    if (ticket.status === 'cancelled' || ticket.status === 'expired') {
+      return NextResponse.json({ success: false, error: `Ticket ${ticket.status}` }, { status: 410 });
     }
 
-    if (ticket.status === 'cancelled') {
-      return NextResponse.json(
-        { success: false, error: 'Ticket has been cancelled' },
-        { status: 410 }
-      );
-    }
+    const [updated] = await db.update(tickets).set({ status: 'checked-in', verifiedAt: new Date(), updatedAt: new Date() }).where(and(eq(tickets.id, ticket.id), eq(tickets.status, 'confirmed'))).returning();
 
-    if (ticket.expiresAt && new Date(ticket.expiresAt) < new Date()) {
-      await db
-        .update(tickets)
-        .set({ status: 'expired', updatedAt: new Date() })
-        .where(eq(tickets.id, ticket.id));
-
-      return NextResponse.json(
-        { success: false, error: 'Ticket has expired' },
-        { status: 410 }
-      );
-    }
-
-    const now = new Date();
-    const [updatedTicket] = await db
-      .update(tickets)
-      .set({
-        status: 'checked-in',
-        verifiedAt: now,
-        updatedAt: now,
-      })
-      .where(
-        and(
-          eq(tickets.id, ticket.id),
-          eq(tickets.status, 'confirmed')
-        )
-      )
-      .returning();
-
-    if (!updatedTicket) {
-      return NextResponse.json(
-        { success: false, error: 'Ticket verification failed - status may have changed' },
-        { status: 409 }
-      );
+    if (!updated) {
+      return NextResponse.json({ success: false, error: 'Verification failed' }, { status: 409 });
     }
 
     return NextResponse.json({
       success: true,
-      ticket: {
-        ticketNumber: ticket.ticketNumber,
-        entryCode: ticket.entryCode,
-        status: 'checked-in',
-        verifiedAt: now,
-        userName: ticket.user.name,
-        userEmail: ticket.user.email,
-        userImage: ticket.user.image,
-        eventTitle: ticket.event.title,
-        ticketType: (ticket.metadata as any)?.ticketType || 'Standard',
-      },
+      ticket: { ticketNumber: ticket.ticketNumber, entryCode: ticket.entryCode, status: 'checked-in', userName: ticket.user.name, userEmail: ticket.user.email, eventTitle: ticket.event.title },
     });
   } catch (error) {
-    console.error('Ticket verification error:', error);
-    return NextResponse.json(
-      { success: false, error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: false, error: 'Internal error' }, { status: 500 });
   }
 }
