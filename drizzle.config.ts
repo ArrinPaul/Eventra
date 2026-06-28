@@ -60,6 +60,13 @@ export default defineConfig({
     'sponsors',
     'activity_feed',
     'event_media',
+    'issues',
+    'event_updates',
+    'orders',
+    'kanban_tasks',
+    'reports',
+    'stakeholders',
+    'feedback_responses',
   ],
   dbCredentials: {
     url: process.env.DATABASE_URL || 'postgresql://invalid:invalid@localhost:5432/eventra',

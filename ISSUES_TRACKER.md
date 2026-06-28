@@ -193,13 +193,15 @@
 - [x] **Sponsor Manager** — Sponsor CRUD with tiers
 - [x] **Sponsor Leads** — `sponsor_leads` table with scanning
 - [x] **Stakeholder Model** — `stakeholders` table with role, attendanceStatus, additionalInfo
+- [x] **Stakeholder Manager** — `StakeholderManager` component with add/delete/search
 - [ ] **Stakeholder Import** — CSV/Excel bulk import
 - [ ] **Invitation System** — Email-based invitations
 - [x] **Attendance Tracking** — registered/attended/no-show/cancelled
 - [x] **Bulk Status Updates** — Batch attendance updates via server actions
-- [x] **Stakeholder Dashboard** — Stats and filtering via `getStakeholderStats()`
+- [x] **Stakeholder Dashboard** — Stats cards and role filtering
+- [x] **Page** — `/events/[id]/stakeholders` with loading/error states
 
-**Status: 8/11 complete**
+**Status: 10/12 complete**
 
 ---
 
@@ -230,11 +232,13 @@
 - [x] **Revenue Dashboard** — Financial tracking
 - [ ] **Issue Analytics** — Issue counts, resolution rates
 - [ ] **Feedback Analytics** — NPS calculation, satisfaction distribution
-- [x] **Report Generation** — AI-generated event reports via `aiReportGenerationFlow`
+- [x] **Report Generation** — AI-generated event reports via `ReportGenerator` component
+- [x] **JSON Export** — Report export as JSON
 - [ ] **PDF/Word Export** — Report export via jsPDF/docx
 - [x] **Report Storage** — `reports` table for persisted records
+- [x] **Page** — `/events/[id]/report` with loading/error states
 
-**Status: 10/13 complete**
+**Status: 12/14 complete**
 
 ---
 
@@ -267,31 +271,32 @@
 - [x] **Email API** — `POST /api/send-email`
 - [x] **6 Update Types** — announcement, schedule_change, location_change, cancellation, reminder, general
 - [x] **Event Update Model** — `event_updates` table with status, type, emailStats
+- [x] **Event Updates Manager** — `EventUpdatesManager` component with create/delete
 - [ ] **Recipient Targeting** — All users, specific users, role-based
 - [ ] **Email Tracking** — sent/delivered/opened/clicked/bounced stats
 - [ ] **Bulk Email Communications** — Certificate, thank-you, gallery emails
-- [ ] **Email Templates** — 4 HTML templates (feedback, certificate, thank-you, ticket)
-- [ ] **Certificate Email** — Certificate download links
-- [ ] **Thank You Email** — Post-event appreciation
+- [x] **Email Templates** — 7 HTML templates (confirmation, certificate, announcement, feedback, thank-you, ticket)
 - [ ] **Gallery Link Inclusion** — Include gallery links in emails
+- [x] **Page** — `/events/[id]/updates` with loading/error states
 
-**Status: 6/13 complete**
+**Status: 9/13 complete**
 
 ---
 
 ## 14. ISSUE TRACKING
 
 - [x] **Issue Model** — `issues` table with category, severity, status, admin notes
-- [x] **Issue Report Form** — User-facing issue reporting via server actions
+- [x] **Issue Report Form** — User-facing issue reporting via `IssueManagement` component
 - [x] **Issue Management** — Organizer's issue management with status updates
-- [x] **Filtering** — By status, severity, category
-- [ ] **Search** — Full-text search across issues
+- [x] **Filtering** — By status, severity, category with search
+- [x] **Search** — Text search across title and description
 - [x] **Status Updates** — Open → In-Progress → Resolved → Closed
 - [x] **Admin Notes** — Internal notes for resolution
 - [ ] **Attachment Support** — File attachments
 - [x] **Server Actions** — CRUD operations via `src/app/actions/issues.ts`
+- [x] **Page** — `/events/[id]/issues` with loading/error states
 
-**Status: 6/9 complete**
+**Status: 9/10 complete**
 
 ---
 
@@ -300,14 +305,15 @@
 - [x] **Event Planning Actions** — `src/app/actions/event-planning.ts`
 - [x] **Task Server Actions** — CRUD operations via `src/app/actions/kanban-tasks.ts`
 - [x] **Task Model** — `kanban_tasks` table with subtasks (jsonb), priority, column
-- [ ] **Kanban Board UI** — Four columns with drag & drop
-- [ ] **Drag & Drop** — `react-dnd` integration
-- [x] **Subtask Support** — Stored as jsonb in task record
+- [x] **Kanban Board UI** — `KanbanBoard` component with 4 columns
+- [x] **Drag & Drop** — HTML5 drag and drop for task movement
+- [x] **Subtask Support** — Toggle subtask completion with progress tracking
 - [x] **Priority System** — High/Medium/Low with color badges
 - [x] **AI Auto-Generation** — Generate tasks via `aiTaskGenerationFlow`
-- [ ] **Progress Tracking** — Task completion status
+- [x] **Progress Tracking** — Subtask completion counts
+- [x] **Page** — `/events/[id]/tasks` with loading/error states
 
-**Status: 6/9 complete**
+**Status: 10/10 complete** ✅
 
 ---
 

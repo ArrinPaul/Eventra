@@ -6,10 +6,7 @@ import { eq, and, sql } from 'drizzle-orm';
 import { auth } from '@clerk/nextjs/server';
 import { revalidatePath } from 'next/cache';
 import { logger } from '@/lib/logger';
-
-function generateEntryCode(): string {
-  return Math.floor(100000 + Math.random() * 900000).toString();
-}
+import { generateEntryCode } from '@/core/utils/crypto';
 
 export async function createCheckoutSession(eventId: string, tierId?: string) {
   const { userId } = await auth();

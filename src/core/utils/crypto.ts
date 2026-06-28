@@ -34,11 +34,19 @@ export function generateQrPayload(ticketNumber: string): string {
  */
 export function parseQrPayload(payload: string): { ticketNumber: string | null; isValid: boolean } {
   const [ticketNumber, signature] = payload.split(':');
-  
+
   if (!ticketNumber || !signature) {
     return { ticketNumber: null, isValid: false };
   }
 
   const isValid = verifyTicket(ticketNumber, signature);
   return { ticketNumber, isValid };
+}
+
+/**
+ * Generate a 6-digit entry code for ticket verification.
+ * Range: 100000-999999 (always 6 digits).
+ */
+export function generateEntryCode(): string {
+  return Math.floor(100000 + Math.random() * 900000).toString();
 }

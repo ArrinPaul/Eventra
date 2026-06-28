@@ -10,13 +10,9 @@ import { enforceRateLimit } from '@/lib/rate-limit';
 
 import { logActivity } from './feed';
 import { awardXP } from './gamification';
-import { generateQrPayload } from '@/core/utils/crypto';
+import { generateQrPayload, generateEntryCode } from '@/core/utils/crypto';
 import { sendEmail, constructConfirmationEmail } from '@/core/services/email';
 import { logger } from '@/lib/logger';
-
-function generateEntryCode(): string {
-  return Math.floor(100000 + Math.random() * 900000).toString();
-}
 
 function getErrorText(error: unknown, fallback: string) {
   if (error instanceof Error && error.message) {
