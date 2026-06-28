@@ -44,7 +44,6 @@ async function getOrCreateUser(userId: string) {
         .returning();
 
       user = newlyCreated;
-      console.log(`[auth-utils] Lazy sync successful for ${userId}`);
     } catch (err) {
       console.error(`[auth-utils] Lazy sync failed for ${userId}:`, err);
       return null;

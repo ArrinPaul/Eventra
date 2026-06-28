@@ -1,12 +1,16 @@
 import { createHmac } from 'crypto';
 
-const SECRET = process.env.QR_SECRET || 'eventra-default-secret-change-me-in-production';
+const SECRET = process.env.QR_SECRET;
+if (!SECRET) {
+  console.warn('[crypto] QR_SECRET not set - using fallback for development only');
+}
+const EFFECTIVE_SECRET = SECRET || 'eventra-dev-only-not-for-production';
 
 /**
  * Sign a ticket number to prevent QR spoofing.
  */
 export function signTicket(ticketNumber: string): string {
-  return createHmac('sha256', SECRET)
+  return createHmac('sha256', EFFECTIVE_SECRET)
     .update(ticketNumber)
     .digest('hex')
     .substring(0, 16); // 16 chars is enough for this purpose

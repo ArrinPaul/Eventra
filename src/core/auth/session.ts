@@ -3,7 +3,7 @@ import type { User, UserRole } from '@/types';
 
 const SESSION_ISSUER = 'eventra';
 const SESSION_TTL_SECONDS = 60 * 60 * 24 * 7; // 7 days
-const DEV_FALLBACK_SECRET = 'eventra-dev-session-secret-change-me';
+const DEV_FALLBACK_SECRET = 'eventra-dev-only-not-for-production';
 
 export interface SessionUser {
   id: string;

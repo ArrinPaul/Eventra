@@ -19,8 +19,6 @@ export async function syncTicketQRCodes() {
       .from(tickets)
       .where(or(isNull(tickets.qrCode), eq(tickets.qrCode, '')));
 
-    console.log(`Found ${missingQRTickets.length} tickets with missing QR codes.`);
-
     let updatedCount = 0;
     for (const ticket of missingQRTickets) {
       await db

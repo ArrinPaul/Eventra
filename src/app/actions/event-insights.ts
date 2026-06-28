@@ -83,7 +83,6 @@ export async function distributeSocialPost(eventId: string, platform: string, co
 
   // In a real implementation, this would handle OAuth tokens for X/LinkedIn/Instagram
   // and use their respective APIs to post content.
-  console.log(`[SOCIAL_DISTRIBUTION] Posting to ${platform}: ${content}`);
   
   // Simulate network delay
   await new Promise(resolve => setTimeout(resolve, 1500));
