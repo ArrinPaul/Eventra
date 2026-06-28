@@ -791,3 +791,25 @@ export const feedbackResponses = pgTable('feedback_responses', {
   userIdx: index('feedback_responses_user_idx').on(table.userId),
   eventUserUnique: uniqueIndex('feedback_responses_event_user_idx').on(table.eventId, table.userId),
 }));
+
+// --- Tags ---
+
+export const tags = pgTable('tags', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  name: text('name').notNull().unique(),
+  slug: text('slug').notNull().unique(),
+  eventCount: integer('event_count').default(0).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => ({
+  nameIdx: index('tags_name_idx').on(table.name),
+  slugIdx: index('tags_slug_idx').on(table.slug),
+}));
+
+export const eventTags = pgTable('event_tags', {
+  eventId: uuid('event_id').references(() => events.id, { onDelete: 'cascade' }).notNull(),
+  tagId: uuid('tag_id').references(() => tags.id, { onDelete: 'cascade' }).notNull(),
+}, (t) => ({
+  pk: primaryKey({ columns: [t.eventId, t.tagId] }),
+  eventIdx: index('event_tags_event_idx').on(t.eventId),
+  tagIdx: index('event_tags_tag_idx').on(t.tagId),
+}));

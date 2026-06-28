@@ -81,11 +81,11 @@ export async function registerForEvent(eventId: string, data?: { tierId?: string
         where: eq(ticketTiers.id, data.tierId)
       });
       if (!tier) return { success: false, error: 'Ticket tier not found' };
-      if (tier.registeredCount >= tier.capacity) {
+      if (tier.capacity !== -1 && tier.registeredCount >= tier.capacity) {
         if (event.waitlistEnabled) return joinWaitlist(eventId, user.id);
         return { success: false, error: 'This ticket tier is sold out' };
       }
-    } else if (event.registeredCount >= event.capacity) {
+    } else if (event.capacity !== -1 && event.registeredCount >= event.capacity) {
       if (event.waitlistEnabled) return joinWaitlist(eventId, user.id);
       return { success: false, error: 'Event is full' };
     }
@@ -116,25 +116,27 @@ export async function registerForEvent(eventId: string, data?: { tierId?: string
         .where(eq(events.id, eventId))
         .returning();
 
-      // Milestone Logic
-      const percentage = Math.round((updatedEvent.registeredCount / updatedEvent.capacity) * 100);
-      const milestones = [50, 80, 100];
-      
-      if (milestones.includes(percentage)) {
-        await tx.insert(notifications).values({
-          userId: updatedEvent.organizerId,
-          title: 'Event Milestone Reached!',
-          message: `Congratulations! ${updatedEvent.title} is now ${percentage}% full.`,
-          type: 'achievement',
-          link: `/organizer/pulse/${eventId}`
-        });
+      // Milestone Logic (skip for unlimited capacity events)
+      if (updatedEvent.capacity > 0) {
+        const percentage = Math.round((updatedEvent.registeredCount / updatedEvent.capacity) * 100);
+        const milestones = [50, 80, 100];
 
-        await logActivity({
-          userId: updatedEvent.organizerId,
-          type: 'badge_awarded', // Use badge type for highlights
-          content: `${updatedEvent.title} reached ${percentage}% capacity milestone!`,
-          targetId: eventId
-        });
+        if (milestones.includes(percentage)) {
+          await tx.insert(notifications).values({
+            userId: updatedEvent.organizerId,
+            title: 'Event Milestone Reached!',
+            message: `Congratulations! ${updatedEvent.title} is now ${percentage}% full.`,
+            type: 'achievement',
+            link: `/organizer/pulse/${eventId}`
+          });
+
+          await logActivity({
+            userId: updatedEvent.organizerId,
+            type: 'badge_awarded',
+            content: `${updatedEvent.title} reached ${percentage}% capacity milestone!`,
+            targetId: eventId
+          });
+        }
       }
 
       if (data?.tierId) {

@@ -67,6 +67,8 @@ export default defineConfig({
     'reports',
     'stakeholders',
     'feedback_responses',
+    'tags',
+    'event_tags',
   ],
   dbCredentials: {
     url: process.env.DATABASE_URL || 'postgresql://invalid:invalid@localhost:5432/eventra',

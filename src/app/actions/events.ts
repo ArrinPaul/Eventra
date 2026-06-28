@@ -28,7 +28,7 @@ const eventSchema = z.object({
   category: z.string(),
   type: z.enum(['physical', 'virtual', 'hybrid']).default('physical'),
   location: z.any(),
-  capacity: z.number().int().positive(),
+  capacity: z.number().int().min(-1),
   price: z.string().default('0'),
   isPaid: z.boolean().default(false),
   isRecurring: z.boolean().default(false),
