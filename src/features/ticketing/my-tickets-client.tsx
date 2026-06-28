@@ -95,16 +95,22 @@ function TicketCard({ ticket, onViewTicket, onPrint, onCancel }: {
                     </button>
                  </div>
                  <h3 className="text-xl font-display font-bold text-notion-ink leading-tight">{ticket.event?.title || 'System Node'}</h3>
-                 <div className="grid grid-cols-2 gap-4 text-[11px] font-bold text-notion-ink-muted uppercase tracking-widest">
-                    <div className="flex items-center gap-2">
-                       <Calendar className="w-3.5 h-3.5 text-notion-primary" />
-                       <span>{format(eventDate, 'MMM do, yyyy')}</span>
+               <div className="grid grid-cols-2 gap-4 text-[11px] font-bold text-notion-ink-muted uppercase tracking-widest">
+                     <div className="flex items-center gap-2">
+                        <Calendar className="w-3.5 h-3.5 text-notion-primary" />
+                        <span>{format(eventDate, 'MMM do, yyyy')}</span>
+                     </div>
+                     <div className="flex items-center gap-2">
+                        <QrCode className="w-3.5 h-3.5 text-notion-primary" />
+                        <span className="truncate">{ticket.ticketNumber}</span>
+                     </div>
+                  </div>
+                  {(ticket as any).entryCode && (
+                    <div className="mt-3 p-3 bg-notion-canvas-soft rounded-lg border border-notion-hairline text-center">
+                      <p className="text-[9px] font-black text-notion-ink-faint uppercase tracking-[0.2em] mb-1">Entry Code</p>
+                      <p className="font-mono text-xl font-black text-notion-ink tracking-[0.3em]">{(ticket as any).entryCode}</p>
                     </div>
-                    <div className="flex items-center gap-2">
-                       <QrCode className="w-3.5 h-3.5 text-notion-primary" />
-                       <span className="truncate">{ticket.ticketNumber}</span>
-                    </div>
-                 </div>
+                  )}
               </div>
 
               <div className="flex items-center gap-3 pt-5 border-t border-notion-hairline/50">
@@ -302,11 +308,18 @@ export default function MyTicketsClient({ initialTickets = [] }: { initialTicket
               <div className="bg-white p-6 rounded-[2.5rem] shadow-2xl ring-1 ring-black/5">
                  <QRCodeSVG value={selectedTicket?.ticketNumber || ''} size={220} level="H" />
               </div>
-              <div className="w-full space-y-8">
-                 <div className="text-center space-y-2">
-                    <p className="text-[10px] font-black text-notion-ink-faint uppercase tracking-[0.2em]">Security Key</p>
-                    <p className="font-mono text-xl font-black text-notion-ink tracking-[0.3em]">{selectedTicket?.ticketNumber}</p>
-                 </div>
+               <div className="w-full space-y-8">
+                  <div className="text-center space-y-2">
+                     <p className="text-[10px] font-black text-notion-ink-faint uppercase tracking-[0.2em]">Security Key</p>
+                     <p className="font-mono text-xl font-black text-notion-ink tracking-[0.3em]">{selectedTicket?.ticketNumber}</p>
+                  </div>
+                  {(selectedTicket as any)?.entryCode && (
+                    <div className="text-center space-y-2 p-4 bg-notion-canvas-soft rounded-xl border border-notion-hairline">
+                      <p className="text-[10px] font-black text-notion-ink-faint uppercase tracking-[0.2em]">Entry Code</p>
+                      <p className="font-mono text-2xl font-black text-primary tracking-[0.4em]">{(selectedTicket as any).entryCode}</p>
+                      <p className="text-[9px] text-notion-ink-faint">Use at check-in desk for quick entry</p>
+                    </div>
+                  )}
                  <div className="flex gap-4">
                     <Button className="flex-1 rounded-xl h-14 font-black uppercase text-[11px] tracking-widest shadow-notion-soft" onClick={() => selectedTicket && handlePrint(selectedTicket)}>
                        <Download className="mr-3 w-4 h-4" /> Download PDF

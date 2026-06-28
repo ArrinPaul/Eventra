@@ -86,6 +86,7 @@ export interface EventraEvent {
   coOrganizerIds?: string[];
   imageUrl?: string;
   image?: string;
+  externalUrl?: string;
   capacity: number;
   registeredCount: number;
   visibility?: 'public' | 'private' | 'unlisted';
@@ -106,11 +107,15 @@ export interface EventTicket {
   eventId: string;
   userId: string;
   ticketNumber: string;
+  entryCode?: string;
   status: 'confirmed' | 'pending' | 'cancelled' | 'checked-in' | 'refunded' | 'expired';
   purchaseDate: number | Date;
+  expiresAt?: number | Date;
   price: number;
   currency?: string;
   qrCode?: string;
+  verifiedAt?: number | Date;
+  verifiedBy?: string;
   ticketTypeId?: string;
   attendeeName?: string;
   attendeeEmail?: string;

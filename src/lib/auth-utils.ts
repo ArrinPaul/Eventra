@@ -21,7 +21,7 @@ async function getOrCreateUser(userId: string) {
       return null;
     }
 
-    const email = clerkUser.emailAddresses[0]?.email_address;
+    const email = clerkUser.emailAddresses[0]?.emailAddress;
     if (!email) {
       console.error(`[auth-utils] Clerk user ${userId} has no email address`);
       return null;

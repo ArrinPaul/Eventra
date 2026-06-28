@@ -245,76 +245,109 @@ Fields:
 - userId: text → users.id
 - tierId: uuid → ticket_tiers.id
 - ticketNumber: text (unique, indexed)
+- entryCode: text (indexed) — 6-digit code for quick verification
 - status: text (default: 'confirmed') — confirmed | pending | cancelled | checked-in | refunded | expired
 - purchaseDate: timestamp (default: now)
+- expiresAt: timestamp — Auto-set to event end + 24h
 - price: decimal(10,2) (required)
 - qrCode: text
+- verifiedAt: timestamp — When ticket was verified
+- verifiedBy: text — Who verified the ticket
 - personalizedMessage: text
+- metadata: jsonb — ticketType, seatNumber, section, additionalInfo
 - createdAt: timestamp (default: now)
 - updatedAt: timestamp (default: now)
+
+Indexes:
+- { eventId } — Event lookups
+- { userId } — User ticket lookups
+- { status } — Status filtering
+- { entryCode } — Entry code lookups
+- { entryCode, eventId } — Composite for verification
 ```
 
 ### 3.3 Order Flow
-**`checkoutOrder(order)`** (`src/app/actions/tickets.ts`):
+**`processFreeRegistration(eventId)`** (`src/app/actions/payments.ts`):
 1. **Free Events**: Creates ticket directly with status 'confirmed'
-2. **Paid Events**: Redirects to payment gateway
-3. Generates unique ticket number
-4. Generates QR code
-5. Sends confirmation email
+2. Generates unique ticket number (TKT-{random})
+3. Generates 6-digit entry code (100000-999999)
+4. Sets expiration to event end + 24 hours
+5. Sends confirmation email with entry code
 6. Updates event `registeredCount`
 
-**Ticket Cancellation**:
+**`createCheckoutSession(eventId)`** (`src/app/actions/payments.ts`):
+1. **Paid Events**: Creates Dodo Payments checkout session
+2. Lazy product creation if not exists
+3. Returns checkout URL for redirect
+4. Webhook confirms payment and creates ticket
+
+**Ticket Cancellation** (`src/app/actions/registrations.ts`):
 - Verifies ownership
-- Checks cancellation deadline
 - Updates ticket status to 'cancelled'
 - Restores event capacity
-- Removes from waitlist and auto-promotes
+- Triggers waitlist auto-promotion
 
 ### 3.4 QR Code Generation
 - **Library:** `qrcode.react`
 - **Component:** QR code displayed on ticket cards
 - **Scanning:** `html5-qrcode` for camera-based QR scanning
+- **Signing:** HMAC-SHA256 signature to prevent QR spoofing
 
 ### 3.5 Ticket Verification
 **Check-in System** (`src/app/(app)/check-in/page.tsx`):
-- Manual code entry
+- Manual code entry (ticket number or 6-digit entry code)
 - QR code scanning
 - Real-time status update
 - Verification timestamp + verifiedBy tracking
+- Race-condition protection via optimistic locking
 
 **Check-in Scanner** (`src/app/(app)/check-in-scanner/page.tsx`):
 - Camera-based QR scanning interface
+- Offline support with local attendee list
 - Batch verification support
+- Sound effects for success/error
+
+**Entry Code Verification API** (`POST /api/tickets/verify`):
+- 6-digit code verification
+- Returns ticket details and attendee info
+- Prevents double-scanning
 
 ### 3.6 My Tickets Page (`src/app/(app)/tickets/page.tsx`)
 - List of all user tickets
 - QR code display
+- Entry code display
 - Ticket status badges
 - Event details linking
+- PDF download with QR code
 
 ---
 
 ## 4. Payment Integration
 
-### 4.1 Payment Providers
-- **Primary:** Stripe (via `@clerk/nextjs` integration patterns)
-- **Alternative:** Dodo Payments integration
+### 4.1 Payment Provider
+- **Dodo Payments** — REST API integration
+- **Free Events:** Direct ticket creation (no payment needed)
+- **Paid Events:** Checkout session redirect
 - **Webhook handling** for payment confirmation
 
-### 4.2 Checkout Flow
+### 4.2 Checkout Flow (`src/app/actions/payments.ts`)
 1. User selects ticket tier
 2. System validates capacity
-3. Creates pending order
-4. Redirects to payment provider
+3. **Free Events:** Creates ticket directly with entry code
+4. **Paid Events:**
+   - Lazy creates Dodo product if not exists
+   - Creates checkout session
+   - Returns checkout URL for redirect
 5. Webhook confirms payment
 6. Ticket created and confirmed
-7. Confirmation email sent
+7. Confirmation email sent with entry code
 
-### 4.3 Webhook Handler
-- `POST /api/webhook` — Payment webhook endpoint
+### 4.3 Webhook Handler (`POST /api/webhooks/dodo`)
+- Receives payment confirmation events
 - Validates webhook signatures
-- Processes payment events (success, failure, refund)
-- Creates/updates ticket records
+- Creates ticket with entry code
+- Updates event registration count
+- Sends confirmation email
 
 ---
 
@@ -1123,15 +1156,15 @@ SVIX_WEBHOOK_SECRET=
 ### Priority 1 — Critical (Must Have)
 | Feature | Status | Notes |
 |---------|--------|-------|
-| Dodo Payments Integration | ❌ Missing | Need `@dodopayments/nextjs` |
+| Dodo Payments Integration | ✅ Complete | REST API integration with checkout flow |
 | Sub-Event System | ❌ Missing | Parent-child event hierarchy |
 | AI Task Generation | ❌ Missing | Gemini-based Kanban auto-generation |
 | AI Location Prediction | ❌ Missing | Roboflow + Gemini + GPS hybrid |
 | Stakeholder Management | ❌ Missing | Separate model from event_staff |
 | Issue Tracking | ❌ Missing | User-facing issue reporting |
 | Event Updates/Notifications | ❌ Missing | 6 update types with email |
-| Ticket Entry Codes | ❌ Missing | 6-digit codes for verification |
-| Ticket Cancellation | ❌ Missing | Cancellation with capacity restore |
+| Ticket Entry Codes | ✅ Complete | 6-digit codes with verification API |
+| Ticket Cancellation | ✅ Complete | Cancellation with capacity restore + waitlist promotion |
 
 ### Priority 2 — Important (Should Have)
 | Feature | Status | Notes |

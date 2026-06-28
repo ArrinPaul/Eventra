@@ -2,7 +2,7 @@
 
 import { db } from '@/lib/db';
 import { tickets, events, activityFeed, eventStaff, notifications, users } from '@/lib/db/schema';
-import { eq, and, sql } from 'drizzle-orm';
+import { eq, and, sql, or } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { validateRole, validateEventOwnership, validateStaffPermission } from '@/lib/auth-utils';
 import { enforceRateLimit } from '@/lib/rate-limit';
@@ -91,17 +91,19 @@ export async function checkInTicket(payload: string, eventId: string) {
   const staffUser = await validateStaffPermission(eventId, 'scan_tickets');
 
   const { ticketNumber, isValid } = parseQrPayload(payload);
-  
-  // If not valid QR format, try raw ticket number (legacy or manual entry)
-  // For manual entry, we bypass signature if the user has permission
-  let targetTicketNumber = ticketNumber;
-  if (!isValid) {
-    // If it's a manual entry (starts with TKT-), we allow it if the user is authorized
-    if (payload.startsWith('TKT-')) {
-      targetTicketNumber = payload;
-    } else {
-      throw new Error('Invalid QR Code: Signature verification failed or malformed payload');
-    }
+
+  // Determine lookup method: QR code, ticket number, or 6-digit entry code
+  let targetTicketNumber: string | null = null;
+  let isEntryCode = false;
+
+  if (isValid) {
+    targetTicketNumber = ticketNumber;
+  } else if (payload.startsWith('TKT-')) {
+    targetTicketNumber = payload;
+  } else if (/^\d{6}$/.test(payload)) {
+    isEntryCode = true;
+  } else {
+    throw new Error('Invalid input: Expected QR code, ticket number (TKT-...), or 6-digit entry code');
   }
 
   try {
@@ -112,12 +114,12 @@ export async function checkInTicket(payload: string, eventId: string) {
       limit: 60,
       windowMs: 60_000,
     });
+
     // 2. Find the ticket and event details
     const ticket = await db.query.tickets.findFirst({
-      where: and(
-        eq(tickets.ticketNumber, targetTicketNumber!),
-        eq(tickets.eventId, eventId)
-      ),
+      where: isEntryCode
+        ? and(eq(tickets.entryCode, payload), eq(tickets.eventId, eventId))
+        : and(eq(tickets.ticketNumber, targetTicketNumber!), eq(tickets.eventId, eventId)),
       with: {
         user: true,
         event: true
@@ -151,25 +153,28 @@ export async function checkInTicket(payload: string, eventId: string) {
     if (ticket.status === 'cancelled' || ticket.status === 'refunded') {
       throw new Error(`Invalid Ticket: This registration has been ${ticket.status}`);
     }
-    
+
     if (ticket.status === 'expired') {
       throw new Error('Invalid Ticket: This ticket has expired');
     }
 
     // 5. Perform Check-in (with race-condition protection)
+    const checkInTime = new Date();
     const updatedTicket = await db.transaction(async (tx) => {
       const [result] = await tx
         .update(tickets)
-        .set({ 
+        .set({
           status: 'checked-in',
-          updatedAt: new Date()
+          verifiedAt: checkInTime,
+          verifiedBy: staffUser.id,
+          updatedAt: checkInTime,
         })
         .where(and(
           eq(tickets.id, ticket.id),
           eq(tickets.status, 'confirmed')
         ))
         .returning();
-      
+
       return result;
     });
 
@@ -209,13 +214,15 @@ export async function checkInTicket(payload: string, eventId: string) {
     revalidatePath(`/events/${eventId}`);
     revalidatePath('/check-in-scanner');
 
-    return { 
-      success: true, 
+    return {
+      success: true,
       ticket: {
         ...updatedTicket,
         userName: ticket.user.name,
-        userImage: ticket.user.image
-      } 
+        userImage: ticket.user.image,
+        entryCode: ticket.entryCode,
+        verifiedAt: now,
+      }
     };
   } catch (error: any) {
     logger.error('Check-in processing error', error, { scope: 'ticket-checkin' });

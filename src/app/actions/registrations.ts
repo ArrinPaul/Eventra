@@ -14,6 +14,10 @@ import { generateQrPayload } from '@/core/utils/crypto';
 import { sendEmail, constructConfirmationEmail } from '@/core/services/email';
 import { logger } from '@/lib/logger';
 
+function generateEntryCode(): string {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
 function getErrorText(error: unknown, fallback: string) {
   if (error instanceof Error && error.message) {
     const message = error.message;
@@ -92,16 +96,21 @@ export async function registerForEvent(eventId: string, data?: { tierId?: string
 
     // 4. Create free ticket for public registration
     const ticketNumber = `TKT-${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
-    
+    const entryCode = generateEntryCode();
+    const expiresAt = new Date(event.endDate);
+    expiresAt.setHours(expiresAt.getHours() + 24);
+
     await db.transaction(async (tx) => {
       await tx.insert(tickets).values({
         eventId,
         userId: user.id,
         tierId: data?.tierId,
         ticketNumber,
+        entryCode,
         status: 'confirmed',
         price: '0',
-        qrCode: generateQrPayload(ticketNumber), 
+        qrCode: generateQrPayload(ticketNumber),
+        expiresAt,
       });
 
       // Update registration counts
@@ -150,7 +159,7 @@ export async function registerForEvent(eventId: string, data?: { tierId?: string
 
     // Send confirmation email asynchronously (don't block the response)
     if (user.email) {
-      const emailContent = constructConfirmationEmail(user.name || 'Attendee', event.title, ticketNumber);
+      const emailContent = constructConfirmationEmail(user.name || 'Attendee', event.title, ticketNumber, entryCode);
       sendEmail({
         to: user.email,
         subject: emailContent.subject,
@@ -372,13 +381,21 @@ export async function claimWaitlistSpot(eventId: string) {
 
       // 2. Create the real ticket
       const ticketNumber = `TKT-WAIT-${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
+      const entryCode = generateEntryCode();
+
+      const event = await tx.query.events.findFirst({ where: eq(events.id, eventId) });
+      const expiresAt = new Date(event?.endDate || Date.now());
+      expiresAt.setHours(expiresAt.getHours() + 24);
+
       await tx.insert(tickets).values({
         eventId,
         userId: userId,
         ticketNumber,
+        entryCode,
         status: 'confirmed',
         price: '0',
         qrCode: generateQrPayload(ticketNumber),
+        expiresAt,
       });
 
       // 3. Mark waitlist as promoted (fulfilled)
@@ -533,16 +550,23 @@ export async function importAttendees(eventId: string, guestList: { email: strin
 
         // 3. Create ticket
         const ticketNumber = `TKT-GUEST-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
-        
+        const entryCode = generateEntryCode();
+
+        const eventData = await db.query.events.findFirst({ where: eq(events.id, eventId) });
+        const expiresAt = new Date(eventData?.endDate || Date.now());
+        expiresAt.setHours(expiresAt.getHours() + 24);
+
         await db.transaction(async (tx) => {
           await tx.insert(tickets).values({
             eventId,
             userId: targetUser.id,
             tierId: guest.tierId || null,
             ticketNumber,
+            entryCode,
             status: 'confirmed',
             price: '0',
             qrCode: generateQrPayload(ticketNumber),
+            expiresAt,
           });
 
           await tx

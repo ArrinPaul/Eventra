@@ -45,6 +45,7 @@ type ScanResult = {
   timestamp: Date;
   ticket?: {
     ticketNumber: string;
+    entryCode?: string | null;
     userName: string | null;
     userImage: string | null;
   };
@@ -505,15 +506,16 @@ export default function CheckInScannerClient() {
           <CardContent className="p-6">
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="ticket-id" className="text-xs text-muted-foreground">Enter Ticket Number Manually</Label>
+                <Label htmlFor="ticket-id" className="text-xs text-muted-foreground">Ticket Number or 6-Digit Entry Code</Label>
                 <div className="flex gap-2">
-                  <Input 
+                  <Input
                     id="ticket-id"
-                    placeholder="e.g. TKT-XJ8K2L..." 
-                    value={manualSearch} 
-                    onChange={(e) => setManualSearch(e.target.value)} 
+                    placeholder="TKT-... or 123456"
+                    value={manualSearch}
+                    onChange={(e) => setManualSearch(e.target.value)}
                     className="bg-card border-border h-12 font-mono uppercase"
                     onKeyDown={(e) => e.key === 'Enter' && handleProcessCheckIn(manualSearch)}
+                    maxLength={20}
                   />
                   <Button 
                     disabled={!manualSearch || processing} 
@@ -566,9 +568,17 @@ export default function CheckInScannerClient() {
                       </div>
                     </div>
                     
-                    <div className="pt-4 border-t border-border/50">
-                      <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest mb-1">Ticket ID</p>
-                      <p className="font-mono text-primary text-lg">{scanResult.ticket?.ticketNumber}</p>
+                    <div className="pt-4 border-t border-border/50 space-y-3">
+                      <div>
+                        <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest mb-1">Ticket ID</p>
+                        <p className="font-mono text-primary text-lg">{scanResult.ticket?.ticketNumber}</p>
+                      </div>
+                      {scanResult.ticket?.entryCode && (
+                        <div>
+                          <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest mb-1">Entry Code</p>
+                          <p className="font-mono text-lg font-bold tracking-[0.3em]">{scanResult.ticket.entryCode}</p>
+                        </div>
+                      )}
                     </div>
                 </div>
             </div>

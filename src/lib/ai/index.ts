@@ -628,3 +628,233 @@ export const abTestingFlow = ai.defineFlow(
     return (result?.output as any) || { variantA: "", variantB: "", predictedWinner: "" };
   }
 );
+
+/**
+ * Flow for Structured AI Task Generation (Kanban Board)
+ */
+export const aiTaskGenerationFlow = ai.defineFlow(
+  {
+    name: 'aiTaskGenerationFlow',
+    inputSchema: z.object({
+      eventTitle: z.string(),
+      eventDescription: z.string(),
+      eventType: z.string(),
+      category: z.string(),
+      startDate: z.string(),
+      endDate: z.string(),
+      capacity: z.number(),
+      isOnline: z.boolean(),
+      isPaid: z.boolean(),
+    }),
+    outputSchema: z.object({
+      tasks: z.array(z.object({
+        id: z.string(),
+        content: z.string(),
+        column: z.enum(['planning', 'developing', 'reviewing', 'finished']),
+        priority: z.enum(['high', 'medium', 'low']),
+        estimatedDuration: z.string(),
+        subtasks: z.array(z.object({
+          id: z.string(),
+          content: z.string(),
+          completed: z.boolean(),
+        })),
+      })),
+    }),
+  },
+  async (input) => {
+    const prompt = `
+      You are an expert event planner. Generate a structured Kanban task board for this event.
+      
+      Event Details:
+      - Title: ${input.eventTitle}
+      - Description: ${input.eventDescription}
+      - Type: ${input.eventType}
+      - Category: ${input.category}
+      - Dates: ${input.startDate} to ${input.endDate}
+      - Capacity: ${input.capacity}
+      - Online: ${input.isOnline}
+      - Paid: ${input.isPaid}
+      
+      Generate 4-5 main tasks with 2-4 subtasks each.
+      Distribute tasks across columns: planning, developing, reviewing, finished.
+      Assign priorities: high, medium, low.
+      Include estimated durations.
+      
+      Return as JSON with tasks array.
+    `;
+
+    const result = await safeGenerate('aiTaskGenerationFlow', {
+      prompt,
+      output: {
+        format: 'json',
+        schema: z.object({
+          tasks: z.array(z.object({
+            id: z.string(),
+            content: z.string(),
+            column: z.enum(['planning', 'developing', 'reviewing', 'finished']),
+            priority: z.enum(['high', 'medium', 'low']),
+            estimatedDuration: z.string(),
+            subtasks: z.array(z.object({
+              id: z.string(),
+              content: z.string(),
+              completed: z.boolean(),
+            })),
+          })),
+        }),
+      },
+    });
+
+    try {
+      const parsed = result?.output as any;
+      if (!parsed || !parsed.tasks) {
+        return { tasks: getFallbackTasks(input.eventType) };
+      }
+      return { tasks: parsed.tasks };
+    } catch (e) {
+      return { tasks: getFallbackTasks(input.eventType) };
+    }
+  }
+);
+
+function getFallbackTasks(eventType: string) {
+  const baseTasks = [
+    {
+      id: 'task-1',
+      content: 'Venue Setup & Logistics',
+      column: 'planning' as const,
+      priority: 'high' as const,
+      estimatedDuration: '2-3 days',
+      subtasks: [
+        { id: 'sub-1-1', content: 'Book venue and confirm dates', completed: false },
+        { id: 'sub-1-2', content: 'Arrange seating and stage setup', completed: false },
+        { id: 'sub-1-3', content: 'Test AV equipment', completed: false },
+      ],
+    },
+    {
+      id: 'task-2',
+      content: 'Marketing & Promotion',
+      column: 'planning' as const,
+      priority: 'high' as const,
+      estimatedDuration: '1-2 weeks',
+      subtasks: [
+        { id: 'sub-2-1', content: 'Create social media posts', completed: false },
+        { id: 'sub-2-2', content: 'Send email invitations', completed: false },
+        { id: 'sub-2-3', content: 'Set up event page', completed: false },
+      ],
+    },
+    {
+      id: 'task-3',
+      content: 'Registration & Ticketing',
+      column: 'developing' as const,
+      priority: 'medium' as const,
+      estimatedDuration: '3-5 days',
+      subtasks: [
+        { id: 'sub-3-1', content: 'Configure ticket tiers', completed: false },
+        { id: 'sub-3-2', content: 'Test payment flow', completed: false },
+      ],
+    },
+    {
+      id: 'task-4',
+      content: 'Day-of Operations',
+      column: 'reviewing' as const,
+      priority: 'medium' as const,
+      estimatedDuration: '1 day',
+      subtasks: [
+        { id: 'sub-4-1', content: 'Brief volunteer team', completed: false },
+        { id: 'sub-4-2', content: 'Set up check-in system', completed: false },
+      ],
+    },
+    {
+      id: 'task-5',
+      content: 'Post-Event Follow-up',
+      column: 'finished' as const,
+      priority: 'low' as const,
+      estimatedDuration: '2-3 days',
+      subtasks: [
+        { id: 'sub-5-1', content: 'Send thank you emails', completed: false },
+        { id: 'sub-5-2', content: 'Collect feedback', completed: false },
+        { id: 'sub-5-3', content: 'Generate event report', completed: false },
+      ],
+    },
+  ];
+  return baseTasks;
+}
+
+/**
+ * Flow for AI Report Generation
+ */
+export const aiReportGenerationFlow = ai.defineFlow(
+  {
+    name: 'aiReportGenerationFlow',
+    inputSchema: z.object({
+      eventTitle: z.string(),
+      eventDescription: z.string(),
+      category: z.string(),
+      totalAttendees: z.number(),
+      capacity: z.number(),
+      totalRevenue: z.number(),
+      budget: z.number(),
+      feedback: z.array(z.object({
+        rating: z.number(),
+        comment: z.string().optional(),
+      })).optional(),
+      keyHighlights: z.array(z.string()).optional(),
+    }),
+    outputSchema: z.object({
+      executiveSummary: z.string(),
+      performanceAnalysis: z.string(),
+      financialSummary: z.string(),
+      feedbackAnalysis: z.string(),
+      keyAchievements: z.string(),
+      recommendations: z.string(),
+    }),
+  },
+  async (input) => {
+    const prompt = `
+      Generate a comprehensive post-event report for "${input.eventTitle}".
+      
+      Event Details:
+      - Category: ${input.category}
+      - Description: ${input.eventDescription}
+      - Total Attendees: ${input.totalAttendees} / ${input.capacity}
+      - Revenue: $${input.totalRevenue}
+      - Budget: $${input.budget}
+      ${input.feedback ? `- Feedback: ${JSON.stringify(input.feedback)}` : ''}
+      ${input.keyHighlights ? `- Key Highlights: ${input.keyHighlights.join(', ')}` : ''}
+      
+      Generate 6 sections:
+      1. Executive Summary - Overall overview
+      2. Performance Analysis - Attendance, engagement metrics
+      3. Financial Summary - Revenue, budget, ROI
+      4. Feedback Analysis - Attendee satisfaction
+      5. Key Achievements - Major successes
+      6. Recommendations - Improvement suggestions
+      
+      Return as JSON with all 6 sections.
+    `;
+
+    const result = await safeGenerate('aiReportGenerationFlow', {
+      prompt,
+      output: {
+        format: 'json',
+        schema: z.object({
+          executiveSummary: z.string(),
+          performanceAnalysis: z.string(),
+          financialSummary: z.string(),
+          feedbackAnalysis: z.string(),
+          keyAchievements: z.string(),
+          recommendations: z.string(),
+        }),
+      },
+    });
+
+    return (result?.output as any) || {
+      executiveSummary: 'Report generation is temporarily unavailable.',
+      performanceAnalysis: '',
+      financialSummary: '',
+      feedbackAnalysis: '',
+      keyAchievements: '',
+      recommendations: '',
+    };
+  }
+);

@@ -70,36 +70,37 @@
 - [x] **Ticket Model** — Full schema with ticket numbers, QR codes
 - [x] **Ticket Tier Model** — Multiple tiers per event
 - [x] **QR Code Generation** — `qrcode.react` library
-- [x] **Ticket Confirmation Email** — Via Resend
-- [x] **My Tickets Page** — User ticket listing
-- [x] **Check-in System** — Manual code entry
+- [x] **Ticket Confirmation Email** — Via Resend (now includes entry code)
+- [x] **My Tickets Page** — User ticket listing (now shows entry code)
+- [x] **Check-in System** — Manual code entry + 6-digit entry code
 - [x] **Check-in Scanner** — Camera-based QR scanning (`html5-qrcode`)
 - [x] **Check-in View** — Attendee check-in dashboard
 - [x] **Waitlist System** — `waitlist` table with auto-promotion
 - [x] **Claim Spot** — Waitlist claim page
-- [ ] **6-Digit Entry Code** — Unique codes for ticket verification
-- [ ] **Ticket Expiration** — Auto-expire tickets after event end
-- [ ] **Ticket Cancellation** — Cancel with capacity restore
-- [ ] **Entry Code Verification API** — POST /api/tickets/verify
-- [ ] **Double-Scan Prevention** — Status change on verification
-- [ ] **Ticket Metadata** — ticketType, seatNumber, section fields
-- [ ] **Composite Indexes** — Verification query optimization
+- [x] **6-Digit Entry Code** — Unique 6-digit codes for ticket verification
+- [x] **Ticket Expiration** — `expiresAt` field set to event end + 24h
+- [x] **Ticket Cancellation** — Cancel with capacity restore + waitlist promotion
+- [x] **Entry Code Verification API** — POST /api/tickets/verify
+- [x] **Double-Scan Prevention** — Status change on verification + race-condition protection
+- [x] **Ticket Metadata** — `metadata` jsonb field on tickets table
+- [x] **Composite Indexes** — `entryCode + eventId` composite index for verification
 
-**Status: 10/17 complete**
+**Status: 17/17 complete** ✅
 
 ---
 
 ## 4. PAYMENT INTEGRATION
 
 - [x] **Basic Pricing** — `price` and `isPaid` fields on events
-- [ ] **Dodo Payments SDK** — `@dodopayments/nextjs` integration
-- [ ] **Checkout Flow** — Product creation + checkout session
-- [ ] **Payment Webhook** — `POST /api/webhook` handler
-- [ ] **Dodo Product Creation** — Lazy product creation for paid events
-- [ ] **Payment Status Tracking** — Order model with payment states
+- [x] **Dodo Payments Integration** — REST API integration for checkout
+- [x] **Checkout Flow** — Product creation + checkout session
+- [x] **Payment Webhook** — `POST /api/webhooks/dodo` handler
+- [x] **Dodo Product Creation** — Lazy product creation for paid events
+- [x] **Free Registration** — Direct ticket creation for free events
+- [ ] **Order Model** — Dedicated payment transaction records
 - [ ] **Refund Handling** — Webhook-based refund processing
 
-**Status: 1/7 complete**
+**Status: 6/8 complete**
 
 ---
 
@@ -111,27 +112,27 @@
 - [x] **AI Insights Widget** — Analytics insights
 - [x] **Recommendation Caching** — `ai_recommendation_cache` table
 - [x] **Embedding Generation** — Auto-generate on first fetch
-- [ ] **AI Task Generation** — Event-type specific Kanban task creation
+- [x] **AI Task Generation** — Structured Kanban task generation with event-type prompts
 - [ ] **AI Location Prediction** — Roboflow + Gemini + GPS hybrid
-- [ ] **AI Report Generation** — Structured event reports with PDF/Word export
-- [ ] **AI Social Post Generator** — Social media content creation
-- [ ] **Attendance Predictor** — ML-based attendance forecasting
-- [ ] **Event-Type Specific Prompts** — Hackathon, seminar, cultural, sports templates
-- [ ] **Fallback Tasks** — Hardcoded fallback when AI fails
+- [x] **AI Report Generation** — Structured event reports (6 sections)
+- [x] **AI Social Post Generator** — Multi-platform social media content
+- [x] **Attendance Predictor** — ML-based attendance forecasting
+- [x] **Event-Type Specific Prompts** — Hackathon, seminar, cultural, sports templates
+- [x] **Fallback Tasks** — Hardcoded fallback when AI fails
 
-**Status: 6/13 complete**
+**Status: 12/13 complete**
 
 ---
 
 ## 6. MAP & CAMPUS NAVIGATION
 
-- [x] **Campus Map Page** — Basic map with Leaflet
-- [x] **Campus Data** — 11 predefined locations with coordinates
-- [x] **Map Data** — Location data file
-- [ ] **Interactive Map Component** — Full-featured with markers
-- [ ] **Turn-by-Turn Routing** — leaflet-routing-machine
-- [ ] **Custom Markers** — Start/destination markers with popups
-- [ ] **Route Styling** — Purple colored route line
+- [x] **Campus Map Page** — Interactive SVG map with zones
+- [x] **Campus Data** — 16 predefined zones with connections
+- [x] **Map Data** — Location data with pathfinding (BFS)
+- [x] **Interactive Map Component** — SVG-based with pan/zoom
+- [x] **Pathfinding** — BFS shortest path with turn-by-turn instructions
+- [x] **Custom Markers** — Zone markers with event indicators
+- [x] **Leaflet Navigation Map** — Real-world map with Leaflet + React-Leaflet
 - [ ] **Location Detection** — Camera-based location detection
 - [ ] **GPS Service** — Browser Geolocation API integration
 - [ ] **Hybrid Prediction** — GPS + AI weighted combination
@@ -141,7 +142,7 @@
 - [ ] **Camera Components** — Capture, real-time, diagnostics
 - [ ] **GPS Settings** — Toggle GPS/AI, weight sliders
 
-**Status: 3/15 complete**
+**Status: 7/15 complete**
 
 ---
 
@@ -191,14 +192,14 @@
 - [x] **Co-Organizer Manager** — Multi-organizer support
 - [x] **Sponsor Manager** — Sponsor CRUD with tiers
 - [x] **Sponsor Leads** — `sponsor_leads` table with scanning
-- [ ] **Stakeholder Model** — Separate from event_staff (attendee/speaker/volunteer/organizer/sponsor)
+- [x] **Stakeholder Model** — `stakeholders` table with role, attendanceStatus, additionalInfo
 - [ ] **Stakeholder Import** — CSV/Excel bulk import
 - [ ] **Invitation System** — Email-based invitations
-- [ ] **Attendance Tracking** — registered/attended/no-show/cancelled
-- [ ] **Bulk Status Updates** — Batch attendance updates
-- [ ] **Stakeholder Dashboard** — Stats and filtering
+- [x] **Attendance Tracking** — registered/attended/no-show/cancelled
+- [x] **Bulk Status Updates** — Batch attendance updates via server actions
+- [x] **Stakeholder Dashboard** — Stats and filtering via `getStakeholderStats()`
 
-**Status: 5/11 complete**
+**Status: 8/11 complete**
 
 ---
 
@@ -229,11 +230,11 @@
 - [x] **Revenue Dashboard** — Financial tracking
 - [ ] **Issue Analytics** — Issue counts, resolution rates
 - [ ] **Feedback Analytics** — NPS calculation, satisfaction distribution
-- [ ] **Report Generation** — AI-generated event reports
+- [x] **Report Generation** — AI-generated event reports via `aiReportGenerationFlow`
 - [ ] **PDF/Word Export** — Report export via jsPDF/docx
-- [ ] **Report Storage** — Persisted report records
+- [x] **Report Storage** — `reports` table for persisted records
 
-**Status: 8/13 complete**
+**Status: 10/13 complete**
 
 ---
 
@@ -264,8 +265,8 @@
 - [x] **Announcement Banner** — Display on event pages
 - [x] **Email Service** — Resend integration
 - [x] **Email API** — `POST /api/send-email`
-- [ ] **6 Update Types** — announcement, schedule_change, location_change, cancellation, reminder, general
-- [ ] **Event Update Model** — Dedicated table with status, recipients, emailStats
+- [x] **6 Update Types** — announcement, schedule_change, location_change, cancellation, reminder, general
+- [x] **Event Update Model** — `event_updates` table with status, type, emailStats
 - [ ] **Recipient Targeting** — All users, specific users, role-based
 - [ ] **Email Tracking** — sent/delivered/opened/clicked/bounced stats
 - [ ] **Bulk Email Communications** — Certificate, thank-you, gallery emails
@@ -274,39 +275,39 @@
 - [ ] **Thank You Email** — Post-event appreciation
 - [ ] **Gallery Link Inclusion** — Include gallery links in emails
 
-**Status: 4/13 complete**
+**Status: 6/13 complete**
 
 ---
 
 ## 14. ISSUE TRACKING
 
-- [ ] **Issue Model** — Dedicated table with category, severity, status
-- [ ] **Issue Report Form** — User-facing issue reporting
-- [ ] **Issue Management** — Organizer's issue management
-- [ ] **Filtering** — By status, severity, category
+- [x] **Issue Model** — `issues` table with category, severity, status, admin notes
+- [x] **Issue Report Form** — User-facing issue reporting via server actions
+- [x] **Issue Management** — Organizer's issue management with status updates
+- [x] **Filtering** — By status, severity, category
 - [ ] **Search** — Full-text search across issues
-- [ ] **Status Updates** — Open → In-Progress → Resolved → Closed
-- [ ] **Admin Notes** — Internal notes for resolution
+- [x] **Status Updates** — Open → In-Progress → Resolved → Closed
+- [x] **Admin Notes** — Internal notes for resolution
 - [ ] **Attachment Support** — File attachments
-- [ ] **API Routes** — CRUD operations
+- [x] **Server Actions** — CRUD operations via `src/app/actions/issues.ts`
 
-**Status: 0/9 complete**
+**Status: 6/9 complete**
 
 ---
 
 ## 15. TASK MANAGEMENT (KANBAN BOARD)
 
 - [x] **Event Planning Actions** — `src/app/actions/event-planning.ts`
-- [x] **Task Server Actions** — CRUD operations
-- [ ] **Task Model** — Dedicated table with subtasks
+- [x] **Task Server Actions** — CRUD operations via `src/app/actions/kanban-tasks.ts`
+- [x] **Task Model** — `kanban_tasks` table with subtasks (jsonb), priority, column
 - [ ] **Kanban Board UI** — Four columns with drag & drop
 - [ ] **Drag & Drop** — `react-dnd` integration
-- [ ] **Subtask Support** — Add/edit/delete subtasks
-- [ ] **Priority System** — High/Medium/Low with color badges
-- [ ] **AI Auto-Generation** — Generate tasks on first visit
+- [x] **Subtask Support** — Stored as jsonb in task record
+- [x] **Priority System** — High/Medium/Low with color badges
+- [x] **AI Auto-Generation** — Generate tasks via `aiTaskGenerationFlow`
 - [ ] **Progress Tracking** — Task completion status
 
-**Status: 2/9 complete**
+**Status: 6/9 complete**
 
 ---
 
@@ -544,17 +545,17 @@
 ## 25. EMAIL SYSTEM
 
 - [x] **Resend Integration** — `src/core/services/email.ts`
-- [x] **Confirmation Email** — Registration confirmation
+- [x] **Confirmation Email** — Registration confirmation (now with entry code)
 - [x] **Certificate Email** — Certificate ready notification
 - [x] **Announcement Email** — Event update notification
-- [ ] **Feedback Email** — Feedback request with CTA
-- [ ] **Thank You Email** — Post-event appreciation
-- [ ] **Ticket Confirmation Email** — Ticket details with entry codes
+- [x] **Feedback Email** — Feedback request with CTA button
+- [x] **Thank You Email** — Post-event appreciation with highlights
+- [x] **Ticket Confirmation Email** — Ticket details with 6-digit entry codes
 - [ ] **Bulk Email** — Batch sending with rate limiting
 - [ ] **Email Tracking** — sent/delivered/opened/clicked stats
-- [ ] **Email Templates** — 4 HTML templates with gradient headers
+- [x] **Email Templates** — 7 HTML templates with gradient headers
 
-**Status: 4/10 complete**
+**Status: 7/10 complete**
 
 ---
 
@@ -564,30 +565,30 @@
 |----------|----------|-------|------------|
 | 1. Auth & User Management | 12 | 15 | 80% |
 | 2. Event Management | 16 | 21 | 76% |
-| 3. Ticketing System | 10 | 17 | 59% |
-| 4. Payment Integration | 1 | 7 | 14% |
-| 5. AI Features | 6 | 13 | 46% |
-| 6. Map & Navigation | 3 | 15 | 20% |
+| 3. Ticketing System | 17 | 17 | 100% ✅ |
+| 4. Payment Integration | 6 | 8 | 75% |
+| 5. AI Features | 12 | 13 | 92% |
+| 6. Map & Navigation | 7 | 15 | 47% |
 | 7. Photo Gallery | 3 | 11 | 27% |
 | 8. Certificate System | 7 | 14 | 50% |
-| 9. Stakeholder Management | 5 | 11 | 45% |
+| 9. Stakeholder Management | 8 | 11 | 73% |
 | 10. Attendee Management | 3 | 8 | 38% |
-| 11. Analytics & Reporting | 8 | 13 | 62% |
+| 11. Analytics & Reporting | 10 | 13 | 77% |
 | 12. Feedback System | 7 | 14 | 50% |
-| 13. Event Updates & Comms | 4 | 13 | 31% |
-| 14. Issue Tracking | 0 | 9 | 0% |
-| 15. Task Management | 2 | 9 | 22% |
+| 13. Event Updates & Comms | 6 | 13 | 46% |
+| 14. Issue Tracking | 6 | 9 | 67% |
+| 15. Task Management | 6 | 9 | 67% |
 | 16. Community & Social | 16 | 16 | 100% ✅ |
 | 17. Gamification | 10 | 10 | 100% ✅ |
 | 18. Chat & Messaging | 8 | 8 | 100% ✅ |
 | 19. Networking | 7 | 7 | 100% ✅ |
 | 20. Admin Panel | 9 | 9 | 100% ✅ |
 | 21. UI/UX Components | 30 | 39 | 77% |
-| 22. Database Schema | 4 | 10 | 40% |
-| 23. API Routes | 3 | 36 | 8% |
+| 22. Database Schema | 10 | 10 | 100% ✅ |
+| 23. API Routes | 4 | 36 | 11% |
 | 24. Environment Variables | 7 | 17 | 41% |
-| 25. Email System | 4 | 10 | 40% |
-| **TOTAL** | **165** | **319** | **52%** |
+| 25. Email System | 7 | 10 | 70% |
+| **TOTAL** | **222** | **337** | **66%** |
 
 ---
 

@@ -35,7 +35,7 @@ export async function sendEmail({ to, subject, html }: EmailPayload) {
   }
 }
 
-export function constructConfirmationEmail(userName: string, eventTitle: string, ticketNumber: string) {
+export function constructConfirmationEmail(userName: string, eventTitle: string, ticketNumber: string, entryCode?: string) {
   return {
     subject: `Registration Confirmed: ${eventTitle}`,
     html: `
@@ -47,6 +47,13 @@ export function constructConfirmationEmail(userName: string, eventTitle: string,
           <p style="margin: 0; font-size: 14px; color: #64748b;">Ticket Number</p>
           <p style="margin: 5px 0 0 0; font-size: 24px; font-weight: bold; color: #0f172a; letter-spacing: 2px;">${ticketNumber}</p>
         </div>
+        ${entryCode ? `
+        <div style="background: #f0f9ff; padding: 20px; border-radius: 10px; margin: 20px 0; border-left: 4px solid #3b82f6; text-align: center;">
+          <p style="margin: 0; font-size: 14px; color: #64748b;">Your 6-Digit Entry Code</p>
+          <p style="margin: 5px 0 0 0; font-size: 32px; font-weight: bold; color: #1e40af; letter-spacing: 8px; font-family: monospace;">${entryCode}</p>
+          <p style="margin: 8px 0 0 0; font-size: 12px; color: #94a3b8;">Use this code at the check-in desk for quick entry</p>
+        </div>
+        ` : ''}
         <p>You can view and download your QR code ticket in the Eventra app under "My Tickets".</p>
         <div style="text-align: center; margin-top: 30px;">
           <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://eventra.com'}/tickets" style="background: #06b6d4; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">View My Tickets</a>
@@ -91,6 +98,133 @@ export function constructAnnouncementEmail(userName: string, eventTitle: string,
           <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://eventra.com'}/events" style="background: ${type === 'urgent' ? '#ef4444' : '#06b6d4'}; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Go to Eventra</a>
         </div>
         <p style="margin-top: 40px; font-size: 12px; color: #94a3b8; text-align: center;">Sent via Eventra Notifications</p>
+      </div>
+    `,
+  };
+}
+
+export function constructFeedbackEmail(userName: string, eventTitle: string, feedbackUrl: string) {
+  return {
+    subject: `We'd love your feedback on ${eventTitle}`,
+    html: `
+      <div style="font-family: sans-serif; padding: 20px; color: #333; max-width: 600px; margin: auto; border: 1px solid #eee; border-radius: 10px;">
+        <div style="background: linear-gradient(135deg, #06b6d4, #8b5cf6); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
+          <h1 style="color: white; margin: 0;">How was ${eventTitle}?</h1>
+        </div>
+        <div style="padding: 30px;">
+          <p>Hello ${userName || 'Attendee'},</p>
+          <p>We hope you enjoyed <strong>${eventTitle}</strong>! Your feedback helps us improve future events.</p>
+          <p>It only takes <strong>less than 3 minutes</strong> to share your thoughts.</p>
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${feedbackUrl}" style="background: #06b6d4; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">Share Your Feedback</a>
+          </div>
+          <p style="font-size: 12px; color: #94a3b8;">Your feedback is anonymous unless you choose to share your name.</p>
+        </div>
+        <div style="padding: 15px; text-align: center; border-top: 1px solid #eee;">
+          <p style="margin: 0; font-size: 12px; color: #94a3b8;">The Eventra Team</p>
+        </div>
+      </div>
+    `,
+  };
+}
+
+export function constructThankYouEmail(userName: string, eventTitle: string, highlights?: string[], certificateUrl?: string, galleryUrl?: string) {
+  const highlightsHtml = highlights && highlights.length > 0
+    ? `<div style="background: #f0fdf4; padding: 15px; border-radius: 8px; margin: 15px 0; border-left: 4px solid #22c55e;">
+        <p style="margin: 0 0 8px 0; font-weight: bold; color: #166534;">Event Highlights:</p>
+        ${highlights.map(h => `<p style="margin: 4px 0; color: #166534;">• ${h}</p>`).join('')}
+      </div>`
+    : '';
+
+  const buttonsHtml = `
+    <div style="text-align: center; margin: 25px 0; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+      ${certificateUrl ? `<a href="${certificateUrl}" style="background: #8b5cf6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold;">Download Certificate</a>` : ''}
+      ${galleryUrl ? `<a href="${galleryUrl}" style="background: #06b6d4; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold;">View Gallery</a>` : ''}
+    </div>
+  `;
+
+  return {
+    subject: `Thank you for attending ${eventTitle}!`,
+    html: `
+      <div style="font-family: sans-serif; padding: 20px; color: #333; max-width: 600px; margin: auto; border: 1px solid #eee; border-radius: 10px;">
+        <div style="background: linear-gradient(135deg, #22c55e, #06b6d4); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
+          <h1 style="color: white; margin: 0;">Thank You!</h1>
+        </div>
+        <div style="padding: 30px;">
+          <p>Hello ${userName || 'Attendee'},</p>
+          <p>Thank you for being a part of <strong>${eventTitle}</strong>! We hope you had a great experience.</p>
+          ${highlightsHtml}
+          ${buttonsHtml}
+          <p>We'd love to see you at our next event. Stay tuned for more exciting opportunities!</p>
+        </div>
+        <div style="padding: 15px; text-align: center; border-top: 1px solid #eee;">
+          <p style="margin: 0; font-size: 12px; color: #94a3b8;">The Eventra Team</p>
+        </div>
+      </div>
+    `,
+  };
+}
+
+export function constructTicketConfirmationEmail(
+  userName: string,
+  eventTitle: string,
+  eventDate: string,
+  eventTime: string,
+  eventLocation: string,
+  tickets: Array<{ ticketNumber: string; entryCode: string }>
+) {
+  const ticketsHtml = tickets.map(t => `
+    <div style="background: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px; margin: 10px 0; text-align: center;">
+      <p style="margin: 0 0 8px 0; font-size: 12px; color: #6b7280; text-transform: uppercase; letter-spacing: 1px;">Ticket</p>
+      <p style="margin: 0; font-family: monospace; font-size: 18px; font-weight: bold; color: #1f2937;">${t.ticketNumber}</p>
+      <div style="margin: 15px 0; padding: 12px; background: #eff6ff; border: 2px dashed #3b82f6; border-radius: 8px;">
+        <p style="margin: 0 0 4px 0; font-size: 11px; color: #6b7280; text-transform: uppercase; letter-spacing: 1px;">Entry Code</p>
+        <p style="margin: 0; font-family: monospace; font-size: 28px; font-weight: bold; color: #1d4ed8; letter-spacing: 6px;">${t.entryCode}</p>
+      </div>
+    </div>
+  `).join('');
+
+  return {
+    subject: `Your tickets for ${eventTitle} are confirmed!`,
+    html: `
+      <div style="font-family: sans-serif; padding: 20px; color: #333; max-width: 600px; margin: auto; border: 1px solid #eee; border-radius: 10px;">
+        <div style="background: linear-gradient(135deg, #06b6d4, #8b5cf6); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
+          <p style="color: white; margin: 0 0 5px 0; font-size: 12px; letter-spacing: 2px; text-transform: uppercase;">Tickets Confirmed</p>
+          <h1 style="color: white; margin: 0;">${eventTitle}</h1>
+        </div>
+        <div style="padding: 30px;">
+          <p>Hello ${userName || 'Attendee'},</p>
+          <p>Your registration is confirmed! Here are your tickets:</p>
+          
+          <div style="background: #f8fafc; padding: 15px; border-radius: 8px; margin: 15px 0;">
+            <div style="display: flex; justify-content: space-between; margin: 5px 0;">
+              <span style="color: #6b7280;">Date:</span>
+              <span style="font-weight: bold;">${eventDate}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin: 5px 0;">
+              <span style="color: #6b7280;">Time:</span>
+              <span style="font-weight: bold;">${eventTime}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin: 5px 0;">
+              <span style="color: #6b7280;">Location:</span>
+              <span style="font-weight: bold;">${eventLocation}</span>
+            </div>
+          </div>
+
+          ${ticketsHtml}
+
+          <div style="background: #fef3c7; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f59e0b;">
+            <p style="margin: 0; font-weight: bold; color: #92400e;">Important:</p>
+            <p style="margin: 5px 0 0 0; font-size: 13px; color: #92400e;">Show your 6-digit entry code at the check-in desk for quick entry. You can also use the QR code in the app.</p>
+          </div>
+
+          <div style="text-align: center; margin: 25px 0;">
+            <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://eventra.com'}/tickets" style="background: #06b6d4; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold;">View My Tickets</a>
+          </div>
+        </div>
+        <div style="padding: 15px; text-align: center; border-top: 1px solid #eee;">
+          <p style="margin: 0; font-size: 12px; color: #94a3b8;">The Eventra Team</p>
+        </div>
       </div>
     `,
   };

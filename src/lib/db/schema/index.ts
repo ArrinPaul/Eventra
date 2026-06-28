@@ -149,18 +149,24 @@ export const tickets = pgTable('tickets', {
   userId: text('user_id').references(() => users.id).notNull(),
   tierId: uuid('tier_id').references(() => ticketTiers.id),
   ticketNumber: text('ticket_number').notNull().unique(),
+  entryCode: text('entry_code'),
   status: text('status').default('confirmed').notNull(),
   purchaseDate: timestamp('purchase_date').defaultNow().notNull(),
+  expiresAt: timestamp('expires_at'),
   price: decimal('price', { precision: 10, scale: 2 }).notNull(),
   qrCode: text('qr_code'),
+  verifiedAt: timestamp('verified_at'),
+  verifiedBy: text('verified_by'),
   personalizedMessage: text('personalized_message'),
+  metadata: jsonb('metadata'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
-
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 }, (table) => ({
   eventIdx: index('tickets_event_idx').on(table.eventId),
   userIdx: index('tickets_user_idx').on(table.userId),
   statusIdx: index('tickets_status_idx').on(table.status),
+  entryCodeIdx: index('tickets_entry_code_idx').on(table.entryCode),
+  entryCodeEventIdx: index('tickets_entry_code_event_idx').on(table.entryCode, table.eventId),
 }));
 
 export const waitlist = pgTable('waitlist', {
@@ -629,3 +635,159 @@ export const ingestionSources = pgTable('ingestion_sources', {
   isActive: boolean('is_active').default(true).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
+
+// --- Issue Tracking ---
+
+export const issues = pgTable('issues', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  eventId: uuid('event_id').references(() => events.id, { onDelete: 'cascade' }).notNull(),
+  eventTitle: text('event_title').notNull(),
+  reportedBy: text('reported_by').references(() => users.id).notNull(),
+  reporterName: text('reporter_name').notNull(),
+  reporterEmail: text('reporter_email').notNull(),
+  category: text('category').notNull(),
+  subcategory: text('subcategory'),
+  severity: text('severity').default('medium').notNull(),
+  title: text('title').notNull(),
+  description: text('description').notNull(),
+  attachments: text('attachments').array(),
+  status: text('status').default('open').notNull(),
+  organizer: text('organizer').references(() => users.id).notNull(),
+  organizerEmail: text('organizer_email').notNull(),
+  adminNotes: text('admin_notes'),
+  resolvedAt: timestamp('resolved_at'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => ({
+  eventIdx: index('issues_event_idx').on(table.eventId),
+  statusIdx: index('issues_status_idx').on(table.status),
+  severityIdx: index('issues_severity_idx').on(table.severity),
+  reportedByIdx: index('issues_reported_by_idx').on(table.reportedBy),
+}));
+
+// --- Event Updates & Notifications ---
+
+export const eventUpdates = pgTable('event_updates', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  eventId: uuid('event_id').references(() => events.id, { onDelete: 'cascade' }).notNull(),
+  title: text('title').notNull(),
+  content: text('content').notNull(),
+  type: text('type').default('general').notNull(),
+  status: text('status').default('draft').notNull(),
+  publishedAt: timestamp('published_at'),
+  createdBy: text('created_by').references(() => users.id).notNull(),
+  sendToAll: boolean('send_to_all').default(true).notNull(),
+  sendEmail: boolean('send_email').default(true).notNull(),
+  emailStats: jsonb('email_stats'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => ({
+  eventIdx: index('event_updates_event_idx').on(table.eventId),
+  statusIdx: index('event_updates_status_idx').on(table.status),
+  createdByIdx: index('event_updates_created_by_idx').on(table.createdBy),
+}));
+
+// --- Orders (Payment Transactions) ---
+
+export const orders = pgTable('orders', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  paymentId: text('payment_id').notNull(),
+  totalTickets: integer('total_tickets').notNull(),
+  totalAmount: decimal('total_amount', { precision: 10, scale: 2 }).notNull(),
+  userId: text('user_id').references(() => users.id).notNull(),
+  eventId: uuid('event_id').references(() => events.id).notNull(),
+  status: text('status').default('completed').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => ({
+  eventIdx: index('orders_event_idx').on(table.eventId),
+  userIdx: index('orders_user_idx').on(table.userId),
+  paymentIdIdx: index('orders_payment_id_idx').on(table.paymentId),
+}));
+
+// --- Kanban Tasks ---
+
+export const kanbanTasks = pgTable('kanban_tasks', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  taskId: text('task_id').notNull(),
+  content: text('content').notNull(),
+  column: text('column').notNull(),
+  priority: text('priority').notNull(),
+  estimatedDuration: text('estimated_duration').notNull(),
+  completed: boolean('completed').default(false).notNull(),
+  subtasks: jsonb('subtasks').default([]).notNull(),
+  eventId: uuid('event_id').references(() => events.id, { onDelete: 'cascade' }).notNull(),
+  organizerId: text('organizer_id').references(() => users.id).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => ({
+  eventIdx: index('kanban_tasks_event_idx').on(table.eventId),
+  organizerIdx: index('kanban_tasks_organizer_idx').on(table.organizerId),
+}));
+
+// --- Reports ---
+
+export const reports = pgTable('reports', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  eventId: uuid('event_id').references(() => events.id, { onDelete: 'cascade' }).notNull(),
+  organizerId: text('organizer_id').references(() => users.id).notNull(),
+  preparedBy: text('prepared_by'),
+  keyHighlights: text('key_highlights').array(),
+  majorOutcomes: text('major_outcomes').array(),
+  budget: decimal('budget', { precision: 10, scale: 2 }),
+  sponsorship: decimal('sponsorship', { precision: 10, scale: 2 }),
+  actualExpenditure: decimal('actual_expenditure', { precision: 10, scale: 2 }),
+  generatedContent: text('generated_content'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => ({
+  eventIdx: index('reports_event_idx').on(table.eventId),
+  organizerIdx: index('reports_organizer_idx').on(table.organizerId),
+}));
+
+// --- Stakeholders ---
+
+export const stakeholders = pgTable('stakeholders', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  eventId: uuid('event_id').references(() => events.id, { onDelete: 'cascade' }).notNull(),
+  name: text('name').notNull(),
+  email: text('email').notNull(),
+  role: text('role').notNull(),
+  attendanceStatus: text('attendance_status').default('registered').notNull(),
+  userId: text('user_id').references(() => users.id),
+  additionalInfo: jsonb('additional_info'),
+  certificateGenerated: boolean('certificate_generated').default(false).notNull(),
+  importedAt: timestamp('imported_at').defaultNow().notNull(),
+  importedBy: text('imported_by').references(() => users.id).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => ({
+  eventIdx: index('stakeholders_event_idx').on(table.eventId),
+  emailIdx: index('stakeholders_email_idx').on(table.email),
+  roleIdx: index('stakeholders_role_idx').on(table.role),
+  eventEmailUnique: uniqueIndex('stakeholders_event_email_idx').on(table.eventId, table.email),
+}));
+
+// --- Feedback Responses ---
+
+export const feedbackResponses = pgTable('feedback_responses', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  eventId: uuid('event_id').references(() => events.id, { onDelete: 'cascade' }).notNull(),
+  userId: text('user_id').references(() => users.id),
+  isAnonymous: boolean('is_anonymous').default(false).notNull(),
+  overallSatisfaction: integer('overall_satisfaction').notNull(),
+  contentQuality: integer('content_quality').notNull(),
+  organizationRating: integer('organization_rating').notNull(),
+  venueRating: integer('venue_rating'),
+  recommendationScore: integer('recommendation_score').notNull(),
+  likedMost: text('liked_most'),
+  improvements: text('improvements'),
+  additionalComments: text('additional_comments'),
+  customAnswers: jsonb('custom_answers'),
+  submittedAt: timestamp('submitted_at').defaultNow().notNull(),
+  ipAddress: text('ip_address'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => ({
+  eventIdx: index('feedback_responses_event_idx').on(table.eventId),
+  userIdx: index('feedback_responses_user_idx').on(table.userId),
+  eventUserUnique: uniqueIndex('feedback_responses_event_user_idx').on(table.eventId, table.userId),
+}));
