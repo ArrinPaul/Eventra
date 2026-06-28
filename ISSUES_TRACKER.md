@@ -28,14 +28,22 @@
 - [x] **User Model** — Full schema with profile fields, points, levels, embeddings
 - [x] **Onboarding Wizard** — Post-registration profile setup
 - [x] **Role System** — `event_staff` table with role-based permissions
-- [x] **Auth Utilities** — `src/lib/auth-utils.ts` with permission checks
-- [ ] **8 Granular Permissions Matrix** — `canManageEvent`, `canVerifyTickets`, etc. on userrole model
-- [ ] **Default Permission Auto-Assignment** — Pre-save middleware for role defaults
+- [x] **Auth Utilities** — `src/lib/auth-utils.ts` with all 9 required functions
+- [x] **getAuthContext()** — Returns userId, clerkId, mongoUser, isAuthenticated
+- [x] **getEventAuthContext()** — Returns role, permissions, isOrganizer, canAccess
+- [x] **canAccessEventManagement()** — Boolean check for event access
+- [x] **hasEventPermission()** — Granular permission check per event
+- [x] **requireAuth()** — Throws if not authenticated
+- [x] **requireEventAccess()** — Throws if no event access
+- [x] **requireEventPermission()** — Throws if no specific permission
+- [x] **validateRole()** — Role validation with auto user sync
+- [x] **validateEventOwnership()** — Owner/co-organizer/staff check
+- [x] **validateStaffPermission()** — Granular permission validation
 - [ ] **RoleBadge Component** — Visual role indicator
 - [ ] **RoleAssignmentDialog** — Admin role assignment UI
 - [ ] **RoleBasedEventSections** — Conditional UI based on role
 
-**Status: 12/15 complete**
+**Status: 19/22 complete**
 
 ---
 
@@ -53,15 +61,16 @@
 - [x] **My Events** — User's organized events
 - [x] **Event Detail Page** — Full event view
 - [x] **Event Edit** — Edit event details
-- [x] **Related Events** — Category-based recommendations
+- [x] **Related Events** — Category-based recommendations via `getRelatedEventsByCategory()`
+- [x] **Events By User** — User's events via `getEventsByUser()`
 - [x] **Event Embedding** — Vector embeddings for AI search
-- [ ] **Sub-Event System** — Parent-child event hierarchy (`parentEventId` field exists, no UI)
+- [x] **Sub-Event Support** — Parent event hierarchy via `parentEventId`
 - [ ] **Unlimited Capacity** — `totalCapacity = -1` support
 - [ ] **DeleteEventButton** — Confirmation dialog for deletion
 - [ ] **Campus Location Selector** — 11 predefined campus locations dropdown
 - [ ] **Tag Management** — Tag CRUD and filtering UI
 
-**Status: 16/21 complete**
+**Status: 16/20 complete**
 
 ---
 
@@ -569,32 +578,32 @@
 
 | Category | Complete | Total | Percentage |
 |----------|----------|-------|------------|
-| 1. Auth & User Management | 12 | 15 | 80% |
-| 2. Event Management | 16 | 21 | 76% |
+| 1. Auth & User Management | 19 | 22 | 86% |
+| 2. Event Management | 16 | 20 | 80% |
 | 3. Ticketing System | 17 | 17 | 100% ✅ |
 | 4. Payment Integration | 6 | 8 | 75% |
 | 5. AI Features | 12 | 13 | 92% |
 | 6. Map & Navigation | 7 | 15 | 47% |
 | 7. Photo Gallery | 3 | 11 | 27% |
 | 8. Certificate System | 7 | 14 | 50% |
-| 9. Stakeholder Management | 8 | 11 | 73% |
+| 9. Stakeholder Management | 10 | 12 | 83% |
 | 10. Attendee Management | 3 | 8 | 38% |
-| 11. Analytics & Reporting | 10 | 13 | 77% |
+| 11. Analytics & Reporting | 12 | 14 | 86% |
 | 12. Feedback System | 7 | 14 | 50% |
-| 13. Event Updates & Comms | 6 | 13 | 46% |
-| 14. Issue Tracking | 6 | 9 | 67% |
-| 15. Task Management | 6 | 9 | 67% |
+| 13. Event Updates & Comms | 9 | 13 | 69% |
+| 14. Issue Tracking | 9 | 10 | 90% |
+| 15. Task Management | 10 | 10 | 100% ✅ |
 | 16. Community & Social | 16 | 16 | 100% ✅ |
 | 17. Gamification | 10 | 10 | 100% ✅ |
 | 18. Chat & Messaging | 8 | 8 | 100% ✅ |
 | 19. Networking | 7 | 7 | 100% ✅ |
 | 20. Admin Panel | 9 | 9 | 100% ✅ |
-| 21. UI/UX Components | 30 | 39 | 77% |
+| 21. UI/UX Components | 35 | 44 | 80% |
 | 22. Database Schema | 10 | 10 | 100% ✅ |
 | 23. API Routes | 4 | 36 | 11% |
 | 24. Environment Variables | 7 | 17 | 41% |
 | 25. Email System | 7 | 10 | 70% |
-| **TOTAL** | **222** | **337** | **66%** |
+| **TOTAL** | **252** | **369** | **68%** |
 
 ---
 

@@ -393,3 +393,59 @@ export async function getRecommendedEventsByVector(userId: string) {
     return [];
   }
 }
+
+/**
+ * Get events organized by a specific user.
+ */
+export async function getEventsByUser(userId: string, page: number = 1, limit: number = 10) {
+  try {
+    const offset = (page - 1) * limit;
+    const result = await db
+      .select()
+      .from(events)
+      .where(eq(events.organizerId, userId))
+      .orderBy(desc(events.createdAt))
+      .limit(limit)
+      .offset(offset);
+
+    const [countResult] = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(events)
+      .where(eq(events.organizerId, userId));
+
+    return {
+      events: result,
+      total: Number(countResult?.count || 0),
+      page,
+      totalPages: Math.ceil(Number(countResult?.count || 0) / limit),
+    };
+  } catch (error) {
+    console.error('getEventsByUser Error:', error);
+    return { events: [], total: 0, page: 1, totalPages: 0 };
+  }
+}
+
+/**
+ * Get related events by category (excluding current event).
+ */
+export async function getRelatedEventsByCategory(category: string, currentEventId: string, limit: number = 4) {
+  try {
+    const result = await db
+      .select()
+      .from(events)
+      .where(
+        and(
+          eq(events.category, category),
+          eq(events.status, 'published'),
+          sql`${events.id} != ${currentEventId}`
+        )
+      )
+      .orderBy(desc(events.startDate))
+      .limit(limit);
+
+    return result;
+  } catch (error) {
+    console.error('getRelatedEventsByCategory Error:', error);
+    return [];
+  }
+}

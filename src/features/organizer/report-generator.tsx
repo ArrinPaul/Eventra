@@ -57,7 +57,8 @@ export function ReportGenerator({ eventId }: ReportGeneratorProps) {
         toast({ title: 'Report generated' });
         loadReports();
       } else {
-        toast({ title: result.error || 'Generation failed', variant: 'destructive' });
+        const errMsg = 'error' in result ? result.error : 'Generation failed';
+        toast({ title: errMsg || 'Generation failed', variant: 'destructive' });
       }
     } catch (e) {
       toast({ title: 'Report generation failed', variant: 'destructive' });
