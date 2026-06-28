@@ -5,13 +5,15 @@ import Image from 'next/image';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { 
-  Image as ImageIcon, 
-  Plus, 
-  X, 
-  Loader2, 
-  Camera, 
-  Trash2, 
+import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
+import {
+  Image as ImageIcon,
+  Plus,
+  X,
+  Loader2,
+  Camera,
+  Trash2,
   Maximize2,
   Download,
   Eye,
@@ -19,17 +21,20 @@ import {
   Share2,
   Clock,
   User,
-  Shield
+  Shield,
+  Upload,
+  Copy,
+  MessageSquare,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
-import { 
-  uploadEventMedia, 
-  getEventGallery, 
+import {
+  uploadEventMedia,
+  getEventGallery,
   trackMediaEngagement,
-  moderateMedia 
+  moderateMedia,
 } from '@/app/actions/media';
 import { cn } from '@/core/utils/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -49,6 +54,12 @@ export function EventGallery({ eventId, isRegistered, isStaff }: EventGalleryPro
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [selectedPhoto, setSelectedPhoto] = useState<any>(null);
+  const [dragOver, setDragOver] = useState(false);
+  const [uploadCaption, setUploadCaption] = useState('');
+  const [uploadTags, setUploadTags] = useState('');
+  const [showUploadForm, setShowUploadForm] = useState(false);
+  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
+  const [shareMenuOpen, setShareMenuOpen] = useState(false);
 
   const loadPhotos = useCallback(async () => {
     setLoading(true);
@@ -67,39 +78,54 @@ export function EventGallery({ eventId, isRegistered, isStaff }: EventGalleryPro
   }, [loadPhotos]);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+    setPendingFiles(files);
+    setShowUploadForm(true);
+  };
 
-    if (!file.type.startsWith('image/')) {
-      toast({ title: "Invalid file", description: "Please upload an image.", variant: "destructive" });
-      return;
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOver(false);
+    const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+    if (files.length > 0) {
+      setPendingFiles(files);
+      setShowUploadForm(true);
     }
+  }, []);
 
+  const processUpload = async () => {
+    if (pendingFiles.length === 0) return;
     setUploading(true);
     try {
-      // Convert file to Base64 for persistent storage in this prototype
-      const reader = new FileReader();
-      const base64Promise = new Promise<string>((resolve, reject) => {
-        reader.onload = () => resolve(reader.result as string);
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      });
+      for (const file of pendingFiles) {
+        const reader = new FileReader();
+        const base64Promise = new Promise<string>((resolve, reject) => {
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
 
-      const base64Data = await base64Promise;
-      const storageId = `img_${Date.now()}`;
+        const base64Data = await base64Promise;
+        const storageId = `img_${Date.now()}_${Math.random().toString(36).substring(7)}`;
 
-      await uploadEventMedia({
-        eventId,
-        url: base64Data, // Use persistent Base64 instead of temporary Blob URL
-        storageId,
-        caption: ""
-      });
+        await uploadEventMedia({
+          eventId,
+          url: base64Data,
+          storageId,
+          caption: uploadCaption || '',
+        });
+      }
 
-      toast({ 
-        title: isStaff ? "Photo shared!" : "Photo submitted!", 
-        description: isStaff ? "Your photo is now live." : "Wait for an organizer to approve your photo." 
+      toast({
+        title: isStaff ? "Photos shared!" : "Photos submitted!",
+        description: isStaff ? "Your photos are now live." : "Wait for an organizer to approve."
       });
       loadPhotos();
+      setShowUploadForm(false);
+      setPendingFiles([]);
+      setUploadCaption('');
+      setUploadTags('');
     } catch (error) {
       toast({ title: "Upload failed", variant: "destructive" });
     } finally {
@@ -124,9 +150,41 @@ export function EventGallery({ eventId, isRegistered, isStaff }: EventGalleryPro
     }
   };
 
+  const handleShare = (platform: string) => {
+    if (!selectedPhoto) return;
+    const url = typeof window !== 'undefined' ? window.location.href : '';
+    const text = `Check out this photo from the event!`;
+    const shareUrls: Record<string, string> = {
+      whatsapp: `https://wa.me/?text=${encodeURIComponent(text + ' ' + url)}`,
+      telegram: `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`,
+      email: `mailto:?subject=${encodeURIComponent('Event Photo')}&body=${encodeURIComponent(text + '\n\n' + url)}`,
+    };
+    if (platform === 'copy') {
+      navigator.clipboard.writeText(url);
+      toast({ title: 'Link copied!' });
+    } else if (shareUrls[platform]) {
+      window.open(shareUrls[platform], '_blank');
+    }
+    setShareMenuOpen(false);
+  };
+
   return (
     <TooltipProvider>
-      <div className="space-y-8 animate-in fade-in duration-500 pb-10">
+      <div
+        className="space-y-8 animate-in fade-in duration-500 pb-10"
+        onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+        onDragLeave={() => setDragOver(false)}
+        onDrop={handleDrop}
+      >
+        {dragOver && (
+          <div className="fixed inset-0 z-50 bg-primary/10 backdrop-blur-sm flex items-center justify-center">
+            <div className="bg-card border-2 border-dashed border-primary rounded-2xl p-12 text-center">
+              <Upload className="h-12 w-12 mx-auto mb-4 text-primary animate-bounce" />
+              <p className="text-lg font-bold">Drop photos here</p>
+            </div>
+          </div>
+        )}
+
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h2 className="text-3xl font-black text-foreground italic flex items-center gap-3">
@@ -136,15 +194,16 @@ export function EventGallery({ eventId, isRegistered, isStaff }: EventGalleryPro
           </div>
           {isRegistered && (
             <div className="flex items-center gap-3">
-              <input 
-                type="file" 
-                ref={fileInputRef} 
-                className="hidden" 
+              <input
+                type="file"
+                ref={fileInputRef}
+                className="hidden"
                 accept="image/*"
-                onChange={handleFileUpload} 
+                multiple
+                onChange={handleFileUpload}
               />
-              <Button 
-                onClick={() => fileInputRef.current?.click()} 
+              <Button
+                onClick={() => fileInputRef.current?.click()}
                 disabled={uploading}
                 className="bg-white text-black hover:bg-cyan-50 rounded-xl font-bold h-11 px-6 shadow-lg shadow-white/5"
               >
@@ -267,8 +326,8 @@ export function EventGallery({ eventId, isRegistered, isStaff }: EventGalleryPro
                     )}
                   </div>
                   
-                  <div className="flex flex-col gap-3 mt-10">
-                    <Button 
+                    <div className="flex flex-col gap-3 mt-10">
+                    <Button
                       className="w-full bg-primary hover:bg-primary/90 text-foreground font-black h-12 rounded-xl"
                       onClick={() => {
                         handleEngagement(selectedPhoto.id, 'download');
@@ -277,10 +336,28 @@ export function EventGallery({ eventId, isRegistered, isStaff }: EventGalleryPro
                     >
                       <Download className="w-4 h-4 mr-2" /> DOWNLOAD HIGH-RES
                     </Button>
-                    
+
+                    <div className="relative">
+                      <Button
+                        variant="outline"
+                        className="w-full h-12 rounded-xl"
+                        onClick={() => setShareMenuOpen(!shareMenuOpen)}
+                      >
+                        <Share2 className="w-4 h-4 mr-2" /> SHARE
+                      </Button>
+                      {shareMenuOpen && (
+                        <div className="absolute bottom-full left-0 right-0 mb-2 bg-card border rounded-xl shadow-lg p-2 space-y-1 z-50">
+                          <button onClick={() => handleShare('whatsapp')} className="w-full px-3 py-2 text-left text-sm rounded-lg hover:bg-muted flex items-center gap-2">WhatsApp</button>
+                          <button onClick={() => handleShare('telegram')} className="w-full px-3 py-2 text-left text-sm rounded-lg hover:bg-muted flex items-center gap-2">Telegram</button>
+                          <button onClick={() => handleShare('email')} className="w-full px-3 py-2 text-left text-sm rounded-lg hover:bg-muted flex items-center gap-2">Email</button>
+                          <button onClick={() => handleShare('copy')} className="w-full px-3 py-2 text-left text-sm rounded-lg hover:bg-muted flex items-center gap-2"><Copy className="h-3 w-3" /> Copy Link</button>
+                        </div>
+                      )}
+                    </div>
+
                     {(user?.id === selectedPhoto.author.id || isStaff) && (
-                      <Button 
-                        variant="ghost" 
+                      <Button
+                        variant="ghost"
                         className="text-destructive hover:text-red-300 hover:bg-red-400/10 font-bold h-12 rounded-xl"
                         onClick={() => handleDelete(selectedPhoto.id)}
                       >
@@ -294,6 +371,50 @@ export function EventGallery({ eventId, isRegistered, isStaff }: EventGalleryPro
           </DialogContent>
         </Dialog>
       </div>
+
+      {/* Upload Form Dialog */}
+      <Dialog open={showUploadForm} onOpenChange={setShowUploadForm}>
+        <DialogContent className="max-w-md">
+          <h3 className="text-lg font-bold">Upload Photos ({pendingFiles.length})</h3>
+          <div className="space-y-4">
+            <div className="grid grid-cols-3 gap-2">
+              {pendingFiles.map((file, i) => (
+                <div key={i} className="relative aspect-square rounded-lg overflow-hidden border">
+                  <img src={URL.createObjectURL(file)} alt="" className="w-full h-full object-cover" />
+                </div>
+              ))}
+            </div>
+            <div>
+              <label className="text-sm font-medium">Caption (optional)</label>
+              <Textarea
+                placeholder="Describe this moment..."
+                value={uploadCaption}
+                onChange={(e) => setUploadCaption(e.target.value)}
+                rows={2}
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Tags (comma separated)</label>
+              <Input
+                placeholder="outdoor, group, sunset..."
+                value={uploadTags}
+                onChange={(e) => setUploadTags(e.target.value)}
+                className="mt-1"
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => { setShowUploadForm(false); setPendingFiles([]); }} className="flex-1">
+                Cancel
+              </Button>
+              <Button onClick={processUpload} disabled={uploading} className="flex-1">
+                {uploading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Upload className="h-4 w-4 mr-2" />}
+                Upload
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </TooltipProvider>
   );
 }

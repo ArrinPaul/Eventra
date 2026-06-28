@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -31,10 +31,13 @@ import {
   Search,
   Mail,
   UserPlus,
+  FileUp,
+  Download,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { createStakeholder, getEventStakeholders, getStakeholderStats, deleteStakeholder } from '@/app/actions/stakeholders';
 import { format } from 'date-fns';
+import Papa from 'papaparse';
 
 const ROLES = [
   { value: 'volunteer', label: 'Volunteer', icon: Shield },
@@ -58,6 +61,13 @@ export function StakeholderManager({ eventId }: StakeholderManagerProps) {
   const [submitting, setSubmitting] = useState(false);
 
   const [form, setForm] = useState({ name: '', email: '', role: 'volunteer' });
+  const [showImportDialog, setShowImportDialog] = useState(false);
+  const [showInviteDialog, setShowInviteDialog] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const [inviting, setInviting] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteRole, setInviteRole] = useState('volunteer');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     loadData();
@@ -115,6 +125,57 @@ export function StakeholderManager({ eventId }: StakeholderManagerProps) {
     }
   };
 
+  const handleCSVImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImporting(true);
+    try {
+      const text = await file.text();
+      const result = Papa.parse(text, { header: true, skipEmptyLines: true });
+      const rows = result.data as any[];
+
+      let successCount = 0;
+      for (const row of rows) {
+        const name = row.Name || row.name || '';
+        const email = row.Email || row.email || '';
+        const role = row.Role || row.role || 'volunteer';
+        if (email) {
+          const res = await createStakeholder({ eventId, name: name || email.split('@')[0], email, role });
+          if (res.success) successCount++;
+        }
+      }
+
+      toast({ title: `Imported ${successCount} of ${rows.length} stakeholders` });
+      setShowImportDialog(false);
+      loadData();
+    } catch (err) {
+      toast({ title: 'Import failed', variant: 'destructive' });
+    } finally {
+      setImporting(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const handleInvite = async () => {
+    if (!inviteEmail) return;
+    setInviting(true);
+    try {
+      const res = await createStakeholder({ eventId, name: inviteEmail.split('@')[0], email: inviteEmail, role: inviteRole });
+      if (res.success) {
+        toast({ title: 'Invitation sent' });
+        setShowInviteDialog(false);
+        setInviteEmail('');
+        loadData();
+      } else {
+        toast({ title: res.error || 'Failed', variant: 'destructive' });
+      }
+    } catch (e) {
+      toast({ title: 'Failed to send invitation', variant: 'destructive' });
+    } finally {
+      setInviting(false);
+    }
+  };
+
   const filtered = stakeholders.filter((s) => {
     const matchesSearch = searchQuery === '' ||
       s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -132,9 +193,18 @@ export function StakeholderManager({ eventId }: StakeholderManagerProps) {
           <h2 className="text-2xl font-bold">Stakeholders</h2>
           <p className="text-muted-foreground text-sm">Manage volunteers, speakers, and organizers</p>
         </div>
-        <Button onClick={() => setShowAddDialog(true)}>
-          <UserPlus className="h-4 w-4 mr-2" /> Add Stakeholder
-        </Button>
+        <div className="flex gap-2">
+          <input type="file" ref={fileInputRef} className="hidden" accept=".csv,.tsv,.txt" onChange={handleCSVImport} />
+          <Button variant="outline" onClick={() => fileInputRef.current?.click()}>
+            <FileUp className="h-4 w-4 mr-2" /> Import CSV
+          </Button>
+          <Button variant="outline" onClick={() => setShowInviteDialog(true)}>
+            <Mail className="h-4 w-4 mr-2" /> Invite
+          </Button>
+          <Button onClick={() => setShowAddDialog(true)}>
+            <UserPlus className="h-4 w-4 mr-2" /> Add
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -246,6 +316,36 @@ export function StakeholderManager({ eventId }: StakeholderManagerProps) {
             <Button variant="outline" onClick={() => setShowAddDialog(false)}>Cancel</Button>
             <Button onClick={handleAdd} disabled={submitting}>
               {submitting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null} Add
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showInviteDialog} onOpenChange={setShowInviteDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Invite Stakeholder</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Email Address</Label>
+              <Input type="email" placeholder="email@example.com" value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)} />
+            </div>
+            <div>
+              <Label>Role</Label>
+              <Select value={inviteRole} onValueChange={setInviteRole}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {ROLES.map(r => <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowInviteDialog(false)}>Cancel</Button>
+            <Button onClick={handleInvite} disabled={inviting || !inviteEmail}>
+              {inviting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Mail className="h-4 w-4 mr-2" />}
+              Send Invite
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -1,12 +1,13 @@
 'use server';
 
 import { db } from '@/lib/db';
-import { eventUpdates, events } from '@/lib/db/schema';
+import { eventUpdates, events, tickets, users } from '@/lib/db/schema';
 import { eq, and, desc } from 'drizzle-orm';
 import { auth } from '@clerk/nextjs/server';
 import { revalidatePath } from 'next/cache';
 import { validateRole } from '@/lib/auth-utils';
 import { logger } from '@/lib/logger';
+import { sendEmail, constructAnnouncementEmail } from '@/core/services/email';
 
 export async function createEventUpdate(data: {
   eventId: string;
@@ -14,6 +15,7 @@ export async function createEventUpdate(data: {
   content: string;
   type?: string;
   sendEmail?: boolean;
+  recipientRoles?: string[];
 }) {
   const user = await validateRole(['organizer', 'admin']);
   if (!user) return { success: false, error: 'Unauthorized' };
@@ -34,7 +36,44 @@ export async function createEventUpdate(data: {
       publishedAt: new Date(),
       createdBy: user.id,
       sendEmail: data.sendEmail ?? true,
+      emailStats: { sent: 0, delivered: 0, opened: 0, clicked: 0, bounced: 0, failed: 0 },
     });
+
+    if (data.sendEmail) {
+      const attendeeTickets = await db
+        .select({ userId: tickets.userId })
+        .from(tickets)
+        .where(and(
+          eq(tickets.eventId, data.eventId),
+          eq(tickets.status, 'checked-in')
+        ));
+
+      let sent = 0;
+      for (const ticket of attendeeTickets) {
+        const attendee = await db.query.users.findFirst({ where: (u, { eq }) => eq(u.id, ticket.userId) });
+        if (!attendee?.email) continue;
+
+        try {
+          const emailContent = constructAnnouncementEmail(
+            attendee.name || 'Attendee',
+            event.title,
+            data.content,
+            data.type || 'general'
+          );
+          await sendEmail({
+            to: attendee.email,
+            subject: emailContent.subject,
+            html: emailContent.html,
+          });
+          sent++;
+          await new Promise(r => setTimeout(r, 100));
+        } catch (e) {
+          logger.error('Failed to send update email', e);
+        }
+      }
+
+      logger.info(`Sent ${sent} update emails for ${event.title}`);
+    }
 
     revalidatePath(`/events/${data.eventId}/notifications`);
     return { success: true };

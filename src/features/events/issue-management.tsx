@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -84,7 +84,9 @@ export function IssueManagement({ eventId, isOrganizer = false }: IssueManagemen
     title: '',
     description: '',
   });
+  const [attachments, setAttachments] = useState<File[]>([]);
   const [submitting, setSubmitting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     loadIssues();
@@ -265,6 +267,27 @@ export function IssueManagement({ eventId, isOrganizer = false }: IssueManagemen
             <div>
               <Label>Description</Label>
               <Textarea placeholder="Detailed description..." rows={4} value={reportForm.description} onChange={(e) => setReportForm({ ...reportForm, description: e.target.value })} />
+            </div>
+            <div>
+              <Label>Attachments (optional)</Label>
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                accept="image/*,.pdf,.doc,.docx"
+                className="hidden"
+                onChange={(e) => setAttachments(Array.from(e.target.files || []))}
+              />
+              <Button variant="outline" className="w-full mt-1" onClick={() => fileInputRef.current?.click()}>
+                {attachments.length > 0 ? `${attachments.length} file(s) selected` : 'Add Files'}
+              </Button>
+              {attachments.length > 0 && (
+                <div className="flex flex-wrap gap-1 mt-2">
+                  {attachments.map((f, i) => (
+                    <Badge key={i} variant="secondary" className="text-[10px]">{f.name}</Badge>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
           <DialogFooter>

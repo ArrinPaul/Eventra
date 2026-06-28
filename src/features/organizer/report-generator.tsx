@@ -7,10 +7,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, FileText, Download, Sparkles, BarChart3, TrendingUp, MessageSquare } from 'lucide-react';
+import { Loader2, FileText, Download, Sparkles, BarChart3, TrendingUp, MessageSquare, FileImage } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { generateAndSaveReport, getEventReports } from '@/app/actions/reports';
 import { format } from 'date-fns';
+import jsPDF from 'jspdf';
 
 interface ReportGeneratorProps {
   eventId: string;
@@ -78,6 +79,55 @@ export function ReportGenerator({ eventId }: ReportGeneratorProps) {
     URL.revokeObjectURL(url);
   };
 
+  const handleExportPDF = () => {
+    if (!report) return;
+    const doc = new jsPDF();
+    let y = 20;
+
+    doc.setFontSize(20);
+    doc.setFont('helvetica', 'bold');
+    doc.text(report.eventTitle || 'Event Report', 105, y, { align: 'center' });
+    y += 15;
+
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Generated: ${format(new Date(report.generatedAt), 'PPpp')}`, 105, y, { align: 'center' });
+    y += 10;
+    doc.text(`Attendees: ${report.totalAttendees} | Revenue: $${report.totalRevenue} | Rating: ${report.averageRating?.toFixed(1) || 'N/A'}/5`, 105, y, { align: 'center' });
+    y += 15;
+
+    const sections = [
+      { key: 'executiveSummary', title: 'Executive Summary' },
+      { key: 'performanceAnalysis', title: 'Performance Analysis' },
+      { key: 'financialSummary', title: 'Financial Summary' },
+      { key: 'feedbackAnalysis', title: 'Feedback Analysis' },
+      { key: 'keyAchievements', title: 'Key Achievements' },
+      { key: 'recommendations', title: 'Recommendations' },
+    ];
+
+    for (const section of sections) {
+      if (!report[section.key]) continue;
+      if (y > 260) { doc.addPage(); y = 20; }
+
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text(section.title, 20, y);
+      y += 8;
+
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      const lines = doc.splitTextToSize(report[section.key], 170);
+      for (const line of lines) {
+        if (y > 280) { doc.addPage(); y = 20; }
+        doc.text(line, 20, y);
+        y += 5;
+      }
+      y += 10;
+    }
+
+    doc.save(`event-report-${format(new Date(), 'yyyy-MM-dd')}.pdf`);
+  };
+
   const sections = [
     { key: 'executiveSummary', title: 'Executive Summary', icon: FileText },
     { key: 'performanceAnalysis', title: 'Performance Analysis', icon: BarChart3 },
@@ -95,9 +145,14 @@ export function ReportGenerator({ eventId }: ReportGeneratorProps) {
           <p className="text-muted-foreground text-sm">AI-generated post-event analysis</p>
         </div>
         {report && (
-          <Button variant="outline" onClick={handleExportJSON}>
-            <Download className="h-4 w-4 mr-2" /> Export JSON
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={handleExportJSON}>
+              <Download className="h-4 w-4 mr-2" /> JSON
+            </Button>
+            <Button variant="outline" onClick={handleExportPDF}>
+              <FileImage className="h-4 w-4 mr-2" /> PDF
+            </Button>
+          </div>
         )}
       </div>
 

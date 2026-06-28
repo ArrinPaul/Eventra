@@ -6,6 +6,8 @@ import { eq, and, desc, sql, avg } from 'drizzle-orm';
 import { validateRole, validateEventOwnership } from '@/lib/auth-utils';
 import { revalidatePath } from 'next/cache';
 import { auth } from '@clerk/nextjs/server';
+import { sendEmail, constructFeedbackEmail } from '@/core/services/email';
+import { logger } from '@/lib/logger';
 
 /**
  * Upsert a feedback template
@@ -97,21 +99,24 @@ export async function submitEventFeedback(data: {
   rating: number;
   comment?: string;
   responses?: any;
+  isAnonymous?: boolean;
 }) {
   const { userId } = await auth();
   if (!userId) throw new Error('Authentication required');
 
-  // Verify the user actually attended/checked-in
-  const ticket = await db.query.tickets.findFirst({
-    where: and(
-      eq(tickets.eventId, data.eventId),
-      eq(tickets.userId, userId),
-      eq(tickets.status, 'checked-in')
-    )
-  });
+  // Verify the user actually attended/checked-in (skip for anonymous)
+  if (!data.isAnonymous) {
+    const ticket = await db.query.tickets.findFirst({
+      where: and(
+        eq(tickets.eventId, data.eventId),
+        eq(tickets.userId, userId),
+        eq(tickets.status, 'checked-in')
+      )
+    });
 
-  if (!ticket) {
-    throw new Error('You can only leave feedback for events you have attended.');
+    if (!ticket) {
+      throw new Error('You can only leave feedback for events you have attended.');
+    }
   }
 
   // Verify the user hasn't already submitted feedback
@@ -183,5 +188,56 @@ export async function getEventFeedbackAnalytics(eventId: string) {
   } catch (error) {
     console.error('getEventFeedbackAnalytics Error:', error);
     throw new Error('Failed to load analytics');
+  }
+}
+
+/**
+ * Send feedback request emails to all attendees
+ */
+export async function sendFeedbackEmails(eventId: string) {
+  const user = await validateRole(['organizer', 'admin']);
+  await validateEventOwnership(eventId);
+
+  try {
+    const event = await db.query.events.findFirst({ where: eq(events.id, eventId) });
+    if (!event) throw new Error('Event not found');
+
+    const attendeeTickets = await db
+      .select({ userId: tickets.userId })
+      .from(tickets)
+      .where(and(
+        eq(tickets.eventId, eventId),
+        eq(tickets.status, 'checked-in')
+      ));
+
+    let sent = 0;
+    let failed = 0;
+
+    for (const ticket of attendeeTickets) {
+      const attendee = await db.query.users.findFirst({ where: (u, { eq }) => eq(u.id, ticket.userId) });
+      if (!attendee?.email) { failed++; continue; }
+
+      try {
+        const emailContent = constructFeedbackEmail(
+          attendee.name || 'Attendee',
+          event.title,
+          `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:9002'}/events/${eventId}/feedbacks`
+        );
+        await sendEmail({
+          to: attendee.email,
+          subject: emailContent.subject,
+          html: emailContent.html,
+        });
+        sent++;
+        await new Promise(r => setTimeout(r, 100));
+      } catch (e) {
+        failed++;
+      }
+    }
+
+    return { success: true, sent, failed };
+  } catch (error) {
+    logger.error('Failed to send feedback emails', error);
+    throw new Error('Failed to send feedback emails');
   }
 }
