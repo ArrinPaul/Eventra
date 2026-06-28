@@ -106,10 +106,10 @@
 - [x] **Payment Webhook** — `POST /api/webhooks/dodo` handler
 - [x] **Dodo Product Creation** — Lazy product creation for paid events
 - [x] **Free Registration** — Direct ticket creation for free events
-- [ ] **Order Model** — Dedicated payment transaction records
-- [ ] **Refund Handling** — Webhook-based refund processing
+- [x] **Order Model** — `orders` table with createOrder, getOrder, getUserOrders, getEventOrders, refundOrder
+- [x] **Refund Handling** — Webhook-based refund with order/ticket status update and capacity restore
 
-**Status: 6/8 complete**
+**Status: 8/8 complete** ✅
 
 ---
 
@@ -122,14 +122,14 @@
 - [x] **Recommendation Caching** — `ai_recommendation_cache` table
 - [x] **Embedding Generation** — Auto-generate on first fetch
 - [x] **AI Task Generation** — Structured Kanban task generation with event-type prompts
-- [ ] **AI Location Prediction** — Roboflow + Gemini + GPS hybrid
+- [x] **AI Location Prediction** — Hybrid GPS + AI with configurable weights, agreement boost, suggestions
 - [x] **AI Report Generation** — Structured event reports (6 sections)
 - [x] **AI Social Post Generator** — Multi-platform social media content
 - [x] **Attendance Predictor** — ML-based attendance forecasting
 - [x] **Event-Type Specific Prompts** — Hackathon, seminar, cultural, sports templates
 - [x] **Fallback Tasks** — Hardcoded fallback when AI fails
 
-**Status: 12/13 complete**
+**Status: 13/13 complete** ✅
 
 ---
 
@@ -581,8 +581,8 @@
 | 1. Auth & User Management | 22 | 22 | 100% ✅ |
 | 2. Event Management | 20 | 20 | 100% ✅ |
 | 3. Ticketing System | 17 | 17 | 100% ✅ |
-| 4. Payment Integration | 6 | 8 | 75% |
-| 5. AI Features | 12 | 13 | 92% |
+| 4. Payment Integration | 8 | 8 | 100% ✅ |
+| 5. AI Features | 13 | 13 | 100% ✅ |
 | 6. Map & Navigation | 7 | 15 | 47% |
 | 7. Photo Gallery | 3 | 11 | 27% |
 | 8. Certificate System | 7 | 14 | 50% |
@@ -603,7 +603,7 @@
 | 23. API Routes | 4 | 36 | 11% |
 | 24. Environment Variables | 7 | 17 | 41% |
 | 25. Email System | 7 | 10 | 70% |
-| **TOTAL** | **252** | **369** | **68%** |
+| **TOTAL** | **263** | **369** | **71%** |
 
 ---
 

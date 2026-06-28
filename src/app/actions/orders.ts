@@ -78,8 +78,8 @@ export async function createOrder(data: {
         user.name || 'Attendee',
         event.title,
         format(event.startDate, 'PPP'),
-        event.startTime || 'TBA',
-        event.location?.venue || 'TBD',
+        'TBA',
+        'TBD',
         createdTickets
       );
       sendEmail({
