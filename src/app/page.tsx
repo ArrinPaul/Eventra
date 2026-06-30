@@ -18,7 +18,7 @@ export default function Page() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen bg-notion-canvas-soft">
+      <div className="flex items-center justify-center h-screen bg-background">
         <div className="flex flex-col items-center gap-4">
            <div className="w-10 h-10 rounded-full border-2 border-notion-hairline border-t-notion-primary animate-spin" />
            <p className="text-body-sm text-notion-ink-muted">Syncing workspace...</p>
@@ -33,7 +33,7 @@ export default function Page() {
   }
 
   return (
-    <div className="min-h-screen bg-notion-canvas-soft flex">
+    <div className="min-h-screen bg-background flex">
       <Sidebar />
       <main className="flex-1 ml-[64px] md:ml-[240px] transition-[margin] duration-300 min-h-screen">
         <div className="p-4 md:p-8 max-w-[1400px] mx-auto">

@@ -4,33 +4,33 @@
 
 @layer base {
   :root {
-    /* Notion Colors - Light Mode */
-    --notion-primary: 211 100% 44%; /* #0075de */
-    --notion-primary-active: 208 100% 34%; /* #005bab */
-    --notion-secondary: 231 60% 32%; /* #213183 */
+    /* Premium Brand Colors - Violet Indigo Theme */
+    --notion-primary: 250 95% 62%; /* Vibrant Royal Violet */
+    --notion-primary-active: 250 90% 52%; /* Slightly darker for active states */
+    --notion-secondary: 240 10% 15%; /* Sleek Slate */
     --notion-on-primary: 0 0% 100%;
     
-    --notion-canvas: 0 0% 100%; /* #ffffff */
-    --notion-canvas-soft: 20 5% 96%; /* #f6f5f4 */
-    --notion-surface: 0 0% 100%; /* #ffffff */
+    --notion-canvas: 0 0% 100%; /* Pure white surface */
+    --notion-canvas-soft: 240 15% 98%; /* Soft cool grayish background */
+    --notion-surface: 0 0% 100%;
     
-    --notion-ink: 0 0% 0%; /* #000000 */
-    --notion-ink-secondary: 20 3% 19%; /* #31302e */
-    --notion-ink-muted: 33 5% 37%; /* #615d59 */
-    --notion-ink-faint: 33 6% 62%; /* #a39e98 */
+    --notion-ink: 240 10% 3.9%; /* Deep black-slate for high contrast */
+    --notion-ink-secondary: 240 5% 26%;
+    --notion-ink-muted: 240 4% 46%;
+    --notion-ink-faint: 240 4% 65%;
     
-    --notion-hairline: 0 0% 90%; /* #e6e6e6 */
+    --notion-hairline: 240 6% 90%; /* Soft neutral border */
     
-    /* Sticker Palette */
-    --notion-accent-sky: 208 83% 66%; /* #62aef0 */
-    --notion-accent-purple: 271 74% 84%; /* #d6b6f6 */
-    --notion-accent-purple-deep: 271 51% 22%; /* #391c57 */
-    --notion-accent-pink: 321 100% 70%; /* #ff64c8 */
-    --notion-accent-orange: 25 100% 43%; /* #dd5b00 */
-    --notion-accent-orange-deep: 26 100% 24%; /* #793400 */
-    --notion-accent-teal: 178 58% 39%; /* #2a9d99 */
-    --notion-accent-green: 133 74% 39%; /* #1aae39 */
-    --notion-accent-brown: 33 67% 19%; /* #523410 */
+    /* Sticker / Accent Palette - Refined for brand harmony */
+    --notion-accent-sky: 210 96% 70%;
+    --notion-accent-purple: 265 89% 78%;
+    --notion-accent-purple-deep: 265 60% 30%;
+    --notion-accent-pink: 325 90% 68%;
+    --notion-accent-orange: 24 95% 55%;
+    --notion-accent-orange-deep: 24 75% 30%;
+    --notion-accent-teal: 175 75% 40%;
+    --notion-accent-green: 142 70% 45%;
+    --notion-accent-brown: 30 50% 30%;
 
     /* Shadcn compatibility (internal mapping) */
     --background: var(--notion-canvas-soft);
@@ -41,12 +41,12 @@
     --popover-foreground: var(--notion-ink);
     --primary: var(--notion-primary);
     --primary-foreground: var(--notion-on-primary);
-    --secondary: var(--notion-canvas-soft);
+    --secondary: 240 4.8% 95.9%;
     --secondary-foreground: var(--notion-ink-secondary);
-    --muted: var(--notion-canvas-soft);
+    --muted: 240 4.8% 95%;
     --muted-foreground: var(--notion-ink-muted);
-    --accent: var(--notion-canvas-soft);
-    --accent-foreground: var(--notion-ink);
+    --accent: 250 95% 97.5%; /* Soft violet tint for active/hover */
+    --accent-foreground: var(--notion-primary);
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
     --border: var(--notion-hairline);
@@ -56,33 +56,48 @@
   }
 
   .dark {
-    /* Notion Colors - Dark Mode Inversions */
-    --notion-canvas: 0 0% 12%; /* #1f1f1f */
-    --notion-canvas-soft: 0 0% 10%; /* #191919 */
-    --notion-surface: 0 0% 15%; /* #262626 */
+    /* Premium Brand Colors - Dark Mode */
+    --notion-primary: 250 95% 66%; /* Glowing Neon Violet */
+    --notion-primary-active: 250 90% 58%;
+    --notion-secondary: 240 5% 85%;
     
-    --notion-ink: 0 0% 100%; /* #ffffff */
-    --notion-ink-secondary: 0 0% 90%; /* #e6e6e6 */
-    --notion-ink-muted: 0 0% 70%; /* #b3b3b3 */
-    --notion-ink-faint: 0 0% 50%; /* #808080 */
+    --notion-canvas: 240 15% 10%; /* Midnight slate surface (#15151c) */
+    --notion-canvas-soft: 240 15% 6%; /* Deep midnight background (#0c0c10) */
+    --notion-surface: 240 12% 14%; /* Raised surface (#1c1c24) */
     
-    --notion-hairline: 0 0% 25%; /* #404040 */
+    --notion-ink: 0 0% 98%; /* High contrast off-white */
+    --notion-ink-secondary: 240 5% 90%;
+    --notion-ink-muted: 240 5% 65%;
+    --notion-ink-faint: 240 5% 45%;
+    
+    --notion-hairline: 240 8% 18%; /* Subtle dark border */
+
+    /* Sticker / Accent Palette - Softer glows for dark mode */
+    --notion-accent-sky: 210 96% 75%;
+    --notion-accent-purple: 265 89% 82%;
+    --notion-accent-purple-deep: 265 50% 25%;
+    --notion-accent-pink: 325 90% 74%;
+    --notion-accent-orange: 24 95% 65%;
+    --notion-accent-orange-deep: 24 60% 25%;
+    --notion-accent-teal: 175 75% 55%;
+    --notion-accent-green: 142 70% 55%;
+    --notion-accent-brown: 30 40% 25%;
 
     /* Shadcn compatibility (dark mode) */
     --background: var(--notion-canvas-soft);
     --foreground: var(--notion-ink);
-    --card: var(--notion-surface);
+    --card: var(--notion-canvas);
     --card-foreground: var(--notion-ink);
     --popover: var(--notion-surface);
     --popover-foreground: var(--notion-ink);
     --primary: var(--notion-primary);
     --primary-foreground: var(--notion-on-primary);
-    --secondary: var(--notion-canvas-soft);
+    --secondary: 240 6% 14%; /* Distinct from background */
     --secondary-foreground: var(--notion-ink-secondary);
-    --muted: var(--notion-canvas-soft);
+    --muted: 240 6% 12%;
     --muted-foreground: var(--notion-ink-muted);
-    --accent: var(--notion-canvas-soft);
-    --accent-foreground: var(--notion-ink);
+    --accent: 250 30% 12%; /* Dark violet accent glow */
+    --accent-foreground: var(--notion-primary);
     --border: var(--notion-hairline);
     --input: var(--notion-hairline);
     --ring: var(--notion-primary);
@@ -91,10 +106,31 @@
 
 @layer base {
   * {
-    @apply border-border outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ring-offset-background;
+    @apply border-border outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ring-offset-background transition-colors duration-150;
   }
   body {
     @apply bg-background text-foreground font-sans antialiased overflow-x-hidden w-full;
+  }
+}
+
+/* Specific UI Consistency Fixes for Hardcoded Backgrounds */
+@layer utilities {
+  /* Cards, search blocks, layouts, and panels using hardcoded white/zinc bg combinations */
+  .bg-white.dark\:bg-zinc-950,
+  .bg-white.dark\:bg-zinc-900,
+  .bg-white.dark\:bg-black {
+    background-color: hsl(var(--card)) !important;
+  }
+  
+  .dark .bg-white.dark\:bg-zinc-950,
+  .dark .bg-white.dark\:bg-zinc-900,
+  .dark .bg-white.dark\:bg-black {
+    background-color: hsl(var(--card)) !important;
+  }
+
+  /* Borders that are hardcoded to grey/notion hairline fallback */
+  .border-notion-hairline {
+    border-color: hsl(var(--border)) !important;
   }
 }
 
@@ -108,7 +144,7 @@
   }
   
   .dark .shadow-notion-soft {
-    box-shadow: rgba(0,0,0,0.1) 0 4px 18px;
+    box-shadow: rgba(0,0,0,0.15) 0 4px 20px;
   }
 
   .shadow-notion-elevated {
@@ -120,20 +156,20 @@
   }
 
   .dark .shadow-notion-elevated {
-    box-shadow: rgba(0,0,0,0.2) 0 23px 52px;
+    box-shadow: rgba(0,0,0,0.25) 0 23px 52px;
   }
 }
 
 /* Custom Scrollbar - Notion Style */
 ::-webkit-scrollbar {
-  width: 12px;
-  height: 12px;
+  width: 10px;
+  height: 10px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  @apply bg-notion-hairline border-[3px] border-solid border-transparent bg-clip-padding rounded-full hover:bg-notion-ink-faint transition-colors;
+  @apply bg-notion-hairline border-[2px] border-solid border-transparent bg-clip-padding rounded-full hover:bg-notion-ink-faint transition-colors;
 }
 
 /* Legacy Utility classes - Linear/Vercel Inspired for Landing Page */
@@ -157,10 +193,10 @@
   .premium-bg::before {
     content: '';
     @apply absolute inset-0 -z-10 opacity-30 pointer-events-none;
-    background: radial-gradient(circle at 50% -20%, hsla(var(--notion-primary), 0.12) 0%, transparent 60%);
+    background: radial-gradient(circle at 50% -20%, hsla(var(--notion-primary), 0.15) 0%, transparent 60%);
   }
 
   .mesh-glow {
-    background: radial-gradient(circle at 50% -10%, hsla(var(--notion-primary), 0.08) 0%, transparent 70%);
+    background: radial-gradient(circle at 50% -10%, hsla(var(--notion-primary), 0.1) 0%, transparent 70%);
   }
 }

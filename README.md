@@ -16,13 +16,7 @@ An enterprise-grade event management platform that automates the full lifecycle 
 - [Tech Stack](#tech-stack)
 - [Project Structure](#project-structure)
 - [Core Systems](#core-systems)
-  - [Authentication and Authorization](#authentication-and-authorization)
-  - [Event Lifecycle](#event-lifecycle)
-  - [Ticketing and Payments](#ticketing-and-payments)
-  - [AI Intelligence Engine](#ai-intelligence-engine)
-  - [Vector Recommendation Engine](#vector-recommendation-engine)
-  - [Communication Hub](#communication-hub)
-  - [Campus Map and Navigation](#campus-map-and-navigation)
+- [Core Systems](#core-systems)
 - [Database](#database)
 - [API Routes](#api-routes)
 - [Server Actions](#server-actions)
@@ -109,101 +103,18 @@ graph TD
 ```
 Eventra/
 ├── src/
-│   ├── app/                              # Next.js App Router
-│   │   ├── (app)/                        # Authenticated routes (33 pages with sidebar)
-│   │   │   ├── admin/                    # Admin dashboard, user management
-│   │   │   ├── events/                   # Event CRUD, detail, edit, create
-│   │   │   ├── tickets/                  # User ticket management
-│   │   │   ├── community/                # Community feeds and discussions
-│   │   │   ├── chat/                     # Real-time messaging
-│   │   │   ├── certificates/             # Certificate management and verification
-│   │   │   ├── organizer/                # Organizer tools, analytics, reports, media
-│   │   │   ├── map/                      # Interactive campus map with pathfinding
-│   │   │   ├── gamification/             # Badges, challenges, XP system
-│   │   │   ├── networking/               # Professional networking hub
-│   │   │   ├── matchmaking/              # AI-powered connection matching
-│   │   │   ├── check-in/                 # Attendee check-in dashboard
-│   │   │   ├── check-in-scanner/         # QR code scanner for check-in
-│   │   │   ├── analytics/                # Event analytics dashboard
-│   │   │   ├── feedback/                 # Feedback forms and responses
-│   │   │   ├── preferences/              # User settings and preferences
-│   │   │   └── profile/                  # User profiles with social features
-│   │   ├── (auth)/                       # Unauthenticated routes
-│   │   │   ├── login/                    # Clerk login
-│   │   │   ├── register/                 # Clerk registration
-│   │   │   └── onboarding/               # Post-registration profile wizard
-│   │   ├── api/                          # 21 API Route Handlers
-│   │   │   ├── webhooks/clerk/           # Clerk user sync webhook
-│   │   │   ├── webhooks/dodo/            # Dodo Payments webhook
-│   │   │   ├── ai/chat/                  # AI chatbot endpoint
-│   │   │   ├── tickets/verify/           # Ticket verification
-│   │   │   ├── certificates/             # Generate, distribute, preview
-│   │   │   ├── feedback/                 # Submit and responses
-│   │   │   ├── issues/                   # Issue tracking CRUD
-│   │   │   ├── stakeholders/             # Stakeholder management
-│   │   │   ├── tasks/                    # Kanban task operations
-│   │   │   ├── event-updates/            # Event announcements
-│   │   │   ├── reports/                  # AI report generation
-│   │   │   ├── predict/                  # Location prediction
-│   │   │   ├── send-email/               # Email sending
-│   │   │   ├── health/                   # Health check with DB connectivity
-│   │   │   └── event-gallery/            # Photo gallery
-│   │   ├── actions/                      # 44 Server Action files
-│   │   ├── globals.css                   # Global styles with CSS variables
-│   │   ├── layout.tsx                    # Root layout with providers
-│   │   └── page.tsx                      # Landing page
-│   ├── features/                         # Feature-first modules (25 domains)
-│   │   ├── events/                       # Event components and forms
-│   │   ├── ticketing/                    # Ticket display and management
-│   │   ├── ai/                           # AI-powered components
-│   │   ├── chat/                         # Chat interface components
-│   │   ├── community/                    # Community and social components
-│   │   ├── certificates/                 # Certificate builder and viewer
-│   │   ├── map/                          # Interactive SVG campus map
-│   │   ├── gamification/                 # Badge showcase and leaderboard
-│   │   ├── networking/                   # Networking hub components
-│   │   ├── matchmaking/                  # Match suggestion cards
-│   │   ├── admin/                        # Admin panel components
-│   │   ├── analytics/                    # Chart and dashboard components
-│   │   ├── feedback/                     # Feedback form components
-│   │   ├── organizer/                    # Organizer tool components
-│   │   ├── profile/                      # Profile display components
-│   │   ├── feed/                         # Activity feed components
-│   │   ├── notifications/                # Notification components
-│   │   ├── check-in/                     # Check-in components
-│   │   ├── export/                       # Data export components
-│   │   ├── home/                         # Home page components
-│   │   ├── dashboard/                    # Dashboard widgets
-│   │   ├── preferences/                  # Settings components
-│   │   ├── leaderboard/                  # Ranking display
-│   │   ├── search/                       # Search components
-│   │   └── auth/                         # Auth-related components
-│   ├── components/                       # Shared Shadcn/ui components (48)
-│   ├── core/                             # Core business logic
-│   │   ├── auth/                         # Session token management
-│   │   ├── services/                     # Email, SEO, locale services
-│   │   ├── utils/                        # Crypto (QR signing), certificate generation
-│   │   └── config/                       # App configuration
+│   ├── app/                              # Next.js App Router & Server Actions
+│   ├── features/                         # Feature-first modular domains
+│   ├── components/                       # Shared UI components (shadcn/ui)
+│   ├── core/                             # Core business services, auth & config
 │   ├── hooks/                            # Custom React hooks
-│   ├── i18n/                             # Internationalization config
-│   ├── lib/                              # Shared libraries
-│   │   ├── db/                           # Database connection and 32-table schema
-│   │   ├── ai/                           # Genkit AI flows
-│   │   ├── supabase/                     # Supabase client
-│   │   ├── auth-utils.ts                 # 9 auth utility functions
-│   │   ├── rate-limit.ts                 # DB-backed rate limiting
-│   │   ├── logger.ts                     # Structured JSON logging
-│   │   ├── campus-locations.ts           # 11 campus location definitions
-│   │   ├── gps-service.ts                # GPS singleton service
-│   │   ├── gps-utils.ts                  # Haversine distance, campus bounds
-│   │   └── hybrid-prediction.ts          # GPS + AI location prediction
+│   ├── lib/                              # Shared libraries (db, AI flows, rate limiting)
 │   ├── types/                            # TypeScript type definitions
-│   └── middleware.ts                      # Clerk middleware with route protection
+│   └── middleware.ts                     # Auth middleware
 ├── drizzle/                              # Database migration files
 ├── scripts/                              # Build, seed, and utility scripts
 ├── public/                               # Static assets
-├── messages/                             # i18n translation files (en, es)
-└── [config files]                        # next.config.ts, drizzle.config.ts, etc.
+└── messages/                             # i18n translation files
 ```
 
 ---
@@ -214,36 +125,7 @@ Eventra/
 
 Eventra uses Clerk for authentication with a layered authorization system. The middleware intercepts all non-public routes and enforces authentication. Admin routes receive additional role-based protection.
 
-```mermaid
-sequenceDiagram
-    participant U as User
-    participant M as Middleware
-    participant C as Clerk
-    participant SA as Server Action
-    participant DB as Database
 
-    U->>M: Request to protected route
-    M->>C: auth.protect()
-    alt Authenticated
-        C-->>M: Auth object with sessionClaims
-        alt Admin route
-            M->>M: Check role === admin
-            alt Not admin
-                M-->>U: Redirect to /
-            end
-        end
-        M-->>U: Proceed to route
-    else Not authenticated
-        C-->>M: Redirect to sign-in
-        M-->>U: 302 to /login
-    end
-
-    U->>SA: Server Action call
-    SA->>SA: requireAuth() or validateEventOwnership()
-    SA->>DB: Query with user context
-    DB-->>SA: Result
-    SA-->>U: Response
-```
 
 **Role Hierarchy:**
 
@@ -278,28 +160,7 @@ sequenceDiagram
 
 Events flow through a defined lifecycle from creation to post-event analytics.
 
-```mermaid
-stateDiagram-v2
-    [*] --> Draft: Create Event
-    Draft --> Published: Publish
-    Draft --> Cancelled: Cancel
-    Published --> Active: Event Start Date
-    Published --> Cancelled: Cancel
-    Active --> Completed: Event End Date
-    Completed --> Archived: Auto-archive
 
-    state Published {
-        [*] --> RegistrationOpen
-        RegistrationOpen --> WaitlistActive: Capacity Full
-        WaitlistActive --> RegistrationOpen: Spot Available
-    }
-
-    state Active {
-        [*] --> CheckInOpen
-        CheckInOpen --> LiveEvent
-        LiveEvent --> FeedbackCollection
-    }
-```
 
 **Event Features:**
 - Multi-step creation wizard with AI-assisted scheduling
@@ -317,29 +178,7 @@ stateDiagram-v2
 
 The ticketing system handles multi-tier pricing, QR-based check-in, waitlists, and payment processing through Dodo Payments.
 
-```mermaid
-sequenceDiagram
-    participant U as Attendee
-    participant SA as Server Action
-    participant P as Dodo Payments
-    participant DB as Database
-    participant E as Email Service
 
-    U->>SA: Register for Event
-    alt Free Event
-        SA->>DB: Create Order + Tickets
-        SA->>E: Send Confirmation Email
-    else Paid Event
-        SA->>P: Create Checkout Session
-        P-->>U: Redirect to Checkout
-        U->>P: Complete Payment
-        P->>SA: Webhook: payment.completed
-        SA->>DB: Verify Svix Signature
-        SA->>DB: Create Order + Tickets
-        SA->>E: Send Confirmation Email
-    end
-    DB-->>U: Tickets with QR codes + Entry codes
-```
 
 **Ticket Features:**
 - Multi-tier pricing per event (VIP, Early Bird, General, etc.)
@@ -364,37 +203,7 @@ sequenceDiagram
 
 Powered by Google Gemini 1.5 Flash through the Genkit framework, the AI engine provides automation across event planning, content generation, and analytics.
 
-```mermaid
-graph LR
-    subgraph Input["Input Sources"]
-        A["Event Specs"]
-        B["User Bio/Interests"]
-        C["Registration Trends"]
-        D["Historical Data"]
-    end
 
-    subgraph Processing["Genkit Flow Router"]
-        A --> E{"Flow Router"}
-        B --> E
-        C --> E
-        E --> F["Content Generation"]
-        E --> G["Prediction Model"]
-        E --> H["Embedding Generator"]
-        E --> I["Task Planner"]
-    end
-
-    subgraph Output["Gemini 1.5 Flash"]
-        F --> J["Descriptions, Agendas, Copy"]
-        G --> K["Attendance Forecasts"]
-        H --> L["768-dim Vectors"]
-        I --> M["Kanban Task Lists"]
-    end
-
-    J --> N[("PostgreSQL")]
-    K --> O["Organizer Dashboard"]
-    L --> N
-    M --> P["Task Board"]
-```
 
 **AI Capabilities:**
 
@@ -415,28 +224,7 @@ graph LR
 
 Eventra uses pgvector with 768-dimensional embeddings for semantic matching between users and events.
 
-```mermaid
-graph TD
-    subgraph Embedding["Embedding Pipeline"]
-        A["User Profile + Interests"] --> B["Gemini Embedding API"]
-        C["Event Data + Description"] --> B
-        B --> D["768-dim Vector"]
-    end
 
-    subgraph Search["Semantic Search"]
-        D --> E{"pgvector Cosine Similarity"}
-        F["Stored Embeddings"] --> E
-        E --> G["Ranked Results"]
-    end
-
-    subgraph Output["Recommendation Output"]
-        G --> H["Personalized Explore Feed"]
-        G --> I["Matchmaking Suggestions"]
-        G --> J["Connection Recommendations"]
-    end
-
-    H --> K["Cached in ai_recommendation_cache"]
-```
 
 **Vector Features:**
 - User interest embeddings generated from bio, skills, and preferences
@@ -451,26 +239,7 @@ graph TD
 
 Multi-channel communication system supporting real-time chat, email, and SMS notifications.
 
-```mermaid
-graph TD
-    A["Event/System Trigger"] --> B{"Notification Dispatcher"}
-    B -->|"Email"| C["Resend API"]
-    B -->|"SMS"| D["Twilio API"]
-    B -->|"In-App"| E["notifications table"]
-    B -->|"Chat"| F["chat_messages table"]
 
-    C --> G["7 Email Templates"]
-    G --> G1["Registration Confirmation"]
-    G --> G2["Certificate Ready"]
-    G --> G3["Event Announcement"]
-    G --> G4["Feedback Request"]
-    G --> G5["Thank You"]
-    G --> G6["Ticket Details"]
-    G --> G7["Event Update"]
-
-    E --> H["Real-time UI Update"]
-    F --> I["Chat Interface"]
-```
 
 **Communication Features:**
 - 7 HTML email templates with gradient headers
@@ -566,122 +335,20 @@ erDiagram
     TAGS ||--o{ EVENT_TAGS : links
 ```
 
-**Table Groups:**
-
-| Domain | Tables | Key Features |
-|--------|--------|-------------|
-| User Management | users, follows, user_badges | Profile, roles, gamification, pgvector embedding |
-| Events | events, event_tags, event_media, event_updates, event_staff | CRUD, categories, tags, media, staff |
-| Ticketing | tickets, ticket_tiers, waitlist, orders | Multi-tier, QR codes, entry codes, payments |
-| Community | communities, community_members, posts, comments, activity_feed | Social features, feeds, discussions |
-| Chat | chat_rooms, chat_participants, chat_messages | Direct, group, event-specific rooms |
-| AI | ai_chat_sessions, ai_chat_messages, ai_recommendation_cache | Chat persistence, recommendation caching |
-| Feedback | feedback_templates, feedback_responses, event_feedback | Custom forms, NPS calculation, analytics |
-| Certificates | certificate_templates | Visual builder, PDF generation, bulk distribution |
-| Operations | issues, kanban_tasks, reports, stakeholders, sponsors, sponsor_leads | Issue tracking, task management, reporting |
-| Maps | event_maps, event_map_nodes | Per-event custom maps, node placement, pathfinding |
-| Security | rate_limits | Per-user, per-scope rate limiting |
-| Tags | tags, event_tags | Event categorization and filtering |
-| Ingestion | ingestion_sources | External event scraping sources |
-
 ---
 
 ## API Routes
 
-### Webhook Endpoints (Signature Verified)
-
-| Method | Path | Auth | Description |
-|--------|------|------|-------------|
-| POST | `/api/webhooks/clerk` | Svix signature | User sync from Clerk to database |
-| POST | `/api/webhooks/dodo` | Svix signature | Payment completion and refund handling |
-
-### Protected API Routes (Auth + Rate Limited)
-
-| Method | Path | Auth | Rate Limit | Description |
-|--------|------|------|------------|-------------|
-| POST | `/api/ai/chat` | Required | 15/min | AI chatbot with conversation history |
-| POST | `/api/tickets/verify` | Staff permission | 30/min | Ticket check-in verification |
-| POST | `/api/reports` | Event ownership | 5/min | AI report generation |
-| POST | `/api/predict` | Required | 20/min | Location prediction |
-| POST | `/api/feedback/submit` | Required | 5/min | Submit event feedback |
-| GET | `/api/feedback/responses` | Event ownership | 30/min | Get feedback analytics |
-| POST | `/api/send-email` | Required | Auth only | Send transactional email |
-| POST/GET | `/api/tasks` | Event ownership | 30-60/min | Kanban task CRUD |
-| POST | `/api/tasks/generate` | Event ownership | 10/min | AI task generation |
-| POST/GET | `/api/stakeholders` | Event ownership | 20-30/min | Stakeholder management |
-| POST/GET | `/api/issues` | Auth/Ownership | 5-30/min | Issue tracking |
-| PATCH | `/api/issues/[id]` | Event ownership | 15/min | Update issue status |
-| POST/GET | `/api/event-updates` | Event ownership | 10-60/min | Event announcements |
-| POST | `/api/certificates/generate` | Event ownership | 5/min | Generate certificates |
-| POST | `/api/certificates/distribute` | Event ownership | 5/min | Email distribution |
-| GET | `/api/certificates/preview` | Event ownership | 30/min | Certificate preview |
-| GET | `/api/event-gallery/[eventId]` | Public | 60/min | Photo gallery |
-
-### Public Routes
-
-| Path | Description |
-|------|-------------|
-| `/` | Landing page |
-| `/explore` | Event discovery |
-| `/login/*`, `/register/*` | Clerk auth pages |
-| `/api/health` | Health check (DB connectivity + latency) |
-| `/maintenance` | Maintenance page |
+Eventra exposes a set of API routes categorized as:
+- **Webhook Endpoints**: Signature-verified endpoints for third-party integrations (e.g., `/api/webhooks/clerk`, `/api/webhooks/dodo`).
+- **Protected Routes**: Authenticated and rate-limited endpoints for core client-side functions (e.g., AI chat, ticket verification, report generation, and notifications).
+- **Public Routes**: Open endpoints for discovery, landing pages, and system health monitoring (e.g., `/explore`, `/api/health`).
 
 ---
 
 ## Server Actions
 
-Eventra uses 45 server action files organized by domain. All actions are defined with `'use server'` and handle authentication, validation, and database operations.
-
-| File | Purpose |
-|------|---------|
-| `events.ts` | Event CRUD operations |
-| `tickets.ts` | Ticket management |
-| `orders.ts` | Order creation, refunds, user orders |
-| `registrations.ts` | Event registration with rate limiting |
-| `check-in.ts` | Check-in operations with rate limiting |
-| `payments.ts` | Dodo Payments webhook handling |
-| `feedback.ts` | Feedback submission and analytics |
-| `chat.ts` | Chat room and message operations |
-| `communities.ts` | Community CRUD and membership |
-| `certificates.ts` | Certificate generation and distribution |
-| `reports.ts` | AI report generation and storage |
-| `kanban-tasks.ts` | Kanban task CRUD |
-| `stakeholders.ts` | Stakeholder management and CSV import |
-| `issues.ts` | Issue tracking CRUD |
-| `event-updates.ts` | Event announcements and email dispatch |
-| `announcements.ts` | Announcement management |
-| `gamification.ts` | Badge and points management |
-| `challenges.ts` | Challenge system |
-| `matchmaking.ts` | AI-powered matchmaking |
-| `networking.ts` | Professional networking |
-| `media.ts` | Photo gallery operations |
-| `analytics.ts` | Event analytics computation |
-| `dashboard.ts` | Dashboard data aggregation |
-| `ai-recommendations.ts` | Vector-based recommendations |
-| `ai-reports.ts` | AI report generation |
-| `ai-tasks.ts` | AI task generation |
-| `ai-tools.ts` | AI utility tools |
-| `event-insights.ts` | Event insight computation |
-| `event-planning.ts` | Event planning utilities |
-| `event-engagement.ts` | Engagement tracking |
-| `collab.ts` | Collaboration features |
-| `admin.ts` | Admin operations |
-| `notifications.ts` | Notification management |
-| `users.ts` | User profile operations |
-| `tags.ts` | Tag management |
-| `sponsors.ts` | Sponsor management |
-| `search.ts` | Search operations |
-| `feed.ts` | Activity feed |
-| `moderation.ts` | Content moderation |
-| `health.ts` | Health check actions |
-| `ingestion.ts` | External event ingestion |
-| `scraper.ts` | Event scraping |
-| `waitlist.ts` | Waitlist management |
-| `organizer-tools.ts` | Organizer utility tools |
-| `event-maps.ts` | Per-event map CRUD (getEventMap, saveEventMap, deleteEventMap, updateMapNode) |
-
----
+Eventra organizes business logic into `'use server'` actions grouped by feature domain (e.g., `events.ts`, `tickets.ts`, `check-in.ts`, `gamification.ts`). These actions handle input validation using Zod, authentication verification, and secure database mutations.
 
 ## Environment Variables
 

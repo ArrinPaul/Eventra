@@ -27,7 +27,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="min-h-screen bg-white dark:bg-zinc-950 flex overflow-x-hidden w-full">
+    <div className="min-h-screen bg-background flex overflow-x-hidden w-full">
       <ErrorBoundary>
         <Sidebar />
       </ErrorBoundary>

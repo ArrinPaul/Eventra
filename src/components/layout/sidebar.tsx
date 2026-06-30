@@ -79,7 +79,7 @@ export function Sidebar({ className }: SidebarProps) {
         initial={false}
         animate={{ width: sidebarWidth }}
         className={cn(
-          "fixed left-0 top-0 bottom-0 z-50 bg-white dark:bg-zinc-950 border-r border-notion-hairline flex flex-col transition-all duration-300 shadow-sm",
+          "fixed left-0 top-0 bottom-0 z-50 bg-card border-r border-notion-hairline flex flex-col transition-all duration-300 shadow-sm",
           className
         )}
       >
@@ -144,16 +144,7 @@ export function Sidebar({ className }: SidebarProps) {
         {/* FOOTER ACTIONS */}
         <div className="mt-auto border-t border-notion-hairline bg-notion-canvas-soft/10 flex flex-col p-3 gap-4">
           
-          {!isCollapsed && (
-             <div className="p-4 rounded-2xl bg-primary/5 border border-primary/10 space-y-3">
-                <div className="flex justify-between items-center">
-                   <p className="text-[9px] font-black uppercase text-primary tracking-widest leading-none">Infrastructure Pulse</p>
-                </div>
-                <div className="h-1 w-full bg-primary/10 rounded-full overflow-hidden">
-                   <div className="h-full bg-primary w-3/4" />
-                </div>
-             </div>
-          )}
+
 
           <div className="flex flex-col gap-1">
              {/* THEME & COLLAPSE */}
