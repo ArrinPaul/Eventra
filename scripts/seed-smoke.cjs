@@ -69,6 +69,7 @@ function writeManifest(payload) {
       const eventRows = await tx`
         insert into events (
           title,
+          slug,
           description,
           start_date,
           end_date,
@@ -84,6 +85,7 @@ function writeManifest(payload) {
         )
         values (
           ${`${marker} Event`},
+          ${`smoke-event-${runId}`},
           ${`${marker} seeded event for smoke regression`},
           now() + interval '1 day',
           now() + interval '1 day 2 hours',

@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCertificateTemplates } from '@/app/actions/certificates';
+import { validateEventOwnership } from '@/lib/auth-utils';
+import { enforceRateLimit } from '@/lib/rate-limit';
+import { logger } from '@/lib/logger';
 
 export async function GET(request: NextRequest) {
   try {
@@ -7,9 +10,31 @@ export async function GET(request: NextRequest) {
     const eventId = searchParams.get('eventId');
     if (!eventId) return NextResponse.json({ error: 'eventId required' }, { status: 400 });
 
+    // 1. Auth & Event Ownership Check
+    let user;
+    try {
+      user = await validateEventOwnership(eventId);
+    } catch (authError: any) {
+      return NextResponse.json({ success: false, error: authError.message || 'Unauthorized' }, { status: 403 });
+    }
+
+    // 2. Rate Limiting Check
+    try {
+      await enforceRateLimit({
+        userId: user.id,
+        scope: `cert-preview:${eventId}`,
+        limit: 30, // 30 previews per minute
+        windowMs: 60_000,
+      });
+    } catch (limitError: any) {
+      return NextResponse.json({ success: false, error: limitError.message }, { status: 429 });
+    }
+
     const templates = await getCertificateTemplates(eventId);
     return NextResponse.json({ success: true, data: templates });
   } catch (error: any) {
+    logger.error('API Certificate preview error', error);
     return NextResponse.json({ success: false, error: error.message }, { status: 400 });
   }
 }
+

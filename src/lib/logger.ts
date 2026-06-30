@@ -19,7 +19,7 @@ class Logger {
       errorDetails = {
         message: error.message || String(error),
         name: error.name || 'Error',
-        stack: this.isDev ? error.stack : undefined,
+        stack: error.stack,
       };
     }
 

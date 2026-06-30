@@ -1,0 +1,1 @@
+ALTER TABLE "feedback_responses" DROP COLUMN "ip_address";

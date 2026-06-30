@@ -4,9 +4,14 @@ import { aiChatSessions, aiChatMessages } from '@/lib/db/schema';
 import { eq, asc } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
+import { enforceRateLimit } from '@/lib/rate-limit';
 
 export async function POST(req: Request) {
   const { userId } = await auth();
+
+  if (!userId) {
+    return NextResponse.json({ error: 'Unauthorized: Authentication required' }, { status: 401 });
+  }
 
   const { question, eventContext, eventId } = await req.json();
 
@@ -15,6 +20,14 @@ export async function POST(req: Request) {
   }
 
   try {
+    // Enforce rate limit (15 requests per minute)
+    await enforceRateLimit({
+      userId,
+      scope: 'api-ai-chat',
+      limit: 15,
+      windowMs: 60_000,
+    });
+
     // 1. Manage AI Chat Session Persistence
     let chatSessionId: string;
     

@@ -42,51 +42,6 @@ export const users = pgTable('users', {
 }, (table) => ({
   emailIdx: index('users_email_idx').on(table.email),
 }));
-
-export const accounts = pgTable(
-  "account",
-  {
-    userId: text("userId")
-      .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
-    type: text("type").notNull(),
-    provider: text("provider").notNull(),
-    providerAccountId: text("providerAccountId").notNull(),
-    refresh_token: text("refresh_token"),
-    access_token: text("access_token"),
-    expires_at: integer("expires_at"),
-    token_type: text("token_type"),
-    scope: text("scope"),
-    id_token: text("id_token"),
-    session_state: text("session_state"),
-  },
-  (account) => ({
-    compoundKey: primaryKey({
-      columns: [account.provider, account.providerAccountId],
-    }),
-  })
-);
-
-export const sessions = pgTable("session", {
-  sessionToken: text("sessionToken").primaryKey(),
-  userId: text("userId")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  expires: timestamp("expires", { mode: "date" }).notNull(),
-});
-
-export const verificationTokens = pgTable(
-  "verificationToken",
-  {
-    identifier: text("identifier").notNull(),
-    token: text("token").notNull(),
-    expires: timestamp("expires", { mode: "date" }).notNull(),
-  },
-  (vt) => ({
-    compoundKey: primaryKey({ columns: [vt.identifier, vt.token] }),
-  })
-);
-
 // --- Eventra Core Features ---
 
 export const events = pgTable('events', {
@@ -784,7 +739,6 @@ export const feedbackResponses = pgTable('feedback_responses', {
   additionalComments: text('additional_comments'),
   customAnswers: jsonb('custom_answers'),
   submittedAt: timestamp('submitted_at').defaultNow().notNull(),
-  ipAddress: text('ip_address'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 }, (table) => ({
   eventIdx: index('feedback_responses_event_idx').on(table.eventId),

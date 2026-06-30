@@ -161,7 +161,7 @@ export const EVENTRA_CONFIG = {
       maxRequests: 100,
     },
     cors: {
-      allowedOrigins: process.env.ALLOWED_ORIGINS?.split(',') || ['*'],
+      allowedOrigins: process.env.ALLOWED_ORIGINS?.split(',') || [process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:9002'],
     },
   },
 

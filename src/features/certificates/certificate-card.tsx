@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/core/utils/utils';
 import { useToast } from '@/hooks/use-toast';
+import DOMPurify from 'dompurify';
 
 interface CertificateData {
   recipientName: string;
@@ -151,6 +152,7 @@ interface CertificatePreviewProps {
 }
 
 export function CertificatePreview({ html, className }: CertificatePreviewProps) {
+  const sanitized = typeof window !== 'undefined' ? DOMPurify.sanitize(html, { ADD_TAGS: ['style'] }) : html;
   return (
     <div 
       className={cn(
@@ -160,7 +162,7 @@ export function CertificatePreview({ html, className }: CertificatePreviewProps)
       )}
     >
       <div 
-        dangerouslySetInnerHTML={{ __html: html }}
+        dangerouslySetInnerHTML={{ __html: sanitized }}
         className="certificate-preview"
       />
     </div>
@@ -281,7 +283,7 @@ export function CertificateViewer({ html, certificateId, onClose }: CertificateV
         
         <div className="p-8 flex justify-center" ref={printRef}>
           <div 
-            dangerouslySetInnerHTML={{ __html: html }}
+            dangerouslySetInnerHTML={{ __html: typeof window !== 'undefined' ? DOMPurify.sanitize(html, { ADD_TAGS: ['style'] }) : html }}
             className="shadow-xl"
           />
         </div>

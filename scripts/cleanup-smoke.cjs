@@ -110,6 +110,8 @@ function loadLastRunId() {
 
   try {
     await sql.begin(async (tx) => {
+      tx.array = (arr) => arr;
+
       const userRows = await tx`
         select id from users
         where email ilike ${`%${runId}%@eventra.local`}
@@ -196,7 +198,7 @@ function loadLastRunId() {
           delete from event_feedback
           where (${events.length ? tx`event_id = any(${tx.array(events, 'uuid')})` : tx`false`})
              or (${users.length ? tx`user_id = any(${tx.array(users, 'text')})` : tx`false`})
-             or comment ilike ${`%${marker}%`}
+             or content ilike ${`%${marker}%`}
           returning id
         `;
         summary.deleted.eventFeedback = rows.length;

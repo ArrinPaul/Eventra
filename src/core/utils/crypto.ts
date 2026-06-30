@@ -1,7 +1,10 @@
-import { createHmac } from 'crypto';
+import { createHmac, timingSafeEqual } from 'crypto';
 
 const SECRET = process.env.QR_SECRET;
 if (!SECRET) {
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('CRITICAL: QR_SECRET environment variable is not configured in production.');
+  }
   console.warn('[crypto] QR_SECRET not set - using fallback for development only');
 }
 const EFFECTIVE_SECRET = SECRET || 'eventra-dev-only-not-for-production';
@@ -17,11 +20,19 @@ export function signTicket(ticketNumber: string): string {
 }
 
 /**
- * Verify a ticket signature.
+ * Verify a ticket signature using timing-safe comparison.
  */
 export function verifyTicket(ticketNumber: string, signature: string): boolean {
   const expected = signTicket(ticketNumber);
-  return expected === signature;
+  
+  const expectedBuf = Buffer.from(expected, 'utf8');
+  const signatureBuf = Buffer.from(signature, 'utf8');
+  
+  if (expectedBuf.length !== signatureBuf.length) {
+    return false;
+  }
+  
+  return timingSafeEqual(expectedBuf, signatureBuf);
 }
 
 /**
