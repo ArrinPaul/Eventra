@@ -47,7 +47,7 @@ firestore-debug.log
 
 # package locks that are auto-generated
 functions/package-lock.json
-package-lock.json
+# package-lock.json
 
 # IDE files
 .vscode/
