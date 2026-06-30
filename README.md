@@ -1,8 +1,52 @@
 # Eventra — The Intelligent Event Management Ecosystem
 
-![Eventra Banner](./eventra-webapp/public/readme/eventra-cover.svg)
+[![Next.js](https://img.shields.io/badge/Next.js-15-black?style=flat-square&logo=next.js)](https://nextjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
+[![Drizzle ORM](https://img.shields.io/badge/Drizzle--ORM-v0.45.2-orange?style=flat-square)](https://orm.drizzle.team/)
+[![Vitest](https://img.shields.io/badge/Vitest-Passing-green?style=flat-square&logo=vitest)](https://vitest.dev/)
+[![GitHub Actions CI](https://img.shields.io/badge/CI-Passing-brightgreen?style=flat-square&logo=github-actions)](https://github.com/)
+[![Docker](https://img.shields.io/badge/Docker-Ready-blue?style=flat-square&logo=docker)](https://www.docker.com/)
 
-Eventra is a premium, enterprise-grade event management platform designed to automate the full lifecycle of complex events. Built with **Next.js 15**, **PostgreSQL**, and **Google Gemini AI**, Eventra transforms passive event hosting into an active, data-driven, and community-centric experience.
+![Eventra Banner](./public/readme/eventra-cover.svg)
+
+Eventra is a premium, enterprise-grade event management platform designed to automate the full lifecycle of complex events. Built with **Next.js 15**, **PostgreSQL**, **Drizzle ORM**, and **Google Gemini AI**, Eventra transforms passive event hosting into an active, data-driven, and community-centric experience.
+
+---
+
+## 🏗️ Master System Architecture
+
+Eventra follows a **Feature-First modular architecture**, where AI modules and Vector databases are deeply integrated into the core mutation flows.
+
+![Eventra Architecture](./public/readme/eventra-architecture.svg)
+
+```mermaid
+graph TD
+    subgraph Frontend_Layer [Presentation]
+        A[Next.js App Router] --> B[Server Components]
+        A --> C[Client Components]
+    end
+
+    subgraph Service_Orchestration [Business Logic]
+        B & C --> D[Server Actions / API Handlers]
+        D --> E{Engine Router}
+        E -->|AI Request| F[Intelligence Engine]
+        E -->|Search/Match| G[Recommendation Engine]
+        E -->|Comm| H[Communication Hub]
+        E -->|Lifecycle| I[Lifecycle Engine]
+    end
+
+    subgraph Persistence_Layer [Data & External]
+        F & G & H & I --> J[(Supabase Postgres + pgvector)]
+        F --> K[Google Gemini API]
+        H --> L[Resend / Twilio]
+        I --> M[Dodo Payments Webhook]
+    end
+
+    style F fill:#7C3AED,stroke:#fff,color:#fff
+    style G fill:#06B6D4,stroke:#fff,color:#fff
+    style H fill:#10B981,stroke:#fff,color:#fff
+    style I fill:#F59E0B,stroke:#fff,color:#fff
+```
 
 ---
 
@@ -10,10 +54,10 @@ Eventra is a premium, enterprise-grade event management platform designed to aut
 
 ### 1. **The Intelligence Engine (AI & Genkit)**
 Powered by **Google Gemini 1.5 Flash** and **Genkit**, our AI layer provides real-time automation and deep insights.
-- **Smart Event Planning**: Generates detailed descriptions, agendas, and marketing copy.
-- **Predictive Analytics**: Estimates attendee turnout based on registration trends.
-- **Automated Moderation**: Real-time sentiment analysis and content filtering.
-- **Copilot for Organizers**: Generates actionable "To-Do" lists and smart scheduling suggestions.
+*   **Smart Event Planning**: Generates detailed descriptions, agendas, and marketing copy.
+*   **Predictive Analytics**: Estimates attendee turnout based on registration trends.
+*   **Automated Moderation**: Real-time sentiment analysis and content filtering.
+*   **Copilot for Organizers**: Generates actionable "To-Do" lists and smart scheduling suggestions.
 
 ```mermaid
 graph LR
@@ -31,13 +75,11 @@ graph LR
     G --> K[Community Feed]
 ```
 
----
-
 ### 2. **The Vector-Powered Recommendation Engine**
 Eventra uses **pgvector** and semantic search to connect users with high-value content.
-- **Semantic Matching**: Uses 768-dimensional vector embeddings to match user interests.
-- **Connection Matchmaking**: Suggests networking based on professional goals.
-- **Hyper-Personalization**: Delivers curated "Engagement Picks" that evolve with the user.
+*   **Semantic Matching**: Uses 768-dimensional vector embeddings to match user interests.
+*   **Connection Matchmaking**: Suggests networking based on professional goals.
+*   **Hyper-Personalization**: Delivers curated "Engagement Picks" that evolve with the user.
 
 ```mermaid
 graph TD
@@ -53,122 +95,127 @@ graph TD
     H --> J[Matchmaking Suggestions]
 ```
 
----
-
 ### 3. **The Real-Time Communication Hub**
 A scalable chat and notification infrastructure built for high concurrency.
-- **Contextual Channels**: Automatic event-specific chat rooms.
-- **Direct & Group Messaging**: Private and professional networking.
-- **Intelligent Notifications**: Multi-channel delivery (SMS via Twilio, Email via Resend).
-
-```mermaid
-graph TD
-    A[Event/System Trigger] --> B{Notification Dispatcher}
-    B -->|SMS| C[Twilio API]
-    B -->|Email| D[Resend API]
-    E[User/Staff Interaction] --> F[Chat Server Action]
-    F --> G[(Postgres Chat Tables)]
-    G --> H[Real-time UI Update]
-```
-
----
+*   **Contextual Channels**: Automatic event-specific chat rooms.
+*   **Direct & Group Messaging**: Private and professional networking.
+*   **Intelligent Notifications**: Multi-channel delivery (SMS via Twilio, Email via Resend).
 
 ### 4. **The Event Lifecycle Engine**
 The core structural layer managing the complexities of modern events.
-- **Dynamic Ticketing**: Multi-tier pricing, waitlists, and QR fulfillment.
-- **Recurring Instances**: Advanced RRule-based scheduling.
-- **Credential Management**: Automated PDF generation with AI-personalized messages.
-
-```mermaid
-graph TD
-    A[Event Template] -->|RRule| B[Instance Generator]
-    B --> C[Event Instances]
-    C --> D[Ticket Tier Logic]
-    D --> E[Waitlist Management]
-    E --> F[QR/Check-in Flow]
-    F --> G[AI Certificate Generator]
-```
+*   **Dynamic Ticketing**: Multi-tier pricing, waitlists, and QR fulfillment.
+*   **Recurring Instances**: Advanced RRule-based scheduling.
+*   **Credential Management**: Automated PDF generation with client-side DOMPurify sanitization.
 
 ---
 
-## 🏗️ Master System Architecture
+## 📊 Database Architecture (ERD)
 
-Eventra follows a **Feature-First modular architecture**, where AI and Vector engines are deeply integrated into the core mutation flows.
-
-```mermaid
-graph TD
-    subgraph Frontend_Layer [Presentation]
-        A[Next.js App Router] --> B[Server Components]
-        A --> C[Client Components]
-    end
-
-    subgraph Service_Orchestration [Business Logic]
-        B & C --> D[Server Actions]
-        D --> E{Engine Router}
-        E -->|AI Request| F[Intelligence Engine]
-        E -->|Search/Match| G[Recommendation Engine]
-        E -->|Comm| H[Communication Hub]
-        E -->|Lifecycle| I[Lifecycle Engine]
-    end
-
-    subgraph Persistence_Layer [Data & External]
-        F & G & H & I --> J[(Supabase Postgres + pgvector)]
-        F --> K[Google Gemini API]
-        H --> L[Twilio / Resend]
-        I --> M[Stripe Payments]
-    end
-
-    style F fill:#7C3AED,stroke:#fff,color:#fff
-    style G fill:#06B6D4,stroke:#fff,color:#fff
-    style H fill:#10B981,stroke:#fff,color:#fff
-    style I fill:#F59E0B,stroke:#fff,color:#fff
-```
-
----
-
-## 📊 Master Database Architecture (ERD)
-
-The database handles relational, vector, and hierarchical data types.
+The database handles relational, vector, and hierarchical data types. Clerk user roles are dynamically mapped to database user profiles.
 
 ```mermaid
 erDiagram
-    USER ||--o{ EVENT : "organizes"
-    USER ||--o{ TICKET : "owns"
-    USER ||--o{ CHAT_PARTICIPANT : "joins"
-    USER ||--o{ AI_CHAT_SESSION : "initiates"
+    USERS ||--o{ EVENTS : "organizes"
+    USERS ||--o{ TICKETS : "owns"
+    USERS ||--o{ CHAT_PARTICIPANTS : "joins"
+    USERS ||--o{ AI_CHAT_SESSIONS : "initiates"
     
-    EVENT ||--o{ TICKET_TIER : "configures"
-    EVENT ||--o{ WAITLIST : "manages"
-    EVENT ||--o{ CHAT_ROOM : "anchors"
-    EVENT ||--o{ SPONSOR : "features"
-    EVENT ||--o{ EVENT_STAFF : "employs"
+    EVENTS ||--o{ TICKET_TIERS : "configures"
+    EVENTS ||--o{ WAITLIST : "manages"
+    EVENTS ||--o{ CHAT_ROOMS : "anchors"
+    EVENTS ||--o{ SPONSORS : "features"
+    EVENTS ||--o{ EVENT_STAFF : "employs"
 
-    COMMUNITY ||--o{ POST : "aggregates"
-    POST ||--o{ COMMENT : "receives"
+    COMMUNITIES ||--o{ POSTS : "aggregates"
+    POSTS ||--o{ COMMENTS : "receives"
     
-    CHAT_ROOM ||--o{ CHAT_MESSAGE : "persists"
-
-    USER }|..|{ pgvector_INDEX : "interest_embedding"
-    EVENT }|..|{ pgvector_INDEX : "content_embedding"
+    CHAT_ROOMS ||--o{ CHAT_MESSAGES : "persists"
 ```
 
 ---
 
-## 🚦 Engineering Standards & Setup
+## 🔑 Production Environment Configuration
 
-### **1. Rapid Installation**
-```bash
-git clone <repository-url>
-cd Eventra/eventra-webapp
-npm install
-cp .env.example .env.local
+Create a `.env.local` or `.env` file in the root directory. The following variables must be configured before launching in production:
+
+```env
+# Database & ORM
+DATABASE_URL=postgresql://<user>:<password>@<host>:6543/postgres?sslmode=require
+
+# Authentication (Clerk)
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_live_...
+CLERK_SECRET_KEY=sk_live_...
+
+# Payment Gateway (Dodo Payments)
+DODO_PAYMENTS_API_KEY=dp_...
+DODO_PAYMENTS_WEBHOOK_SECRET=whsec_...
+
+# Security & Cryptography
+JWT_SECRET=eventra-jwt-signing-secret-change-in-production
+QR_SECRET=eventra-qr-signing-secret-change-in-production
+SESSION_SECRET=eventra-session-signing-secret-change-in-production
+ALLOWED_ORIGINS=https://yourdomain.com
+
+# Integrations
+GEMINI_API_KEY=AIzaSy...
+SENDGRID_API_KEY=SG....
+TWILIO_ACCOUNT_SID=AC...
+TWILIO_AUTH_TOKEN=...
 ```
 
-### **2. Local Deployment**
+> [!IMPORTANT]
+> - `QR_SECRET` and `JWT_SECRET` are strictly required in production mode. If missing or unset when `NODE_ENV=production`, the application will abort initialization to prevent fallback security exploits.
+> - Webhook endpoints check signature verification using `DODO_PAYMENTS_WEBHOOK_SECRET`. Ensure this is identical to your Dodo payments dashboard setting.
+
+---
+
+## 🛠️ Database Setup & Synchronization
+
+We manage schema definitions with **Drizzle ORM**. Run the following commands to generate migration scripts and sync your database:
+
+1. **Generate Migrations**:
+   ```bash
+   npm run db:generate
+   ```
+2. **Apply Migrations (Sync Remote DB)**:
+   ```bash
+   node scripts/sync-db.mjs
+   ```
+   *Note: `sync-db.mjs` automatically handles dropping obsolete NextAuth tables, adding missing `source_type` columns, and removing deprecated tracking variables in compliance with GDPR.*
+
+---
+
+## 🧪 Testing
+
+We use **Vitest** for running unit and integration tests. 
+
 ```bash
-npm run db:push
-npm run dev
+# Run tests once (CI mode)
+npm run test
+
+# Run tests in watch mode
+npm run test:watch
 ```
+
+Tests cover critical flows, including:
+*   Cryptographic QR signing consistency.
+*   Timing-safe scan validation (`crypto.timingSafeEqual`).
+*   Entry code generation.
+
+---
+
+## 🐳 Docker Deployment
+
+The application features a production-grade multi-stage `Dockerfile` optimized for container size.
+
+1. **Build Container**:
+   ```bash
+   docker build -t eventra-app .
+   ```
+2. **Run Container**:
+   ```bash
+   docker run -p 9002:9002 --env-file .env.local eventra-app
+   ```
 
 ---
 
@@ -177,11 +224,3 @@ npm run dev
 Copyright © 2026 **Eventra Ecosystem**. All rights reserved.
 
 This project and its accompanying documentation are the proprietary and confidential property of **Eventra**. Any unauthorized use, reproduction, or distribution of this software, in whole or in part, without the prior written consent of the copyright holder is strictly prohibited.
-
-### **Usage Restrictions**
-- **Commercial Use**: Prohibited without a valid enterprise license.
-- **Modification**: Modification of the core Intelligence Engine (Genkit flows) is restricted to certified contributors.
-- **Redistribution**: Redistribution of the binary or source code is not permitted.
-
----
-*Last Updated: June 14, 2026*

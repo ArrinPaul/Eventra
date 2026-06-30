@@ -17,8 +17,7 @@ const isAdminRoute = createRouteMatcher(['/admin(.*)']);
 export default clerkMiddleware(async (auth, request) => {
   // 1. Authentication check
   if (!isPublicRoute(request)) {
-    const authObj = await auth();
-    await authObj.protect();
+    const authObj = await auth.protect();
 
     // 2. Role-based protection for admin routes
     if (isAdminRoute(request)) {
