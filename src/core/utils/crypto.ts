@@ -1,4 +1,4 @@
-import { createHmac, timingSafeEqual } from 'crypto';
+import { createHmac, timingSafeEqual, randomInt } from 'crypto';
 
 const SECRET = process.env.QR_SECRET;
 if (!SECRET) {
@@ -58,10 +58,6 @@ export function parseQrPayload(payload: string): { ticketNumber: string | null; 
   return { ticketNumber, isValid };
 }
 
-/**
- * Generate a 6-digit entry code for ticket verification.
- * Range: 100000-999999 (always 6 digits).
- */
 export function generateEntryCode(): string {
-  return Math.floor(100000 + Math.random() * 900000).toString();
+  return randomInt(100000, 1000000).toString();
 }

@@ -39,10 +39,10 @@ function sign(input: string, secret: string): string {
 }
 
 function getSessionSecret(): string {
-  const configured = process.env.JWT_SECRET || process.env.AUTH_SECRET;
+  const configured = process.env.SESSION_SECRET || process.env.JWT_SECRET || process.env.AUTH_SECRET;
   if (configured) return configured;
   if (process.env.NODE_ENV === 'production') {
-    throw new Error('JWT_SECRET (or AUTH_SECRET) is required in production');
+    throw new Error('SESSION_SECRET (or JWT_SECRET/AUTH_SECRET) is required in production');
   }
   return DEV_FALLBACK_SECRET;
 }

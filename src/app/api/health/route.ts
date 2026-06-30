@@ -1,9 +1,34 @@
 import { NextResponse } from 'next/server';
+import { db } from '@/lib/db';
+import { sql } from 'drizzle-orm';
 
 export async function GET() {
-  return NextResponse.json({
-    status: 'ok',
-    timestamp: new Date().toISOString(),
-    service: 'Eventra',
-  });
+  try {
+    const start = Date.now();
+    await db.execute(sql`SELECT 1`);
+    const latency = Date.now() - start;
+
+    return NextResponse.json({
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      service: 'Eventra',
+      database: {
+        status: 'operational',
+        latency: `${latency}ms`,
+      },
+    });
+  } catch (error: any) {
+    return NextResponse.json(
+      {
+        status: 'error',
+        timestamp: new Date().toISOString(),
+        service: 'Eventra',
+        database: {
+          status: 'down',
+          error: error.message || String(error),
+        },
+      },
+      { status: 503 }
+    );
+  }
 }
