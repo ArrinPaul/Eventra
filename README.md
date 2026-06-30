@@ -485,10 +485,21 @@ graph TD
 
 ### Campus Map and Navigation
 
-Eventra includes a campus-specific navigation system with three integrated layers.
+Eventra includes a campus-specific navigation system with two modes: a dynamic per-event map and a hardcoded fallback campus map.
 
-**Interactive SVG Map** (`src/features/map/`):
-- Custom-drawn SVG campus map with 16 predefined zones
+**Dynamic Per-Event Map:**
+- Each event can have its own custom map built by the organizer
+- Organizer uploads any image (floor plan, venue layout, campus map)
+- Place nodes on the image by clicking -- each node gets a name, category, and description
+- Connect nodes with edges to define walkable paths
+- BFS pathfinding generates shortest route between any two nodes
+- Turn-by-turn directions in the sidebar ("Head right toward Stage", "You have arrived")
+- 10 node categories: location, stage, booth, restroom, entrance, exit, food, info, workshop, vip
+- Percentage-based coordinates (0-100) -- works with any image size
+- Falls back to hardcoded campus map if no custom map exists
+
+**Hardcoded Campus Map** (fallback):
+- Interactive SVG campus map with 16 predefined zones
 - Pan and zoom controls
 - Zone buildings colored by category (academic, library, lab, sports, dining, outdoor, parking, admin)
 - Live event indicators with pulsing red dots
@@ -496,25 +507,20 @@ Eventra includes a campus-specific navigation system with three integrated layer
 - User location marker with pulsing blue dot
 - Compass and scale bar
 
-**Pathfinding:**
-- BFS (Breadth-First Search) algorithm for shortest path
-- Zone connection graph defined in map-data.ts
-- Turn-by-turn directions ("Head east towards Library")
-- Distance calculation with approximate meter scaling
-
 **GPS + AI Hybrid Location Detection:**
 - GPS Service (`gps-service.ts`): singleton service watching device GPS with caching
 - GPS Utils (`gps-utils.ts`): Haversine distance, campus bounds checking, nearest-location matching
 - Hybrid Prediction (`hybrid-prediction.ts`): combines GPS (40%) + AI (60%) with configurable weights, agreement boost, and breakdown visualization
 
-**Predefined Campus Locations** (11 locations):
-Main Gate, Cross Road, Block 1, Students Square, Open Auditorium, Block 4, Xpress Cafe, Block 6, Amphi Theater, PU Block, Architecture Block
+**Map Routes:**
+- `/events/[id]/map` -- Attendee view with navigation
+- `/events/[id]/map/edit` -- Organizer editor (upload image, place nodes, draw edges)
 
 ---
 
 ## Database
 
-32 PostgreSQL tables managed by Drizzle ORM with pgvector for AI embeddings.
+34 PostgreSQL tables managed by Drizzle ORM with pgvector for AI embeddings.
 
 ```mermaid
 erDiagram
@@ -545,6 +551,10 @@ erDiagram
     EVENTS ||--o{ REPORTS : generates
     EVENTS ||--o{ STAKEHOLDERS : manages
     EVENTS ||--o{ EVENT_TAGS : tagged
+    EVENTS ||--o| EVENT_MAPS : "has one map"
+
+    EVENT_MAPS ||--o{ EVENT_MAP_NODES : contains
+    EVENT_MAPS }o--|| USERS : created_by
 
     COMMUNITIES ||--o{ POSTS : contains
     COMMUNITIES ||--o{ COMMUNITY_MEMBERS : has
@@ -570,6 +580,7 @@ erDiagram
 | Feedback | feedback_templates, feedback_responses, event_feedback | Custom forms, NPS calculation, analytics |
 | Certificates | certificate_templates | Visual builder, PDF generation, bulk distribution |
 | Operations | issues, kanban_tasks, reports, stakeholders, sponsors, sponsor_leads | Issue tracking, task management, reporting |
+| Maps | event_maps, event_map_nodes | Per-event custom maps, node placement, pathfinding |
 | Security | rate_limits | Per-user, per-scope rate limiting |
 | Tags | tags, event_tags | Event categorization and filtering |
 | Ingestion | ingestion_sources | External event scraping sources |
@@ -621,7 +632,7 @@ erDiagram
 
 ## Server Actions
 
-Eventra uses 44 server action files organized by domain. All actions are defined with `'use server'` and handle authentication, validation, and database operations.
+Eventra uses 45 server action files organized by domain. All actions are defined with `'use server'` and handle authentication, validation, and database operations.
 
 | File | Purpose |
 |------|---------|
@@ -669,6 +680,7 @@ Eventra uses 44 server action files organized by domain. All actions are defined
 | `scraper.ts` | Event scraping |
 | `waitlist.ts` | Waitlist management |
 | `organizer-tools.ts` | Organizer utility tools |
+| `event-maps.ts` | Per-event map CRUD (getEventMap, saveEventMap, deleteEventMap, updateMapNode) |
 
 ---
 
@@ -802,21 +814,27 @@ npm run test:smoke:clean # Clean up test data
 
 ## Testing
 
-Smoke tests validate critical user journeys by seeding test data and verifying persistence across the full stack.
+The project uses Vitest for unit and integration tests.
 
 ```bash
-npm run test:smoke       # Seed and run test flows
-npm run test:verify      # Verify checklist
-npm run test:smoke:clean # Clean up
+npm run test          # Run all tests
+npm run test:watch    # Run tests in watch mode
 ```
 
-**Test Coverage Areas:**
-- Ticket creation and verification
-- Community and post flows
-- Chat room operations
-- Feedback submission
-- Badge and gamification flows
-- Organizer announcement and webhook operations
+**Test Files:**
+- `src/core/utils/crypto.test.ts` -- QR signing, verification, payload parsing, entry code generation
+- `src/features/map/pathfinding.test.ts` -- BFS pathfinding on dynamic node/edge graphs
+- `src/features/map/types.test.ts` -- Percentage-to-pixel coordinate conversion
+- `src/lib/env.test.ts` -- Environment variable schema validation
+
+**Smoke Testing** (requires running database):
+```bash
+npm run test:smoke       # Seed test data and run flows
+npm run test:verify      # Verify checklist results
+npm run test:smoke:clean # Clean up test data
+```
+
+Smoke tests validate: ticket creation/verification, community operations, chat messaging, feedback submission, badge awarding, and organizer tools.
 
 ---
 
@@ -832,7 +850,7 @@ The build process:
 1. Compiles TypeScript with zero errors
 2. Lints with ESLint
 3. Generates optimized bundles
-4. Outputs standalone build for container deployment
+4. Outputs standalone build for deployment
 
 ### Production Requirements
 
@@ -876,8 +894,8 @@ The build process:
 
 1. **Platform-specific lock file** -- If `npm ci` fails with EBADPLATFORM errors, use `npm ci --force` or regenerate with `npm install`
 2. **Empty API keys** -- AI, email, SMS, and payment features require API keys in `.env.local` to function
-3. **Dependency deprecations** -- `@esbuild-kit`, `uuid@8-10`, `@genkit-ai/googleai` have newer replacements available
-4. **Campus hardcoding** -- Map locations and GPS bounds are hardcoded to one specific campus
+3. **No test suite** -- Smoke tests validate core flows but there are no unit/integration/E2E tests
+4. **Campus hardcoding** -- GPS locations and bounds are hardcoded to one specific campus (dynamic maps are per-event and generic)
 
 ---
 
