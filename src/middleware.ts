@@ -15,13 +15,14 @@ const isPublicRoute = createRouteMatcher([
 const isAdminRoute = createRouteMatcher(['/admin(.*)']);
 
 export default clerkMiddleware(async (auth, request) => {
-  // 1. Authentication check
   if (!isPublicRoute(request)) {
+    // In Clerk v7, protect() lives on the auth function itself.
+    // It checks authentication AND returns the signed-in auth object.
     const authObj = await auth.protect();
 
-    // 2. Role-based protection for admin routes
+    // Role-based protection for admin routes
     if (isAdminRoute(request)) {
-      const role = (authObj.sessionClaims?.metadata as { role?: string })?.role || 
+      const role = (authObj.sessionClaims?.metadata as { role?: string })?.role ||
                    (authObj.sessionClaims?.publicMetadata as { role?: string })?.role;
       if (role !== 'admin') {
         return NextResponse.redirect(new URL('/', request.url));

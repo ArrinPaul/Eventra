@@ -14,6 +14,10 @@ const serverEnvSchema = publicEnvSchema.extend({
   TWILIO_AUTH_TOKEN: z.string().min(1).optional(),
   TWILIO_FROM_NUMBER: z.string().min(1).optional(),
   GOOGLE_API_KEY: z.string().min(1).optional(),
+  JWT_SECRET: z.string().min(16).optional(),
+  AUTH_SECRET: z.string().min(16).optional(),
+  SESSION_SECRET: z.string().min(16).optional(),
+  QR_SECRET: z.string().min(16).optional(),
 });
 
 let cachedServerEnv: z.infer<typeof serverEnvSchema> | null = null;
