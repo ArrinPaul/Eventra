@@ -29,7 +29,6 @@ import { useToast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { getUserRegistrations, getRegistrationStatus } from '@/app/actions/registrations';
 import { format } from 'date-fns';
-import * as XLSX from 'xlsx';
 
 interface AttendeeManagementProps {
   eventId: string;
@@ -93,35 +92,36 @@ export function AttendeeManagement({ eventId, eventTitle }: AttendeeManagementPr
   const handleExport = async () => {
     setExporting(true);
     try {
-      const wb = XLSX.utils.book_new();
+      const headers = ['Name', 'Email', 'Ticket Number', 'Status', 'Purchase Date', 'Price', 'Verified At'];
+      const rows = filtered.map(a => [
+        a.name,
+        a.email,
+        a.ticketNumber,
+        a.status,
+        a.purchaseDate ? format(new Date(a.purchaseDate), 'PPpp') : '',
+        a.price ? `$${a.price}` : 'Free',
+        a.verifiedAt ? format(new Date(a.verifiedAt), 'PPpp') : 'Not verified',
+      ]);
 
-      const eventData = [
-        ['Event', eventTitle],
-        ['Total Attendees', stats.total],
-        ['Confirmed', stats.confirmed],
-        ['Checked In', stats.checkedIn],
-        ['Revenue', `$${stats.revenue.toFixed(2)}`],
-        ['Export Date', format(new Date(), 'PPP')],
-      ];
-      const wsEvent = XLSX.utils.aoa_to_sheet(eventData);
-      XLSX.utils.book_append_sheet(wb, wsEvent, 'Event Info');
+      const csvContent = [
+        `Event: ${eventTitle}`,
+        `Total Attendees: ${stats.total}`,
+        `Confirmed: ${stats.confirmed}`,
+        `Checked In: ${stats.checkedIn}`,
+        `Revenue: $${stats.revenue.toFixed(2)}`,
+        `Export Date: ${format(new Date(), 'PPP')}`,
+        '',
+        headers.join(','),
+        ...rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+      ].join('\n');
 
-      const attendeeData = [
-        ['Name', 'Email', 'Ticket Number', 'Status', 'Purchase Date', 'Price', 'Verified At'],
-        ...filtered.map(a => [
-          a.name,
-          a.email,
-          a.ticketNumber,
-          a.status,
-          a.purchaseDate ? format(new Date(a.purchaseDate), 'PPpp') : '',
-          a.price ? `$${a.price}` : 'Free',
-          a.verifiedAt ? format(new Date(a.verifiedAt), 'PPpp') : 'Not verified',
-        ]),
-      ];
-      const wsAttendees = XLSX.utils.aoa_to_sheet(attendeeData);
-      XLSX.utils.book_append_sheet(wb, wsAttendees, 'Attendees');
-
-      XLSX.writeFile(wb, `${eventTitle}-attendees-${format(new Date(), 'yyyy-MM-dd')}.xlsx`);
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${eventTitle}-attendees-${format(new Date(), 'yyyy-MM-dd')}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
       toast({ title: 'Exported successfully' });
     } catch (e) {
       toast({ title: 'Export failed', variant: 'destructive' });
