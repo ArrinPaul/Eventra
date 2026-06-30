@@ -446,6 +446,10 @@ export const eventsRelations = relations(events, ({ many, one }) => ({
     fields: [events.feedbackTemplateId],
     references: [feedbackTemplates.id],
   }),
+  map: one(eventMaps, {
+    fields: [events.id],
+    references: [eventMaps.eventId],
+  }),
 }));
 
 export const sponsorsRelations = relations(sponsors, ({ one }) => ({
@@ -766,4 +770,51 @@ export const eventTags = pgTable('event_tags', {
   pk: primaryKey({ columns: [t.eventId, t.tagId] }),
   eventIdx: index('event_tags_event_idx').on(t.eventId),
   tagIdx: index('event_tags_tag_idx').on(t.tagId),
+}));
+
+// --- Dynamic Event Maps ---
+
+export const eventMaps = pgTable('event_maps', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  eventId: uuid('event_id').references(() => events.id, { onDelete: 'cascade' }).notNull(),
+  imageUrl: text('image_url').notNull(),
+  imageWidth: integer('image_width').notNull(),
+  imageHeight: integer('image_height').notNull(),
+  edges: jsonb('edges').default([]).notNull(),
+  createdBy: text('created_by').references(() => users.id).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => ({
+  eventIdx: index('event_maps_event_idx').on(table.eventId),
+  eventUnique: uniqueIndex('event_maps_event_unique').on(table.eventId),
+}));
+
+export const eventMapNodes = pgTable('event_map_nodes', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  mapId: uuid('map_id').references(() => eventMaps.id, { onDelete: 'cascade' }).notNull(),
+  name: text('name').notNull(),
+  description: text('description'),
+  category: text('category').default('location').notNull(),
+  x: decimal('x', { precision: 5, scale: 2 }).notNull(),
+  y: decimal('y', { precision: 5, scale: 2 }).notNull(),
+  icon: text('icon').default('map-pin'),
+  color: text('color').default('#6366f1'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => ({
+  mapIdx: index('event_map_nodes_map_idx').on(table.mapId),
+}));
+
+export const eventMapsRelations = relations(eventMaps, ({ one, many }) => ({
+  event: one(events, {
+    fields: [eventMaps.eventId],
+    references: [events.id],
+  }),
+  nodes: many(eventMapNodes),
+}));
+
+export const eventMapNodesRelations = relations(eventMapNodes, ({ one }) => ({
+  map: one(eventMaps, {
+    fields: [eventMapNodes.mapId],
+    references: [eventMaps.id],
+  }),
 }));
