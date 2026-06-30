@@ -125,7 +125,36 @@ Eventra/
 
 Eventra uses Clerk for authentication with a layered authorization system. The middleware intercepts all non-public routes and enforces authentication. Admin routes receive additional role-based protection.
 
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant M as Middleware
+    participant C as Clerk
+    participant SA as Server Action
+    participant DB as Database
 
+    U->>M: Request to protected route
+    M->>C: auth.protect()
+    alt Authenticated
+        C-->>M: Auth object with sessionClaims
+        alt Admin route
+            M->>M: Check role === admin
+            alt Not admin
+                M-->>U: Redirect to /
+            end
+        end
+        M-->>U: Proceed to route
+    else Not authenticated
+        C-->>M: Redirect to sign-in
+        M-->>U: 302 to /login
+    end
+
+    U->>SA: Server Action call
+    SA->>SA: requireAuth() or validateEventOwnership()
+    SA->>DB: Query with user context
+    DB-->>SA: Result
+    SA-->>U: Response
+```
 
 **Role Hierarchy:**
 
@@ -160,7 +189,28 @@ Eventra uses Clerk for authentication with a layered authorization system. The m
 
 Events flow through a defined lifecycle from creation to post-event analytics.
 
+```mermaid
+stateDiagram-v2
+    [*] --> Draft: Create Event
+    Draft --> Published: Publish
+    Draft --> Cancelled: Cancel
+    Published --> Active: Event Start Date
+    Published --> Cancelled: Cancel
+    Active --> Completed: Event End Date
+    Completed --> Archived: Auto-archive
 
+    state Published {
+        [*] --> RegistrationOpen
+        RegistrationOpen --> WaitlistActive: Capacity Full
+        WaitlistActive --> RegistrationOpen: Spot Available
+    }
+
+    state Active {
+        [*] --> CheckInOpen
+        CheckInOpen --> LiveEvent
+        LiveEvent --> FeedbackCollection
+    }
+```
 
 **Event Features:**
 - Multi-step creation wizard with AI-assisted scheduling
@@ -178,7 +228,29 @@ Events flow through a defined lifecycle from creation to post-event analytics.
 
 The ticketing system handles multi-tier pricing, QR-based check-in, waitlists, and payment processing through Dodo Payments.
 
+```mermaid
+sequenceDiagram
+    participant U as Attendee
+    participant SA as Server Action
+    participant P as Dodo Payments
+    participant DB as Database
+    participant E as Email Service
 
+    U->>SA: Register for Event
+    alt Free Event
+        SA->>DB: Create Order + Tickets
+        SA->>E: Send Confirmation Email
+    else Paid Event
+        SA->>P: Create Checkout Session
+        P-->>U: Redirect to Checkout
+        U->>P: Complete Payment
+        P->>SA: Webhook: payment.completed
+        SA->>DB: Verify Svix Signature
+        SA->>DB: Create Order + Tickets
+        SA->>E: Send Confirmation Email
+    end
+    DB-->>U: Tickets with QR codes + Entry codes
+```
 
 **Ticket Features:**
 - Multi-tier pricing per event (VIP, Early Bird, General, etc.)
@@ -203,7 +275,37 @@ The ticketing system handles multi-tier pricing, QR-based check-in, waitlists, a
 
 Powered by Google Gemini 1.5 Flash through the Genkit framework, the AI engine provides automation across event planning, content generation, and analytics.
 
+```mermaid
+graph LR
+    subgraph Input["Input Sources"]
+        A["Event Specs"]
+        B["User Bio/Interests"]
+        C["Registration Trends"]
+        D["Historical Data"]
+    end
 
+    subgraph Processing["Genkit Flow Router"]
+        A --> E{"Flow Router"}
+        B --> E
+        C --> E
+        E --> F["Content Generation"]
+        E --> G["Prediction Model"]
+        E --> H["Embedding Generator"]
+        E --> I["Task Planner"]
+    end
+
+    subgraph Output["Gemini 1.5 Flash"]
+        F --> J["Descriptions, Agendas, Copy"]
+        G --> K["Attendance Forecasts"]
+        H --> L["768-dim Vectors"]
+        I --> M["Kanban Task Lists"]
+    end
+
+    J --> N[("PostgreSQL")]
+    K --> O["Organizer Dashboard"]
+    L --> N
+    M --> P["Task Board"]
+```
 
 **AI Capabilities:**
 
@@ -224,7 +326,28 @@ Powered by Google Gemini 1.5 Flash through the Genkit framework, the AI engine p
 
 Eventra uses pgvector with 768-dimensional embeddings for semantic matching between users and events.
 
+```mermaid
+graph TD
+    subgraph Embedding["Embedding Pipeline"]
+        A["User Profile + Interests"] --> B["Gemini Embedding API"]
+        C["Event Data + Description"] --> B
+        B --> D["768-dim Vector"]
+    end
 
+    subgraph Search["Semantic Search"]
+        D --> E{"pgvector Cosine Similarity"}
+        F["Stored Embeddings"] --> E
+        E --> G["Ranked Results"]
+    end
+
+    subgraph Output["Recommendation Output"]
+        G --> H["Personalized Explore Feed"]
+        G --> I["Matchmaking Suggestions"]
+        G --> J["Connection Recommendations"]
+    end
+
+    H --> K["Cached in ai_recommendation_cache"]
+```
 
 **Vector Features:**
 - User interest embeddings generated from bio, skills, and preferences
@@ -239,7 +362,26 @@ Eventra uses pgvector with 768-dimensional embeddings for semantic matching betw
 
 Multi-channel communication system supporting real-time chat, email, and SMS notifications.
 
+```mermaid
+graph TD
+    A["Event/System Trigger"] --> B{"Notification Dispatcher"}
+    B -->|"Email"| C["Resend API"]
+    B -->|"SMS"| D["Twilio API"]
+    B -->|"In-App"| E["notifications table"]
+    B -->|"Chat"| F["chat_messages table"]
 
+    C --> G["7 Email Templates"]
+    G --> G1["Registration Confirmation"]
+    G --> G2["Certificate Ready"]
+    G --> G3["Event Announcement"]
+    G --> G4["Feedback Request"]
+    G --> G5["Thank You"]
+    G --> G6["Ticket Details"]
+    G --> G7["Event Update"]
+
+    E --> H["Real-time UI Update"]
+    F --> I["Chat Interface"]
+```
 
 **Communication Features:**
 - 7 HTML email templates with gradient headers
