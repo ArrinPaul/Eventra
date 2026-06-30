@@ -69,6 +69,10 @@ export default defineConfig({
     'feedback_responses',
     'tags',
     'event_tags',
+    'event_maps',
+    'event_map_nodes',
+    'sponsor_leads',
+    'ingestion_sources',
   ],
   dbCredentials: {
     url: process.env.DATABASE_URL || 'postgresql://invalid:invalid@localhost:5432/eventra',
