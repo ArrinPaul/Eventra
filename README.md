@@ -4,7 +4,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
 [![Drizzle ORM](https://img.shields.io/badge/Drizzle--ORM-0.45-orange?style=flat-square)](https://orm.drizzle.team/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-blue?style=flat-square&logo=postgresql)](https://www.postgresql.org/)
-[![License](https://img.shades.io/badge/License-Proprietary-red?style=flat-square)](#license)
+[![License](https://img.shields.io/badge/License-Proprietary-red?style=flat-square)](#license)
 
 An enterprise-grade event management platform that automates the full lifecycle of complex events. Built with Next.js 15, PostgreSQL with pgvector, Drizzle ORM, Clerk authentication, and Google Gemini AI. Eventra transforms passive event hosting into an active, data-driven, and community-centric experience.
 
@@ -32,7 +32,6 @@ An enterprise-grade event management platform that automates the full lifecycle 
 - [Testing](#testing)
 - [Deployment](#deployment)
 - [Security](#security)
-- [Known Issues](#known-issues)
 - [License](#license)
 
 ---
@@ -792,9 +791,26 @@ npm run db:studio      # Open Drizzle Studio for visual database inspection
 - **Unique constraints**: Prevent duplicate registrations, feedback, and rate limit entries
 - **Cascade deletes**: Automatic cleanup of dependent records
 
-### Smoke Testing
+---
 
-The project includes a smoke test suite that validates core flows:
+## Testing
+
+The project uses Vitest for unit and integration tests, and includes a smoke test suite to validate core flows.
+
+### Unit and Integration Tests
+
+```bash
+npm run test          # Run all tests
+npm run test:watch    # Run tests in watch mode
+```
+
+**Test Files:**
+- `src/core/utils/crypto.test.ts` -- QR signing, verification, payload parsing, entry code generation
+- `src/features/map/pathfinding.test.ts` -- BFS pathfinding on dynamic node/edge graphs
+- `src/features/map/types.test.ts` -- Percentage-to-pixel coordinate conversion
+- `src/lib/env.test.ts` -- Environment variable schema validation
+
+### Smoke Testing (requires running database)
 
 ```bash
 npm run test:smoke       # Seed test data and run flows
@@ -809,32 +825,6 @@ npm run test:smoke:clean # Clean up test data
 - Feedback submission and analytics
 - Badge awarding and gamification
 - Organizer tool operations (announcements, webhooks)
-
----
-
-## Testing
-
-The project uses Vitest for unit and integration tests.
-
-```bash
-npm run test          # Run all tests
-npm run test:watch    # Run tests in watch mode
-```
-
-**Test Files:**
-- `src/core/utils/crypto.test.ts` -- QR signing, verification, payload parsing, entry code generation
-- `src/features/map/pathfinding.test.ts` -- BFS pathfinding on dynamic node/edge graphs
-- `src/features/map/types.test.ts` -- Percentage-to-pixel coordinate conversion
-- `src/lib/env.test.ts` -- Environment variable schema validation
-
-**Smoke Testing** (requires running database):
-```bash
-npm run test:smoke       # Seed test data and run flows
-npm run test:verify      # Verify checklist results
-npm run test:smoke:clean # Clean up test data
-```
-
-Smoke tests validate: ticket creation/verification, community operations, chat messaging, feedback submission, badge awarding, and organizer tools.
 
 ---
 
@@ -887,15 +877,6 @@ The build process:
 - **Input validation** -- Zod schemas for all user inputs and environment variables
 - **SQL injection prevention** -- Drizzle ORM parameterized queries throughout
 - **Role-based access** -- 8 roles with granular permission system per event
-
----
-
-## Known Issues
-
-1. **Platform-specific lock file** -- If `npm ci` fails with EBADPLATFORM errors, use `npm ci --force` or regenerate with `npm install`
-2. **Empty API keys** -- AI, email, SMS, and payment features require API keys in `.env.local` to function
-3. **No test suite** -- Smoke tests validate core flows but there are no unit/integration/E2E tests
-4. **Campus hardcoding** -- GPS locations and bounds are hardcoded to one specific campus (dynamic maps are per-event and generic)
 
 ---
 
