@@ -1,7 +1,5 @@
 <div align="center">
 
-<img src="public/readme/eventra-cover.svg" alt="Eventra" width="720" />
-
 # Eventra
 
 ### Intelligent event management, from first idea to post-event feedback
@@ -42,21 +40,23 @@ The project is under active development. See [Project status](#project-status) f
 1. [About](#about)
 2. [Features](#features)
 3. [Architecture](#architecture)
-4. [Tech stack](#tech-stack)
-5. [Quickstart](#quickstart)
-6. [Configuration](#configuration)
-7. [Data model](#data-model)
-8. [Routes and server actions](#routes-and-server-actions)
-9. [Security](#security)
-10. [Testing](#testing)
-11. [Scripts](#scripts)
-12. [Project structure](#project-structure)
-13. [Deployment](#deployment)
-14. [Project status](#project-status)
-15. [Troubleshooting](#troubleshooting)
-16. [Documentation](#documentation)
-17. [Contributing](#contributing)
-18. [License](#license)
+4. [Core flows](#core-flows)
+5. [Roles and permissions](#roles-and-permissions)
+6. [Tech stack](#tech-stack)
+7. [Quickstart](#quickstart)
+8. [Configuration](#configuration)
+9. [Data model](#data-model)
+10. [Routes and server actions](#routes-and-server-actions)
+11. [Security](#security)
+12. [Testing](#testing)
+13. [Scripts](#scripts)
+14. [Project structure](#project-structure)
+15. [Deployment](#deployment)
+16. [Project status](#project-status)
+17. [Troubleshooting](#troubleshooting)
+18. [Documentation](#documentation)
+19. [Contributing](#contributing)
+20. [License](#license)
 
 ## Features
 
@@ -99,6 +99,116 @@ flowchart LR
 - **Feature folders** (`src/features/`) hold the UI for each domain, and `src/core/` holds shared services such as email, crypto and certificate generation.
 - **Rate limiting** is stored in the database, so it works across serverless instances.
 - The algorithms are explained in [METHODOLOGY.md](./METHODOLOGY.md).
+
+## Core flows
+
+### Registration and ticketing
+
+```mermaid
+sequenceDiagram
+    actor A as Attendee
+    participant SA as registerForEvent
+    participant DB as PostgreSQL
+    participant N as Notifications
+
+    A->>SA: Register (optional tier)
+    SA->>SA: Role check + rate limit (5 per minute)
+    SA->>DB: Already registered?
+    alt Event or tier is full
+        alt Waitlist enabled
+            SA->>DB: Add to waitlist (position)
+            SA-->>A: You are on the waitlist
+        else
+            SA-->>A: Sold out
+        end
+    else Seats available
+        SA->>DB: Transaction: insert ticket + atomic count increment
+        Note over DB: TKT number, 6-digit entry code,<br/>signed QR payload, expiry = end + 24 h
+        SA->>N: Confirmation + milestone alerts
+        SA-->>A: Ticket with QR code
+    end
+```
+
+The paid path is implemented on the server but **not connected to any page yet**: `createCheckoutSession` prices the checkout from the chosen tier, Dodo Payments takes the payment, and a signature-verified webhook (`payment.completed`) creates the order and ticket with the same atomic capacity check. A `payment.refunded` webhook refunds the order and restores capacity. See [Project status](#project-status).
+
+### Waitlist
+
+When a ticket is cancelled, the next person in line (by position) gets a 24-hour reservation and a notification with a link to claim the spot. If the reservation expires, the next person is promoted. Details, including a capacity caveat, are in [METHODOLOGY.md](./METHODOLOGY.md#3-capacity-control-and-the-waitlist).
+
+### Check-in
+
+```mermaid
+flowchart LR
+    S[Staff scans QR<br/>or types entry code] --> RL{Rate limit<br/>60 per minute}
+    RL --> P{Signed QR<br/>valid?}
+    P -->|yes| T[Look up by ticket number]
+    P -->|no| E[Look up by entry code + event]
+    T --> C{Status}
+    E --> C
+    C -->|confirmed| OK[Mark checked-in<br/>+50 XP to attendee]
+    C -->|already checked in| D[Rejected as duplicate]
+    C -->|cancelled, refunded, expired| R[Rejected]
+```
+
+If the connection drops, the scanner can verify against a roster cached on the device and sync the scans later. Offline mode matches ticket numbers and codes but does not check the QR signature.
+
+### Event lifecycle
+
+```mermaid
+stateDiagram-v2
+    [*] --> draft
+    draft --> published: organizer publishes or admin approves
+    draft --> cancelled: admin rejects
+    published --> active: start time reached
+    active --> completed: end time reached
+    published --> completed: end time reached
+```
+
+A scheduled job (`/api/cron/lifecycle`) performs the time-based transitions, sends post-event feedback emails and releases expired waitlist reservations. It must be called by an external scheduler. See [Deployment](#deployment).
+
+### AI and recommendations
+
+```mermaid
+flowchart LR
+    T[Profile or event text] --> EM[Gemini embedding<br/>768 dimensions]
+    EM --> V[(pgvector<br/>users + events)]
+    V -->|cosine distance| SH[Shortlist<br/>15 events or 10 people]
+    SH --> LLM[Genkit flow<br/>ranks and explains]
+    LLM --> UI[Recommendations<br/>and matchmaking]
+```
+
+Vector search builds the shortlist, and a Gemini flow writes the final ranking and the reasons. Without an API key or embeddings the app falls back to unranked lists. The other AI flows draft event content and agendas, generate organizer tasks and reports, summarize and moderate content, and predict attendance. Formulas and caveats are in [METHODOLOGY.md](./METHODOLOGY.md).
+
+### Venue maps and location
+
+Each event can have its own map: the organizer uploads an image (a floor plan or campus map), clicks to place named nodes (stage, booth, restroom, entrance, food and so on) and connects them with walkable paths. Attendees pick a start and destination and get a route with step-by-step directions, found by breadth-first search (fewest stops). Without a custom map, a built-in campus map with 11 predefined locations is used, and the app can combine a GPS fix with an AI guess to suggest where the user is.
+
+### Communication
+
+| Channel | How |
+| :--- | :--- |
+| Email (Resend) | 6 HTML templates: registration confirmation, ticket details, announcement, feedback request, thank-you and certificate ready |
+| SMS (Twilio) | Optional text notifications |
+| In-app and push | Notifications with read state, plus Web Push |
+| Chat | Event chat rooms with direct and group messaging, and an AI event assistant |
+
+## Roles and permissions
+
+Access is checked at two levels.
+
+**Platform role** (`users.role`, default `attendee`): `admin`, `organizer`, `attendee`, `student`, `professional`, `speaker` and `vendor`. The `/admin` pages require `admin` in the Clerk session, and server actions check the allowed roles for the operation.
+
+**Event role** (`event_staff`): staff are added per event with a role (`volunteer`, `speaker`, `moderator` or `admin`) and a list of granular permissions.
+
+| Who | Event access |
+| :--- | :--- |
+| Platform admin | Everything |
+| Event organizer and co-organizers | Everything for their event |
+| Event staff with role `admin` or `moderator` | Management access |
+| Other staff | Only the permissions listed on their staff record |
+| Everyone else | Public event pages and their own tickets |
+
+Helpers in `src/lib/auth-utils.ts` enforce this: `requireAuth`, `validateRole`, `requireEventAccess`, `requireEventPermission`, `validateEventOwnership`, `validateStaffPermission`, `canAccessEventManagement` and `hasEventPermission`. If a signed-in Clerk user has no row in the database yet, it is created on first request with the `attendee` role.
 
 ## Tech stack
 
@@ -143,7 +253,7 @@ node scripts/run-seed-badges.mjs   # optional: seed the default badges
 npm run dev                # http://localhost:9002
 ```
 
-Create your Clerk webhook (`/api/webhooks/clerk`) pointing at your app, and put its signing secret in `CLERK_WEBHOOK_SECRET`. The webhook is what creates the matching row in the `users` table when someone signs up.
+Create a Clerk webhook (`/api/webhooks/clerk`) pointing at your app and put its signing secret in `CLERK_WEBHOOK_SECRET`. The webhook keeps the `users` table in sync with Clerk. If it is missing, the app still creates a basic `attendee` row on a user's first request, but profile updates from Clerk will not arrive.
 
 ## Configuration
 
@@ -182,7 +292,48 @@ Copy `.env.example` to `.env.local` and never commit it. Values are validated by
 
 ## Data model
 
-Drizzle defines 46 tables in `src/lib/db/schema/index.ts`, and `drizzle/` holds 4 generated migrations. `users` and `events` each have a `vector(768)` embedding column.
+Drizzle defines 46 tables in `src/lib/db/schema/index.ts`, and `drizzle/` holds 4 generated migrations. `users` and `events` each have a `vector(768)` embedding column. The diagram shows the main relationships, taken from the schema's foreign keys.
+
+```mermaid
+erDiagram
+    users ||--o{ events : organizes
+    users ||--o{ tickets : holds
+    users ||--o{ waitlist : joins
+    users ||--o{ orders : places
+    users ||--o{ event_staff : "works as"
+    users ||--o{ follows : "follows"
+    users ||--o{ user_badges : earns
+    users ||--o{ notifications : receives
+    users ||--o{ posts : writes
+    users ||--o{ chat_messages : sends
+
+    events ||--o{ ticket_tiers : offers
+    events ||--o{ tickets : issues
+    events ||--o{ waitlist : queues
+    events ||--o{ orders : "sold through"
+    events ||--o{ event_staff : employs
+    events ||--o{ promo_codes : accepts
+    events ||--o{ agenda_sessions : schedules
+    events ||--o{ event_feedback : collects
+    events ||--o{ kanban_tasks : plans
+    events ||--o{ issues : tracks
+    events ||--o{ chat_rooms : hosts
+    events ||--o{ event_sponsors : features
+    events ||--o| event_maps : "has map"
+    events ||--o{ event_tags : tagged
+
+    ticket_tiers ||--o{ tickets : prices
+    tags ||--o{ event_tags : labels
+    event_maps ||--o{ event_map_nodes : contains
+    agenda_sessions ||--o{ agenda_bookmarks : saved
+    event_sponsors ||--o{ sponsor_leads : captures
+    chat_rooms ||--o{ chat_participants : includes
+    chat_rooms ||--o{ chat_messages : holds
+    communities ||--o{ community_members : has
+    communities ||--o{ posts : contains
+    posts ||--o{ comments : receives
+    badges ||--o{ user_badges : awarded
+```
 
 | Domain | Tables |
 | :--- | :--- |
@@ -322,7 +473,7 @@ The code type-checks and its 86 unit tests pass, and CI runs lint and a build. T
 | App fails at start with "Invalid server environment variables" | A required variable is missing or too short | Run `npm run env:check` and fix what it lists. |
 | Production start throws about `QR_SECRET`, `CRON_SECRET` or webhook secrets | They are required when `NODE_ENV=production` | Set them. `CRON_SECRET` is not in `.env.example`. |
 | `db:push` fails on a `vector` type | The `pgvector` extension is not enabled | Run `create extension if not exists vector;` as a database admin. |
-| Signed up in Clerk but the app shows no profile | The Clerk webhook did not reach the app | Point a Clerk webhook at `/api/webhooks/clerk` and set `CLERK_WEBHOOK_SECRET`. |
+| Name, photo or role changes in Clerk do not appear in the app | The Clerk webhook is not reaching the app | Point a Clerk webhook at `/api/webhooks/clerk` and set `CLERK_WEBHOOK_SECRET`. |
 | AI features return nothing | No `GOOGLE_API_KEY` or `GEMINI_API_KEY`, a timeout (15 s) or quota | Set the key. Check the server log for the `[AI:...]` warning. |
 | Events never become active or completed | Nothing calls the lifecycle cron | Schedule `/api/cron/lifecycle` with `CRON_SECRET`. |
 | Image upload fails | File is not an image, over 10 MB, or the `eventra-uploads` bucket is missing | Check the file and create the Supabase storage bucket. |

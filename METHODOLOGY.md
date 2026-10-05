@@ -86,12 +86,11 @@ A job moves events through their statuses based only on the clock. It is exposed
 ```mermaid
 stateDiagram-v2
     [*] --> draft
-    draft --> published
+    draft --> published: publish or admin approval
     published --> active: start ≤ now < end
     published --> completed: end ≤ now
     active --> completed: end ≤ now
-    draft --> cancelled
-    published --> cancelled
+    draft --> cancelled: admin rejects
 ```
 
 Each run:
@@ -100,7 +99,7 @@ Each run:
 2. Completes active or published events whose end has passed, and sends post-event feedback emails.
 3. Releases expired waitlist reservations.
 
-The job only performs the two time-based transitions above. Moving an event out of `draft` or into `cancelled` is a manual action by the organizer. There is no `archived` status in the code. The cron endpoint requires `CRON_SECRET` in production and returns `500` if it is unset.
+The job only performs the two time-based transitions above. Moving an event out of `draft` is manual: an organizer publishes it, or an admin approves or rejects it in the moderation queue. There is no `archived` status in the code. The cron endpoint requires `CRON_SECRET` in production and returns `500` if it is unset.
 
 ## 5. Pricing, promo codes and payouts
 
