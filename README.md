@@ -1,706 +1,347 @@
-# Eventra -- Intelligent Event Management Platform
+<div align="center">
 
-[![Next.js](https://img.shields.io/badge/Next.js-15-black?style=flat-square&logo=next.js)](https://nextjs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
-[![Drizzle ORM](https://img.shields.io/badge/Drizzle--ORM-0.45-orange?style=flat-square)](https://orm.drizzle.team/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-blue?style=flat-square&logo=postgresql)](https://www.postgresql.org/)
-[![License](https://img.shields.io/badge/License-Proprietary-red?style=flat-square)](#license)
+<img src="public/readme/eventra-cover.svg" alt="Eventra" width="720" />
 
-An enterprise-grade event management platform that automates the full lifecycle of complex events. Built with Next.js 15, PostgreSQL with pgvector, Drizzle ORM, Clerk authentication, and Google Gemini AI. Eventra transforms passive event hosting into an active, data-driven, and community-centric experience.
+# Eventra
+
+### Intelligent event management, from first idea to post-event feedback
+
+_Plan, sell tickets, check people in, and understand how it went, with AI where it helps._
+
+[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+[![CI](https://github.com/ArrinPaul/Eventra/actions/workflows/ci.yml/badge.svg)](https://github.com/ArrinPaul/Eventra/actions/workflows/ci.yml)
+
+![Next.js](https://img.shields.io/badge/Next.js-15-000000?logo=nextdotjs&logoColor=white)
+![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)
+![Drizzle](https://img.shields.io/badge/Drizzle_ORM-0.45-C5F74F?logo=drizzle&logoColor=black)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-pgvector-4169E1?logo=postgresql&logoColor=white)
+![Clerk](https://img.shields.io/badge/Clerk-auth-6C47FF?logo=clerk&logoColor=white)
+![Gemini](https://img.shields.io/badge/Gemini-Genkit-8E75B2?logo=googlegemini&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3-06B6D4?logo=tailwindcss&logoColor=white)
+![Vitest](https://img.shields.io/badge/Vitest-4-6E9F18?logo=vitest&logoColor=white)
+
+[Quickstart](#quickstart) · [Features](#features) · [Architecture](#architecture) · [Methodology](./METHODOLOGY.md) · [Security](#security) · [Project status](#project-status) · [Report an issue](https://github.com/ArrinPaul/Eventra/issues)
+
+</div>
 
 ---
+
+## About
+
+Eventra is a full-stack web platform for running events, with a focus on campus and community events. Organizers create events and sell or issue tickets. Attendees register, get QR tickets, find their way around a venue map, join communities and chat with other attendees. After the event, organizers collect feedback, hand out certificates and review analytics.
+
+AI is built in where it saves effort: Google Gemini (through Genkit) drafts event content, plans tasks, answers attendee questions and writes reports, and vector embeddings in PostgreSQL power event and people recommendations. Every AI feature degrades gracefully when no API key is set.
+
+**Who it's for:** event organizers and student clubs, attendees looking for events and people to meet, and platform admins who moderate content and users.
+
+The project is under active development. See [Project status](#project-status) for what is finished, what is not wired up yet and what has not been tested against real services.
 
 ## Table of Contents
 
-- [Architecture](#architecture)
-- [Tech Stack](#tech-stack)
-- [Project Structure](#project-structure)
-- [Core Systems](#core-systems)
-- [Core Systems](#core-systems)
-- [Database](#database)
-- [API Routes](#api-routes)
-- [Server Actions](#server-actions)
-- [Environment Variables](#environment-variables)
-- [Setup](#setup)
-- [Database Setup](#database-setup)
-- [Testing](#testing)
-- [Deployment](#deployment)
-- [Security](#security)
-- [License](#license)
+1. [About](#about)
+2. [Features](#features)
+3. [Architecture](#architecture)
+4. [Tech stack](#tech-stack)
+5. [Quickstart](#quickstart)
+6. [Configuration](#configuration)
+7. [Data model](#data-model)
+8. [Routes and server actions](#routes-and-server-actions)
+9. [Security](#security)
+10. [Testing](#testing)
+11. [Scripts](#scripts)
+12. [Project structure](#project-structure)
+13. [Deployment](#deployment)
+14. [Project status](#project-status)
+15. [Troubleshooting](#troubleshooting)
+16. [Documentation](#documentation)
+17. [Contributing](#contributing)
+18. [License](#license)
 
----
+## Features
+
+| Area | What it includes |
+| :--- | :--- |
+| **Events** | Creation wizard with AI help, categories and tags, recurring events (RRULE), sub-events, co-organizers, event cloning, public or private visibility, per-event branding, import of event metadata from a URL |
+| **Ticketing** | Multiple ticket tiers with their own price and capacity, free registration, waitlist with 24-hour reserved spots, ticket expiry, QR codes plus 6-digit entry codes, calendar export |
+| **Payments** | Dodo Payments checkout sessions and webhooks, refunds, promo codes, organizer payouts with a platform fee |
+| **Check-in** | QR scanner, manual entry code, offline roster mode that syncs later, attendance scanner for organizers |
+| **Venue maps** | Organizers upload a floor plan or map image, place nodes and draw walkable paths. Attendees get a route with turn-by-turn steps. A built-in campus map is the fallback. |
+| **Agenda and live** | Agenda sessions and bookmarks, live stage view, event updates and announcements |
+| **Community** | Communities and posts, activity feed, follows, event chat rooms, networking requests and one-to-one meetings |
+| **AI** | Event content and agenda generation, task generation, attendance prediction, event Q&A chatbot, report generation, social post generator, content moderation, personalized recommendations, matchmaking |
+| **Organizer tools** | Kanban task board, stakeholders, issue tracker, media gallery, sponsors and lead scanning, feedback templates, certificates with PDF export, printable badges, analytics, data export, collaboration view |
+| **Feedback** | Post-event surveys, NPS and rating analytics, testimonials |
+| **Gamification** | XP, levels, badges, challenges and a leaderboard |
+| **Admin** | User and event moderation, platform settings, health endpoint |
+| **Platform** | Role-based access (admin, organizer, attendee, student, professional, speaker, vendor and more), English and Spanish translations, installable PWA with an offline page |
 
 ## Architecture
 
-Eventra follows a Feature-First modular architecture. Four integrated engines power the platform: Intelligence (AI), Recommendation (vector search), Communication (email/SMS/chat), and Lifecycle (events/ticketing/payments). Server Components and Server Actions handle all business logic through a centralized engine router.
-
 ```mermaid
-graph TD
-    subgraph Presentation["Presentation Layer"]
-        A["Next.js 15 App Router"] --> B["Server Components"]
-        A --> C["Client Components"]
-        A --> D["Middleware - Clerk Auth"]
-    end
-
-    subgraph Business["Business Logic Layer"]
-        B --> E["Server Actions / API Handlers"]
-        C --> E
-        E --> F{"Engine Router"}
-        F -->|AI Request| G["Intelligence Engine"]
-        F -->|Search/Match| H["Recommendation Engine"]
-        F -->|Messaging| I["Communication Hub"]
-        F -->|Events/Tickets| J["Lifecycle Engine"]
-    end
-
-    subgraph Data["Data and External Layer"]
-        G --> K[("Supabase PostgreSQL + pgvector")]
-        H --> K
-        I --> K
-        J --> K
-        G --> L["Google Gemini API"]
-        I --> M["Resend Email"]
-        I --> N["Twilio SMS"]
-        J --> O["Dodo Payments"]
-    end
-
-    style G fill:#7C3AED,stroke:#fff,color:#fff
-    style H fill:#06B6D4,stroke:#fff,color:#fff
-    style I fill:#10B981,stroke:#fff,color:#fff
-    style J fill:#F59E0B,stroke:#fff,color:#fff
+flowchart LR
+    B[Browser<br/>React 19 · TanStack Query] --> MW[Clerk middleware<br/>route protection]
+    MW --> SC[Server Components +<br/>Server Actions]
+    MW --> API[Route Handlers<br/>webhooks · cron · AI · health]
+    SC --> DB[(PostgreSQL + pgvector<br/>Drizzle ORM)]
+    API --> DB
+    SC --> AI[Genkit + Gemini]
+    SC --> RS[Resend email]
+    SC --> TW[Twilio SMS]
+    SC --> DP[Dodo Payments]
+    DP -.->|webhook| API
+    CL[Clerk] -.->|user sync webhook| API
+    B --> SB[Supabase Storage<br/>uploads]
 ```
 
----
-
-## Tech Stack
-
-| Layer | Technology | Purpose |
-|-------|-----------|---------|
-| Framework | Next.js 15.5 | App Router, Server Components, Server Actions, Turbopack |
-| Language | TypeScript 5 | Type-safe development with strict mode |
-| Authentication | Clerk 7.3 | OAuth, JWT sessions, Webhooks, Role-based access |
-| Database | PostgreSQL 15 (Supabase) | Relational data, pgvector for AI embeddings |
-| ORM | Drizzle ORM 0.45 | Type-safe queries, migrations, schema management |
-| AI | Google Gemini 1.5 Flash + Genkit | Content generation, predictions, embeddings, chatbot |
-| Payments | Dodo Payments | Checkout sessions, refunds, webhook handling |
-| Email | Resend | Transactional email with 7 HTML templates |
-| SMS | Twilio | SMS notifications |
-| UI Components | Shadcn/ui + Radix UI | 48 pre-built accessible components |
-| Styling | Tailwind CSS + tailwindcss-animate | Utility-first CSS with animation support |
-| Charts | Recharts | Data visualization and analytics dashboards |
-| Maps | Leaflet + React-Leaflet | Real-world campus maps |
-| PDF Generation | jsPDF + html2canvas | Certificate generation and bulk export |
-| QR Codes | qrcode.react | Ticket QR code rendering |
-| State Management | TanStack React Query | Server state caching and synchronization |
-| Form Handling | React Hook Form + Zod | Form validation and error handling |
-| Internationalization | next-intl | Multi-language support (English, Spanish) |
-| Date Handling | date-fns | Date formatting and manipulation |
-| Recurrence | rrule | Recurring event scheduling |
-
----
-
-## Project Structure
-
-```
-Eventra/
-├── src/
-│   ├── app/                              # Next.js App Router & Server Actions
-│   ├── features/                         # Feature-first modular domains
-│   ├── components/                       # Shared UI components (shadcn/ui)
-│   ├── core/                             # Core business services, auth & config
-│   ├── hooks/                            # Custom React hooks
-│   ├── lib/                              # Shared libraries (db, AI flows, rate limiting)
-│   ├── types/                            # TypeScript type definitions
-│   └── middleware.ts                     # Auth middleware
-├── drizzle/                              # Database migration files
-├── scripts/                              # Build, seed, and utility scripts
-├── public/                               # Static assets
-└── messages/                             # i18n translation files
-```
-
----
-
-## Core Systems
-
-### Authentication and Authorization
-
-Eventra uses Clerk for authentication with a layered authorization system. The middleware intercepts all non-public routes and enforces authentication. Admin routes receive additional role-based protection.
-
-```mermaid
-sequenceDiagram
-    participant U as User
-    participant M as Middleware
-    participant C as Clerk
-    participant SA as Server Action
-    participant DB as Database
-
-    U->>M: Request to protected route
-    M->>C: auth.protect()
-    alt Authenticated
-        C-->>M: Auth object with sessionClaims
-        alt Admin route
-            M->>M: Check role === admin
-            alt Not admin
-                M-->>U: Redirect to /
-            end
-        end
-        M-->>U: Proceed to route
-    else Not authenticated
-        C-->>M: Redirect to sign-in
-        M-->>U: 302 to /login
-    end
-
-    U->>SA: Server Action call
-    SA->>SA: requireAuth() or validateEventOwnership()
-    SA->>DB: Query with user context
-    DB-->>SA: Result
-    SA-->>U: Response
-```
-
-**Role Hierarchy:**
-
-| Role | Description |
-|------|-------------|
-| admin | Full platform access, user management, event moderation, system settings |
-| organizer | Event CRUD, staff management, analytics, reports, certificates |
-| moderator | Content moderation, community management, issue resolution |
-| speaker | Profile visibility, session management, attendee interaction |
-| volunteer | Check-in assistance, basic event access, attendee support |
-| professional | Standard attendee with enhanced profile and networking |
-| attendee | Basic event participation, feedback submission, ticket management |
-| vendor | Sponsor access, lead scanning, booth management |
-
-**Auth Utility Functions** (`src/lib/auth-utils.ts`):
-
-| Function | Purpose |
-|----------|---------|
-| `getAuthContext()` | Returns userId, clerkId, user profile, isAuthenticated |
-| `getEventAuthContext(eventId)` | Returns role, permissions, isOrganizer, canAccess for an event |
-| `requireAuth()` | Throws if not authenticated |
-| `requireEventAccess(eventId)` | Throws if no access to the event |
-| `requireEventPermission(eventId, permission)` | Throws if missing specific permission |
-| `validateEventOwnership(eventId)` | Validates organizer/co-organizer/staff/admin |
-| `validateStaffPermission(eventId, permission)` | Granular permission validation |
-| `canAccessEventManagement(userId, eventId)` | Boolean check for event management access |
-| `hasEventPermission(userId, eventId, permission)` | Boolean check for specific permission |
-
----
-
-### Event Lifecycle
-
-Events flow through a defined lifecycle from creation to post-event analytics.
-
-```mermaid
-stateDiagram-v2
-    [*] --> Draft: Create Event
-    Draft --> Published: Publish
-    Draft --> Cancelled: Cancel
-    Published --> Active: Event Start Date
-    Published --> Cancelled: Cancel
-    Active --> Completed: Event End Date
-    Completed --> Archived: Auto-archive
-
-    state Published {
-        [*] --> RegistrationOpen
-        RegistrationOpen --> WaitlistActive: Capacity Full
-        WaitlistActive --> RegistrationOpen: Spot Available
-    }
-
-    state Active {
-        [*] --> CheckInOpen
-        CheckInOpen --> LiveEvent
-        LiveEvent --> FeedbackCollection
-    }
-```
-
-**Event Features:**
-- Multi-step creation wizard with AI-assisted scheduling
-- Dynamic categories and tag management
-- Campus location selector with 11 predefined locations
-- RRule-based recurring event support
-- Sub-event hierarchy via parentEventId
-- Public/private visibility controls
-- Co-organizer support (multiple organizers per event)
-- Custom branding per event (colors, logos, CSS)
-
----
-
-### Ticketing and Payments
-
-The ticketing system handles multi-tier pricing, QR-based check-in, waitlists, and payment processing through Dodo Payments.
-
-```mermaid
-sequenceDiagram
-    participant U as Attendee
-    participant SA as Server Action
-    participant P as Dodo Payments
-    participant DB as Database
-    participant E as Email Service
-
-    U->>SA: Register for Event
-    alt Free Event
-        SA->>DB: Create Order + Tickets
-        SA->>E: Send Confirmation Email
-    else Paid Event
-        SA->>P: Create Checkout Session
-        P-->>U: Redirect to Checkout
-        U->>P: Complete Payment
-        P->>SA: Webhook: payment.completed
-        SA->>DB: Verify Svix Signature
-        SA->>DB: Create Order + Tickets
-        SA->>E: Send Confirmation Email
-    end
-    DB-->>U: Tickets with QR codes + Entry codes
-```
-
-**Ticket Features:**
-- Multi-tier pricing per event (VIP, Early Bird, General, etc.)
-- QR code generation with HMAC-SHA256 signing
-- 6-digit entry codes for manual check-in (crypto.randomInt)
-- Waitlist with automatic promotion on cancellation
-- Ticket expiration (event end + 24 hours)
-- Race-condition-safe double-scan prevention
-- Refund handling via webhook with capacity restoration
-- PDF certificate generation with AI-personalized messages
-
-**Payment Flow:**
-- Dodo Payments integration for checkout sessions
-- Webhook signature verification via svix
-- Automatic order and ticket creation on payment completion
-- Refund processing with order/ticket status updates
-- Free event direct registration bypass
-
----
-
-### AI Intelligence Engine
-
-Powered by Google Gemini 1.5 Flash through the Genkit framework, the AI engine provides automation across event planning, content generation, and analytics.
-
-```mermaid
-graph LR
-    subgraph Input["Input Sources"]
-        A["Event Specs"]
-        B["User Bio/Interests"]
-        C["Registration Trends"]
-        D["Historical Data"]
-    end
-
-    subgraph Processing["Genkit Flow Router"]
-        A --> E{"Flow Router"}
-        B --> E
-        C --> E
-        E --> F["Content Generation"]
-        E --> G["Prediction Model"]
-        E --> H["Embedding Generator"]
-        E --> I["Task Planner"]
-    end
-
-    subgraph Output["Gemini 1.5 Flash"]
-        F --> J["Descriptions, Agendas, Copy"]
-        G --> K["Attendance Forecasts"]
-        H --> L["768-dim Vectors"]
-        I --> M["Kanban Task Lists"]
-    end
-
-    J --> N[("PostgreSQL")]
-    K --> O["Organizer Dashboard"]
-    L --> N
-    M --> P["Task Board"]
-```
-
-**AI Capabilities:**
-
-| Feature | Description |
-|---------|-------------|
-| Smart Event Planning | Generates descriptions, agendas, and marketing copy |
-| Predictive Analytics | Estimates attendee turnout from registration trends |
-| AI Task Generation | Produces structured Kanban tasks with subtasks and priorities |
-| AI Chatbot | Event-specific Q&A with conversation history persistence |
-| AI Report Generation | Structured 6-section event reports |
-| Social Post Generator | Multi-platform social media content |
-| Content Moderation | Real-time sentiment analysis and content filtering |
-| Location Prediction | Hybrid GPS + AI weighted combination with agreement boost |
-
----
-
-### Vector Recommendation Engine
-
-Eventra uses pgvector with 768-dimensional embeddings for semantic matching between users and events.
-
-```mermaid
-graph TD
-    subgraph Embedding["Embedding Pipeline"]
-        A["User Profile + Interests"] --> B["Gemini Embedding API"]
-        C["Event Data + Description"] --> B
-        B --> D["768-dim Vector"]
-    end
-
-    subgraph Search["Semantic Search"]
-        D --> E{"pgvector Cosine Similarity"}
-        F["Stored Embeddings"] --> E
-        E --> G["Ranked Results"]
-    end
-
-    subgraph Output["Recommendation Output"]
-        G --> H["Personalized Explore Feed"]
-        G --> I["Matchmaking Suggestions"]
-        G --> J["Connection Recommendations"]
-    end
-
-    H --> K["Cached in ai_recommendation_cache"]
-```
-
-**Vector Features:**
-- User interest embeddings generated from bio, skills, and preferences
-- Event content embeddings generated from title, description, and category
-- Cosine similarity search for semantic matching
-- Recommendation caching with TTL for performance
-- Connection matchmaking based on professional goals
-
----
-
-### Communication Hub
-
-Multi-channel communication system supporting real-time chat, email, and SMS notifications.
-
-```mermaid
-graph TD
-    A["Event/System Trigger"] --> B{"Notification Dispatcher"}
-    B -->|"Email"| C["Resend API"]
-    B -->|"SMS"| D["Twilio API"]
-    B -->|"In-App"| E["notifications table"]
-    B -->|"Chat"| F["chat_messages table"]
-
-    C --> G["7 Email Templates"]
-    G --> G1["Registration Confirmation"]
-    G --> G2["Certificate Ready"]
-    G --> G3["Event Announcement"]
-    G --> G4["Feedback Request"]
-    G --> G5["Thank You"]
-    G --> G6["Ticket Details"]
-    G --> G7["Event Update"]
-
-    E --> H["Real-time UI Update"]
-    F --> I["Chat Interface"]
-```
-
-**Communication Features:**
-- 7 HTML email templates with gradient headers
-- Bulk email with delivery tracking (sent/delivered/opened/clicked/bounced/failed)
-- Event-specific chat rooms with direct and group messaging
-- AI-powered chatbot with conversation persistence
-- Notification system with read/unread tracking
-- Multi-channel delivery (email, SMS, in-app)
-
----
-
-### Campus Map and Navigation
-
-Eventra includes a campus-specific navigation system with two modes: a dynamic per-event map and a hardcoded fallback campus map.
-
-**Dynamic Per-Event Map:**
-- Each event can have its own custom map built by the organizer
-- Organizer uploads any image (floor plan, venue layout, campus map)
-- Place nodes on the image by clicking -- each node gets a name, category, and description
-- Connect nodes with edges to define walkable paths
-- BFS pathfinding generates shortest route between any two nodes
-- Turn-by-turn directions in the sidebar ("Head right toward Stage", "You have arrived")
-- 10 node categories: location, stage, booth, restroom, entrance, exit, food, info, workshop, vip
-- Percentage-based coordinates (0-100) -- works with any image size
-- Falls back to hardcoded campus map if no custom map exists
-
-**Hardcoded Campus Map** (fallback):
-- Interactive SVG campus map with 16 predefined zones
-- Pan and zoom controls
-- Zone buildings colored by category (academic, library, lab, sports, dining, outdoor, parking, admin)
-- Live event indicators with pulsing red dots
-- Animated navigation paths with turn-by-turn instructions
-- User location marker with pulsing blue dot
-- Compass and scale bar
-
-**GPS + AI Hybrid Location Detection:**
-- GPS Service (`gps-service.ts`): singleton service watching device GPS with caching
-- GPS Utils (`gps-utils.ts`): Haversine distance, campus bounds checking, nearest-location matching
-- Hybrid Prediction (`hybrid-prediction.ts`): combines GPS (40%) + AI (60%) with configurable weights, agreement boost, and breakdown visualization
-
-**Map Routes:**
-- `/events/[id]/map` -- Attendee view with navigation
-- `/events/[id]/map/edit` -- Organizer editor (upload image, place nodes, draw edges)
-
----
-
-## Database
-
-34 PostgreSQL tables managed by Drizzle ORM with pgvector for AI embeddings.
-
-```mermaid
-erDiagram
-    USERS ||--o{ EVENTS : organizes
-    USERS ||--o{ TICKETS : owns
-    USERS ||--o{ COMMUNITY_MEMBERS : joins
-    USERS ||--o{ POSTS : writes
-    USERS ||--o{ CHAT_MESSAGES : sends
-    USERS ||--o{ NOTIFICATIONS : receives
-    USERS ||--o{ USER_BADGES : earns
-    USERS ||--o{ AI_CHAT_SESSIONS : initiates
-    USERS ||--o{ EVENT_STAFF : works
-    USERS ||--o{ ORDERS : places
-    USERS ||--o{ ACTIVITY_FEED : generates
-    USERS ||--o{ FEEDBACK_RESPONSES : submits
-
-    EVENTS ||--o{ TICKET_TIERS : configures
-    EVENTS ||--o{ TICKETS : issues
-    EVENTS ||--o{ WAITLIST : manages
-    EVENTS ||--o{ CHAT_ROOMS : anchors
-    EVENTS ||--o{ SPONSORS : features
-    EVENTS ||--o{ EVENT_STAFF : employs
-    EVENTS ||--o{ EVENT_MEDIA : stores
-    EVENTS ||--o{ ISSUES : tracks
-    EVENTS ||--o{ EVENT_UPDATES : announces
-    EVENTS ||--o{ ORDERS : processes
-    EVENTS ||--o{ KANBAN_TASKS : plans
-    EVENTS ||--o{ REPORTS : generates
-    EVENTS ||--o{ STAKEHOLDERS : manages
-    EVENTS ||--o{ EVENT_TAGS : tagged
-    EVENTS ||--o| EVENT_MAPS : "has one map"
-
-    EVENT_MAPS ||--o{ EVENT_MAP_NODES : contains
-    EVENT_MAPS }o--|| USERS : created_by
-
-    COMMUNITIES ||--o{ POSTS : contains
-    COMMUNITIES ||--o{ COMMUNITY_MEMBERS : has
-    POSTS ||--o{ COMMENTS : receives
-
-    CHAT_ROOMS ||--o{ CHAT_MESSAGES : contains
-    CHAT_ROOMS ||--o{ CHAT_PARTICIPANTS : includes
-
-    BADGES ||--o{ USER_BADGES : awards
-    TAGS ||--o{ EVENT_TAGS : links
-```
-
----
-
-## API Routes
-
-Eventra exposes a set of API routes categorized as:
-- **Webhook Endpoints**: Signature-verified endpoints for third-party integrations (e.g., `/api/webhooks/clerk`, `/api/webhooks/dodo`).
-- **Protected Routes**: Authenticated and rate-limited endpoints for core client-side functions (e.g., AI chat, ticket verification, report generation, and notifications).
-- **Public Routes**: Open endpoints for discovery, landing pages, and system health monitoring (e.g., `/explore`, `/api/health`).
-
----
-
-## Server Actions
-
-Eventra organizes business logic into `'use server'` actions grouped by feature domain (e.g., `events.ts`, `tickets.ts`, `check-in.ts`, `gamification.ts`). These actions handle input validation using Zod, authentication verification, and secure database mutations.
-
-## Environment Variables
-
-### Required Variables
-
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `DATABASE_URL` | PostgreSQL connection string | `postgresql://user:pass@host:6543/postgres` |
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL | `https://xxx.supabase.co` |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anonymous key | `eyJ...` |
-| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk publishable key | `pk_live_...` |
-| `CLERK_SECRET_KEY` | Clerk secret key | `sk_live_...` |
-| `CLERK_WEBHOOK_SECRET` | Clerk webhook signing secret | `whsec_...` |
-| `JWT_SECRET` | JWT signing secret (min 16 chars, required in production) | `your-256-bit-secret` |
-| `QR_SECRET` | QR code signing secret (required in production) | `your-256-bit-secret` |
-
-### Optional Variables
-
-| Variable | Description | Default Behavior |
-|----------|-------------|-----------------|
-| `DATABASE_POOLER_URL` | Supabase transaction pooler URL | Falls back to DATABASE_URL |
-| `SESSION_SECRET` | Session signing secret | Falls back to JWT_SECRET |
-| `GEMINI_API_KEY` | Google Gemini API key | AI features disabled |
-| `DODO_PAYMENTS_API_KEY` | Dodo Payments API key | Payments disabled |
-| `DODO_PAYMENTS_WEBHOOK_SECRET` | Dodo webhook secret | Webhook verification skipped in dev |
-| `RESEND_API_KEY` | Resend email API key | Email sending skipped |
-| `TWILIO_ACCOUNT_SID` | Twilio account SID | SMS disabled |
-| `TWILIO_AUTH_TOKEN` | Twilio auth token | SMS disabled |
-| `TWILIO_PHONE_NUMBER` | Twilio phone number | SMS disabled |
-| `ROBOFLOW_API_KEY` | Roboflow API key | Computer vision disabled |
-| `SVIX_WEBHOOK_SECRET` | Svix webhook secret | Webhook verification skipped |
-
-### Environment Validation
-
-The project includes Zod-based environment validation:
-
-- `src/lib/env.ts` -- Runtime validation for server and public env vars
-- `scripts/check-env.mjs` -- Build-time validation with optional connectivity checks
+- **Server Actions** (`src/app/actions/`, 54 modules) hold most business logic. They validate input with Zod, check the caller's role and write through Drizzle.
+- **Route Handlers** (`src/app/api/`, 23 routes) cover webhooks (Clerk, Dodo), the lifecycle cron, AI chat and prediction, ticket verification, exports and health checks.
+- **Feature folders** (`src/features/`) hold the UI for each domain, and `src/core/` holds shared services such as email, crypto and certificate generation.
+- **Rate limiting** is stored in the database, so it works across serverless instances.
+- The algorithms are explained in [METHODOLOGY.md](./METHODOLOGY.md).
+
+## Tech stack
+
+| Layer | Technology |
+| :--- | :--- |
+| Framework | Next.js 15 (App Router, Turbopack), React 19, TypeScript 5 |
+| Auth | Clerk, with roles stored in session metadata and the `users` table |
+| Database | PostgreSQL (Supabase) with the `pgvector` extension, Drizzle ORM and drizzle-kit |
+| AI | Google Gemini 1.5 Flash through Genkit, `text-embedding-004` embeddings (768 dimensions) |
+| Payments | Dodo Payments, verified with Svix webhook signatures |
+| Messaging | Resend (email), Twilio (SMS), Web Push |
+| UI | Tailwind CSS, Radix UI, shadcn/ui, Framer Motion, Recharts, Leaflet |
+| Data and forms | TanStack Query, React Hook Form, Zod, rrule, date-fns |
+| Documents | jsPDF and html2canvas (certificates), JSZip, PapaParse (exports), qrcode.react and html5-qrcode (tickets) |
+| i18n | next-intl (English, Spanish) |
+| Quality | Vitest, ESLint, TypeScript strict checks, GitHub Actions |
+
+## Quickstart
+
+Prerequisites: Node.js 20 or newer (CI uses 22), a PostgreSQL database that supports `pgvector` (a free [Supabase](https://supabase.com) project works), and a [Clerk](https://clerk.com) application.
 
 ```bash
-npm run env:check              # Validate required env vars
-npm run env:check:staging      # Validate + check service connectivity
-```
-
----
-
-## Setup
-
-### Prerequisites
-
-- Node.js 18+ (recommended: 20)
-- npm or yarn
-- PostgreSQL 15+ (or Supabase account)
-- Clerk account (free tier available)
-
-### Installation
-
-```bash
-git clone <repository-url>
+git clone https://github.com/ArrinPaul/Eventra.git
 cd Eventra
 npm install
+
 cp .env.example .env.local
-# Edit .env.local with your credentials
-npm run db:push
-npm run dev
+# fill in Clerk, database, Supabase and secret values (see Configuration)
+
+npm run env:check          # validates your .env.local
 ```
 
-The application starts at `http://localhost:9002`.
+Enable the vector extension on your database and push the schema:
 
-### Available Scripts
-
-| Command | Description |
-|---------|-------------|
-| `npm run dev` | Development server with Turbopack on port 9002 |
-| `npm run build` | Production build |
-| `npm run start` | Start production server |
-| `npm run lint` | Run ESLint |
-| `npm run typecheck` | TypeScript type checking |
-| `npm run env:check` | Validate environment variables |
-| `npm run env:check:staging` | Validate env + check service connectivity |
-| `npm run db:generate` | Generate Drizzle migrations |
-| `npm run db:push` | Push schema to database |
-| `npm run db:studio` | Open Drizzle Studio |
-| `npm run test:smoke` | Seed smoke test data |
-| `npm run test:smoke:clean` | Clean smoke test data |
-| `npm run test:verify` | Verify smoke test checklist |
-
----
-
-## Database Setup
-
-### Schema Management
-
-Eventra uses Drizzle ORM for schema management. The schema is defined in `src/lib/db/schema/index.ts` and includes 32 tables with full relational definitions, pgvector embeddings, and composite indexes.
+```sql
+create extension if not exists vector;
+```
 
 ```bash
-npm run db:generate    # Generate migration files from schema changes
-npm run db:push        # Push schema directly to database (development)
-npm run db:studio      # Open Drizzle Studio for visual database inspection
+npm run db:push            # create the tables
+node scripts/run-seed-badges.mjs   # optional: seed the default badges
+npm run dev                # http://localhost:9002
 ```
 
-### Key Schema Features
+Create your Clerk webhook (`/api/webhooks/clerk`) pointing at your app, and put its signing secret in `CLERK_WEBHOOK_SECRET`. The webhook is what creates the matching row in the `users` table when someone signs up.
 
-- **pgvector**: 768-dimensional vector embeddings for AI recommendations
-- **JSONB fields**: Flexible metadata storage for events, tickets, feedback, tasks
-- **Composite indexes**: Optimized queries for ticket verification, rate limiting
-- **Unique constraints**: Prevent duplicate registrations, feedback, and rate limit entries
-- **Cascade deletes**: Automatic cleanup of dependent records
+## Configuration
 
----
+Copy `.env.example` to `.env.local` and never commit it. Values are validated by `src/lib/env.ts`.
 
-## Testing
+**Always required**
 
-The project uses Vitest for unit and integration tests, and includes a smoke test suite to validate core flows.
+| Variable | Purpose |
+| :--- | :--- |
+| `DATABASE_URL` | PostgreSQL connection string (use SSL for remote databases) |
+| `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase project, used for file storage |
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY` | Clerk authentication |
+| `NEXT_PUBLIC_DOMAIN`, `NEXT_PUBLIC_APP_URL` | App host and URL (default `localhost:9002`) |
 
-### Unit and Integration Tests
+**Required in production** (the app refuses to start or answers `500` without them)
 
-```bash
-npm run test          # Run all tests
-npm run test:watch    # Run tests in watch mode
-```
+| Variable | Purpose |
+| :--- | :--- |
+| `QR_SECRET` | At least 16 characters. Signs ticket QR codes. |
+| `CLERK_WEBHOOK_SECRET` | Verifies Clerk user-sync webhooks |
+| `DODO_PAYMENTS_WEBHOOK_SECRET` | Verifies payment webhooks |
+| `CRON_SECRET` | Authorizes `/api/cron/lifecycle`. **Not in `.env.example`.** |
+| `JWT_SECRET` (or `AUTH_SECRET` or `SESSION_SECRET`) | At least 16 characters, used by the session helper |
 
-**Test Files:**
-- `src/core/utils/crypto.test.ts` -- QR signing, verification, payload parsing, entry code generation
-- `src/features/map/pathfinding.test.ts` -- BFS pathfinding on dynamic node/edge graphs
-- `src/features/map/types.test.ts` -- Percentage-to-pixel coordinate conversion
-- `src/lib/env.test.ts` -- Environment variable schema validation
+**Optional** (the matching feature is skipped when unset)
 
-### Smoke Testing (requires running database)
+| Variable | Enables |
+| :--- | :--- |
+| `GOOGLE_API_KEY` (or `GEMINI_API_KEY`) | All AI features and embeddings |
+| `DODO_PAYMENTS_API_KEY` | Payments |
+| `RESEND_API_KEY` | Email |
+| `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_FROM_NUMBER` | SMS |
+| `DATABASE_POOLER_URL` | Supabase transaction pooler (falls back to `DATABASE_URL`) |
+| `ALLOWED_ORIGINS` | CORS allow-list for `/api/*`. If unset, CORS headers are omitted. |
+| `CSP_ENFORCE` | `false` switches the Content Security Policy back to report-only in production |
 
-```bash
-npm run test:smoke       # Seed test data and run flows
-npm run test:verify      # Verify checklist results
-npm run test:smoke:clean # Clean up test data
-```
+## Data model
 
-**Smoke Test Coverage:**
-- Ticket creation and verification chain
-- Community creation and member flow
-- Chat room creation and message persistence
-- Feedback submission and analytics
-- Badge awarding and gamification
-- Organizer tool operations (announcements, webhooks)
+Drizzle defines 46 tables in `src/lib/db/schema/index.ts`, and `drizzle/` holds 4 generated migrations. `users` and `events` each have a `vector(768)` embedding column.
 
----
+| Domain | Tables |
+| :--- | :--- |
+| Identity | `users`, `follows`, `notifications`, `activity_feed` |
+| Events | `events`, `event_tags`, `tags`, `event_maps`, `event_map_nodes`, `event_media`, `event_updates`, `agenda_sessions`, `agenda_bookmarks`, `ingestion_sources` |
+| Ticketing | `tickets`, `ticket_tiers`, `waitlist`, `orders`, `promo_codes`, `payouts` |
+| Community | `communities`, `community_members`, `posts`, `comments`, `chat_rooms`, `chat_participants`, `chat_messages`, `networking_meetings` |
+| Organizer | `event_staff`, `kanban_tasks`, `stakeholders`, `issues`, `reports`, `sponsors`, `event_sponsors`, `sponsor_leads` |
+| Feedback and awards | `feedback_templates`, `event_feedback`, `feedback_responses`, `certificate_templates`, `badges`, `user_badges` |
+| AI and platform | `ai_chat_sessions`, `ai_chat_messages`, `ai_recommendation_cache`, `rate_limits` |
 
-## Deployment
+## Routes and server actions
 
-### Build
+**Pages** are grouped under `src/app/(app)/` (signed in) and `src/app/(auth)/` (login, register, onboarding). The main areas are events, tickets, check-in, explore, feed, community, chat, networking, matchmaking, agenda, calendar, map, leaderboard, gamification, notifications, profile, settings, `organizer/*` and `admin`.
 
-```bash
-npm run build
-```
+**API route handlers** (`src/app/api/`):
 
-The build process:
-1. Compiles TypeScript with zero errors
-2. Lints with ESLint
-3. Generates optimized bundles
-4. Outputs standalone build for deployment
+| Path | Purpose |
+| :--- | :--- |
+| `webhooks/clerk`, `webhooks/dodo` | Signature-verified webhooks for user sync and payments |
+| `cron/lifecycle` | Automated event lifecycle sync, secured by `CRON_SECRET` |
+| `tickets/verify` | Check-in verification by entry code |
+| `ai/chat`, `predict`, `tasks/generate`, `reports` | AI chat, prediction, task and report generation |
+| `certificates/{generate,preview,distribute}`, `attendees/export` | Certificates and exports |
+| `feedback/{submit,responses}`, `issues`, `stakeholders`, `tasks` | Organizer data |
+| `event-updates`, `event-gallery/[eventId]`, `notifications/push/subscribe`, `send-email` | Updates, media, push and email |
+| `health` | Liveness check with database latency |
 
-### Production Requirements
-
-| Variable | Required | Notes |
-|----------|----------|-------|
-| `NODE_ENV` | Yes | Must be `production` |
-| `DATABASE_URL` | Yes | Must use SSL for remote databases |
-| `JWT_SECRET` | Yes | Application throws if missing |
-| `QR_SECRET` | Yes | Application throws if missing |
-| `CLERK_SECRET_KEY` | Yes | Use live keys, not test keys |
-| `CLERK_WEBHOOK_SECRET` | Yes | Required for user sync |
-| `DODO_PAYMENTS_WEBHOOK_SECRET` | Yes | Required for payment verification |
-
-### Deploy Checklist
-
-1. Set all required environment variables
-2. Run `npm run env:check:staging` to validate connectivity
-3. Run `npm run db:push` to sync database schema
-4. Run `npm run build` to verify production build
-5. Deploy and verify `/api/health` returns 200 with DB latency
-
----
+**Server actions** are in `src/app/actions/`, one module per domain (for example `events`, `registrations`, `payments`, `check-in`, `waitlist`, `gamification`, `matchmaking`, `ai-recommendations`).
 
 ## Security
 
-- **Middleware auth** -- Clerk middleware protects all non-public routes with `auth.protect()`
-- **Server action guards** -- `requireAuth()`, `validateEventOwnership()`, `validateStaffPermission()` on all mutations
-- **Webhook verification** -- Svix signature verification for Clerk and Dodo webhooks
-- **HMAC-SHA256 QR signing** -- Prevents ticket QR code forgery
-- **Timing-safe comparisons** -- `crypto.timingSafeEqual` for all signature checks
-- **Rate limiting** -- DB-backed per-user, per-scope rate limiting on all API routes
-- **Production secret enforcement** -- Application throws on startup if JWT_SECRET or QR_SECRET are missing
-- **Security headers** -- HSTS (63072000s), X-Frame-Options DENY, X-Content-Type-Options nosniff, Referrer-Policy, Permissions-Policy, X-DNS-Prefetch-Control
-- **Input validation** -- Zod schemas for all user inputs and environment variables
-- **SQL injection prevention** -- Drizzle ORM parameterized queries throughout
-- **Role-based access** -- 8 roles with granular permission system per event
+Implemented in the code today:
 
----
+- **Authentication.** Clerk middleware protects every route except a short public list. `/admin` also requires the `admin` role in session metadata.
+- **Authorization.** Server actions check roles and event ownership or staff permissions before writing.
+- **Webhooks.** Clerk and Dodo webhooks are verified with Svix signatures. In production a missing secret is a startup error, and the Dodo webhook also fails closed in every environment except an explicit local development run.
+- **Tickets.** QR payloads are signed with HMAC-SHA256 and compared in constant time. Production refuses to run without `QR_SECRET`.
+- **Race conditions.** Event and tier capacity use a single conditional `UPDATE`, so concurrent registrations cannot oversell.
+- **Rate limiting.** A database-backed counter limits sensitive actions, for example 5 registrations per minute and 30 verification attempts per minute.
+- **Headers.** HSTS, `X-Frame-Options: DENY`, `nosniff`, a referrer policy and a Content Security Policy, which is enforced in production by default.
+- **Uploads.** Client uploads accept images only, up to 10 MB.
+- **Environment.** Zod validates configuration, and the database connection throws in production if no URL is set.
+
+Known gaps, so you can judge the risk:
+
+- **The URL import tool has no server-side request guard.** `scrapeEventMetadata` (admin only) fetches any URL it is given, with no block on private or internal addresses.
+- **Offline check-in does not verify signatures.** It matches a ticket number or entry code against the cached roster.
+- **Entry codes are 6 digits.** Per-user rate limiting is the main defence.
+- **The CSP still allows `unsafe-inline` and `unsafe-eval`** for scripts, which Next.js currently needs.
+- **Dependency advisories.** `npm audit` reports 75 vulnerabilities in the production tree, rooted in a transitive `uuid` advisory through the Genkit and Google packages with no fix available (per `docs/AUDIT_REMEDIATION.md`).
+- **Rate limiting is partial.** It is applied in about 26 files, and it keys on the `x-forwarded-for` header, so run behind a trusted proxy.
+
+`AUDIT_REPORT.md` and `docs/AUDIT_REMEDIATION.md` record a September 2026 audit and which findings were fixed.
+
+## Testing
+
+```bash
+npm test               # Vitest: 17 files, 86 tests
+npm run typecheck      # tsc --noEmit
+npm run lint           # next lint
+```
+
+The unit tests cover ticket signing, offline verification, promo-code maths, payout fees, map pathfinding, NPS analytics, calendar links, badge generation, sponsor and meeting helpers, the event lifecycle sync and environment validation. Server actions and API routes have little direct test coverage.
+
+Smoke tests need a real database: `npm run test:smoke` seeds data, `npm run test:verify` checks the results and `npm run test:smoke:clean` removes it.
+
+CI (`.github/workflows/ci.yml`) runs install, lint, typecheck, tests and a production build on every push and pull request to `main`, `master` and `develop`.
+
+## Scripts
+
+| Command | What it does |
+| :--- | :--- |
+| `npm run dev` | Dev server on port 9002 (Turbopack) |
+| `npm run build` / `npm start` | Production build and server |
+| `npm run lint`, `npm run typecheck` | ESLint and TypeScript checks |
+| `npm test`, `npm run test:watch` | Vitest |
+| `npm run env:check` | Validate environment variables |
+| `npm run env:check:staging` | Validate and also test service connectivity |
+| `npm run db:generate` | Generate a migration from schema changes |
+| `npm run db:push` | Apply the schema directly to the database |
+| `npm run db:studio` | Drizzle Studio |
+| `npm run test:smoke`, `test:smoke:clean`, `test:verify` | Smoke test data and checklist |
+
+`scripts/` also holds one-off diagnostic and maintenance scripts (database checks, realtime setup, badge seeding, the scraper runner). Read a script before running it against a real database.
+
+## Project structure
+
+```text
+Eventra/
+├── src/
+│   ├── app/              Pages ((app), (auth)), api/ route handlers, actions/ server actions
+│   ├── features/         UI and logic by domain (events, ticketing, map, chat, organizer, ...)
+│   ├── core/             Services (email, SEO, push), utils (crypto, payouts, NPS, promo codes)
+│   ├── components/       Shared UI, layout and shadcn/ui primitives
+│   ├── lib/              Database and schema, AI (Genkit), rate limiting, env validation, GPS
+│   ├── hooks/, i18n/, types/
+│   └── middleware.ts     Clerk route protection
+├── drizzle/              Generated SQL migrations
+├── messages/             Translations (en, es)
+├── scripts/              Env checks, seeding, smoke tests, diagnostics
+├── public/               PWA manifest, service worker, README images
+├── docs/AUDIT_REMEDIATION.md   Fixes applied after the audit
+├── AUDIT_REPORT.md       Production readiness audit
+├── METHODOLOGY.md        Algorithms and formulas
+└── LICENSE               MIT License
+```
+
+## Deployment
+
+Eventra is a standard Next.js app and needs Node.js hosting, a PostgreSQL database with `pgvector`, and Clerk. The repo has no platform-specific deployment config.
+
+1. Set every production variable from [Configuration](#configuration).
+2. Run `npm run env:check:staging` to validate values and connectivity.
+3. Run `npm run db:push` against the production database.
+4. Run `npm run build`, deploy, and check that `/api/health` returns `200`.
+5. **Schedule the lifecycle job.** Call `GET` or `POST /api/cron/lifecycle` regularly (for example every 5 to 15 minutes) with `Authorization: Bearer <CRON_SECRET>`. The repo contains no scheduler, so without this events never move from published to active to completed, feedback emails are not sent and expired waitlist reservations are not released.
+6. Register the Clerk and Dodo webhook URLs with your production domain.
+
+## Project status
+
+The code type-checks and its 86 unit tests pass, and CI runs lint and a build. These parts are unfinished or unproven:
+
+- **Paid checkout is not wired into the UI.** `createCheckoutSession` exists and is covered by the server logic, but no page calls it, so the Register button always uses free registration. Promo codes are also only a client-side discount preview, not applied to what is charged.
+- **Waitlist claims can oversell.** A reserved spot does not hold a seat, and the claim step skips the capacity check that normal registration uses. Details in [METHODOLOGY.md](./METHODOLOGY.md#3-capacity-control-and-the-waitlist).
+- **Recommendation caching is dead code.** The `ai_recommendation_cache` table and its helpers exist, but nothing reads or writes them, so every recommendation call re-runs the vector query and the AI flow.
+- **The lifecycle cron needs an external scheduler** (see [Deployment](#deployment)).
+- **There is no "archived" state.** Events end at `completed`.
+- **Email, SMS, Gemini, Dodo and Clerk integrations** are not exercised by automated tests, so they need manual checks with real credentials.
+- **The 6-digit entry code** is a deliberate usability trade-off that the audit deferred.
+- **Housekeeping.** Two generated test artifacts, `.smoke-last-run.json` and `.phase3-manual-verify.md`, are committed to the repo root.
+
+## Troubleshooting
+
+| Symptom | Likely cause | Fix |
+| :--- | :--- | :--- |
+| App fails at start with "Invalid server environment variables" | A required variable is missing or too short | Run `npm run env:check` and fix what it lists. |
+| Production start throws about `QR_SECRET`, `CRON_SECRET` or webhook secrets | They are required when `NODE_ENV=production` | Set them. `CRON_SECRET` is not in `.env.example`. |
+| `db:push` fails on a `vector` type | The `pgvector` extension is not enabled | Run `create extension if not exists vector;` as a database admin. |
+| Signed up in Clerk but the app shows no profile | The Clerk webhook did not reach the app | Point a Clerk webhook at `/api/webhooks/clerk` and set `CLERK_WEBHOOK_SECRET`. |
+| AI features return nothing | No `GOOGLE_API_KEY` or `GEMINI_API_KEY`, a timeout (15 s) or quota | Set the key. Check the server log for the `[AI:...]` warning. |
+| Events never become active or completed | Nothing calls the lifecycle cron | Schedule `/api/cron/lifecycle` with `CRON_SECRET`. |
+| Image upload fails | File is not an image, over 10 MB, or the `eventra-uploads` bucket is missing | Check the file and create the Supabase storage bucket. |
+| `Too many requests` errors | The database rate limiter | Wait a minute. Limits are per user and IP. |
+| `npm ci` complains about peer dependencies | Peer ranges conflict | CI installs with `npm ci --force`. |
+| CORS errors from another origin | `ALLOWED_ORIGINS` is not set | Set it to the allowed origins. |
+
+## Documentation
+
+| Document | Purpose |
+| :--- | :--- |
+| [`METHODOLOGY.md`](METHODOLOGY.md) | Algorithms: ticket signing, capacity and waitlist, recommendations, hybrid location, XP and NPS |
+| [`AUDIT_REPORT.md`](AUDIT_REPORT.md) | Production readiness audit and findings |
+| [`docs/AUDIT_REMEDIATION.md`](docs/AUDIT_REMEDIATION.md) | What was fixed, deferred or left open |
+
+## Contributing
+
+Issues and pull requests are welcome. Run `npm run lint`, `npm run typecheck`, `npm test` and `npm run build` before opening a PR, which are the same checks CI runs. Keep secrets out of commits, and never commit `.env` files.
 
 ## License
 
-Copyright 2026 Eventra Ecosystem. All rights reserved.
-
-This project and its accompanying documentation are the proprietary and confidential property of Eventra. Any unauthorized use, reproduction, or distribution of this software, in whole or in part, without the prior written consent of the copyright holder is strictly prohibited.
-
-### Usage Restrictions
-
-- **Commercial Use**: Prohibited without a valid enterprise license
-- **Modification**: Modification of the core Intelligence Engine (Genkit flows) is restricted to certified contributors
-- **Redistribution**: Redistribution of the binary or source code is not permitted
-
----
-
-*Last Updated: June 30, 2026*
+Released under the MIT License. See [LICENSE](LICENSE).
